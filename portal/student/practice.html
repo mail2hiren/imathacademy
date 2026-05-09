@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Abacus Practice — iMathAcademy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #F7F8FF; color: #1A1A2E; min-height: 100vh;
+    }
+    :root {
+      --green:#43A047; --green-dk:#1B5E20; --green-lt:#E8F5E9; --green-md:#2E7D32;
+      --orange:#FB8C00; --orange-dk:#E65100; --orange-lt:#FFF3E0;
+      --blue:#1E88E5; --blue-dk:#0D47A1; --blue-lt:#E3F2FD;
+      --purple:#8E24AA; --purple-dk:#4A148C; --purple-lt:#F3E5F5;
+      --red:#E53935; --red-dk:#B71C1C; --red-lt:#FFEBEE;
+      --yellow:#F9A825; --yellow-lt:#FFFDE7; --yellow-dk:#F57F17;
+      --bg:#FFFFFF; --bg2:#F7F8FF; --border:#E8EAF6;
+      --text2:#4A4A6A; --text3:#9090B0;
+    }
+
+    /* ── LAYOUT ── */
+    .portal { display:flex; min-height:100vh; }
+
+    .sidebar {
+      width:220px; flex-shrink:0; background:var(--bg);
+      border-right:2px solid var(--border);
+      display:flex; flex-direction:column;
+      position:fixed; top:0; left:0; height:100vh;
+      overflow-y:auto; z-index:100;
+      transition:transform .3s ease;
+    }
+    .sidebar-logo {
+      padding:20px 16px; border-bottom:2px solid var(--border);
+      font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800;
+      color:var(--green-dk); display:flex; align-items:center; gap:10px;
+    }
+    .sidebar-logo span { color:var(--orange-dk); }
+    .logo-icon {
+      width:34px; height:34px; background:var(--green); border-radius:10px;
+      display:flex; align-items:center; justify-content:center; font-size:1.1rem;
+    }
+    .sidebar-nav { flex:1; padding:12px 0; }
+    .nav-section {
+      font-size:.68rem; font-weight:800; text-transform:uppercase;
+      letter-spacing:.8px; color:var(--text3); padding:8px 16px 3px; margin-top:6px;
+    }
+    .nav-item {
+      display:flex; align-items:center; gap:10px; padding:10px 16px;
+      font-size:.875rem; font-weight:700; color:var(--text2);
+      cursor:pointer; border-left:3px solid transparent;
+      transition:all .12s; text-decoration:none;
+    }
+    .nav-item:hover { color:var(--text); background:var(--bg2); }
+    .nav-item.active { color:var(--green-dk); background:var(--green-lt); border-left-color:var(--green); }
+    .nav-icon { width:20px; text-align:center; font-size:1rem; }
+    .nav-badge {
+      margin-left:auto; background:var(--red); color:#fff;
+      font-size:.62rem; font-weight:800; padding:2px 6px;
+      border-radius:20px; min-width:18px; text-align:center;
+    }
+    .sidebar-user {
+      padding:14px 16px; border-top:2px solid var(--border);
+      display:flex; align-items:center; gap:10px;
+    }
+    .user-av {
+      width:36px; height:36px; border-radius:50%;
+      background:var(--green-lt); border:2px solid var(--green);
+      display:flex; align-items:center; justify-content:center;
+      font-size:.8rem; font-weight:800; color:var(--green-dk); flex-shrink:0;
+    }
+    .user-name { font-size:.82rem; font-weight:800; color:var(--text); }
+    .user-role { font-size:.7rem; color:var(--text3); font-weight:600; }
+    .logout-btn {
+      margin-left:auto; background:none; border:none;
+      font-size:.85rem; cursor:pointer; color:var(--text3);
+    }
+    .logout-btn:hover { color:var(--red); }
+
+    .main { flex:1; margin-left:220px; display:flex; flex-direction:column; }
+
+    .topbar {
+      height:62px; background:var(--bg); border-bottom:2px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 24px; position:sticky; top:0; z-index:50;
+      box-shadow:0 2px 8px rgba(0,0,0,.05);
+    }
+    .topbar-left { display:flex; align-items:center; gap:12px; }
+    .hamburger {
+      display:none; flex-direction:column; gap:4px;
+      cursor:pointer; background:none; border:none;
+    }
+    .hamburger span { width:20px; height:2px; background:var(--text); border-radius:2px; display:block; }
+    .topbar-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; }
+    .back-link {
+      font-size:.82rem; font-weight:700; color:var(--text3);
+      text-decoration:none; transition:color .12s;
+    }
+    .back-link:hover { color:var(--green-dk); }
+
+    .body { padding:24px; max-width:860px; margin:0 auto; width:100%; }
+
+    /* ── SESSION HEADER ── */
+    .session-header {
+      background:var(--bg); border:2px solid var(--border);
+      border-radius:18px; padding:18px 24px;
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:20px; flex-wrap:wrap; gap:12px;
+    }
+    .session-info h2 {
+      font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800;
+      color:var(--text); margin-bottom:3px;
+    }
+    .session-info p { font-size:.82rem; color:var(--text2); font-weight:600; }
+    .session-stats { display:flex; gap:12px; flex-wrap:wrap; }
+    .sess-stat {
+      text-align:center; padding:8px 16px;
+      background:var(--bg2); border:2px solid var(--border); border-radius:12px;
+    }
+    .sess-stat-n { font-family:'Baloo 2',sans-serif; font-size:1.3rem; font-weight:800; }
+    .sess-stat-l { font-size:.68rem; font-weight:700; color:var(--text3); }
+
+    /* ── PROGRESS BAR ── */
+    .progress-wrap {
+      background:var(--bg); border:2px solid var(--border);
+      border-radius:14px; padding:14px 20px; margin-bottom:20px;
+    }
+    .progress-top {
+      display:flex; justify-content:space-between;
+      align-items:center; margin-bottom:8px;
+    }
+    .progress-label { font-size:.82rem; font-weight:800; color:var(--text2); }
+    .progress-count { font-size:.82rem; font-weight:800; color:var(--green-dk); }
+    .progress-track {
+      height:10px; background:var(--bg2); border-radius:5px; overflow:hidden;
+    }
+    .progress-fill {
+      height:100%; background:var(--green); border-radius:5px;
+      transition:width .4s ease;
+    }
+    .dot-row { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+    .q-dot {
+      width:20px; height:20px; border-radius:50%;
+      background:var(--bg2); border:2px solid var(--border);
+      transition:all .3s;
+    }
+    .q-dot.correct  { background:var(--green);  border-color:var(--green-dk); }
+    .q-dot.wrong    { background:var(--red);    border-color:var(--red-dk); }
+    .q-dot.current  { background:var(--yellow); border-color:var(--yellow-dk); animation:pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.5} }
+
+    /* ── QUESTION CARD ── */
+    .question-card {
+      background:var(--bg); border:2px solid var(--border);
+      border-radius:20px; padding:24px;
+      margin-bottom:20px; text-align:center;
+    }
+    .q-topic {
+      display:inline-block; padding:4px 14px; border-radius:20px;
+      font-size:.75rem; font-weight:800; margin-bottom:14px;
+      background:var(--blue-lt); color:var(--blue-dk);
+    }
+    .q-text {
+      font-family:'Baloo 2',sans-serif;
+      font-size:clamp(1.8rem,5vw,2.6rem); font-weight:800;
+      color:var(--text); margin-bottom:8px;
+    }
+    .q-text .op { color:var(--red); }
+    .q-text .eq { color:var(--purple); }
+    .q-instruction {
+      font-size:.85rem; color:var(--text3); font-weight:600;
+    }
+
+    /* ── SOROBAN ABACUS ── */
+    .abacus-section {
+      background:var(--bg); border:2px solid var(--border);
+      border-radius:20px; padding:24px;
+      margin-bottom:20px; text-align:center;
+    }
+
+    .soroban-outer {
+      display:inline-block;
+      background:#4E342E; border-radius:16px;
+      padding:14px 12px; border:4px solid #3E2723;
+      box-shadow:0 8px 24px rgba(0,0,0,.3), inset 0 2px 4px rgba(0,0,0,.2);
+      overflow-x:auto; max-width:100%;
+    }
+
+    .soroban-inner {
+      background:#5D4037; border-radius:12px;
+      padding:10px 8px; border:2px solid #4E342E;
+    }
+
+    .soroban-frame {
+      display:flex; align-items:stretch;
+      gap:0; justify-content:center;
+    }
+
+    .soroban-divider {
+      height:5px; background:#3E2723; border-radius:3px; margin:4px 0;
+    }
+
+    .s-col {
+      display:flex; flex-direction:column;
+      align-items:center; position:relative;
+      padding:0 4px;
+    }
+
+    .s-sep {
+      width:2px; background:rgba(0,0,0,.25);
+      align-self:stretch; margin:0 1px; border-radius:1px;
+    }
+
+    .s-rod {
+      width:3px; background:linear-gradient(to bottom,#4E342E,#8D6E63);
+      position:absolute; top:0; bottom:0; left:50%;
+      transform:translateX(-50%); border-radius:2px; z-index:0;
+    }
+
+    /* Heaven bead */
+    .h-bead {
+      width:34px; height:18px; border-radius:50%;
+      cursor:pointer; border:2.5px solid rgba(0,0,0,.15);
+      position:relative; z-index:1; margin:3px 0;
+      transition:transform .15s, background .15s, box-shadow .15s;
+      user-select:none;
+    }
+    .h-bead.off {
+      background:radial-gradient(circle at 35% 35%, #FFFDE7, #FFE082);
+      box-shadow:inset 0 1px 2px rgba(255,255,255,.5);
+    }
+    .h-bead.on {
+      background:radial-gradient(circle at 35% 35%, #FFE082, #F57F17);
+      border-color:#E65100;
+      box-shadow:0 2px 6px rgba(245,127,23,.4), inset 0 1px 2px rgba(255,255,255,.3);
+      transform:scale(1.08);
+    }
+    .h-bead:hover { transform:scale(1.12); }
+    .h-bead.on:hover { transform:scale(1.15); }
+
+    /* Earth bead */
+    .e-bead {
+      width:34px; height:18px; border-radius:50%;
+      cursor:pointer; border:2.5px solid rgba(0,0,0,.15);
+      position:relative; z-index:1; margin:2px 0;
+      transition:transform .15s, background .15s, box-shadow .15s;
+      user-select:none;
+    }
+    .e-bead.off {
+      background:radial-gradient(circle at 35% 35%, #E3F2FD, #90CAF9);
+      box-shadow:inset 0 1px 2px rgba(255,255,255,.5);
+    }
+    .e-bead.on {
+      background:radial-gradient(circle at 35% 35%, #FFF176, #F9A825);
+      border-color:#E65100;
+      box-shadow:0 2px 6px rgba(249,168,37,.4), inset 0 1px 2px rgba(255,255,255,.3);
+      transform:scale(1.08);
+    }
+    .e-bead:hover { transform:scale(1.1); }
+    .e-bead.on:hover { transform:scale(1.12); }
+
+    .col-label {
+      font-size:.65rem; font-weight:800;
+      color:#FFF9C4; text-align:center; margin-top:6px;
+      text-shadow:0 1px 2px rgba(0,0,0,.5);
+    }
+
+    /* Value display */
+    .abacus-value {
+      font-family:'Baloo 2',sans-serif;
+      font-size:3rem; font-weight:800;
+      color:var(--green); margin:16px 0 4px;
+      font-variant-numeric:tabular-nums;
+      letter-spacing:2px;
+      transition:color .2s;
+    }
+    .abacus-value.changed { color:var(--orange); }
+
+    .value-label {
+      font-size:.8rem; font-weight:700;
+      color:var(--text3); margin-bottom:16px;
+    }
+
+    /* ── ACTION BUTTONS ── */
+    .action-btns {
+      display:flex; gap:12px; justify-content:center; flex-wrap:wrap;
+    }
+    .btn {
+      padding:12px 24px; border-radius:30px;
+      font-family:'Nunito',sans-serif; font-size:.9rem;
+      font-weight:800; border:none; cursor:pointer;
+      transition:all .15s;
+    }
+    .btn:active { transform:scale(.96); }
+    .btn-reset { background:var(--bg2); color:var(--text2); border:2px solid var(--border); }
+    .btn-reset:hover { background:var(--bg); }
+    .btn-check { background:var(--green); color:#fff; }
+    .btn-check:hover { background:var(--green-md); transform:translateY(-1px); }
+    .btn-next { background:var(--blue); color:#fff; display:none; }
+    .btn-next:hover { background:var(--blue-dk); }
+    .btn-hint { background:var(--yellow-lt); color:var(--yellow-dk); border:2px solid #FFE082; }
+
+    /* ── HINT BOX ── */
+    .hint-box {
+      background:var(--yellow-lt); border:2px solid #FFE082;
+      border-radius:14px; padding:14px 18px;
+      font-size:.875rem; color:var(--yellow-dk);
+      font-weight:600; margin-top:14px;
+      display:none; text-align:left; line-height:1.6;
+    }
+    .hint-box.show { display:block; }
+    .hint-title { font-weight:800; margin-bottom:4px; }
+
+    /* ── FEEDBACK ── */
+    .feedback-correct {
+      display:none; background:var(--green-lt);
+      border:3px solid #66BB6A; border-radius:20px;
+      padding:24px; text-align:center;
+      animation:bounceIn .4s ease;
+      margin-top:16px;
+    }
+    .feedback-correct.show { display:block; }
+
+    .feedback-wrong {
+      display:none; background:var(--red-lt);
+      border:3px solid #EF9A9A; border-radius:16px;
+      padding:16px; text-align:center;
+      margin-top:16px;
+    }
+    .feedback-wrong.show { display:block; }
+
+    @keyframes bounceIn {
+      0%  { transform:scale(.8); opacity:0; }
+      60% { transform:scale(1.05); }
+      100%{ transform:scale(1); opacity:1; }
+    }
+
+    .fb-emoji { font-size:2.5rem; margin-bottom:8px; }
+    .fb-title {
+      font-family:'Baloo 2',sans-serif;
+      font-size:1.3rem; font-weight:800; margin-bottom:6px;
+    }
+    .fb-sub { font-size:.875rem; font-weight:600; }
+    .fb-xp {
+      display:inline-block; background:var(--yellow);
+      color:#fff; padding:4px 14px; border-radius:20px;
+      font-size:.8rem; font-weight:800; margin-top:8px;
+    }
+
+    /* ── KIDS MODE ── */
+    .kids-mode .q-text { font-size:clamp(2rem,6vw,3rem); }
+    .kids-mode .h-bead { width:42px; height:24px; }
+    .kids-mode .e-bead { width:42px; height:24px; }
+    .kids-mode .abacus-value { font-size:3.5rem; }
+
+    /* ── SESSION COMPLETE ── */
+    .session-complete {
+      display:none; background:var(--bg);
+      border:2px solid var(--border); border-radius:20px;
+      padding:36px; text-align:center;
+    }
+    .session-complete.show { display:block; }
+    .complete-emoji { font-size:4rem; margin-bottom:16px; }
+    .complete-title {
+      font-family:'Baloo 2',sans-serif;
+      font-size:1.8rem; font-weight:800;
+      color:var(--text); margin-bottom:8px;
+    }
+    .complete-sub { font-size:.95rem; color:var(--text2); font-weight:600; margin-bottom:24px; }
+    .complete-stats {
+      display:flex; gap:16px; justify-content:center;
+      margin-bottom:28px; flex-wrap:wrap;
+    }
+    .c-stat {
+      background:var(--bg2); border:2px solid var(--border);
+      border-radius:14px; padding:14px 20px; text-align:center;
+    }
+    .c-stat-n {
+      font-family:'Baloo 2',sans-serif;
+      font-size:1.8rem; font-weight:800;
+    }
+    .c-stat-l { font-size:.75rem; font-weight:700; color:var(--text2); }
+
+    /* ── SPEED DRILL ── */
+    .speed-drill {
+      display:none; background:linear-gradient(135deg,var(--green-dk),var(--green-md));
+      border-radius:20px; padding:28px; text-align:center; color:#fff;
+      margin-bottom:20px;
+    }
+    .speed-drill.show { display:block; }
+    .drill-timer {
+      font-family:'Baloo 2',sans-serif; font-size:3rem;
+      font-weight:800; margin-bottom:8px;
+      font-variant-numeric:tabular-nums;
+    }
+    .drill-timer.urgent { color:#FFCDD2; animation:pulse 0.5s infinite; }
+    .drill-q {
+      font-family:'Baloo 2',sans-serif; font-size:2.5rem;
+      font-weight:800; margin-bottom:16px;
+    }
+    .drill-input {
+      width:160px; padding:12px; border-radius:14px;
+      border:3px solid rgba(255,255,255,.4);
+      background:rgba(255,255,255,.15); color:#fff;
+      font-family:'Baloo 2',sans-serif; font-size:2rem;
+      font-weight:800; text-align:center; outline:none;
+    }
+    .drill-input:focus { border-color:var(--yellow); background:rgba(255,255,255,.25); }
+    .drill-input::placeholder { color:rgba(255,255,255,.5); }
+
+    /* ── TOAST ── */
+    .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+    .toast {
+      background:var(--text); color:#fff; padding:10px 18px;
+      border-radius:12px; font-size:.875rem; font-weight:700;
+      box-shadow:0 4px 16px rgba(0,0,0,.2);
+      animation:slideIn .3s ease;
+    }
+    .toast-success { background:var(--green-dk); }
+    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:768px) {
+      .sidebar { transform:translateX(-100%); }
+      .sidebar.open { transform:translateX(0); }
+      .main { margin-left:0; }
+      .hamburger { display:flex; }
+      .body { padding:16px; }
+      .session-stats { display:none; }
+      .soroban-outer { padding:10px 8px; }
+      .h-bead, .e-bead { width:28px; height:16px; }
+    }
+  </style>
+</head>
+<body>
+<div class="portal">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🧮</div>
+      iMath<span>Academy</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Learning</div>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a class="nav-item" href="lessons.html"><span class="nav-icon">▶️</span> Lessons</a>
+      <a class="nav-item active" href="practice.html"><span class="nav-icon">⚡</span> Practice</a>
+      <a class="nav-item" href="homework.html"><span class="nav-icon">📋</span> Homework<span class="nav-badge">2</span></a>
+      <div class="nav-section">Progress</div>
+      <a class="nav-item" href="progress.html"><span class="nav-icon">📊</span> My progress</a>
+      <a class="nav-item" href="progress.html"><span class="nav-icon">🏅</span> Badges & XP</a>
+      <div class="nav-section">Classes</div>
+      <a class="nav-item" href="#"><span class="nav-icon">📹</span> Live classes</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-av" id="userAv">AR</div>
+      <div>
+        <div class="user-name" id="userName">Arjun Rao</div>
+        <div class="user-role">Student</div>
+      </div>
+      <button class="logout-btn" onclick="logout()" title="Sign out">⇥</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div class="topbar-title">⚡ Abacus Practice</div>
+      </div>
+      <a class="back-link" href="dashboard.html">← Back to dashboard</a>
+    </div>
+
+    <div class="body">
+
+      <!-- Setup screen -->
+      <div id="setupScreen">
+        <div style="background:var(--bg);border:2px solid var(--border);border-radius:20px;padding:28px;margin-bottom:20px">
+          <div style="font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:800;margin-bottom:6px">Choose your practice session</div>
+          <div style="font-size:.875rem;color:var(--text2);margin-bottom:24px;font-weight:500">Select topic and mode to begin</div>
+
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:20px">
+            <div>
+              <label style="display:block;font-size:.82rem;font-weight:800;margin-bottom:6px">Topic</label>
+              <select id="topicSelect" style="width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:12px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:600;outline:none">
+                <option value="all">All topics (mixed)</option>
+                <option value="Single digit addition">Single digit addition</option>
+                <option value="Single digit subtraction">Single digit subtraction</option>
+                <option value="Two digit addition">Two digit addition</option>
+                <option value="Two digit subtraction">Two digit subtraction</option>
+                <option value="Three digit addition">Three digit addition</option>
+                <option value="Addition with carrying">Addition with carrying ⚠️ Weak area</option>
+                <option value="3-digit subtraction">3-digit subtraction ⚠️ Weak area</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block;font-size:.82rem;font-weight:800;margin-bottom:6px">Mode</label>
+              <select id="modeSelect" style="width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:12px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:600;outline:none">
+                <option value="practice">Practice (with hints)</option>
+                <option value="homework">Homework mode (no hints)</option>
+                <option value="speed">Speed drill (timed)</option>
+                <option value="kids">Kids mode (large beads)</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block;font-size:.82rem;font-weight:800;margin-bottom:6px">Difficulty</label>
+              <select id="diffSelect" style="width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:12px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:600;outline:none">
+                <option value="1">Easy (Level 1)</option>
+                <option value="2" selected>Medium (Level 2)</option>
+                <option value="3">Hard (Level 3+)</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block;font-size:.82rem;font-weight:800;margin-bottom:6px">Questions</label>
+              <select id="countSelect" style="width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:12px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:600;outline:none">
+                <option value="5">5 questions (quick)</option>
+                <option value="10" selected>10 questions (standard)</option>
+                <option value="15">15 questions (full)</option>
+                <option value="20">20 questions (marathon)</option>
+              </select>
+            </div>
+          </div>
+
+          <button onclick="startSession()" style="background:var(--green);color:#fff;border:none;padding:14px 32px;border-radius:30px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;width:100%;transition:all .15s">
+            Start practice session →
+          </button>
+        </div>
+
+        <!-- Recent performance -->
+        <div style="background:var(--bg);border:2px solid var(--border);border-radius:18px;padding:20px">
+          <div style="font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:14px">Your recent performance</div>
+          <div style="display:flex;flex-direction:column;gap:8px" id="recentPerf">
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span style="flex:1;font-size:.85rem;font-weight:600">Addition with carrying</span>
+              <div style="width:100px;height:8px;background:var(--bg2);border-radius:4px;overflow:hidden"><div style="height:100%;background:var(--red);width:48%;border-radius:4px"></div></div>
+              <span style="font-size:.8rem;font-weight:800;color:var(--red-dk);width:34px;text-align:right">48%</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+              <span style="flex:1;font-size:.85rem;font-weight:600">3-digit subtraction</span>
+              <div style="width:100px;height:8px;background:var(--bg2);border-radius:4px;overflow:hidden"><div style="height:100%;background:var(--orange);width:58%;border-radius:4px"></div></div>
+              <span style="font-size:.8rem;font-weight:800;color:var(--orange-dk);width:34px;text-align:right">58%</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+              <span style="flex:1;font-size:.85rem;font-weight:600">Single digit addition</span>
+              <div style="width:100px;height:8px;background:var(--bg2);border-radius:4px;overflow:hidden"><div style="height:100%;background:var(--green);width:91%;border-radius:4px"></div></div>
+              <span style="font-size:.8rem;font-weight:800;color:var(--green-dk);width:34px;text-align:right">91%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Practice screen (hidden until session starts) -->
+      <div id="practiceScreen" style="display:none">
+
+        <!-- Session header -->
+        <div class="session-header">
+          <div class="session-info">
+            <h2 id="sessionTitle">Abacus Practice</h2>
+            <p id="sessionSubtitle">Single digit addition · Medium difficulty</p>
+          </div>
+          <div class="session-stats">
+            <div class="sess-stat">
+              <div class="sess-stat-n" style="color:var(--green)" id="statCorrect">0</div>
+              <div class="sess-stat-l">Correct</div>
+            </div>
+            <div class="sess-stat">
+              <div class="sess-stat-n" style="color:var(--red)" id="statWrong">0</div>
+              <div class="sess-stat-l">Wrong</div>
+            </div>
+            <div class="sess-stat">
+              <div class="sess-stat-n" style="color:var(--yellow)" id="statXP">0</div>
+              <div class="sess-stat-l">XP earned</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-wrap">
+          <div class="progress-top">
+            <div class="progress-label">Session progress</div>
+            <div class="progress-count" id="progCount">Question 1 of 10</div>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progFill" style="width:0%"></div>
+          </div>
+          <div class="dot-row" id="dotRow"></div>
+        </div>
+
+        <!-- Speed drill (shown in speed mode) -->
+        <div class="speed-drill" id="speedDrill">
+          <div class="drill-timer" id="drillTimer">10</div>
+          <div class="drill-q" id="drillQ">7 + 5 = ?</div>
+          <input class="drill-input" id="drillInput" type="number" placeholder="?" autofocus oninput="checkDrill(this)">
+          <div style="font-size:.82rem;opacity:.8;margin-top:12px">Type your answer — no abacus needed in speed mode!</div>
+        </div>
+
+        <!-- Question card -->
+        <div class="question-card" id="questionCard">
+          <div class="q-topic" id="qTopic">Single digit addition</div>
+          <div class="q-text" id="qText">
+            <span id="qNum1">7</span>
+            <span class="op" id="qOp"> + </span>
+            <span id="qNum2">5</span>
+            <span class="eq"> = ?</span>
+          </div>
+          <div class="q-instruction">Set the answer on the abacus below, then click Check!</div>
+        </div>
+
+        <!-- Abacus -->
+        <div class="abacus-section" id="abacusSection">
+          <div class="soroban-outer">
+            <div class="soroban-inner">
+              <div class="soroban-frame" id="sorobanFrame"></div>
+              <div class="soroban-divider"></div>
+            </div>
+          </div>
+          <div class="abacus-value" id="abacusValue">0</div>
+          <div class="value-label">Current abacus value</div>
+
+          <div class="action-btns">
+            <button class="btn btn-reset"  onclick="resetAbacus()">Reset beads</button>
+            <button class="btn btn-hint"   onclick="toggleHint()" id="hintBtn">Show hint 💡</button>
+            <button class="btn btn-check"  onclick="checkAnswer()" id="checkBtn">Check answer ✓</button>
+            <button class="btn btn-next"   onclick="nextQuestion()" id="nextBtn">Next question →</button>
+          </div>
+
+          <div class="hint-box" id="hintBox">
+            <div class="hint-title">💡 Hint</div>
+            <div id="hintText">Loading hint...</div>
+          </div>
+
+          <div class="feedback-correct" id="feedbackCorrect">
+            <div class="fb-emoji">🎉</div>
+            <div class="fb-title" id="fbTitle">Correct!</div>
+            <div class="fb-sub" id="fbSub">Well done! That is right.</div>
+            <div class="fb-xp" id="fbXP">+10 XP</div>
+          </div>
+
+          <div class="feedback-wrong" id="feedbackWrong">
+            <div class="fb-emoji">🤔</div>
+            <div class="fb-title" style="color:var(--red-dk)" id="fbWrongTitle">Not quite!</div>
+            <div class="fb-sub" style="color:var(--red-dk)" id="fbWrongSub">Try adjusting the beads and check again.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Session complete -->
+      <div class="session-complete" id="sessionComplete">
+        <div class="complete-emoji" id="completeEmoji">🏆</div>
+        <div class="complete-title" id="completeTitle">Session complete!</div>
+        <div class="complete-sub" id="completeSub">Great work today!</div>
+        <div class="complete-stats">
+          <div class="c-stat">
+            <div class="c-stat-n" style="color:var(--green)" id="finalCorrect">8</div>
+            <div class="c-stat-l">Correct</div>
+          </div>
+          <div class="c-stat">
+            <div class="c-stat-n" style="color:var(--red)" id="finalWrong">2</div>
+            <div class="c-stat-l">Wrong</div>
+          </div>
+          <div class="c-stat">
+            <div class="c-stat-n" style="color:var(--yellow)" id="finalXP">0</div>
+            <div class="c-stat-l">XP earned</div>
+          </div>
+          <div class="c-stat">
+            <div class="c-stat-n" style="color:var(--blue)" id="finalAccuracy">80%</div>
+            <div class="c-stat-l">Accuracy</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+          <button onclick="restartSession()" style="background:var(--green);color:#fff;border:none;padding:13px 28px;border-radius:30px;font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer">Practice again</button>
+          <button onclick="window.location.href='dashboard.html'" style="background:var(--bg2);color:var(--text2);border:2px solid var(--border);padding:13px 28px;border-radius:30px;font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer">Back to dashboard</button>
+          <button onclick="window.location.href='homework.html'" style="background:var(--blue);color:#fff;border:none;padding:13px 28px;border-radius:30px;font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:800;cursor:pointer">Do homework →</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY = 'YOUR_ANON_KEY_HERE';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── QUESTION BANK (used when Supabase not yet connected) ──
+const DEMO_QUESTIONS = [
+  { q:'2 + 3', a:5,  topic:'Single digit addition',    hint:'Set 2 ones, then add 3 more earth beads',    explanation:'2 + 3 = 5. Set 2 beads, push 3 more up.' },
+  { q:'7 + 5', a:12, topic:'Single digit addition',    hint:'7 ones = heaven bead (5) + 2 earth. Add 5 more ones', explanation:'7 + 5 = 12. Move to tens column.' },
+  { q:'9 - 3', a:6,  topic:'Single digit subtraction', hint:'Set 9 on ones column, then remove 3 earth beads', explanation:'9 - 3 = 6.' },
+  { q:'8 - 5', a:3,  topic:'Single digit subtraction', hint:'Set 8, then push the heaven bead down', explanation:'8 - 5 = 3. Remove the heaven bead (5).' },
+  { q:'4 + 4', a:8,  topic:'Single digit addition',    hint:'4 earth beads up, then 4 more earth beads', explanation:'4 + 4 = 8.' },
+  { q:'23 + 14',a:37,topic:'Two digit addition',       hint:'Set tens first: 2 tens. Then ones: 3. Add 1 ten and 4 ones.', explanation:'23 + 14 = 37. Work left to right.' },
+  { q:'45 - 23',a:22,topic:'Two digit subtraction',    hint:'Set 45, remove 2 tens then 3 ones', explanation:'45 - 23 = 22.' },
+  { q:'37 + 46',a:83,topic:'Addition with carrying',   hint:'Set 3 tens + 7 ones. Add 4 tens = 7 tens. Add 6 ones = 13 ones = carry 1 ten + 3 ones', explanation:'37 + 46 = 83. Carry 1 ten when ones exceed 9.' },
+  { q:'62 + 17',a:79,topic:'Two digit addition',       hint:'6 tens + 1 ten = 7 tens. 2 ones + 7 ones = 9 ones', explanation:'62 + 17 = 79.' },
+  { q:'5 + 4',  a:9,  topic:'Single digit addition',   hint:'Heaven bead (5) is active, add 4 earth beads', explanation:'5 + 4 = 9. Heaven bead + 4 earths = 9.' },
+  { q:'31 + 25',a:56,topic:'Two digit addition',       hint:'3 tens + 2 tens = 5 tens. 1 one + 5 ones = 6 ones', explanation:'31 + 25 = 56.' },
+  { q:'78 - 34',a:44,topic:'Two digit subtraction',    hint:'7 tens - 3 tens = 4 tens. 8 ones - 4 ones = 4 ones', explanation:'78 - 34 = 44.' },
+  { q:'6 + 7',  a:13,topic:'Single digit addition',    hint:'6 ones + 7 ones = 13. Set 1 ten and 3 ones', explanation:'6 + 7 = 13. Carry to tens column.' },
+  { q:'96 - 53',a:43,topic:'Two digit subtraction',    hint:'9 tens - 5 tens = 4 tens. 6 ones - 3 ones = 3 ones', explanation:'96 - 53 = 43.' },
+  { q:'54 + 23',a:77,topic:'Two digit addition',       hint:'5 tens + 2 tens = 7 tens. 4 ones + 3 ones = 7 ones', explanation:'54 + 23 = 77.' },
+  { q:'3 + 6',  a:9,  topic:'Single digit addition',   hint:'3 earth beads, then add 6 more — use heaven bead for 5', explanation:'3 + 6 = 9.' },
+  { q:'87 - 62',a:25,topic:'Two digit subtraction',    hint:'8 tens - 6 tens = 2 tens. 7 ones - 2 ones = 5 ones', explanation:'87 - 62 = 25.' },
+  { q:'1 + 8',  a:9,  topic:'Single digit addition',   hint:'1 earth bead, add 5 (heaven) + 3 earth = 8 more', explanation:'1 + 8 = 9.' },
+  { q:'42 + 36',a:78,topic:'Two digit addition',       hint:'4+3=7 tens, 2+6=8 ones', explanation:'42 + 36 = 78.' },
+  { q:'9 - 4',  a:5,  topic:'Single digit subtraction',hint:'Set 9 ones, remove 4 earth beads', explanation:'9 - 4 = 5.' },
+];
+
+// ── STATE ─────────────────────────────────────────────────
+let questions     = [];
+let currentIdx    = 0;
+let correctCount  = 0;
+let wrongCount    = 0;
+let xpEarned      = 0;
+let attempts      = 0;
+let hintShown     = false;
+let sessionMode   = 'practice';
+let totalQ        = 10;
+let results       = [];
+let drillInterval = null;
+let drillSeconds  = 10;
+
+// Abacus: cols[0] = ones, cols[1] = tens, cols[2] = hundreds
+const COLS = 3;
+const colState = [];
+for (let i = 0; i < COLS; i++) colState.push({ h: false, e: [false,false,false,false] });
+
+// ── BUILD SOROBAN ─────────────────────────────────────────
+function buildSoroban() {
+  const frame = document.getElementById('sorobanFrame');
+  frame.innerHTML = '';
+
+  // Build columns right to left (ones on right)
+  for (let c = COLS - 1; c >= 0; c--) {
+    if (c < COLS - 1) {
+      const sep = document.createElement('div');
+      sep.className = 's-sep'; frame.appendChild(sep);
+    }
+
+    const col = document.createElement('div');
+    col.className = 's-col';
+    col.style.cssText = 'position:relative;padding:0 4px';
+
+    const rod = document.createElement('div');
+    rod.className = 's-rod'; col.appendChild(rod);
+
+    // Heaven bead (top, worth 5)
+    const hb = document.createElement('div');
+    hb.className = 'h-bead off';
+    hb.title = 'Heaven bead = 5';
+    const ci = c;
+    hb.onclick = () => {
+      colState[ci].h = !colState[ci].h;
+      hb.classList.toggle('on',  colState[ci].h);
+      hb.classList.toggle('off', !colState[ci].h);
+      updateValue();
+    };
+    col.appendChild(hb);
+
+    // Divider bar
+    const bar = document.createElement('div');
+    bar.style.cssText = 'height:4px;background:#3E2723;border-radius:2px;margin:4px 0;width:100%;position:relative;z-index:2';
+    col.appendChild(bar);
+
+    // Earth beads (bottom, worth 1 each)
+    for (let r = 0; r < 4; r++) {
+      const eb = document.createElement('div');
+      eb.className = 'e-bead off';
+      eb.title = 'Earth bead = 1';
+      const ri = r;
+      eb.onclick = () => {
+        colState[ci].e[ri] = !colState[ci].e[ri];
+        eb.classList.toggle('on',  colState[ci].e[ri]);
+        eb.classList.toggle('off', !colState[ci].e[ri]);
+        updateValue();
+      };
+      col.appendChild(eb);
+    }
+
+    // Column label
+    const lbl = document.createElement('div');
+    lbl.className = 'col-label';
+    lbl.textContent = c === 0 ? 'Ones' : c === 1 ? 'Tens' : 'Hundreds';
+    col.appendChild(lbl);
+
+    frame.appendChild(col);
+  }
+}
+
+// ── CALCULATE ABACUS VALUE ────────────────────────────────
+function getAbacusValue() {
+  let total = 0;
+  const multipliers = [1, 10, 100];
+  colState.forEach((col, i) => {
+    let val = col.h ? 5 : 0;
+    col.e.forEach(b => { if (b) val++; });
+    total += val * multipliers[i];
+  });
+  return total;
+}
+
+function updateValue() {
+  const val = getAbacusValue();
+  const el  = document.getElementById('abacusValue');
+  el.textContent = val;
+  el.classList.add('changed');
+  setTimeout(() => el.classList.remove('changed'), 300);
+  // Clear feedback when beads change
+  document.getElementById('feedbackCorrect').classList.remove('show');
+  document.getElementById('feedbackWrong').classList.remove('show');
+}
+
+function resetAbacus() {
+  colState.forEach(col => { col.h = false; col.e.fill(false); });
+  document.querySelectorAll('.h-bead').forEach(b => { b.classList.remove('on'); b.classList.add('off'); });
+  document.querySelectorAll('.e-bead').forEach(b => { b.classList.remove('on'); b.classList.add('off'); });
+  document.getElementById('abacusValue').textContent = '0';
+  document.getElementById('feedbackCorrect').classList.remove('show');
+  document.getElementById('feedbackWrong').classList.remove('show');
+  document.getElementById('hintBox').classList.remove('show');
+  hintShown = false;
+  document.getElementById('hintBtn').textContent = 'Show hint 💡';
+}
+
+// ── SESSION SETUP ─────────────────────────────────────────
+function startSession() {
+  const topic  = document.getElementById('topicSelect').value;
+  const mode   = document.getElementById('modeSelect').value;
+  const diff   = parseInt(document.getElementById('diffSelect').value);
+  totalQ       = parseInt(document.getElementById('countSelect').value);
+  sessionMode  = mode;
+
+  // Filter and shuffle questions
+  let pool = DEMO_QUESTIONS.filter(q => topic === 'all' || q.topic === topic);
+  if (pool.length === 0) pool = DEMO_QUESTIONS;
+  pool = shuffleArray(pool).slice(0, totalQ);
+  // Pad if not enough
+  while (pool.length < totalQ) pool = [...pool, ...shuffleArray(DEMO_QUESTIONS)].slice(0, totalQ);
+  questions    = pool;
+  currentIdx   = 0;
+  correctCount = 0;
+  wrongCount   = 0;
+  xpEarned     = 0;
+  results      = [];
+
+  document.getElementById('setupScreen').style.display    = 'none';
+  document.getElementById('practiceScreen').style.display = 'block';
+  document.getElementById('sessionComplete').classList.remove('show');
+
+  // Session title
+  document.getElementById('sessionTitle').textContent    = mode === 'speed' ? '⚡ Speed Drill' : mode === 'kids' ? '🎮 Kids Mode' : 'Abacus Practice';
+  document.getElementById('sessionSubtitle').textContent = `${topic === 'all' ? 'All topics' : topic} · ${['','Easy','Medium','Hard'][diff]} difficulty`;
+
+  // Kids mode
+  document.getElementById('abacusSection').classList.toggle('kids-mode', mode === 'kids');
+
+  // Build dots
+  const dotRow = document.getElementById('dotRow');
+  dotRow.innerHTML = '';
+  for (let i = 0; i < totalQ; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'q-dot' + (i === 0 ? ' current' : '');
+    dot.id = `dot-${i}`;
+    dotRow.appendChild(dot);
+  }
+
+  buildSoroban();
+  loadQuestion(0);
+}
+
+// ── LOAD QUESTION ─────────────────────────────────────────
+function loadQuestion(idx) {
+  if (idx >= questions.length) { showComplete(); return; }
+
+  const q = questions[idx];
+  attempts  = 0;
+  hintShown = false;
+
+  // Parse question text
+  const parts = q.q.split(/([+\-×÷])/);
+  document.getElementById('qNum1').textContent = parts[0].trim();
+  document.getElementById('qOp').textContent   = ' ' + (parts[1] || '+') + ' ';
+  document.getElementById('qNum2').textContent = (parts[2] || '').trim();
+  document.getElementById('qTopic').textContent = q.topic;
+
+  document.getElementById('hintText').textContent = q.hint;
+  document.getElementById('hintBox').classList.remove('show');
+  document.getElementById('hintBtn').textContent = 'Show hint 💡';
+  document.getElementById('feedbackCorrect').classList.remove('show');
+  document.getElementById('feedbackWrong').classList.remove('show');
+  document.getElementById('checkBtn').style.display = 'inline-block';
+  document.getElementById('nextBtn').style.display  = 'none';
+
+  // Progress
+  const pct = (idx / totalQ) * 100;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progCount').textContent = `Question ${idx + 1} of ${totalQ}`;
+
+  // Update dots
+  document.querySelectorAll('.q-dot').forEach((d, i) => {
+    d.classList.remove('current');
+    if (i === idx) d.classList.add('current');
+  });
+
+  resetAbacus();
+
+  // Speed mode
+  if (sessionMode === 'speed') {
+    document.getElementById('speedDrill').classList.add('show');
+    document.getElementById('questionCard').style.display = 'none';
+    document.getElementById('abacusSection').style.display = 'none';
+    document.getElementById('speedDrill').querySelector('.drill-q').textContent = q.q + ' = ?';
+    startDrillTimer();
+  } else {
+    document.getElementById('speedDrill').classList.remove('show');
+    document.getElementById('questionCard').style.display = 'block';
+    document.getElementById('abacusSection').style.display = 'block';
+  }
+}
+
+// ── CHECK ANSWER ──────────────────────────────────────────
+function checkAnswer() {
+  const q       = questions[currentIdx];
+  const val     = getAbacusValue();
+  const correct = q.a;
+  attempts++;
+
+  if (val === correct) {
+    handleCorrect(q);
+  } else {
+    handleWrong(q, val, attempts);
+  }
+}
+
+function handleCorrect(q) {
+  const firstTry = attempts === 1;
+  const xp       = firstTry ? 15 : 10;
+  xpEarned      += xp;
+  correctCount++;
+  results.push({ correct: true, xp });
+
+  // Update dot
+  const dot = document.getElementById(`dot-${currentIdx}`);
+  if (dot) { dot.classList.remove('current'); dot.classList.add('correct'); }
+
+  // Update stats
+  document.getElementById('statCorrect').textContent = correctCount;
+  document.getElementById('statXP').textContent      = xpEarned;
+
+  // Feedback
+  document.getElementById('feedbackCorrect').classList.add('show');
+  document.getElementById('fbTitle').textContent = firstTry ? '🎉 Correct! First try!' : '✅ Correct!';
+  document.getElementById('fbSub').textContent   = `${q.q} = ${q.a}. ${q.explanation}`;
+  document.getElementById('fbXP').textContent    = `+${xp} XP earned!`;
+
+  document.getElementById('checkBtn').style.display = 'none';
+  document.getElementById('nextBtn').style.display  = 'inline-block';
+  document.getElementById('hintBtn').style.display  = 'none';
+
+  // Auto-advance after 2.5s
+  setTimeout(() => { if (currentIdx < questions.length - 1) nextQuestion(); }, 2500);
+}
+
+function handleWrong(q, val, attempt) {
+  wrongCount++;
+  results.push({ correct: false, xp: 0 });
+
+  // Update dot
+  const dot = document.getElementById(`dot-${currentIdx}`);
+  if (dot) dot.classList.add('wrong');
+
+  // Update stats
+  document.getElementById('statWrong').textContent = wrongCount;
+
+  document.getElementById('feedbackWrong').classList.add('show');
+  document.getElementById('feedbackCorrect').classList.remove('show');
+
+  if (attempt >= 3) {
+    document.getElementById('fbWrongTitle').textContent = 'The answer is ' + q.a;
+    document.getElementById('fbWrongSub').textContent  = q.explanation + ' Click next to continue.';
+    document.getElementById('checkBtn').style.display  = 'none';
+    document.getElementById('nextBtn').style.display   = 'inline-block';
+    document.getElementById('hintBox').classList.add('show');
+  } else {
+    document.getElementById('fbWrongTitle').textContent = attempt === 1 ? 'Not quite! Try again.' : 'Almost! One more try.';
+    document.getElementById('fbWrongSub').textContent   = `Your answer: ${val}. The abacus shows ${val} — check your beads again.`;
+    // Auto-show hint after 2nd wrong attempt
+    if (attempt === 2 && sessionMode === 'practice') {
+      document.getElementById('hintBox').classList.add('show');
+      hintShown = true;
+    }
+  }
+}
+
+function toggleHint() {
+  const box = document.getElementById('hintBox');
+  const btn = document.getElementById('hintBtn');
+  if (box.classList.contains('show')) {
+    box.classList.remove('show');
+    btn.textContent = 'Show hint 💡';
+  } else {
+    box.classList.add('show');
+    btn.textContent = 'Hide hint';
+    hintShown = true;
+  }
+}
+
+function nextQuestion() {
+  currentIdx++;
+  document.getElementById('hintBtn').style.display = 'inline-block';
+  if (currentIdx >= questions.length) { showComplete(); return; }
+  loadQuestion(currentIdx);
+}
+
+// ── SPEED DRILL ────────────────────────────────────────────
+function startDrillTimer() {
+  clearInterval(drillInterval);
+  drillSeconds = 10;
+  document.getElementById('drillTimer').textContent = drillSeconds;
+  document.getElementById('drillTimer').classList.remove('urgent');
+  document.getElementById('drillInput').value = '';
+  document.getElementById('drillInput').focus();
+
+  drillInterval = setInterval(() => {
+    drillSeconds--;
+    document.getElementById('drillTimer').textContent = drillSeconds;
+    if (drillSeconds <= 3) document.getElementById('drillTimer').classList.add('urgent');
+    if (drillSeconds <= 0) {
+      clearInterval(drillInterval);
+      // Time up — count as wrong
+      wrongCount++;
+      document.getElementById('statWrong').textContent = wrongCount;
+      showToast('Time up! Moving to next question...', '');
+      setTimeout(() => nextQuestion(), 1200);
+    }
+  }, 1000);
+}
+
+function checkDrill(inp) {
+  const val = parseInt(inp.value);
+  const q   = questions[currentIdx];
+  if (isNaN(val)) return;
+  if (val === q.a) {
+    clearInterval(drillInterval);
+    xpEarned += 10;
+    correctCount++;
+    document.getElementById('statCorrect').textContent = correctCount;
+    document.getElementById('statXP').textContent      = xpEarned;
+    showToast(`✓ Correct! ${q.q} = ${q.a} · +10 XP`, 'success');
+    setTimeout(() => nextQuestion(), 1000);
+  }
+}
+
+// ── SESSION COMPLETE ───────────────────────────────────────
+function showComplete() {
+  clearInterval(drillInterval);
+  document.getElementById('practiceScreen').style.display = 'none';
+  document.getElementById('sessionComplete').classList.add('show');
+
+  const acc = Math.round((correctCount / totalQ) * 100);
+  document.getElementById('finalCorrect').textContent  = correctCount;
+  document.getElementById('finalWrong').textContent    = wrongCount;
+  document.getElementById('finalXP').textContent       = xpEarned;
+  document.getElementById('finalAccuracy').textContent = acc + '%';
+
+  let emoji = '🎉'; let title = 'Session complete!'; let sub = '';
+  if (acc >= 90) { emoji = '🏆'; title = 'Outstanding!';   sub = 'You are a true abacus master!'; }
+  else if (acc >= 75) { emoji = '🌟'; title = 'Excellent!';  sub = 'Great accuracy — keep it up!'; }
+  else if (acc >= 60) { emoji = '👍'; title = 'Good work!';  sub = 'Practice a bit more to improve.'; }
+  else { emoji = '💪'; title = 'Keep practising!'; sub = 'Do not give up — every session makes you better!'; }
+
+  document.getElementById('completeEmoji').textContent = emoji;
+  document.getElementById('completeTitle').textContent = title;
+  document.getElementById('completeSub').textContent   = sub;
+
+  // Save to Supabase if connected
+  saveSession(acc);
+}
+
+async function saveSession(accuracy) {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    await sb.from('practice_sessions').insert({
+      student_id: session.user.id,
+      topic: document.getElementById('topicSelect').value,
+      questions_attempted: totalQ,
+      questions_correct: correctCount,
+      xp_awarded: xpEarned,
+    });
+    // Update XP
+    const { data: user } = await sb.from('users').select('xp_points').eq('id', session.user.id).single();
+    if (user) {
+      await sb.from('users').update({ xp_points: (user.xp_points || 0) + xpEarned }).eq('id', session.user.id);
+    }
+  } catch { /* silent - Supabase not connected yet */ }
+}
+
+function restartSession() {
+  document.getElementById('sessionComplete').classList.remove('show');
+  document.getElementById('setupScreen').style.display = 'block';
+}
+
+// ── UTILS ──────────────────────────────────────────────────
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+function showToast(msg, type = '') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast${type ? ' toast-' + type : ''}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  window.location.href = '../../login.html';
+}
+
+// ── INIT ───────────────────────────────────────────────────
+async function init() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      const { data: profile } = await sb.from('users').select('full_name').eq('id', session.user.id).single();
+      if (profile) {
+        const name = profile.full_name;
+        const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+        document.getElementById('userAv').textContent   = initials;
+        document.getElementById('userName').textContent = name;
+      }
+    }
+  } catch { /* demo mode */ }
+}
+
+init();
+</script>
+</body>
+</html>

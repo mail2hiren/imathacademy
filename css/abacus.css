@@ -1,0 +1,503 @@
+/* ============================================================
+   iMathAcademy — Abacus & Kids CSS
+   Session 2 — abacus.css
+   ============================================================ */
+
+/* ── SOROBAN ABACUS ───────────────────────────────────────── */
+.soroban-wrap {
+  text-align: center;
+  margin: var(--sp-md) 0;
+}
+
+.soroban {
+  display: inline-block;
+  background: #5D4037;
+  border-radius: 16px;
+  padding: 12px 10px;
+  border: 4px solid #3E2723;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35), inset 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.soroban-inner {
+  background: #6D4C41;
+  border-radius: 12px;
+  padding: 10px 8px;
+  border: 2px solid #4E342E;
+}
+
+.soroban-frame {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  justify-content: center;
+}
+
+.soroban-rail {
+  height: 5px;
+  background: #3E2723;
+  border-radius: 3px;
+  margin: 3px 0;
+}
+
+.soroban-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  position: relative;
+  padding: 0 3px;
+}
+
+.soroban-sep {
+  width: 2px;
+  background: rgba(0,0,0,0.3);
+  align-self: stretch;
+  border-radius: 1px;
+  margin: 0 1px;
+}
+
+.soroban-rod {
+  width: 3px;
+  background: linear-gradient(to bottom, #5D4037, #8D6E63);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 2px;
+  z-index: 0;
+}
+
+/* Heaven bead (top, worth 5) */
+.h-bead {
+  width: 36px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2.5px solid rgba(0,0,0,0.15);
+  position: relative;
+  z-index: 1;
+  margin: 3px 0;
+  transition: transform 0.15s ease, background 0.15s ease;
+  background: radial-gradient(circle at 35% 35%, #FFF9C4, #F9A825);
+}
+
+.h-bead.on {
+  background: radial-gradient(circle at 35% 35%, #FFE082, #F57F17);
+  border-color: #E65100;
+  transform: scale(1.08);
+}
+
+.h-bead.off {
+  background: radial-gradient(circle at 35% 35%, #FFFDE7, #FFE082);
+  opacity: 0.7;
+}
+
+.h-bead:hover { transform: scale(1.12); }
+
+/* Earth beads (bottom, worth 1 each) */
+.e-bead {
+  width: 36px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2.5px solid rgba(0,0,0,0.15);
+  position: relative;
+  z-index: 1;
+  margin: 2px 0;
+  transition: transform 0.15s ease, background 0.15s ease;
+  background: radial-gradient(circle at 35% 35%, #BBDEFB, #1E88E5);
+}
+
+.e-bead.on {
+  background: radial-gradient(circle at 35% 35%, #FFF176, #F9A825);
+  border-color: #E65100;
+  transform: scale(1.08);
+}
+
+.e-bead.off {
+  background: radial-gradient(circle at 35% 35%, #E3F2FD, #90CAF9);
+  opacity: 0.65;
+}
+
+.e-bead:hover { transform: scale(1.1); }
+
+/* Column label */
+.col-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #FFF9C4;
+  text-align: center;
+  margin-top: 6px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Current value display */
+.abacus-value {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--green);
+  text-align: center;
+  margin: var(--sp-sm) 0;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  letter-spacing: 2px;
+}
+
+/* ── ABACUS PRACTICE SCREEN ───────────────────────────────── */
+.practice-shell {
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.practice-header {
+  padding: var(--sp-md) var(--sp-lg);
+  background: var(--green-lt);
+  border-bottom: 2px solid #A5D6A7;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+
+.practice-q-number {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--green-dk);
+  background: var(--white);
+  padding: 4px 12px;
+  border-radius: var(--r-full);
+  border: 1.5px solid #A5D6A7;
+}
+
+.practice-topic {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--green-md);
+}
+
+.practice-body {
+  padding: var(--sp-lg);
+}
+
+.question-display {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text);
+  text-align: center;
+  margin-bottom: var(--sp-lg);
+  line-height: 1.2;
+}
+
+.question-display .op { color: var(--red); }
+.question-display .q-mark { color: var(--purple); }
+
+/* Hint box */
+.hint-box {
+  background: var(--yellow-lt);
+  border: 2px solid #FFE082;
+  border-radius: var(--r-md);
+  padding: var(--sp-sm) var(--sp-md);
+  font-size: 0.875rem;
+  color: var(--yellow-dk);
+  font-weight: 600;
+  margin-top: var(--sp-md);
+}
+
+/* Result feedback */
+.feedback-correct {
+  background: var(--green-lt);
+  border: 3px solid #66BB6A;
+  border-radius: var(--r-lg);
+  padding: var(--sp-lg);
+  text-align: center;
+  animation: bounceIn 0.4s ease;
+}
+
+.feedback-wrong {
+  background: var(--red-lt);
+  border: 3px solid #EF9A9A;
+  border-radius: var(--r-lg);
+  padding: var(--sp-md);
+  text-align: center;
+}
+
+.feedback-emoji { font-size: 2.5rem; margin-bottom: var(--sp-sm); }
+.feedback-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; }
+.feedback-sub   { font-size: 0.875rem; font-weight: 600; }
+
+/* ── KIDS VIEW (5-year-old UI) ────────────────────────────── */
+.kids-shell {
+  background: linear-gradient(135deg, #E3F2FD 0%, #F3E5F5 50%, #E8F5E9 100%);
+  min-height: 100vh;
+  padding: var(--sp-lg);
+  font-family: var(--font-display);
+}
+
+.kids-greeting {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 5vw, 2.4rem);
+  font-weight: 800;
+  color: var(--purple-dk);
+  text-align: center;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.kids-greeting-sub {
+  font-size: clamp(1rem, 3vw, 1.3rem);
+  font-weight: 700;
+  color: var(--green-dk);
+  text-align: center;
+  margin-bottom: var(--sp-xl);
+}
+
+.kids-card {
+  background: var(--white);
+  border-radius: 28px;
+  padding: var(--sp-xl);
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  margin-bottom: var(--sp-md);
+  border: 4px solid transparent;
+}
+
+.kids-card:active { transform: scale(0.97); }
+.kids-card:hover  { transform: scale(1.02); }
+
+.kids-card-green  { border-color: var(--green);  box-shadow: 0 6px 0 #A5D6A7; }
+.kids-card-blue   { border-color: var(--blue);   box-shadow: 0 6px 0 #90CAF9; }
+.kids-card-orange { border-color: var(--orange); box-shadow: 0 6px 0 #FFCC80; }
+
+.kids-icon {
+  font-size: clamp(3rem, 8vw, 4rem);
+  display: block;
+  margin-bottom: var(--sp-sm);
+  line-height: 1;
+}
+
+.kids-card-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 4vw, 1.8rem);
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.kids-card-sub {
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  font-weight: 600;
+  color: var(--text2);
+  margin-bottom: var(--sp-md);
+}
+
+.kids-btn {
+  display: inline-block;
+  padding: 14px 32px;
+  border-radius: 30px;
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 3vw, 1.3rem);
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.1s ease;
+}
+
+.kids-btn:active { transform: scale(0.95); }
+
+.kids-btn-green  { background: var(--green);  color: var(--white); }
+.kids-btn-blue   { background: var(--blue);   color: var(--white); }
+.kids-btn-orange { background: var(--orange); color: var(--white); }
+
+/* Stars row */
+.stars-row {
+  display: flex;
+  gap: var(--sp-sm);
+  justify-content: center;
+  margin-bottom: var(--sp-md);
+}
+
+.star-bubble {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--yellow-lt);
+  border: 2.5px solid #FFE082;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  transition: var(--tr-normal);
+}
+
+.star-bubble.lit {
+  background: var(--yellow);
+  border-color: var(--orange);
+  transform: scale(1.15);
+  box-shadow: 0 2px 8px rgba(249,168,37,0.4);
+}
+
+/* Progress dots */
+.progress-dots {
+  display: flex;
+  gap: var(--sp-sm);
+  justify-content: center;
+  margin-bottom: var(--sp-md);
+}
+
+.prog-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #BBDEFB;
+  border: 2.5px solid #64B5F6;
+  transition: all 0.3s ease;
+}
+
+.prog-dot.done { background: var(--green); border-color: var(--green-dk); }
+.prog-dot.current { background: var(--yellow); border-color: var(--orange); }
+
+/* ── VEDIC STEP FORM ──────────────────────────────────────── */
+.vedic-shell {
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.vedic-header {
+  padding: var(--sp-md) var(--sp-lg);
+  background: var(--purple-lt);
+  border-bottom: 2px solid #CE93D8;
+  text-align: center;
+}
+
+.vedic-sutra {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--purple);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vedic-question {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-top: 4px;
+}
+
+.vedic-body { padding: var(--sp-lg); }
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  padding: 10px var(--sp-md);
+  border-radius: var(--r-md);
+  margin-bottom: var(--sp-sm);
+  border: 2px solid transparent;
+  transition: var(--tr-fast);
+}
+
+.step-done   { background: var(--green-lt);  border-color: #A5D6A7; }
+.step-active { background: var(--blue-lt);   border-color: #90CAF9; }
+.step-locked { background: var(--bg2);       opacity: 0.45; pointer-events: none; }
+
+.step-number {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.sn-done   { background: var(--green); color: var(--white); }
+.sn-active { background: var(--blue);  color: var(--white); }
+.sn-locked { background: var(--border); color: var(--text3); }
+
+.step-label {
+  flex: 1;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.step-input {
+  width: 72px;
+  padding: 6px 8px;
+  border: 2px solid var(--border);
+  border-radius: var(--r-sm);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text);
+  background: var(--white);
+  transition: var(--tr-fast);
+  outline: none;
+}
+
+.step-input:focus { border-color: var(--blue); }
+.step-input.correct { background: var(--green-lt); border-color: #A5D6A7; color: var(--green-dk); }
+.step-input.wrong   { border-color: var(--red); background: var(--red-lt); }
+
+.step-tick {
+  width: 20px;
+  text-align: center;
+  font-size: 1rem;
+}
+
+/* ── SPEED DRILL ──────────────────────────────────────────── */
+.speed-drill {
+  background: linear-gradient(135deg, #1B5E20, #2E7D32);
+  border-radius: var(--r-xl);
+  padding: var(--sp-xl);
+  text-align: center;
+  color: var(--white);
+}
+
+.drill-timer {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: var(--sp-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.drill-timer.urgent { color: var(--red-lt); animation: pulse 0.5s infinite; }
+
+.drill-question {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: var(--sp-lg);
+  font-variant-numeric: tabular-nums;
+}
+
+.drill-input {
+  width: 180px;
+  padding: var(--sp-md);
+  border-radius: var(--r-md);
+  border: 3px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.15);
+  color: var(--white);
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 800;
+  text-align: center;
+  outline: none;
+}
+
+.drill-input::placeholder { color: rgba(255,255,255,0.5); }
+.drill-input:focus { border-color: var(--yellow); background: rgba(255,255,255,0.25); }

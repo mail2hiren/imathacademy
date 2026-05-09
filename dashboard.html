@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Dashboard — iMathAcademy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #F7F8FF;
+      color: #1A1A2E;
+      min-height: 100vh;
+    }
+
+    :root {
+      --green:    #43A047; --green-dk: #1B5E20;
+      --green-lt: #E8F5E9; --green-md: #2E7D32;
+      --orange:   #FB8C00; --orange-dk: #E65100;
+      --orange-lt:#FFF3E0;
+      --blue:     #1E88E5; --blue-dk: #0D47A1;
+      --blue-lt:  #E3F2FD;
+      --purple:   #8E24AA; --purple-dk: #4A148C;
+      --purple-lt:#F3E5F5;
+      --red:      #E53935; --red-dk: #B71C1C;
+      --red-lt:   #FFEBEE;
+      --yellow:   #F9A825; --yellow-lt: #FFFDE7;
+      --yellow-dk:#F57F17;
+      --teal:     #00897B; --teal-lt: #E0F2F1;
+      --teal-dk:  #004D40;
+      --bg:       #FFFFFF; --bg2: #F7F8FF;
+      --border:   #E8EAF6;
+      --text2:    #4A4A6A; --text3: #9090B0;
+    }
+
+    /* ── LAYOUT ── */
+    .portal { display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 220px; flex-shrink: 0;
+      background: var(--bg);
+      border-right: 2px solid var(--border);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0;
+      height: 100vh; overflow-y: auto;
+      z-index: 100; transition: transform .3s ease;
+    }
+
+    .sidebar-logo {
+      padding: 20px 16px;
+      border-bottom: 2px solid var(--border);
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.2rem; font-weight: 800;
+      color: var(--green-dk);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sidebar-logo span { color: var(--orange-dk); }
+    .logo-icon {
+      width: 34px; height: 34px;
+      background: var(--green);
+      border-radius: 10px;
+      display: flex; align-items: center;
+      justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+
+    .sidebar-nav { flex: 1; padding: 12px 0; }
+
+    .nav-section {
+      font-size: .68rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .8px;
+      color: var(--text3); padding: 8px 16px 3px;
+      margin-top: 6px;
+    }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px;
+      font-size: .875rem; font-weight: 700;
+      color: var(--text2); cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all .12s; text-decoration: none;
+    }
+    .nav-item:hover { color: var(--text); background: var(--bg2); }
+    .nav-item.active {
+      color: var(--green-dk); background: var(--green-lt);
+      border-left-color: var(--green);
+    }
+    .nav-icon { width: 20px; text-align: center; font-size: 1rem; flex-shrink: 0; }
+    .nav-badge {
+      margin-left: auto; background: var(--red);
+      color: #fff; font-size: .62rem; font-weight: 800;
+      padding: 2px 6px; border-radius: 20px;
+      min-width: 18px; text-align: center;
+    }
+
+    .sidebar-user {
+      padding: 14px 16px;
+      border-top: 2px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .user-av {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--green-lt); border: 2px solid var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8rem; font-weight: 800; color: var(--green-dk);
+      flex-shrink: 0;
+    }
+    .user-name { font-size: .82rem; font-weight: 800; color: var(--text); line-height: 1.2; }
+    .user-role { font-size: .7rem; color: var(--text3); font-weight: 600; }
+    .logout-btn {
+      margin-left: auto; background: none; border: none;
+      font-size: .85rem; cursor: pointer; color: var(--text3);
+      transition: color .12s;
+    }
+    .logout-btn:hover { color: var(--red); }
+
+    /* ── MAIN ── */
+    .main { flex: 1; margin-left: 220px; display: flex; flex-direction: column; }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      height: 62px; background: var(--bg);
+      border-bottom: 2px solid var(--border);
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 0 24px; position: sticky; top: 0; z-index: 50;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .hamburger {
+      display: none; flex-direction: column;
+      gap: 4px; cursor: pointer; background: none; border: none;
+    }
+    .hamburger span { width: 20px; height: 2px; background: var(--text); border-radius: 2px; display: block; }
+    .topbar-title { font-family: 'Baloo 2', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--text); }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .topbar-date { font-size: .8rem; font-weight: 600; color: var(--text3); }
+    .notif-btn {
+      position: relative; width: 38px; height: 38px;
+      border-radius: 50%; background: var(--bg2);
+      border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 1rem; transition: all .12s;
+    }
+    .notif-btn:hover { background: var(--bg); }
+    .notif-dot {
+      position: absolute; top: -2px; right: -2px;
+      width: 14px; height: 14px; background: var(--red);
+      border-radius: 50%; border: 2px solid var(--bg);
+      font-size: .55rem; font-weight: 800; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* ── BODY ── */
+    .body { padding: 24px; }
+
+    /* ── GREETING ── */
+    .greeting-row {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; margin-bottom: 20px;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .greeting-text h1 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.6rem; font-weight: 800;
+      color: var(--text); margin-bottom: 3px;
+    }
+    .greeting-text p { font-size: .875rem; color: var(--text2); font-weight: 600; }
+    .greeting-badge {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg); border: 2px solid var(--border);
+      border-radius: 30px; padding: 8px 16px;
+    }
+    .belt-circle {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 2.5px solid rgba(0,0,0,.15);
+    }
+    .belt-text { font-size: .82rem; font-weight: 800; color: var(--text); }
+
+    /* ── XP CARD ── */
+    .xp-card {
+      background: linear-gradient(135deg, var(--green-dk) 0%, var(--green-md) 100%);
+      border-radius: 20px; padding: 20px 24px;
+      margin-bottom: 20px; color: #fff;
+      box-shadow: 0 4px 16px rgba(27,94,32,.3);
+    }
+    .xp-top {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 12px;
+    }
+    .xp-left h3 { font-size: .95rem; font-weight: 800; opacity: .9; margin-bottom: 2px; }
+    .xp-left p { font-size: .8rem; opacity: .75; font-weight: 600; }
+    .xp-badges { display: flex; gap: 8px; }
+    .xp-badge {
+      padding: 5px 12px; border-radius: 20px;
+      font-size: .78rem; font-weight: 800;
+    }
+    .xp-badge-xp  { background: rgba(255,255,255,.2); color: #fff; }
+    .xp-badge-streak { background: var(--orange); color: #fff; }
+    .xp-bar-track {
+      height: 12px; background: rgba(255,255,255,.25);
+      border-radius: 6px; overflow: hidden; margin-bottom: 8px;
+    }
+    .xp-bar-fill {
+      height: 100%; background: var(--yellow);
+      border-radius: 6px; transition: width .8s ease;
+    }
+    .xp-bar-info {
+      display: flex; justify-content: space-between;
+      font-size: .78rem; opacity: .85; font-weight: 600;
+    }
+
+    /* ── STATS ROW ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 12px; margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--bg); border: 2px solid var(--border);
+      border-radius: 16px; padding: 14px 16px;
+      text-align: center; transition: all .2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+    .stat-n {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.7rem; font-weight: 800;
+      line-height: 1.1; margin-bottom: 3px;
+    }
+    .stat-l { font-size: .75rem; font-weight: 700; color: var(--text2); }
+    .stat-s { font-size: .68rem; color: var(--text3); margin-top: 2px; }
+
+    /* ── CARD GRID ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 16px; margin-bottom: 20px;
+    }
+
+    .action-card {
+      background: var(--bg); border: 2px solid var(--border);
+      border-radius: 18px; padding: 20px;
+      display: flex; flex-direction: column; gap: 8px;
+      transition: all .2s; cursor: pointer; text-decoration: none;
+    }
+    .action-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+    .action-card.urgent { border-color: var(--red); }
+
+    .ac-icon {
+      width: 44px; height: 44px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; margin-bottom: 4px;
+    }
+    .ac-title { font-size: .95rem; font-weight: 800; color: var(--text); }
+    .ac-body  { font-size: .8rem; color: var(--text2); font-weight: 500; line-height: 1.5; flex: 1; }
+    .ac-cta   {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 8px 16px; border-radius: 20px;
+      font-size: .8rem; font-weight: 800;
+      border: none; cursor: pointer; transition: all .15s;
+      margin-top: auto; width: fit-content;
+    }
+
+    /* ── TWO COL ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px; margin-bottom: 20px;
+    }
+
+    .panel {
+      background: var(--bg); border: 2px solid var(--border);
+      border-radius: 18px; padding: 20px;
+    }
+
+    .panel-title {
+      font-size: .75rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .5px;
+      color: var(--text2); margin-bottom: 14px;
+      display: flex; align-items: center;
+      justify-content: space-between;
+    }
+    .panel-link {
+      font-size: .72rem; font-weight: 700;
+      color: var(--green); cursor: pointer;
+      text-transform: none; letter-spacing: 0;
+    }
+
+    /* ── TOPIC BARS ── */
+    .topic-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid var(--border);
+    }
+    .topic-row:last-child { border-bottom: none; }
+    .topic-name { flex: 1; font-size: .82rem; font-weight: 600; color: var(--text); }
+    .topic-bar  { width: 90px; height: 8px; background: var(--bg2); border-radius: 4px; overflow: hidden; }
+    .topic-fill { height: 100%; border-radius: 4px; }
+    .topic-pct  { font-size: .78rem; font-weight: 800; width: 34px; text-align: right; }
+
+    /* ── HOMEWORK LIST ── */
+    .hw-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; background: var(--bg2);
+      border: 2px solid var(--border); border-radius: 12px;
+      margin-bottom: 8px; transition: all .12s;
+    }
+    .hw-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .hw-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .hw-info { flex: 1; }
+    .hw-name { font-size: .82rem; font-weight: 800; color: var(--text); margin-bottom: 2px; }
+    .hw-meta { font-size: .72rem; color: var(--text3); font-weight: 600; }
+    .hw-pill {
+      font-size: .7rem; font-weight: 800; padding: 3px 10px;
+      border-radius: 20px; white-space: nowrap;
+    }
+    .hw-btn {
+      font-size: .72rem; font-weight: 800; padding: 5px 12px;
+      border-radius: 20px; border: none; cursor: pointer;
+      transition: all .12s; white-space: nowrap;
+    }
+
+    /* ── BADGES ── */
+    .badge-strip {
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .badge-item {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 4px;
+      padding: 10px 8px; background: var(--yellow-lt);
+      border: 1.5px solid #FFE082; border-radius: 12px;
+      min-width: 64px; position: relative;
+      transition: transform .15s;
+    }
+    .badge-item:hover { transform: scale(1.06); }
+    .badge-item.locked { opacity: .35; filter: grayscale(1); background: var(--bg2); border-color: var(--border); }
+    .badge-icon { font-size: 1.4rem; }
+    .badge-label { font-size: .62rem; font-weight: 800; color: var(--text2); text-align: center; line-height: 1.3; }
+    .badge-new {
+      position: absolute; top: -5px; right: -5px;
+      background: var(--red); color: #fff;
+      font-size: .55rem; font-weight: 800;
+      padding: 2px 4px; border-radius: 10px;
+    }
+
+    /* ── LIVE CLASS CARD ── */
+    .live-class {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--green-lt); border: 2px solid #A5D6A7;
+      border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
+    }
+    .live-dot {
+      width: 12px; height: 12px; background: var(--green);
+      border-radius: 50%; flex-shrink: 0;
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+    .live-info { flex: 1; }
+    .live-title { font-size: .875rem; font-weight: 800; color: var(--green-dk); }
+    .live-meta  { font-size: .75rem; color: var(--green-md); font-weight: 600; }
+
+    /* ── NOTIFICATION PANEL ── */
+    .notif-item {
+      display: flex; gap: 10px; padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-ico { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+    .notif-text { font-size: .8rem; font-weight: 600; color: var(--text2); line-height: 1.5; }
+    .notif-time { font-size: .68rem; color: var(--text3); margin-top: 2px; }
+
+    /* ── LOADING ── */
+    .loading-screen {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 300px; gap: 16px;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── TOAST ── */
+    .toast-container {
+      position: fixed; bottom: 24px; right: 24px;
+      z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+    }
+    .toast {
+      background: var(--text); color: #fff;
+      padding: 10px 18px; border-radius: 12px;
+      font-size: .875rem; font-weight: 700;
+      box-shadow: 0 4px 16px rgba(0,0,0,.2);
+      animation: slideIn .3s ease;
+    }
+    .toast-success { background: var(--green-dk); }
+    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .hamburger { display: flex; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .card-grid  { grid-template-columns: 1fr; }
+      .two-col    { grid-template-columns: 1fr; }
+      .body       { padding: 16px; }
+    }
+    @media (max-width: 480px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .greeting-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="portal">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🧮</div>
+      iMath<span>Academy</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">Learning</div>
+      <a class="nav-item active" href="dashboard.html">
+        <span class="nav-icon">🏠</span> Dashboard
+      </a>
+      <a class="nav-item" href="lessons.html">
+        <span class="nav-icon">▶️</span> Lessons
+      </a>
+      <a class="nav-item" href="practice.html">
+        <span class="nav-icon">⚡</span> Practice
+      </a>
+      <a class="nav-item" href="homework.html">
+        <span class="nav-icon">📋</span> Homework
+        <span class="nav-badge" id="hwBadge">2</span>
+      </a>
+
+      <div class="nav-section">Progress</div>
+      <a class="nav-item" href="progress.html">
+        <span class="nav-icon">📊</span> My progress
+      </a>
+      <a class="nav-item" href="#" onclick="showBadges()">
+        <span class="nav-icon">🏅</span> Badges & XP
+      </a>
+
+      <div class="nav-section">Classes</div>
+      <a class="nav-item" href="#" id="liveClassLink">
+        <span class="nav-icon">📹</span> Live classes
+      </a>
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="user-av" id="userAv">AR</div>
+      <div>
+        <div class="user-name" id="userName">Loading...</div>
+        <div class="user-role">Student</div>
+      </div>
+      <button class="logout-btn" onclick="logout()" title="Sign out">⇥</button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="topbar-title">My Dashboard</div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbarDate"></div>
+        <div class="notif-btn" onclick="toggleNotifs()">
+          🔔 <div class="notif-dot" id="notifDot">3</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="body" id="dashBody">
+
+      <!-- Loading state -->
+      <div class="loading-screen" id="loadingScreen">
+        <div class="spinner"></div>
+        <div style="font-size:.9rem;font-weight:700;color:var(--text3)">Loading your dashboard...</div>
+      </div>
+
+      <!-- Dashboard content (hidden until loaded) -->
+      <div id="dashContent" style="display:none">
+
+        <!-- Greeting -->
+        <div class="greeting-row">
+          <div class="greeting-text">
+            <h1 id="greetingText">Good morning! 👋</h1>
+            <p id="greetingSub">Wednesday · Abacus · Orange Belt · Level 3</p>
+          </div>
+          <div class="greeting-badge">
+            <div class="belt-circle" id="beltCircle" style="background:#FFB74D"></div>
+            <div class="belt-text" id="beltText">Orange Belt</div>
+          </div>
+        </div>
+
+        <!-- XP Card -->
+        <div class="xp-card">
+          <div class="xp-top">
+            <div class="xp-left">
+              <h3 id="xpLevelName">Abacus — Level 3</h3>
+              <p id="xpNextBelt">760 XP to unlock Green Belt</p>
+            </div>
+            <div class="xp-badges">
+              <div class="xp-badge xp-badge-xp" id="xpTotal">1,240 XP</div>
+              <div class="xp-badge xp-badge-streak" id="streakBadge">🔥 7 days</div>
+            </div>
+          </div>
+          <div class="xp-bar-track">
+            <div class="xp-bar-fill" id="xpBar" style="width:62%"></div>
+          </div>
+          <div class="xp-bar-info">
+            <span id="xpCurrent">1,240 XP</span>
+            <span id="xpNeeded">2,000 XP for Green Belt 🟢</span>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-n" style="color:var(--blue)" id="statSessions">24</div>
+            <div class="stat-l">Sessions</div>
+            <div class="stat-s">this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-n" style="color:var(--green)" id="statAccuracy">71%</div>
+            <div class="stat-l">Accuracy</div>
+            <div class="stat-s" id="statAccuracyChange">↑ +8% vs last month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-n" style="color:var(--orange)" id="statStreak">7</div>
+            <div class="stat-l">Day streak</div>
+            <div class="stat-s">keep it up!</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-n" style="color:var(--purple)" id="statBadges">9</div>
+            <div class="stat-l">Badges</div>
+            <div class="stat-s">earned total</div>
+          </div>
+        </div>
+
+        <!-- Action cards -->
+        <div class="card-grid">
+          <!-- Continue lesson -->
+          <div class="action-card" onclick="window.location.href='lessons.html'">
+            <div class="ac-icon" style="background:var(--green-lt)">▶️</div>
+            <div class="ac-title">Continue lesson</div>
+            <div class="ac-body" id="lessonCard">
+              Lesson 3.4 — Addition with carrying<br>
+              <span style="color:var(--text3);font-size:.75rem">68% watched</span>
+            </div>
+            <button class="ac-cta" style="background:var(--green);color:#fff">Resume →</button>
+          </div>
+
+          <!-- Homework -->
+          <div class="action-card urgent" onclick="window.location.href='homework.html'">
+            <div class="ac-icon" style="background:var(--orange-lt)">📋</div>
+            <div class="ac-title">Homework</div>
+            <div class="ac-body" id="homeworkCard">
+              <span style="color:var(--red);font-weight:800">1 due tomorrow!</span><br>
+              2 assignments pending total
+            </div>
+            <button class="ac-cta" style="background:var(--orange);color:#fff">Do it now →</button>
+          </div>
+
+          <!-- Daily practice -->
+          <div class="action-card" onclick="window.location.href='practice.html'">
+            <div class="ac-icon" style="background:var(--purple-lt)">⚡</div>
+            <div class="ac-title">Daily practice</div>
+            <div class="ac-body">
+              10 questions ready for you<br>
+              Includes your weak topics
+            </div>
+            <button class="ac-cta" style="background:var(--purple);color:#fff">Start practice →</button>
+          </div>
+        </div>
+
+        <!-- Live class (shown if class today) -->
+        <div id="liveClassSection" style="margin-bottom:20px">
+          <div class="live-class">
+            <div class="live-dot"></div>
+            <div class="live-info">
+              <div class="live-title">Batch A — Abacus Level 3 · Today at 4:30 PM</div>
+              <div class="live-meta">Ms. Priya · 12 students · 60 minutes</div>
+            </div>
+            <button class="ac-cta" style="background:var(--green);color:#fff;padding:9px 18px;font-size:.8rem" id="joinClassBtn">Join class →</button>
+          </div>
+        </div>
+
+        <!-- Two column: topics + homework list -->
+        <div class="two-col">
+
+          <!-- Weak topics -->
+          <div class="panel">
+            <div class="panel-title">
+              Topics needing attention
+              <a class="panel-link" href="progress.html">See all →</a>
+            </div>
+            <div id="topicList">
+              <div class="topic-row">
+                <span class="topic-name">Addition with carrying</span>
+                <div class="topic-bar"><div class="topic-fill" style="background:var(--red);width:48%"></div></div>
+                <span class="topic-pct" style="color:var(--red-dk)">48%</span>
+              </div>
+              <div class="topic-row">
+                <span class="topic-name">3-digit subtraction</span>
+                <div class="topic-bar"><div class="topic-fill" style="background:var(--orange);width:58%"></div></div>
+                <span class="topic-pct" style="color:var(--orange-dk)">58%</span>
+              </div>
+              <div class="topic-row">
+                <span class="topic-name">2-digit addition</span>
+                <div class="topic-bar"><div class="topic-fill" style="background:var(--blue);width:74%"></div></div>
+                <span class="topic-pct" style="color:var(--blue-dk)">74%</span>
+              </div>
+              <div class="topic-row">
+                <span class="topic-name">Single digit addition</span>
+                <div class="topic-bar"><div class="topic-fill" style="background:var(--green);width:91%"></div></div>
+                <span class="topic-pct" style="color:var(--green-dk)">91%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Homework list -->
+          <div class="panel">
+            <div class="panel-title">
+              Homework
+              <a class="panel-link" href="homework.html">View all →</a>
+            </div>
+            <div id="hwList">
+              <div class="hw-item" style="border-color:var(--red);background:var(--red-lt)">
+                <div class="hw-dot" style="background:var(--red)"></div>
+                <div class="hw-info">
+                  <div class="hw-name">Addition with carrying</div>
+                  <div class="hw-meta">Ms. Priya · 10 questions</div>
+                </div>
+                <span class="hw-pill" style="background:var(--red-lt);color:var(--red-dk);border:1.5px solid #FFCDD2">Tomorrow!</span>
+                <button class="hw-btn" style="background:var(--green);color:#fff" onclick="window.location.href='homework.html'">Start</button>
+              </div>
+              <div class="hw-item">
+                <div class="hw-dot" style="background:var(--orange)"></div>
+                <div class="hw-info">
+                  <div class="hw-name">3-digit subtraction</div>
+                  <div class="hw-meta">Auto-assigned · Weak area · 8 Qs</div>
+                </div>
+                <span class="hw-pill" style="background:var(--orange-lt);color:var(--orange-dk);border:1.5px solid #FFCC80">2 days</span>
+                <button class="hw-btn" style="background:var(--bg2);color:var(--text2);border:2px solid var(--border)" onclick="window.location.href='homework.html'">Start</button>
+              </div>
+              <div class="hw-item">
+                <div class="hw-dot" style="background:var(--green)"></div>
+                <div class="hw-info">
+                  <div class="hw-name">Single digit addition</div>
+                  <div class="hw-meta">Submitted 2 days ago</div>
+                </div>
+                <span class="hw-pill" style="background:var(--green-lt);color:var(--green-dk);border:1.5px solid #A5D6A7">9/10 ⭐</span>
+                <button class="hw-btn" style="background:var(--bg2);color:var(--text2);border:2px solid var(--border)" onclick="window.location.href='homework.html'">Review</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Badges -->
+        <div class="panel" style="margin-bottom:20px">
+          <div class="panel-title">
+            My badges
+            <span class="panel-link" onclick="showBadges()">See all 15 badges →</span>
+          </div>
+          <div class="badge-strip">
+            <div class="badge-item"><span class="badge-icon">🎯</span><span class="badge-label">First Steps</span></div>
+            <div class="badge-item"><span class="badge-icon">🔥</span><span class="badge-label">7-day Streak</span><span class="badge-new">NEW</span></div>
+            <div class="badge-item"><span class="badge-icon">⚡</span><span class="badge-label">Speed Demon</span></div>
+            <div class="badge-item"><span class="badge-icon">💯</span><span class="badge-label">Perfect Score</span></div>
+            <div class="badge-item"><span class="badge-icon">🧮</span><span class="badge-label">Bead Master</span></div>
+            <div class="badge-item"><span class="badge-icon">📚</span><span class="badge-label">Bookworm</span></div>
+            <div class="badge-item"><span class="badge-icon">🌟</span><span class="badge-label">Top of Class</span></div>
+            <div class="badge-item"><span class="badge-icon">🏅</span><span class="badge-label">Orange Belt</span></div>
+            <div class="badge-item"><span class="badge-icon">🎖</span><span class="badge-label">On Fire</span></div>
+            <div class="badge-item locked"><span class="badge-icon">🟢</span><span class="badge-label">Green Belt</span></div>
+            <div class="badge-item locked"><span class="badge-icon">👑</span><span class="badge-label">Week Champ</span></div>
+            <div class="badge-item locked"><span class="badge-icon">🚀</span><span class="badge-label">Rocket Speed</span></div>
+          </div>
+        </div>
+
+        <!-- Notifications panel -->
+        <div class="panel" id="notifPanel" style="display:none;margin-bottom:20px">
+          <div class="panel-title">
+            Recent notifications
+            <span class="panel-link" onclick="document.getElementById('notifPanel').style.display='none'">Close</span>
+          </div>
+          <div class="notif-item">
+            <div class="notif-ico">🔥</div>
+            <div><div class="notif-text">You earned the 7-day streak badge! +200 XP</div><div class="notif-time">2 hours ago</div></div>
+          </div>
+          <div class="notif-item">
+            <div class="notif-ico">📋</div>
+            <div><div class="notif-text">New homework assigned: Addition with carrying — due tomorrow</div><div class="notif-time">Yesterday at 4:00 PM</div></div>
+          </div>
+          <div class="notif-item">
+            <div class="notif-ico">⭐</div>
+            <div><div class="notif-text">Your homework was graded: Single digit addition — 9/10!</div><div class="notif-time">2 days ago</div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY = 'YOUR_ANON_KEY_HERE';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── BELT DATA ─────────────────────────────────────────────
+const BELTS = [
+  { name:'White Belt',   minXP:0,     maxXP:499,   color:'#F5F5F5', next:'Yellow Belt',   nextXP:500   },
+  { name:'Yellow Belt',  minXP:500,   maxXP:1199,  color:'#FFF176', next:'Orange Belt',   nextXP:1200  },
+  { name:'Orange Belt',  minXP:1200,  maxXP:2499,  color:'#FFB74D', next:'Green Belt',    nextXP:2500  },
+  { name:'Green Belt',   minXP:2500,  maxXP:4499,  color:'#66BB6A', next:'Blue Belt',     nextXP:4500  },
+  { name:'Blue Belt',    minXP:4500,  maxXP:6999,  color:'#42A5F5', next:'Purple Belt',   nextXP:7000  },
+  { name:'Purple Belt',  minXP:7000,  maxXP:9999,  color:'#AB47BC', next:'Red Belt',      nextXP:10000 },
+  { name:'Red Belt',     minXP:10000, maxXP:13999, color:'#EF5350', next:'Brown Belt',    nextXP:14000 },
+  { name:'Brown Belt',   minXP:14000, maxXP:19999, color:'#8D6E63', next:'Black Belt',    nextXP:20000 },
+  { name:'Black Belt',   minXP:20000, maxXP:29999, color:'#212121', next:'Grand Master',  nextXP:30000 },
+  { name:'Grand Master', minXP:30000, maxXP:Infinity, color:'#F9A825', next:'',           nextXP:0     },
+];
+
+function getBelt(xp) {
+  return BELTS.find(b => xp >= b.minXP && xp <= b.maxXP) || BELTS[0];
+}
+
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+function formatDate(d) {
+  return d.toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long' });
+}
+
+// ── INIT ──────────────────────────────────────────────────
+async function init() {
+  // Set date
+  document.getElementById('topbarDate').textContent = formatDate(new Date());
+
+  try {
+    // Check session
+    const { data: { session } } = await sb.auth.getSession();
+
+    if (!session) {
+      window.location.href = '../../login.html';
+      return;
+    }
+
+    // Get user profile
+    const { data: profile } = await sb
+      .from('users')
+      .select('*')
+      .eq('id', session.user.id)
+      .single();
+
+    if (!profile || profile.role !== 'student') {
+      window.location.href = '../../login.html';
+      return;
+    }
+
+    // Populate UI with real data
+    populateDashboard(profile);
+
+    // Load additional data
+    await loadHomeworkCount(session.user.id);
+    await loadWeakTopics(session.user.id);
+
+  } catch (err) {
+    // If Supabase not connected yet, show demo data
+    showDemoData();
+  }
+}
+
+function populateDashboard(profile) {
+  const xp    = profile.xp_points || 1240;
+  const belt  = getBelt(xp);
+  const name  = profile.full_name || 'Student';
+  const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+
+  // Greeting
+  document.getElementById('greetingText').textContent = `${getGreeting()}, ${name.split(' ')[0]}! 👋`;
+  document.getElementById('greetingSub').textContent  = `${new Date().toLocaleDateString('en-IN',{weekday:'long'})} · ${profile.program === 'abacus' ? 'Abacus' : 'Vedic Maths'} · ${belt.name} · Level ${profile.current_level || 1}`;
+
+  // Belt
+  document.getElementById('beltCircle').style.background = belt.color;
+  document.getElementById('beltText').textContent = belt.name;
+
+  // XP
+  document.getElementById('xpLevelName').textContent = `${profile.program === 'abacus' ? 'Abacus' : 'Vedic Maths'} — Level ${profile.current_level || 1}`;
+  document.getElementById('xpTotal').textContent = `${xp.toLocaleString()} XP`;
+  document.getElementById('xpCurrent').textContent = `${xp.toLocaleString()} XP`;
+  document.getElementById('streakBadge').textContent = `🔥 ${profile.streak_days || 0} days`;
+
+  if (belt.next) {
+    const pct = ((xp - belt.minXP) / (belt.nextXP - belt.minXP) * 100).toFixed(0);
+    const needed = belt.nextXP - xp;
+    document.getElementById('xpBar').style.width = `${pct}%`;
+    document.getElementById('xpNextBelt').textContent = `${needed.toLocaleString()} XP to unlock ${belt.next}`;
+    document.getElementById('xpNeeded').textContent = `${belt.nextXP.toLocaleString()} XP for ${belt.next}`;
+  } else {
+    document.getElementById('xpBar').style.width = '100%';
+    document.getElementById('xpNextBelt').textContent = 'Grand Master achieved!';
+  }
+
+  // Stats
+  document.getElementById('statStreak').textContent = profile.streak_days || 0;
+
+  // User avatar
+  document.getElementById('userAv').textContent = initials;
+  document.getElementById('userName').textContent = name;
+
+  showDashboard();
+}
+
+function showDemoData() {
+  // Show dashboard with pre-populated demo data
+  document.getElementById('userName').textContent = 'Arjun Rao';
+  showDashboard();
+}
+
+function showDashboard() {
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('dashContent').style.display  = 'block';
+}
+
+async function loadHomeworkCount(studentId) {
+  try {
+    const { data: batches } = await sb.from('batch_students').select('batch_id').eq('student_id', studentId);
+    if (!batches || batches.length === 0) return;
+    const batchIds = batches.map(b => b.batch_id);
+    const { data: hw } = await sb.from('homework').select('id').in('batch_id', batchIds).eq('is_active', true);
+    if (hw && hw.length > 0) {
+      document.getElementById('hwBadge').textContent = hw.length;
+      document.getElementById('hwBadge').style.display = 'flex';
+    }
+  } catch { /* silent */ }
+}
+
+async function loadWeakTopics(studentId) {
+  try {
+    const { data } = await sb.from('student_weak_topics').select('*').eq('student_id', studentId).limit(4);
+    if (!data || data.length === 0) return;
+    const list = document.getElementById('topicList');
+    list.innerHTML = '';
+    data.forEach(t => {
+      const acc = parseFloat(t.accuracy) || 0;
+      const color = acc >= 75 ? 'var(--green)' : acc >= 55 ? 'var(--blue)' : acc >= 35 ? 'var(--orange)' : 'var(--red)';
+      const textColor = acc >= 75 ? 'var(--green-dk)' : acc >= 55 ? 'var(--blue-dk)' : acc >= 35 ? 'var(--orange-dk)' : 'var(--red-dk)';
+      list.innerHTML += `
+        <div class="topic-row">
+          <span class="topic-name">${t.topic}</span>
+          <div class="topic-bar"><div class="topic-fill" style="background:${color};width:${acc}%"></div></div>
+          <span class="topic-pct" style="color:${textColor}">${Math.round(acc)}%</span>
+        </div>`;
+    });
+  } catch { /* use default */ }
+}
+
+// ── UI HELPERS ────────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+function toggleNotifs() {
+  const panel = document.getElementById('notifPanel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  document.getElementById('notifDot').style.display = 'none';
+}
+
+function showBadges() {
+  showToast('Badge wall coming in Session 16 — Progress screen! 🏅', 'success');
+}
+
+function showToast(msg, type='') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type ? 'toast-'+type : ''}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  window.location.href = '../../login.html';
+}
+
+// ── RUN ───────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

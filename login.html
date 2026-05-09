@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — iMathAcademy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #F7F8FF;
+      color: #1A1A2E;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    :root {
+      --green:    #43A047;
+      --green-dk: #1B5E20;
+      --green-lt: #E8F5E9;
+      --green-md: #2E7D32;
+      --orange:   #FB8C00;
+      --orange-dk:#E65100;
+      --blue:     #1E88E5;
+      --blue-lt:  #E3F2FD;
+      --purple:   #8E24AA;
+      --purple-lt:#F3E5F5;
+      --red:      #E53935;
+      --red-lt:   #FFEBEE;
+      --border:   #E8EAF6;
+      --text2:    #4A4A6A;
+      --text3:    #9090B0;
+    }
+
+    /* ── LAYOUT ── */
+    .page {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 100vh;
+    }
+
+    /* ── LEFT PANEL ── */
+    .left-panel {
+      background: var(--green-dk);
+      padding: 48px 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.04);
+      top: -100px; right: -100px;
+    }
+
+    .left-panel::after {
+      content: '';
+      position: absolute;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.04);
+      bottom: -80px; left: -80px;
+    }
+
+    .panel-logo {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.6rem; font-weight: 800;
+      color: #fff; position: relative; z-index: 1;
+    }
+    .panel-logo span { color: #FB8C00; }
+
+    .panel-content { position: relative; z-index: 1; }
+
+    .panel-title {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 2rem; font-weight: 800;
+      color: #fff; line-height: 1.3;
+      margin-bottom: 16px;
+    }
+
+    .panel-subtitle {
+      font-size: .95rem; color: rgba(255,255,255,.8);
+      font-weight: 500; line-height: 1.7;
+      margin-bottom: 36px;
+    }
+
+    .panel-features {
+      display: flex; flex-direction: column; gap: 16px;
+    }
+
+    .panel-feat {
+      display: flex; align-items: flex-start;
+      gap: 12px;
+    }
+
+    .feat-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(255,255,255,.15);
+      display: flex; align-items: center;
+      justify-content: center; font-size: .9rem;
+      flex-shrink: 0; margin-top: 1px;
+    }
+
+    .feat-text { font-size: .875rem; color: rgba(255,255,255,.85); font-weight: 500; line-height: 1.5; }
+    .feat-text strong { color: #fff; font-weight: 800; }
+
+    .panel-bottom {
+      position: relative; z-index: 1;
+      font-size: .8rem; color: rgba(255,255,255,.5);
+    }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel {
+      display: flex; align-items: center;
+      justify-content: center;
+      padding: 48px 40px;
+      background: #F7F8FF;
+    }
+
+    .login-box {
+      width: 100%; max-width: 420px;
+    }
+
+    .login-title {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.6rem; font-weight: 800;
+      color: #1A1A2E; margin-bottom: 6px;
+    }
+
+    .login-sub {
+      font-size: .875rem; color: var(--text2);
+      font-weight: 500; margin-bottom: 32px;
+    }
+
+    /* ── ROLE SELECTOR ── */
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 8px; margin-bottom: 24px;
+    }
+
+    .role-btn {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 5px;
+      padding: 12px 8px;
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all .15s;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    .role-btn:hover {
+      border-color: var(--green);
+      background: var(--green-lt);
+    }
+
+    .role-btn.active {
+      border-color: var(--green);
+      background: var(--green-lt);
+    }
+
+    .role-icon { font-size: 1.4rem; }
+    .role-label { font-size: .72rem; font-weight: 800; color: var(--text2); }
+    .role-btn.active .role-label { color: var(--green-dk); }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 16px; }
+
+    .form-label {
+      display: block; font-size: .82rem;
+      font-weight: 800; color: #1A1A2E;
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%; padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      font-family: 'Nunito', sans-serif;
+      font-size: .95rem; font-weight: 600;
+      color: #1A1A2E; background: #fff;
+      outline: none; transition: border-color .15s;
+    }
+
+    .form-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(67,160,71,.12); }
+    .form-input.error { border-color: var(--red); }
+
+    .password-wrap { position: relative; }
+
+    .password-wrap .form-input { padding-right: 48px; }
+
+    .toggle-pw {
+      position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      cursor: pointer; font-size: 1.1rem;
+      color: var(--text3); padding: 4px;
+    }
+
+    /* ── SUBMIT ── */
+    .submit-btn {
+      width: 100%; padding: 14px;
+      background: var(--green); color: #fff;
+      border: none; border-radius: 30px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem; font-weight: 800;
+      cursor: pointer; transition: all .15s;
+      margin-top: 8px; position: relative;
+      overflow: hidden;
+    }
+
+    .submit-btn:hover { background: var(--green-md); transform: translateY(-1px); }
+    .submit-btn:active { transform: scale(.98); }
+    .submit-btn:disabled { opacity: .7; cursor: not-allowed; transform: none; }
+
+    .btn-spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2.5px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── FORGOT / REGISTER ── */
+    .form-footer {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-top: 6px;
+    }
+
+    .form-link {
+      font-size: .8rem; font-weight: 700;
+      color: var(--green); cursor: pointer;
+      background: none; border: none;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    .form-link:hover { color: var(--green-dk); }
+
+    /* ── DIVIDER ── */
+    .divider {
+      display: flex; align-items: center;
+      gap: 12px; margin: 24px 0;
+    }
+
+    .divider-line { flex: 1; height: 2px; background: var(--border); }
+    .divider-text { font-size: .78rem; font-weight: 700; color: var(--text3); }
+
+    /* ── DEMO ACCOUNTS ── */
+    .demo-section {
+      background: #fff; border: 2px solid var(--border);
+      border-radius: 16px; padding: 16px;
+    }
+
+    .demo-title {
+      font-size: .75rem; font-weight: 800;
+      color: var(--text3); text-transform: uppercase;
+      letter-spacing: .5px; margin-bottom: 12px;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 8px;
+    }
+
+    .demo-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px;
+      background: var(--green-lt);
+      border: 1.5px solid #A5D6A7;
+      border-radius: 10px; cursor: pointer;
+      transition: all .12s; font-family: 'Nunito', sans-serif;
+    }
+
+    .demo-btn:hover { background: #C8E6C9; border-color: var(--green); }
+    .demo-icon { font-size: 1rem; }
+    .demo-info { }
+    .demo-role { font-size: .72rem; font-weight: 800; color: var(--green-dk); }
+    .demo-email { font-size: .65rem; color: var(--text2); font-weight: 600; }
+
+    /* ── ERROR BOX ── */
+    .error-box {
+      display: none;
+      background: var(--red-lt);
+      border: 2px solid #FFCDD2;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: .85rem; font-weight: 700;
+      color: #B71C1C; margin-bottom: 16px;
+    }
+
+    .error-box.show { display: block; }
+
+    /* ── FORGOT PASSWORD VIEW ── */
+    .forgot-view { display: none; }
+    .back-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: none; border: none;
+      font-family: 'Nunito', sans-serif;
+      font-size: .85rem; font-weight: 700;
+      color: var(--text2); cursor: pointer;
+      margin-bottom: 20px; padding: 0;
+    }
+    .back-btn:hover { color: var(--green-dk); }
+
+    .success-box {
+      display: none;
+      background: var(--green-lt);
+      border: 2px solid #A5D6A7;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: .85rem; font-weight: 700;
+      color: var(--green-dk); margin-bottom: 16px;
+    }
+    .success-box.show { display: block; }
+
+    /* ── BACK TO SITE ── */
+    .back-to-site {
+      text-align: center; margin-top: 24px;
+    }
+    .back-to-site a {
+      font-size: .82rem; font-weight: 700;
+      color: var(--text3); text-decoration: none;
+      transition: color .15s;
+    }
+    .back-to-site a:hover { color: var(--green-dk); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .page { grid-template-columns: 1fr; }
+      .left-panel { display: none; }
+      .right-panel { padding: 32px 24px; align-items: flex-start; padding-top: 48px; }
+      .login-box { max-width: 100%; }
+
+      /* Show mini logo on mobile */
+      .mobile-logo {
+        display: block !important;
+        font-family: 'Baloo 2', sans-serif;
+        font-size: 1.4rem; font-weight: 800;
+        color: var(--green-dk); margin-bottom: 24px;
+      }
+      .mobile-logo span { color: var(--orange-dk); }
+    }
+
+    @media (min-width: 769px) {
+      .mobile-logo { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ── LEFT PANEL ── -->
+  <div class="left-panel">
+    <div class="panel-logo">iMath<span>Academy</span></div>
+
+    <div class="panel-content">
+      <div class="panel-title">Welcome back to<br>your learning journey!</div>
+      <div class="panel-subtitle">
+        Sign in to access your personalised dashboard,<br>
+        practice sessions, homework, and progress reports.
+      </div>
+      <div class="panel-features">
+        <div class="panel-feat">
+          <div class="feat-dot">🧮</div>
+          <div class="feat-text"><strong>Students</strong> — practice on the interactive abacus, complete homework, earn badges and XP</div>
+        </div>
+        <div class="panel-feat">
+          <div class="feat-dot">👨‍🏫</div>
+          <div class="feat-text"><strong>Teachers</strong> — manage classes, assign homework, track every student's progress</div>
+        </div>
+        <div class="panel-feat">
+          <div class="feat-dot">👨‍👩‍👧</div>
+          <div class="feat-text"><strong>Parents</strong> — see your child's progress, pay fees via UPI, download monthly reports</div>
+        </div>
+        <div class="panel-feat">
+          <div class="feat-dot">⚙️</div>
+          <div class="feat-text"><strong>Admin</strong> — full academy overview, user management, and automation controls</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-bottom">
+      © 2025 iMathAcademy · <a href="index.html" style="color:rgba(255,255,255,.5)">Back to website</a>
+    </div>
+  </div>
+
+  <!-- ── RIGHT PANEL ── -->
+  <div class="right-panel">
+    <div class="login-box">
+
+      <!-- Mobile logo (hidden on desktop) -->
+      <div class="mobile-logo">iMath<span>Academy</span></div>
+
+      <!-- ── LOGIN VIEW ── -->
+      <div id="loginView">
+        <div class="login-title">Sign in</div>
+        <div class="login-sub">Choose your role and enter your credentials</div>
+
+        <!-- Role selector -->
+        <div class="role-grid" id="roleGrid">
+          <button class="role-btn active" onclick="selectRole('student', this)">
+            <span class="role-icon">🎓</span>
+            <span class="role-label">Student</span>
+          </button>
+          <button class="role-btn" onclick="selectRole('teacher', this)">
+            <span class="role-icon">👨‍🏫</span>
+            <span class="role-label">Teacher</span>
+          </button>
+          <button class="role-btn" onclick="selectRole('parent', this)">
+            <span class="role-icon">👨‍👩‍👧</span>
+            <span class="role-label">Parent</span>
+          </button>
+          <button class="role-btn" onclick="selectRole('admin', this)">
+            <span class="role-icon">⚙️</span>
+            <span class="role-label">Admin</span>
+          </button>
+        </div>
+
+        <!-- Error box -->
+        <div class="error-box" id="errorBox"></div>
+
+        <!-- Login form -->
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label class="form-label">Email address</label>
+            <input
+              class="form-input"
+              type="email"
+              id="emailInput"
+              placeholder="your@email.com"
+              autocomplete="email"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div class="password-wrap">
+              <input
+                class="form-input"
+                type="password"
+                id="passwordInput"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                required
+              >
+              <button type="button" class="toggle-pw" onclick="togglePassword()" id="toggleBtn">👁</button>
+            </div>
+          </div>
+
+          <div class="form-footer">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+              <input type="checkbox" id="rememberMe" style="width:15px;height:15px;accent-color:var(--green)">
+              <span style="font-size:.8rem;font-weight:700;color:var(--text2)">Remember me</span>
+            </label>
+            <button type="button" class="form-link" onclick="showForgot()">Forgot password?</button>
+          </div>
+
+          <button type="submit" class="submit-btn" id="submitBtn">
+            <span id="btnText">Sign in</span>
+            <div class="btn-spinner" id="btnSpinner"></div>
+          </button>
+        </form>
+
+        <div class="divider">
+          <div class="divider-line"></div>
+          <div class="divider-text">Quick access for testing</div>
+          <div class="divider-line"></div>
+        </div>
+
+        <!-- Demo accounts -->
+        <div class="demo-section">
+          <div class="demo-title">Demo accounts</div>
+          <div class="demo-grid">
+            <button class="demo-btn" onclick="fillDemo('student@imathacademy.com','demo1234','student')">
+              <span class="demo-icon">🎓</span>
+              <div class="demo-info">
+                <div class="demo-role">Student</div>
+                <div class="demo-email">student@imathacademy.com</div>
+              </div>
+            </button>
+            <button class="demo-btn" onclick="fillDemo('teacher@imathacademy.com','demo1234','teacher')">
+              <span class="demo-icon">👨‍🏫</span>
+              <div class="demo-info">
+                <div class="demo-role">Teacher</div>
+                <div class="demo-email">teacher@imathacademy.com</div>
+              </div>
+            </button>
+            <button class="demo-btn" onclick="fillDemo('parent@imathacademy.com','demo1234','parent')">
+              <span class="demo-icon">👨‍👩‍👧</span>
+              <div class="demo-info">
+                <div class="demo-role">Parent</div>
+                <div class="demo-email">parent@imathacademy.com</div>
+              </div>
+            </button>
+            <button class="demo-btn" onclick="fillDemo('admin@imathacademy.com','demo1234','admin')">
+              <span class="demo-icon">⚙️</span>
+              <div class="demo-info">
+                <div class="demo-role">Admin</div>
+                <div class="demo-email">admin@imathacademy.com</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div class="back-to-site">
+          <a href="index.html">← Back to iMathAcademy website</a>
+        </div>
+      </div>
+
+      <!-- ── FORGOT PASSWORD VIEW ── -->
+      <div class="forgot-view" id="forgotView">
+        <button class="back-btn" onclick="showLogin()">← Back to sign in</button>
+        <div class="login-title">Reset your password</div>
+        <div class="login-sub" style="margin-bottom:24px">Enter your email and we will send you a reset link</div>
+
+        <div class="success-box" id="resetSuccess">
+          Password reset email sent! Check your inbox and follow the link to set a new password.
+        </div>
+
+        <div class="error-box" id="resetError"></div>
+
+        <form onsubmit="handleReset(event)">
+          <div class="form-group">
+            <label class="form-label">Email address</label>
+            <input
+              class="form-input"
+              type="email"
+              id="resetEmail"
+              placeholder="your@email.com"
+              required
+            >
+          </div>
+          <button type="submit" class="submit-btn" id="resetBtn">
+            <span id="resetBtnText">Send reset link</span>
+            <div class="btn-spinner" id="resetSpinner"></div>
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ── CONFIG ────────────────────────────────────────────────
+  const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+  const SUPABASE_KEY = 'YOUR_ANON_KEY_HERE'; // Replace with your key
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ── STATE ─────────────────────────────────────────────────
+  let selectedRole = 'student';
+
+  // ── ROLE ROUTING ──────────────────────────────────────────
+  const ROLE_ROUTES = {
+    student: 'portal/student/dashboard.html',
+    teacher: 'portal/teacher/dashboard.html',
+    parent:  'portal/parent/dashboard.html',
+    admin:   'portal/admin/dashboard.html',
+  };
+
+  // ── ROLE SELECTOR ─────────────────────────────────────────
+  function selectRole(role, btn) {
+    selectedRole = role;
+    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    hideError();
+  }
+
+  // ── DEMO FILL ─────────────────────────────────────────────
+  function fillDemo(email, password, role) {
+    document.getElementById('emailInput').value = email;
+    document.getElementById('passwordInput').value = password;
+    // Set the role button
+    const roleBtns = document.querySelectorAll('.role-btn');
+    roleBtns.forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.querySelector('.role-label').textContent.toLowerCase() === role) {
+        btn.classList.add('active');
+        selectedRole = role;
+      }
+    });
+  }
+
+  // ── TOGGLE PASSWORD ────────────────────────────────────────
+  function togglePassword() {
+    const inp = document.getElementById('passwordInput');
+    const btn = document.getElementById('toggleBtn');
+    if (inp.type === 'password') {
+      inp.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      inp.type = 'password';
+      btn.textContent = '👁';
+    }
+  }
+
+  // ── LOGIN HANDLER ──────────────────────────────────────────
+  async function handleLogin(e) {
+    e.preventDefault();
+    hideError();
+    setLoading(true);
+
+    const email    = document.getElementById('emailInput').value.trim();
+    const password = document.getElementById('passwordInput').value;
+    const remember = document.getElementById('rememberMe').checked;
+
+    try {
+      // Sign in with Supabase
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        showError(getFriendlyError(error.message));
+        setLoading(false);
+        return;
+      }
+
+      // Get user profile to verify role
+      const { data: profile, error: profileError } = await sb
+        .from('users')
+        .select('role, full_name, is_active')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError || !profile) {
+        showError('Your account profile was not found. Please contact the administrator.');
+        setLoading(false);
+        return;
+      }
+
+      if (!profile.is_active) {
+        showError('Your account has been deactivated. Please contact the administrator.');
+        await sb.auth.signOut();
+        setLoading(false);
+        return;
+      }
+
+      // Verify role matches selection
+      if (profile.role !== selectedRole) {
+        showError(`This account is registered as a ${profile.role}. Please select "${profile.role}" from the role buttons above.`);
+        // Auto-select correct role
+        document.querySelectorAll('.role-btn').forEach(btn => {
+          btn.classList.remove('active');
+          if (btn.querySelector('.role-label').textContent.toLowerCase() === profile.role) {
+            btn.classList.add('active');
+            selectedRole = profile.role;
+          }
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Store remember me preference
+      if (remember) {
+        localStorage.setItem('ima_remember', 'true');
+      }
+
+      // Redirect to correct portal
+      window.location.href = ROLE_ROUTES[profile.role] || 'index.html';
+
+    } catch (err) {
+      showError('Something went wrong. Please try again.');
+      setLoading(false);
+    }
+  }
+
+  // ── RESET PASSWORD ─────────────────────────────────────────
+  async function handleReset(e) {
+    e.preventDefault();
+    const email = document.getElementById('resetEmail').value.trim();
+    const btn   = document.getElementById('resetBtn');
+    const txt   = document.getElementById('resetBtnText');
+    const spin  = document.getElementById('resetSpinner');
+    const err   = document.getElementById('resetError');
+    const suc   = document.getElementById('resetSuccess');
+
+    err.classList.remove('show');
+    txt.style.display = 'none';
+    spin.style.display = 'block';
+    btn.disabled = true;
+
+    try {
+      const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/login.html',
+      });
+
+      if (error) {
+        err.textContent = getFriendlyError(error.message);
+        err.classList.add('show');
+      } else {
+        suc.classList.add('show');
+      }
+    } catch {
+      err.textContent = 'Something went wrong. Please try again.';
+      err.classList.add('show');
+    }
+
+    txt.style.display = 'block';
+    spin.style.display = 'none';
+    btn.disabled = false;
+  }
+
+  // ── VIEWS ─────────────────────────────────────────────────
+  function showForgot() {
+    document.getElementById('loginView').style.display  = 'none';
+    document.getElementById('forgotView').style.display = 'block';
+  }
+
+  function showLogin() {
+    document.getElementById('forgotView').style.display = 'none';
+    document.getElementById('loginView').style.display  = 'block';
+  }
+
+  // ── UI HELPERS ─────────────────────────────────────────────
+  function setLoading(loading) {
+    const btn  = document.getElementById('submitBtn');
+    const txt  = document.getElementById('btnText');
+    const spin = document.getElementById('btnSpinner');
+    btn.disabled    = loading;
+    txt.style.display  = loading ? 'none' : 'block';
+    spin.style.display = loading ? 'block' : 'none';
+  }
+
+  function showError(msg) {
+    const box = document.getElementById('errorBox');
+    box.textContent = msg;
+    box.classList.add('show');
+  }
+
+  function hideError() {
+    document.getElementById('errorBox').classList.remove('show');
+    document.getElementById('emailInput').classList.remove('error');
+    document.getElementById('passwordInput').classList.remove('error');
+  }
+
+  function getFriendlyError(msg) {
+    if (msg.includes('Invalid login'))  return 'Incorrect email or password. Please check and try again.';
+    if (msg.includes('Email not confirmed')) return 'Please confirm your email address before signing in.';
+    if (msg.includes('Too many requests')) return 'Too many login attempts. Please wait a few minutes and try again.';
+    if (msg.includes('User not found')) return 'No account found with this email address.';
+    return 'Sign in failed. Please check your credentials and try again.';
+  }
+
+  // ── AUTO-LOGIN CHECK ───────────────────────────────────────
+  // If user is already logged in, redirect them
+  async function checkExistingSession() {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+
+    const { data: profile } = await sb
+      .from('users')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+
+    if (profile && ROLE_ROUTES[profile.role]) {
+      window.location.href = ROLE_ROUTES[profile.role];
+    }
+  }
+
+  // Run session check on page load
+  checkExistingSession();
+</script>
+</body>
+</html>

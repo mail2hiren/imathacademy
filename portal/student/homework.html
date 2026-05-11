@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homework — iMathAcademy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; min-height: 100vh; }
+    :root {
+      --green:#43A047; --green-dk:#1B5E20; --green-lt:#E8F5E9; --green-md:#2E7D32;
+      --orange:#FB8C00; --orange-dk:#E65100; --orange-lt:#FFF3E0;
+      --blue:#1E88E5; --blue-dk:#0D47A1; --blue-lt:#E3F2FD;
+      --purple:#8E24AA; --purple-dk:#4A148C; --purple-lt:#F3E5F5;
+      --red:#E53935; --red-dk:#B71C1C; --red-lt:#FFEBEE;
+      --yellow:#F9A825; --yellow-lt:#FFFDE7; --yellow-dk:#F57F17;
+      --teal:#00897B; --teal-lt:#E0F2F1; --teal-dk:#004D40;
+      --bg:#FFFFFF; --bg2:#F7F8FF; --border:#E8EAF6;
+      --text2:#4A4A6A; --text3:#9090B0;
+    }
+
+    /* ── LAYOUT ── */
+    .portal { display:flex; min-height:100vh; }
+    .sidebar {
+      width:220px; flex-shrink:0; background:var(--bg);
+      border-right:2px solid var(--border); display:flex;
+      flex-direction:column; position:fixed; top:0; left:0;
+      height:100vh; overflow-y:auto; z-index:100; transition:transform .3s;
+    }
+    .sidebar-logo {
+      padding:20px 16px; border-bottom:2px solid var(--border);
+      font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800;
+      color:var(--green-dk); display:flex; align-items:center; gap:10px;
+    }
+    .sidebar-logo span { color:var(--orange-dk); }
+    .logo-icon { width:34px; height:34px; background:var(--green); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+    .sidebar-nav { flex:1; padding:12px 0; }
+    .nav-section { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--text3); padding:8px 16px 3px; margin-top:6px; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 16px; font-size:.875rem; font-weight:700; color:var(--text2); cursor:pointer; border-left:3px solid transparent; transition:all .12s; text-decoration:none; }
+    .nav-item:hover { color:var(--text); background:var(--bg2); }
+    .nav-item.active { color:var(--orange-dk); background:var(--orange-lt); border-left-color:var(--orange); }
+    .nav-icon { width:20px; text-align:center; font-size:1rem; }
+    .nav-badge { margin-left:auto; background:var(--red); color:#fff; font-size:.62rem; font-weight:800; padding:2px 6px; border-radius:20px; min-width:18px; text-align:center; }
+    .sidebar-user { padding:14px 16px; border-top:2px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .user-av { width:36px; height:36px; border-radius:50%; background:var(--green-lt); border:2px solid var(--green); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; color:var(--green-dk); flex-shrink:0; }
+    .user-name { font-size:.82rem; font-weight:800; color:var(--text); }
+    .user-role { font-size:.7rem; color:var(--text3); font-weight:600; }
+    .logout-btn { margin-left:auto; background:none; border:none; font-size:.85rem; cursor:pointer; color:var(--text3); }
+    .logout-btn:hover { color:var(--red); }
+
+    .main { flex:1; margin-left:220px; display:flex; flex-direction:column; }
+    .topbar {
+      height:62px; background:var(--bg); border-bottom:2px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 24px; position:sticky; top:0; z-index:50;
+      box-shadow:0 2px 8px rgba(0,0,0,.05);
+    }
+    .topbar-left { display:flex; align-items:center; gap:12px; }
+    .hamburger { display:none; flex-direction:column; gap:4px; cursor:pointer; background:none; border:none; }
+    .hamburger span { width:20px; height:2px; background:var(--text); border-radius:2px; display:block; }
+    .topbar-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; }
+    .back-link { font-size:.82rem; font-weight:700; color:var(--text3); text-decoration:none; }
+    .back-link:hover { color:var(--green-dk); }
+
+    .body { padding:24px; }
+
+    /* ── HW LIST SCREEN ── */
+    .hw-tabs {
+      display:flex; gap:0; background:var(--bg);
+      border:2px solid var(--border); border-radius:30px;
+      overflow:hidden; margin-bottom:20px; width:fit-content;
+    }
+    .hw-tab {
+      padding:9px 20px; font-size:.85rem; font-weight:800;
+      cursor:pointer; transition:all .15s; color:var(--text2);
+      border:none; background:transparent; font-family:'Nunito',sans-serif;
+    }
+    .hw-tab.active { background:var(--orange); color:#fff; }
+
+    .hw-stats {
+      display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px; margin-bottom:20px;
+    }
+    .hw-stat {
+      background:var(--bg); border:2px solid var(--border);
+      border-radius:16px; padding:14px; text-align:center;
+    }
+    .hw-stat-n { font-family:'Baloo 2',sans-serif; font-size:1.6rem; font-weight:800; line-height:1.1; margin-bottom:3px; }
+    .hw-stat-l { font-size:.75rem; font-weight:700; color:var(--text2); }
+
+    .hw-card {
+      background:var(--bg); border:2px solid var(--border);
+      border-radius:18px; padding:18px 20px; margin-bottom:12px;
+      display:flex; align-items:center; gap:16px;
+      transition:all .15s; cursor:pointer;
+    }
+    .hw-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.08); transform:translateY(-1px); }
+    .hw-card.urgent { border-color:var(--red); background:#FFFAFA; }
+    .hw-card.done   { border-color:#A5D6A7; background:var(--green-lt); opacity:.85; }
+    .hw-card.auto   { border-color:#90CAF9; background:var(--blue-lt); }
+
+    .hw-icon {
+      width:48px; height:48px; border-radius:14px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.4rem; flex-shrink:0;
+    }
+    .hw-info { flex:1; min-width:0; }
+    .hw-title { font-size:.95rem; font-weight:800; color:var(--text); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .hw-meta  { font-size:.78rem; color:var(--text3); font-weight:600; margin-bottom:6px; }
+    .hw-tags  { display:flex; gap:6px; flex-wrap:wrap; }
+    .hw-tag   { font-size:.7rem; font-weight:800; padding:3px 10px; border-radius:20px; }
+
+    .hw-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex-shrink:0; }
+    .due-pill { font-size:.75rem; font-weight:800; padding:4px 12px; border-radius:20px; white-space:nowrap; }
+    .due-red    { background:var(--red-lt);    color:var(--red-dk);    border:1.5px solid #FFCDD2; }
+    .due-orange { background:var(--orange-lt); color:var(--orange-dk); border:1.5px solid #FFCC80; }
+    .due-green  { background:var(--green-lt);  color:var(--green-dk);  border:1.5px solid #A5D6A7; }
+    .due-blue   { background:var(--blue-lt);   color:var(--blue-dk);   border:1.5px solid #90CAF9; }
+    .due-gray   { background:var(--bg2);       color:var(--text3);     border:1.5px solid var(--border); }
+
+    .hw-btn {
+      padding:7px 16px; border-radius:20px; font-family:'Nunito',sans-serif;
+      font-size:.78rem; font-weight:800; border:none; cursor:pointer; transition:all .12s;
+    }
+    .hw-btn-start  { background:var(--green);  color:#fff; }
+    .hw-btn-review { background:var(--bg2);    color:var(--text2); border:2px solid var(--border); }
+    .hw-btn-urgent { background:var(--red);    color:#fff; }
+
+    .empty-state {
+      text-align:center; padding:48px 24px;
+      color:var(--text3);
+    }
+    .empty-icon { font-size:3rem; margin-bottom:12px; }
+    .empty-title { font-size:1rem; font-weight:800; color:var(--text2); margin-bottom:8px; }
+
+    /* ── ATTEMPT SCREEN ── */
+    .attempt-header {
+      background:var(--bg); border:2px solid var(--border);
+      border-radius:18px; padding:18px 24px; margin-bottom:20px;
+    }
+    .attempt-title { font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800; margin-bottom:4px; }
+    .attempt-meta  { font-size:.82rem; color:var(--text2); font-weight:600; }
+    .attempt-due   { display:inline-block; margin-top:8px; padding:4px 12px; border-radius:20px; font-size:.75rem; font-weight:800; }
+
+    .attempt-progress {
+      background:var(--bg); border:2px solid var(--border);
+      border-radius:14px; padding:14px 20px; margin-bottom:20px;
+    }
+    .ap-top { display:flex; justify-content:space-between; margin-bottom:8px; }
+    .ap-label { font-size:.82rem; font-weight:800; color:var(--text2); }
+    .ap-count { font-size:.82rem; font-weight:800; color:var(--orange-dk); }
+    .ap-track { height:10px; background:var(--bg2); border-radius:5px; overflow:hidden; }
+    .ap-fill  { height:100%; background:var(--orange); border-radius:5px; transition:width .4s; }
+    .ap-dots  { display:flex; gap:6px; margin-top:10px; }
+    .ap-dot   { width:20px; height:20px; border-radius:50%; background:var(--bg2); border:2px solid var(--border); transition:all .3s; }
+    .ap-dot.answered { background:var(--blue); border-color:var(--blue-dk); }
+    .ap-dot.current  { background:var(--orange); border-color:var(--orange-dk); animation:pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.5} }
+
+    .question-card {
+      background:var(--bg); border:2px solid var(--border);
+      border-radius:20px; padding:24px; margin-bottom:20px;
+    }
+    .q-num { font-size:.75rem; font-weight:800; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+    .q-topic-tag {
+      display:inline-block; padding:4px 12px; border-radius:20px;
+      font-size:.75rem; font-weight:800; margin-bottom:14px;
+      background:var(--orange-lt); color:var(--orange-dk);
+    }
+    .q-text {
+      font-family:'Baloo 2',sans-serif;
+      font-size:clamp(1.6rem,4vw,2.4rem); font-weight:800;
+      color:var(--text); margin-bottom:16px; text-align:center;
+    }
+    .q-text .op { color:var(--red); }
+    .q-text .eq { color:var(--purple); }
+
+    /* Answer input */
+    .answer-section { margin-bottom:16px; }
+    .answer-label { font-size:.82rem; font-weight:800; color:var(--text2); margin-bottom:8px; }
+
+    /* MCQ options */
+    .mcq-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .mcq-opt {
+      padding:14px 16px; border:2px solid var(--border);
+      border-radius:14px; cursor:pointer; font-size:.95rem;
+      font-weight:700; color:var(--text); text-align:center;
+      transition:all .15s; background:var(--bg);
+    }
+    .mcq-opt:hover  { border-color:var(--orange); background:var(--orange-lt); }
+    .mcq-opt.sel    { border-color:var(--orange); background:var(--orange-lt); color:var(--orange-dk); }
+    .mcq-opt.right  { border-color:var(--green);  background:var(--green-lt);  color:var(--green-dk); }
+    .mcq-opt.wrong  { border-color:var(--red);    background:var(--red-lt);    color:var(--red-dk); }
+
+    /* Text input */
+    .answer-input {
+      width:100%; padding:14px 18px;
+      border:2px solid var(--border); border-radius:14px;
+      font-family:'Baloo 2',sans-serif; font-size:1.4rem;
+      font-weight:800; text-align:center; color:var(--text);
+      background:var(--bg); outline:none; transition:border-color .15s;
+    }
+    .answer-input:focus { border-color:var(--orange); }
+    .answer-input.correct { border-color:var(--green); background:var(--green-lt); color:var(--green-dk); }
+    .answer-input.wrong   { border-color:var(--red);   background:var(--red-lt);   color:var(--red-dk); }
+
+    /* Abacus type indicator */
+    .abacus-hint {
+      background:var(--bg2); border:2px solid var(--border);
+      border-radius:12px; padding:12px 16px;
+      font-size:.82rem; color:var(--text2); font-weight:600;
+      margin-bottom:12px; display:flex; align-items:center; gap:8px;
+    }
+
+    .q-nav-btns { display:flex; gap:10px; justify-content:space-between; flex-wrap:wrap; }
+    .btn {
+      padding:11px 22px; border-radius:30px; font-family:'Nunito',sans-serif;
+      font-size:.875rem; font-weight:800; border:none; cursor:pointer; transition:all .15s;
+    }
+    .btn:active { transform:scale(.96); }
+    .btn-prev   { background:var(--bg2); color:var(--text2); border:2px solid var(--border); }
+    .btn-next   { background:var(--orange); color:#fff; }
+    .btn-next:hover { background:var(--orange-dk); }
+    .btn-submit { background:var(--green); color:#fff; }
+    .btn-submit:hover { background:var(--green-md); }
+    .btn-ghost  { background:var(--bg2); color:var(--text2); border:2px solid var(--border); }
+
+    /* ── RESULTS SCREEN ── */
+    .results-header {
+      border-radius:20px; padding:28px; text-align:center;
+      margin-bottom:20px; color:#fff;
+    }
+    .results-emoji { font-size:3.5rem; margin-bottom:10px; }
+    .results-title { font-family:'Baloo 2',sans-serif; font-size:1.8rem; font-weight:800; margin-bottom:6px; }
+    .results-sub   { font-size:.95rem; opacity:.9; font-weight:600; }
+
+    .results-stats {
+      display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px; margin-bottom:20px;
+    }
+    .r-stat { background:var(--bg); border:2px solid var(--border); border-radius:16px; padding:16px; text-align:center; }
+    .r-stat-n { font-family:'Baloo 2',sans-serif; font-size:1.8rem; font-weight:800; margin-bottom:3px; }
+    .r-stat-l { font-size:.75rem; font-weight:700; color:var(--text2); }
+
+    .review-section {
+      background:var(--bg); border:2px solid var(--border);
+      border-radius:18px; padding:20px; margin-bottom:20px;
+    }
+    .review-title { font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--text3); margin-bottom:14px; }
+
+    .review-item {
+      padding:14px; border-radius:14px; margin-bottom:10px;
+      border:2px solid transparent;
+    }
+    .review-item.correct { background:var(--green-lt); border-color:#A5D6A7; }
+    .review-item.wrong   { background:var(--red-lt);   border-color:#FFCDD2; }
+
+    .review-q     { font-size:.9rem; font-weight:800; color:var(--text); margin-bottom:6px; }
+    .review-your  { font-size:.82rem; font-weight:700; margin-bottom:3px; }
+    .review-right { font-size:.82rem; font-weight:700; color:var(--green-dk); }
+    .review-expl  { font-size:.78rem; color:var(--text2); font-weight:600; margin-top:4px; line-height:1.5; font-style:italic; }
+
+    .teacher-feedback {
+      background:var(--blue-lt); border:2px solid #90CAF9;
+      border-radius:14px; padding:14px 18px; margin-bottom:20px;
+    }
+    .tf-title { font-size:.75rem; font-weight:800; text-transform:uppercase; color:var(--blue-dk); margin-bottom:6px; letter-spacing:.5px; }
+    .tf-text  { font-size:.875rem; color:var(--blue-dk); font-weight:600; line-height:1.6; }
+
+    /* ── SUBMIT CONFIRM ── */
+    .confirm-overlay {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,.5); z-index:200;
+      align-items:center; justify-content:center; padding:20px;
+    }
+    .confirm-overlay.open { display:flex; }
+    .confirm-box {
+      background:var(--bg); border-radius:20px;
+      padding:28px; width:100%; max-width:400px;
+      box-shadow:0 16px 48px rgba(0,0,0,.2);
+      text-align:center;
+    }
+    .confirm-icon  { font-size:2.5rem; margin-bottom:12px; }
+    .confirm-title { font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800; margin-bottom:8px; }
+    .confirm-sub   { font-size:.875rem; color:var(--text2); font-weight:500; margin-bottom:20px; line-height:1.6; }
+    .confirm-btns  { display:flex; gap:10px; justify-content:center; }
+
+    /* ── TOAST ── */
+    .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+    .toast { background:var(--text); color:#fff; padding:10px 18px; border-radius:12px; font-size:.875rem; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,.2); animation:slideIn .3s ease; }
+    .toast-success { background:var(--green-dk); }
+    .toast-error   { background:var(--red-dk); }
+    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:768px) {
+      .sidebar { transform:translateX(-100%); }
+      .sidebar.open { transform:translateX(0); }
+      .main { margin-left:0; }
+      .hamburger { display:flex; }
+      .body { padding:16px; }
+      .hw-stats { grid-template-columns:repeat(2,1fr); }
+      .results-stats { grid-template-columns:repeat(2,1fr); }
+      .mcq-grid { grid-template-columns:1fr; }
+    }
+    @media (max-width:480px) {
+      .hw-card { flex-direction:column; align-items:flex-start; }
+      .hw-right { flex-direction:row; align-items:center; }
+    }
+  </style>
+</head>
+<body>
+<div class="portal">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🧮</div>
+      iMath<span>Academy</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Learning</div>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a class="nav-item" href="lessons.html"><span class="nav-icon">▶️</span> Lessons</a>
+      <a class="nav-item" href="practice.html"><span class="nav-icon">⚡</span> Practice</a>
+      <a class="nav-item active" href="homework.html"><span class="nav-icon">📋</span> Homework<span class="nav-badge" id="hwBadge">2</span></a>
+      <div class="nav-section">Progress</div>
+      <a class="nav-item" href="progress.html"><span class="nav-icon">📊</span> My progress</a>
+      <a class="nav-item" href="progress.html"><span class="nav-icon">🏅</span> Badges & XP</a>
+      <div class="nav-section">Classes</div>
+      <a class="nav-item" href="#"><span class="nav-icon">📹</span> Live classes</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-av" id="userAv">AR</div>
+      <div>
+        <div class="user-name" id="userName">Arjun Rao</div>
+        <div class="user-role">Student</div>
+      </div>
+      <button class="logout-btn" onclick="logout()">⇥</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div class="topbar-title" id="topbarTitle">📋 Homework</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <a class="back-link" href="dashboard.html" id="backLink">← Back to dashboard</a>
+      </div>
+    </div>
+
+    <div class="body" id="mainBody">
+
+      <!-- ══ HW LIST SCREEN ══ -->
+      <div id="listScreen">
+
+        <div class="hw-tabs">
+          <button class="hw-tab active" onclick="showTab('pending',this)">Pending (2)</button>
+          <button class="hw-tab" onclick="showTab('completed',this)">Completed (1)</button>
+          <button class="hw-tab" onclick="showTab('all',this)">All</button>
+        </div>
+
+        <div class="hw-stats">
+          <div class="hw-stat">
+            <div class="hw-stat-n" style="color:var(--red)">2</div>
+            <div class="hw-stat-l">Pending</div>
+          </div>
+          <div class="hw-stat">
+            <div class="hw-stat-n" style="color:var(--green)">1</div>
+            <div class="hw-stat-l">Completed</div>
+          </div>
+          <div class="hw-stat">
+            <div class="hw-stat-n" style="color:var(--blue)">90%</div>
+            <div class="hw-stat-l">Avg score</div>
+          </div>
+          <div class="hw-stat">
+            <div class="hw-stat-n" style="color:var(--yellow)">180</div>
+            <div class="hw-stat-l">XP from HW</div>
+          </div>
+        </div>
+
+        <!-- Pending homework -->
+        <div id="pendingList">
+          <div style="font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:10px">Pending</div>
+
+          <!-- Urgent homework -->
+          <div class="hw-card urgent" onclick="startHomework('hw1')">
+            <div class="hw-icon" style="background:var(--red-lt)">📋</div>
+            <div class="hw-info">
+              <div class="hw-title">Addition with carrying — 10 questions</div>
+              <div class="hw-meta">Assigned by Ms. Priya · Abacus Level 3 · 10 questions</div>
+              <div class="hw-tags">
+                <span class="hw-tag" style="background:var(--red-lt);color:var(--red-dk)">Abacus</span>
+                <span class="hw-tag" style="background:var(--orange-lt);color:var(--orange-dk)">Level 3</span>
+                <span class="hw-tag" style="background:var(--bg2);color:var(--text2)">Medium</span>
+              </div>
+            </div>
+            <div class="hw-right">
+              <span class="due-pill due-red">Due tomorrow!</span>
+              <button class="hw-btn hw-btn-urgent" onclick="event.stopPropagation();startHomework('hw1')">Start now →</button>
+            </div>
+          </div>
+
+          <!-- Auto-assigned homework -->
+          <div class="hw-card auto" onclick="startHomework('hw2')">
+            <div class="hw-icon" style="background:var(--blue-lt)">🤖</div>
+            <div class="hw-info">
+              <div class="hw-title">Revision: 3-digit subtraction — 8 questions</div>
+              <div class="hw-meta">Auto-assigned · Weak area detected · 8 questions</div>
+              <div class="hw-tags">
+                <span class="hw-tag" style="background:var(--blue-lt);color:var(--blue-dk)">Auto-assigned</span>
+                <span class="hw-tag" style="background:var(--orange-lt);color:var(--orange-dk)">Level 3</span>
+                <span class="hw-tag" style="background:var(--bg2);color:var(--text2)">Easy</span>
+              </div>
+            </div>
+            <div class="hw-right">
+              <span class="due-pill due-orange">2 days left</span>
+              <button class="hw-btn hw-btn-start" onclick="event.stopPropagation();startHomework('hw2')">Start →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Completed homework -->
+        <div id="completedList" style="margin-top:20px">
+          <div style="font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:10px">Completed</div>
+
+          <div class="hw-card done" onclick="showResults('hw3')">
+            <div class="hw-icon" style="background:var(--green-lt)">✅</div>
+            <div class="hw-info">
+              <div class="hw-title">Single digit addition — 10 questions</div>
+              <div class="hw-meta">Submitted 2 days ago · Graded · Score: 9/10</div>
+              <div class="hw-tags">
+                <span class="hw-tag" style="background:var(--green-lt);color:var(--green-dk)">Submitted</span>
+                <span class="hw-tag" style="background:var(--green-lt);color:var(--green-dk)">9/10 ⭐</span>
+              </div>
+            </div>
+            <div class="hw-right">
+              <span class="due-pill due-green">Submitted</span>
+              <button class="hw-btn hw-btn-review" onclick="event.stopPropagation();showResults('hw3')">Review →</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ ATTEMPT SCREEN ══ -->
+      <div id="attemptScreen" style="display:none">
+
+        <div class="attempt-header">
+          <div class="attempt-title" id="attemptTitle">Addition with carrying</div>
+          <div class="attempt-meta" id="attemptMeta">Assigned by Ms. Priya · 10 questions · Abacus Level 3</div>
+          <span class="attempt-due due-red" id="attemptDue">Due tomorrow</span>
+        </div>
+
+        <div class="attempt-progress">
+          <div class="ap-top">
+            <div class="ap-label">Progress</div>
+            <div class="ap-count" id="apCount">Question 1 of 10</div>
+          </div>
+          <div class="ap-track"><div class="ap-fill" id="apFill" style="width:0%"></div></div>
+          <div class="ap-dots" id="apDots"></div>
+        </div>
+
+        <div class="question-card" id="qCard">
+          <div class="q-num" id="qNum">QUESTION 1 OF 10</div>
+          <div class="q-topic-tag" id="qTopicTag">Addition with carrying</div>
+
+          <!-- Abacus hint for abacus questions -->
+          <div class="abacus-hint" id="abacusHint">
+            🧮 Use your abacus to solve this, then type your answer below
+          </div>
+
+          <div class="q-text" id="qText">
+            <span id="qN1">37</span>
+            <span class="op" id="qOp"> + </span>
+            <span id="qN2">46</span>
+            <span class="eq"> = ?</span>
+          </div>
+
+          <div class="answer-section">
+            <div class="answer-label">Your answer</div>
+            <!-- Type-in answer -->
+            <div id="typeAnswer">
+              <input
+                class="answer-input" type="number"
+                id="answerInput" placeholder="Type your answer here"
+                onkeydown="handleAnswerKey(event)"
+              >
+            </div>
+            <!-- MCQ answer (for MCQ type questions) -->
+            <div id="mcqAnswer" style="display:none">
+              <div class="mcq-grid" id="mcqGrid"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="q-nav-btns">
+          <button class="btn btn-prev" id="prevBtn" onclick="prevQuestion()" style="display:none">← Previous</button>
+          <div style="display:flex;gap:10px;margin-left:auto">
+            <button class="btn btn-ghost" onclick="clearAnswer()">Clear</button>
+            <button class="btn btn-next" id="nextQBtn" onclick="nextAttemptQuestion()">Save & Next →</button>
+            <button class="btn btn-submit" id="submitBtn" onclick="showConfirm()" style="display:none">Submit homework ✓</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ RESULTS SCREEN ══ -->
+      <div id="resultsScreen" style="display:none">
+
+        <div class="results-header" id="resultsHeader" style="background:linear-gradient(135deg,var(--green-dk),var(--green-md))">
+          <div class="results-emoji" id="resultsEmoji">🌟</div>
+          <div class="results-title" id="resultsTitle">Great work!</div>
+          <div class="results-sub" id="resultsSub">Single digit addition · Score: 9/10</div>
+        </div>
+
+        <div class="results-stats">
+          <div class="r-stat"><div class="r-stat-n" style="color:var(--green)" id="rCorrect">9</div><div class="r-stat-l">Correct</div></div>
+          <div class="r-stat"><div class="r-stat-n" style="color:var(--red)" id="rWrong">1</div><div class="r-stat-l">Wrong</div></div>
+          <div class="r-stat"><div class="r-stat-n" style="color:var(--yellow)" id="rXP">150</div><div class="r-stat-l">XP earned</div></div>
+          <div class="r-stat"><div class="r-stat-n" style="color:var(--blue)" id="rTime">8 min</div><div class="r-stat-l">Time taken</div></div>
+        </div>
+
+        <!-- Teacher feedback (shown if teacher has left feedback) -->
+        <div class="teacher-feedback" id="teacherFeedback">
+          <div class="tf-title">👨‍🏫 Teacher feedback</div>
+          <div class="tf-text" id="teacherFeedbackText">Excellent work Arjun! You are improving well on single digit addition. Keep practising the carrying technique — I have assigned you some revision homework to strengthen that area. Keep it up!</div>
+        </div>
+
+        <!-- Question review -->
+        <div class="review-section">
+          <div class="review-title">Review all questions</div>
+          <div id="reviewList">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button onclick="backToList()" style="background:var(--green);color:#fff;border:none;padding:12px 24px;border-radius:30px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer">Back to homework</button>
+          <button onclick="window.location.href='practice.html'" style="background:var(--purple);color:#fff;border:none;padding:12px 24px;border-radius:30px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer">More practice ⚡</button>
+          <button onclick="window.location.href='dashboard.html'" style="background:var(--bg2);color:var(--text2);border:2px solid var(--border);padding:12px 24px;border-radius:30px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer">Dashboard</button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Submit confirm dialog -->
+<div class="confirm-overlay" id="confirmOverlay" onclick="closeConfirm(event)">
+  <div class="confirm-box">
+    <div class="confirm-icon">📤</div>
+    <div class="confirm-title">Submit your homework?</div>
+    <div class="confirm-sub" id="confirmSub">You have answered all 10 questions. Once submitted you cannot change your answers.</div>
+    <div class="confirm-btns">
+      <button onclick="closeConfirmBox()" style="background:var(--bg2);color:var(--text2);border:2px solid var(--border);padding:11px 22px;border-radius:30px;font-family:'Nunito',sans-serif;font-size:.875rem;font-weight:800;cursor:pointer">Review first</button>
+      <button onclick="submitHomework()" style="background:var(--green);color:#fff;border:none;padding:11px 22px;border-radius:30px;font-family:'Nunito',sans-serif;font-size:.875rem;font-weight:800;cursor:pointer">Yes, submit! ✓</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY = 'YOUR_ANON_KEY_HERE';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── DEMO HOMEWORK DATA ─────────────────────────────────────
+const HOMEWORK_DB = {
+  hw1: {
+    id:'hw1', title:'Addition with carrying', topic:'Addition with carrying',
+    assignedBy:'Ms. Priya', meta:'Abacus Level 3 · 10 questions · Medium',
+    due:'Due tomorrow', dueClass:'due-red', totalQ:10,
+    questions:[
+      { q:'37 + 46', n1:37, n2:46, op:'+', a:83, topic:'Addition with carrying', hint:'Set 37, then add 46 — carry 1 ten when ones exceed 9', explanation:'37 + 46 = 83. 7+6=13, write 3 carry 1. 3+4+1=8 tens.' },
+      { q:'28 + 35', n1:28, n2:35, op:'+', a:63, topic:'Addition with carrying', hint:'8+5=13, carry 1 ten', explanation:'28 + 35 = 63' },
+      { q:'49 + 27', n1:49, n2:27, op:'+', a:76, topic:'Addition with carrying', hint:'9+7=16, write 6 carry 1', explanation:'49 + 27 = 76' },
+      { q:'56 + 38', n1:56, n2:38, op:'+', a:94, topic:'Addition with carrying', hint:'6+8=14, carry 1', explanation:'56 + 38 = 94' },
+      { q:'67 + 25', n1:67, n2:25, op:'+', a:92, topic:'Addition with carrying', hint:'7+5=12, carry 1', explanation:'67 + 25 = 92' },
+      { q:'43 + 59', n1:43, n2:59, op:'+', a:102, topic:'Addition with carrying', hint:'3+9=12, carry 1. 4+5+1=10, carry 1 again', explanation:'43 + 59 = 102' },
+      { q:'78 + 14', n1:78, n2:14, op:'+', a:92, topic:'Addition with carrying', hint:'8+4=12, carry 1', explanation:'78 + 14 = 92' },
+      { q:'35 + 47', n1:35, n2:47, op:'+', a:82, topic:'Addition with carrying', hint:'5+7=12, carry 1', explanation:'35 + 47 = 82' },
+      { q:'69 + 23', n1:69, n2:23, op:'+', a:92, topic:'Addition with carrying', hint:'9+3=12, carry 1', explanation:'69 + 23 = 92' },
+      { q:'58 + 36', n1:58, n2:36, op:'+', a:94, topic:'Addition with carrying', hint:'8+6=14, carry 1', explanation:'58 + 36 = 94' },
+    ]
+  },
+  hw2: {
+    id:'hw2', title:'Revision: 3-digit subtraction', topic:'3-digit subtraction',
+    assignedBy:'Auto-assigned system', meta:'Weak area revision · 8 questions · Easy',
+    due:'2 days left', dueClass:'due-orange', totalQ:8,
+    questions:[
+      { q:'456 - 234', n1:456, n2:234, op:'-', a:222, topic:'3-digit subtraction', hint:'Subtract ones, tens, hundreds separately', explanation:'456 - 234 = 222' },
+      { q:'789 - 345', n1:789, n2:345, op:'-', a:444, topic:'3-digit subtraction', hint:'Work column by column', explanation:'789 - 345 = 444' },
+      { q:'653 - 421', n1:653, n2:421, op:'-', a:232, topic:'3-digit subtraction', hint:'Each column independently', explanation:'653 - 421 = 232' },
+      { q:'978 - 564', n1:978, n2:564, op:'-', a:414, topic:'3-digit subtraction', hint:'9-5=4, 7-6=1, 8-4=4', explanation:'978 - 564 = 414' },
+      { q:'845 - 312', n1:845, n2:312, op:'-', a:533, topic:'3-digit subtraction', hint:'Column by column', explanation:'845 - 312 = 533' },
+      { q:'567 - 243', n1:567, n2:243, op:'-', a:324, topic:'3-digit subtraction', hint:'5-2=3, 6-4=2, 7-3=4', explanation:'567 - 243 = 324' },
+      { q:'896 - 472', n1:896, n2:472, op:'-', a:424, topic:'3-digit subtraction', hint:'Column by column subtraction', explanation:'896 - 472 = 424' },
+      { q:'734 - 521', n1:734, n2:521, op:'-', a:213, topic:'3-digit subtraction', hint:'7-5=2, 3-2=1, 4-1=3', explanation:'734 - 521 = 213' },
+    ]
+  },
+  hw3: {
+    id:'hw3', title:'Single digit addition', topic:'Single digit addition',
+    assignedBy:'Ms. Priya', meta:'Abacus Level 1 · 10 questions · Easy',
+    due:'Submitted', dueClass:'due-green', totalQ:10, submitted:true,
+    score:9, timeStr:'8 min',
+    questions:[
+      { q:'2 + 3', n1:2, n2:3, op:'+', a:5, topic:'Single digit addition', hint:'2 beads, add 3 more', explanation:'2 + 3 = 5', studentAnswer:5,  correct:true  },
+      { q:'7 + 2', n1:7, n2:2, op:'+', a:9, topic:'Single digit addition', hint:'7 beads, add 2 more', explanation:'7 + 2 = 9', studentAnswer:9,  correct:true  },
+      { q:'4 + 4', n1:4, n2:4, op:'+', a:8, topic:'Single digit addition', hint:'4 beads, add 4 more', explanation:'4 + 4 = 8', studentAnswer:8,  correct:true  },
+      { q:'5 + 3', n1:5, n2:3, op:'+', a:8, topic:'Single digit addition', hint:'Heaven bead + 3 earth beads', explanation:'5 + 3 = 8', studentAnswer:8,  correct:true  },
+      { q:'1 + 6', n1:1, n2:6, op:'+', a:7, topic:'Single digit addition', hint:'1 bead, add 6 more', explanation:'1 + 6 = 7', studentAnswer:9,  correct:false },
+      { q:'3 + 5', n1:3, n2:5, op:'+', a:8, topic:'Single digit addition', hint:'3 beads, add 5 (heaven bead)', explanation:'3 + 5 = 8', studentAnswer:8,  correct:true  },
+      { q:'6 + 2', n1:6, n2:2, op:'+', a:8, topic:'Single digit addition', hint:'6 beads, add 2 more', explanation:'6 + 2 = 8', studentAnswer:8,  correct:true  },
+      { q:'4 + 5', n1:4, n2:5, op:'+', a:9, topic:'Single digit addition', hint:'4 earth beads + heaven bead', explanation:'4 + 5 = 9', studentAnswer:9,  correct:true  },
+      { q:'2 + 7', n1:2, n2:7, op:'+', a:9, topic:'Single digit addition', hint:'2 beads, add 7 more', explanation:'2 + 7 = 9', studentAnswer:9,  correct:true  },
+      { q:'8 + 1', n1:8, n2:1, op:'+', a:9, topic:'Single digit addition', hint:'8 beads, add 1 more', explanation:'8 + 1 = 9', studentAnswer:9,  correct:true  },
+    ]
+  }
+};
+
+// ── STATE ──────────────────────────────────────────────────
+let currentHW     = null;
+let currentQIdx   = 0;
+let answers       = {};
+let startTime     = null;
+let currentTab    = 'pending';
+
+// ── TAB SWITCHING ──────────────────────────────────────────
+function showTab(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.hw-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const pending   = document.getElementById('pendingList');
+  const completed = document.getElementById('completedList');
+  if (tab === 'pending')   { pending.style.display='block'; completed.style.display='none'; }
+  else if (tab === 'completed') { pending.style.display='none'; completed.style.display='block'; }
+  else { pending.style.display='block'; completed.style.display='block'; }
+}
+
+// ── START HOMEWORK ─────────────────────────────────────────
+function startHomework(hwId) {
+  currentHW   = HOMEWORK_DB[hwId];
+  currentQIdx = 0;
+  answers     = {};
+  startTime   = Date.now();
+
+  if (currentHW.submitted) { showResults(hwId); return; }
+
+  document.getElementById('listScreen').style.display    = 'none';
+  document.getElementById('attemptScreen').style.display = 'block';
+  document.getElementById('resultsScreen').style.display = 'none';
+  document.getElementById('topbarTitle').textContent     = '📋 ' + currentHW.title;
+  document.getElementById('backLink').onclick             = () => { backToList(); return false; };
+
+  document.getElementById('attemptTitle').textContent = currentHW.title;
+  document.getElementById('attemptMeta').textContent  = currentHW.meta;
+  document.getElementById('attemptDue').textContent   = currentHW.due;
+  document.getElementById('attemptDue').className     = 'attempt-due ' + currentHW.dueClass;
+
+  // Build progress dots
+  const dots = document.getElementById('apDots');
+  dots.innerHTML = '';
+  for (let i = 0; i < currentHW.totalQ; i++) {
+    const d = document.createElement('div');
+    d.className = 'ap-dot' + (i === 0 ? ' current' : '');
+    d.id = `apdot-${i}`;
+    dots.appendChild(d);
+  }
+
+  loadAttemptQuestion(0);
+}
+
+// ── LOAD QUESTION ──────────────────────────────────────────
+function loadAttemptQuestion(idx) {
+  currentQIdx = idx;
+  const q     = currentHW.questions[idx];
+  const total = currentHW.totalQ;
+
+  // Progress
+  const pct = (idx / total) * 100;
+  document.getElementById('apFill').style.width  = pct + '%';
+  document.getElementById('apCount').textContent = `Question ${idx + 1} of ${total}`;
+
+  // Dots
+  document.querySelectorAll('.ap-dot').forEach((d, i) => {
+    d.classList.remove('current');
+    if (answers[i] !== undefined) d.classList.add('answered');
+    if (i === idx) d.classList.add('current');
+  });
+
+  // Question
+  document.getElementById('qNum').textContent      = `QUESTION ${idx + 1} OF ${total}`;
+  document.getElementById('qTopicTag').textContent = q.topic;
+  document.getElementById('qN1').textContent       = q.n1;
+  document.getElementById('qOp').textContent       = ' ' + q.op + ' ';
+  document.getElementById('qN2').textContent       = q.n2;
+
+  // Answer input
+  const inp = document.getElementById('answerInput');
+  inp.value = answers[idx] !== undefined ? answers[idx] : '';
+  inp.className = 'answer-input';
+  setTimeout(() => inp.focus(), 50);
+
+  // Navigation buttons
+  document.getElementById('prevBtn').style.display   = idx > 0 ? 'inline-block' : 'none';
+  const isLast = idx === total - 1;
+  document.getElementById('nextQBtn').style.display  = isLast ? 'none' : 'inline-block';
+  document.getElementById('submitBtn').style.display = isLast ? 'inline-block' : 'none';
+}
+
+function handleAnswerKey(e) {
+  if (e.key === 'Enter') nextAttemptQuestion();
+}
+
+function nextAttemptQuestion() {
+  saveCurrentAnswer();
+  if (currentQIdx < currentHW.totalQ - 1) {
+    loadAttemptQuestion(currentQIdx + 1);
+  }
+}
+
+function prevQuestion() {
+  saveCurrentAnswer();
+  if (currentQIdx > 0) loadAttemptQuestion(currentQIdx - 1);
+}
+
+function saveCurrentAnswer() {
+  const inp = document.getElementById('answerInput');
+  const val = inp.value.trim();
+  if (val !== '') {
+    answers[currentQIdx] = parseInt(val);
+    const dot = document.getElementById(`apdot-${currentQIdx}`);
+    if (dot) dot.classList.add('answered');
+  }
+}
+
+function clearAnswer() {
+  document.getElementById('answerInput').value = '';
+  delete answers[currentQIdx];
+  const dot = document.getElementById(`apdot-${currentQIdx}`);
+  if (dot) dot.classList.remove('answered');
+}
+
+// ── SUBMIT CONFIRM ─────────────────────────────────────────
+function showConfirm() {
+  saveCurrentAnswer();
+  const answered = Object.keys(answers).length;
+  const total    = currentHW.totalQ;
+  document.getElementById('confirmSub').textContent =
+    `You have answered ${answered} of ${total} questions. ${answered < total ? `${total - answered} questions are unanswered and will be marked wrong.` : 'Once submitted you cannot change your answers.'}`;
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+
+function closeConfirm(e) {
+  if (e.target === document.getElementById('confirmOverlay')) closeConfirmBox();
+}
+
+function closeConfirmBox() {
+  document.getElementById('confirmOverlay').classList.remove('open');
+}
+
+// ── SUBMIT & AUTO-GRADE ────────────────────────────────────
+async function submitHomework() {
+  closeConfirmBox();
+  saveCurrentAnswer();
+
+  const questions = currentHW.questions;
+  let score = 0;
+  const results = [];
+
+  questions.forEach((q, i) => {
+    const studentAns = answers[i];
+    const correct    = studentAns === q.a;
+    if (correct) score++;
+    results.push({ ...q, studentAnswer: studentAns, correct });
+  });
+
+  const timeSecs = Math.round((Date.now() - startTime) / 1000);
+  const timeStr  = timeSecs < 60 ? `${timeSecs}s` : `${Math.floor(timeSecs/60)} min ${timeSecs%60}s`;
+  const xp       = score * 10 + (score === questions.length ? 150 : 80);
+
+  // Mark as submitted in demo data
+  currentHW.submitted   = true;
+  currentHW.score       = score;
+  currentHW.results     = results;
+  currentHW.timeStr     = timeStr;
+  currentHW.xp          = xp;
+
+  // Save to Supabase
+  await saveToSupabase(score, results, timeSecs, xp);
+
+  showToast('✅ Homework submitted and graded!', 'success');
+
+  // Show results
+  displayResults(score, questions.length, xp, timeStr, results, false);
+}
+
+async function saveToSupabase(score, results, timeSecs, xp) {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    const answersObj = {};
+    results.forEach((r, i) => { answersObj[i] = { answer: r.studentAnswer, correct: r.correct }; });
+    await sb.from('submissions').insert({
+      student_id: session.user.id,
+      homework_id: currentHW.id,
+      answers: answersObj,
+      score,
+      total_questions: currentHW.totalQ,
+      time_taken_secs: timeSecs,
+      graded_at: new Date().toISOString(),
+      xp_awarded: xp,
+    });
+    // Update XP
+    const { data: user } = await sb.from('users').select('xp_points').eq('id', session.user.id).single();
+    if (user) await sb.from('users').update({ xp_points: (user.xp_points||0)+xp }).eq('id', session.user.id);
+  } catch { /* silent */ }
+}
+
+// ── SHOW RESULTS ───────────────────────────────────────────
+function showResults(hwId) {
+  const hw = HOMEWORK_DB[hwId];
+  currentHW = hw;
+
+  let results, score, timeStr, xp;
+
+  if (hw.results) {
+    results = hw.results; score = hw.score; timeStr = hw.timeStr; xp = hw.xp;
+  } else {
+    // Pre-submitted demo (hw3)
+    results  = hw.questions.map(q => ({ ...q }));
+    score    = hw.score    || 9;
+    timeStr  = hw.timeStr  || '8 min';
+    xp       = score * 10 + 80;
+  }
+
+  displayResults(score, hw.totalQ, xp, timeStr, results, true);
+}
+
+function displayResults(score, total, xp, timeStr, results, showFeedback) {
+  document.getElementById('listScreen').style.display    = 'none';
+  document.getElementById('attemptScreen').style.display = 'none';
+  document.getElementById('resultsScreen').style.display = 'block';
+  document.getElementById('topbarTitle').textContent     = '📊 Results';
+
+  const acc = Math.round((score / total) * 100);
+
+  // Header
+  let emoji = '💪', color = 'linear-gradient(135deg,#E53935,#B71C1C)';
+  if (acc >= 90)      { emoji = '🏆'; color = 'linear-gradient(135deg,var(--green-dk),var(--green-md))'; }
+  else if (acc >= 75) { emoji = '🌟'; color = 'linear-gradient(135deg,#1565C0,var(--blue))'; }
+  else if (acc >= 60) { emoji = '👍'; color = 'linear-gradient(135deg,var(--teal-dk),var(--teal))'; }
+  else if (acc >= 40) { emoji = '🤔'; color = 'linear-gradient(135deg,var(--orange-dk),var(--orange))'; }
+
+  document.getElementById('resultsHeader').style.background = color;
+  document.getElementById('resultsEmoji').textContent = emoji;
+  document.getElementById('resultsTitle').textContent = acc>=90?'Outstanding!':acc>=75?'Excellent!':acc>=60?'Good work!':acc>=40?'Keep practising!':'Try again!';
+  document.getElementById('resultsSub').textContent   = `${currentHW.title} · Score: ${score}/${total}`;
+
+  // Stats
+  document.getElementById('rCorrect').textContent = score;
+  document.getElementById('rWrong').textContent   = total - score;
+  document.getElementById('rXP').textContent      = xp;
+  document.getElementById('rTime').textContent    = timeStr;
+
+  // Teacher feedback
+  document.getElementById('teacherFeedback').style.display = showFeedback ? 'block' : 'none';
+
+  // Review list
+  const list = document.getElementById('reviewList');
+  list.innerHTML = '';
+  results.forEach((r, i) => {
+    const div = document.createElement('div');
+    div.className = `review-item ${r.correct ? 'correct' : 'wrong'}`;
+    div.innerHTML = `
+      <div class="review-q">${i+1}. ${r.q} = ?</div>
+      <div class="review-your" style="color:${r.correct?'var(--green-dk)':'var(--red-dk)'}">
+        Your answer: ${r.studentAnswer !== undefined ? r.studentAnswer : 'Not answered'} ${r.correct?'✅':'❌'}
+      </div>
+      ${!r.correct ? `<div class="review-right">Correct answer: ${r.a}</div>` : ''}
+      <div class="review-expl">${r.explanation}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+// ── NAVIGATION ─────────────────────────────────────────────
+function backToList() {
+  document.getElementById('listScreen').style.display    = 'block';
+  document.getElementById('attemptScreen').style.display = 'none';
+  document.getElementById('resultsScreen').style.display = 'none';
+  document.getElementById('topbarTitle').textContent     = '📋 Homework';
+  document.getElementById('backLink').onclick            = null;
+  document.getElementById('backLink').href               = 'dashboard.html';
+}
+
+// ── UTILS ──────────────────────────────────────────────────
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+function showToast(msg, type='') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast${type ? ' toast-'+type : ''}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  window.location.href = '../../login.html';
+}
+
+async function init() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      const { data: profile } = await sb.from('users').select('full_name').eq('id', session.user.id).single();
+      if (profile) {
+        const name = profile.full_name;
+        document.getElementById('userAv').textContent   = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+        document.getElementById('userName').textContent = name;
+      }
+    }
+  } catch { /* demo mode */ }
+}
+
+init();
+</script>
+</body>
+</html>

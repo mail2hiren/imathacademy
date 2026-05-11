@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parent Portal — iMathAcademy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; min-height: 100vh; }
+    :root {
+      --green:#43A047; --green-dk:#1B5E20; --green-lt:#E8F5E9; --green-md:#2E7D32;
+      --orange:#FB8C00; --orange-dk:#E65100; --orange-lt:#FFF3E0;
+      --blue:#1E88E5; --blue-dk:#0D47A1; --blue-lt:#E3F2FD;
+      --purple:#8E24AA; --purple-dk:#4A148C; --purple-lt:#F3E5F5;
+      --red:#E53935; --red-dk:#B71C1C; --red-lt:#FFEBEE;
+      --yellow:#F9A825; --yellow-lt:#FFFDE7; --yellow-dk:#F57F17;
+      --teal:#00897B; --teal-lt:#E0F2F1; --teal-dk:#004D40;
+      --pink:#D81B60; --pink-lt:#FCE4EC;
+      --bg:#FFFFFF; --bg2:#F7F8FF; --border:#E8EAF6;
+      --text2:#4A4A6A; --text3:#9090B0;
+    }
+
+    /* ── LAYOUT ── */
+    .portal { display:flex; min-height:100vh; }
+    .sidebar {
+      width:220px; flex-shrink:0; background:var(--bg);
+      border-right:2px solid var(--border); display:flex;
+      flex-direction:column; position:fixed; top:0; left:0;
+      height:100vh; overflow-y:auto; z-index:100; transition:transform .3s;
+    }
+    .sidebar-logo {
+      padding:20px 16px; border-bottom:2px solid var(--border);
+      font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800;
+      color:var(--pink); display:flex; align-items:center; gap:10px;
+    }
+    .sidebar-logo span { color:var(--orange-dk); }
+    .logo-icon { width:34px; height:34px; background:var(--pink); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+    .sidebar-nav { flex:1; padding:12px 0; }
+    .nav-section { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--text3); padding:8px 16px 3px; margin-top:6px; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 16px; font-size:.875rem; font-weight:700; color:var(--text2); cursor:pointer; border-left:3px solid transparent; transition:all .12s; text-decoration:none; }
+    .nav-item:hover { color:var(--text); background:var(--bg2); }
+    .nav-item.active { color:var(--pink); background:var(--pink-lt); border-left-color:var(--pink); }
+    .nav-icon { width:20px; text-align:center; font-size:1rem; }
+    .sidebar-user { padding:14px 16px; border-top:2px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .user-av { width:36px; height:36px; border-radius:50%; background:var(--pink-lt); border:2px solid var(--pink); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; color:var(--pink); flex-shrink:0; }
+    .user-name { font-size:.82rem; font-weight:800; color:var(--text); }
+    .user-role { font-size:.7rem; color:var(--text3); font-weight:600; }
+    .logout-btn { margin-left:auto; background:none; border:none; font-size:.85rem; cursor:pointer; color:var(--text3); }
+    .logout-btn:hover { color:var(--red); }
+    .main { flex:1; margin-left:220px; display:flex; flex-direction:column; }
+    .topbar {
+      height:62px; background:var(--bg); border-bottom:2px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 24px; position:sticky; top:0; z-index:50;
+      box-shadow:0 2px 8px rgba(0,0,0,.05);
+    }
+    .topbar-left { display:flex; align-items:center; gap:12px; }
+    .hamburger { display:none; flex-direction:column; gap:4px; cursor:pointer; background:none; border:none; }
+    .hamburger span { width:20px; height:2px; background:var(--text); border-radius:2px; display:block; }
+    .topbar-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; }
+    .body { padding:24px; max-width:720px; }
+
+    /* ── PAGE TABS ── */
+    .page-tabs { display:flex; gap:0; background:var(--bg); border:2px solid var(--border); border-radius:30px; overflow:hidden; margin-bottom:24px; width:fit-content; flex-wrap:wrap; }
+    .page-tab { padding:9px 20px; font-size:.85rem; font-weight:800; cursor:pointer; transition:all .15s; color:var(--text2); border:none; background:transparent; font-family:'Nunito',sans-serif; }
+    .page-tab.active { background:var(--pink); color:#fff; }
+
+    /* ── CHILD CARD ── */
+    .child-card {
+      background:var(--bg); border:2px solid var(--border);
+      border-radius:20px; padding:18px 20px;
+      display:flex; align-items:center; gap:16px;
+      margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,.05);
+    }
+    .child-av {
+      width:58px; height:58px; border-radius:50%;
+      background:var(--green-lt); border:3px solid var(--green);
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Baloo 2',sans-serif; font-size:1.4rem;
+      font-weight:800; color:var(--green-dk); flex-shrink:0;
+    }
+    .child-info { flex:1; }
+    .child-name { font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800; color:var(--text); margin-bottom:3px; }
+    .child-level { font-size:.82rem; color:var(--text2); font-weight:600; margin-bottom:8px; }
+    .child-tags { display:flex; gap:6px; flex-wrap:wrap; }
+    .tag { padding:3px 10px; border-radius:20px; font-size:.72rem; font-weight:800; }
+    .tag-belt   { background:var(--orange-lt); color:var(--orange-dk); border:1.5px solid #FFCC80; }
+    .tag-streak { background:var(--yellow-lt); color:var(--yellow-dk); border:1.5px solid #FFE082; }
+    .tag-online { background:var(--green-lt);  color:var(--green-dk);  border:1.5px solid #A5D6A7; }
+
+    /* ── STATS ── */
+    .stats-row { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:20px; }
+    .stat-card { background:var(--bg); border:2px solid var(--border); border-radius:16px; padding:14px; text-align:center; }
+    .stat-n { font-family:'Baloo 2',sans-serif; font-size:1.6rem; font-weight:800; line-height:1.1; margin-bottom:3px; }
+    .stat-l { font-size:.75rem; font-weight:700; color:var(--text2); }
+    .stat-s { font-size:.68rem; color:var(--text3); margin-top:2px; }
+
+    /* ── SECTION CARD ── */
+    .section-card { background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:20px; margin-bottom:16px; }
+    .section-title { font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--text3); margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+    .section-link { font-size:.72rem; font-weight:700; color:var(--pink); text-transform:none; letter-spacing:0; cursor:pointer; }
+
+    /* ── XP CARD ── */
+    .xp-card {
+      background:linear-gradient(135deg,var(--green-dk),var(--green-md));
+      border-radius:18px; padding:18px 20px; color:#fff; margin-bottom:16px;
+    }
+    .xp-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .xp-title { font-size:.95rem; font-weight:800; }
+    .xp-streak { background:var(--orange); padding:4px 12px; border-radius:20px; font-size:.78rem; font-weight:800; }
+    .xp-track { height:10px; background:rgba(255,255,255,.25); border-radius:5px; overflow:hidden; margin-bottom:6px; }
+    .xp-fill  { height:100%; background:var(--yellow); border-radius:5px; }
+    .xp-info  { display:flex; justify-content:space-between; font-size:.75rem; opacity:.85; font-weight:600; }
+
+    /* ── TOPIC BARS ── */
+    .topic-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
+    .topic-row:last-child { border-bottom:none; }
+    .topic-name { flex:1; font-size:.875rem; font-weight:600; color:var(--text); }
+    .topic-bar  { width:100px; height:8px; background:var(--bg2); border-radius:4px; overflow:hidden; }
+    .topic-fill { height:100%; border-radius:4px; }
+    .topic-pct  { font-size:.8rem; font-weight:800; width:34px; text-align:right; }
+
+    /* ── ATTENDANCE TABLE ── */
+    .att-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; margin-bottom:12px; }
+    .att-day-label { font-size:.62rem; font-weight:800; color:var(--text3); text-align:center; padding:4px 0; }
+    .att-cell { width:100%; aspect-ratio:1; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:.65rem; font-weight:800; }
+    .att-present { background:var(--green); color:#fff; }
+    .att-absent  { background:var(--red-lt); color:var(--red-dk); border:1.5px solid #FFCDD2; }
+    .att-future  { background:var(--bg2); border:1.5px solid var(--border); }
+    .att-holiday { background:var(--yellow-lt); color:var(--yellow-dk); }
+
+    /* ── HW LIST ── */
+    .hw-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
+    .hw-row:last-child { border-bottom:none; }
+    .hw-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .hw-info { flex:1; }
+    .hw-title { font-size:.875rem; font-weight:700; color:var(--text); }
+    .hw-meta  { font-size:.72rem; color:var(--text3); font-weight:600; }
+    .pill { font-size:.72rem; font-weight:800; padding:3px 10px; border-radius:20px; }
+    .pill-g { background:var(--green-lt); color:var(--green-dk); }
+    .pill-r { background:var(--red-lt);   color:var(--red-dk);   }
+    .pill-o { background:var(--orange-lt);color:var(--orange-dk);}
+
+    /* ── UPI PAYMENT ── */
+    .fee-header {
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:16px; padding:14px 16px;
+      background:var(--bg2); border:2px solid var(--border); border-radius:14px;
+    }
+    .fee-amount { font-family:'Baloo 2',sans-serif; font-size:1.4rem; font-weight:800; color:var(--text); }
+    .fee-due    { font-size:.78rem; font-weight:700; color:var(--red-dk); background:var(--red-lt); padding:4px 12px; border-radius:20px; }
+    .fee-paid   { font-size:.78rem; font-weight:700; color:var(--green-dk); background:var(--green-lt); padding:4px 12px; border-radius:20px; }
+
+    .upi-title { font-size:.82rem; font-weight:800; color:var(--text2); margin-bottom:10px; text-transform:uppercase; letter-spacing:.3px; }
+    .upi-apps { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:16px; }
+    .upi-app {
+      background:var(--bg2); border:2px solid var(--border);
+      border-radius:14px; padding:12px 8px; text-align:center;
+      cursor:pointer; transition:all .15s;
+    }
+    .upi-app:hover  { border-color:var(--green); background:var(--green-lt); }
+    .upi-app.sel    { border-color:var(--green); background:var(--green-lt); }
+    .upi-app-logo   {
+      width:42px; height:42px; border-radius:10px;
+      margin:0 auto 6px; display:flex; align-items:center;
+      justify-content:center; font-size:1rem; font-weight:900; color:#fff;
+    }
+    .upi-app-name { font-size:.72rem; font-weight:800; color:var(--text2); }
+
+    .qr-section {
+      background:var(--bg2); border:2px solid var(--border);
+      border-radius:14px; padding:16px; text-align:center;
+      margin-bottom:14px;
+    }
+    .qr-box {
+      width:110px; height:110px; background:#fff;
+      border:2px solid var(--border); border-radius:10px;
+      margin:0 auto 10px; display:flex; align-items:center;
+      justify-content:center; position:relative; overflow:hidden;
+    }
+    /* Fake QR pattern */
+    .qr-box::before {
+      content:''; position:absolute; inset:8px;
+      background:
+        repeating-linear-gradient(0deg,#000 0,#000 3px,transparent 3px,transparent 6px),
+        repeating-linear-gradient(90deg,#000 0,#000 3px,transparent 3px,transparent 6px);
+      opacity:.15;
+    }
+    .qr-corners::before, .qr-corners::after {
+      content:''; position:absolute;
+      width:24px; height:24px;
+      border:3px solid #000;
+    }
+    .qr-corners::before { top:8px; left:8px; border-right:none; border-bottom:none; }
+    .qr-corners::after  { bottom:8px; right:8px; border-left:none; border-top:none; }
+    .qr-scan-label { font-size:.75rem; font-weight:700; color:var(--text2); margin-bottom:6px; }
+    .upi-id-box {
+      background:#fff; border:2px solid var(--border);
+      border-radius:10px; padding:8px 14px;
+      font-family:monospace; font-size:.9rem; font-weight:700;
+      color:var(--text); display:inline-block; letter-spacing:.3px;
+    }
+    .pay-btn {
+      width:100%; padding:14px; background:var(--green); color:#fff;
+      border:none; border-radius:30px; font-family:'Nunito',sans-serif;
+      font-size:1rem; font-weight:800; cursor:pointer; transition:all .15s;
+      margin-top:2px;
+    }
+    .pay-btn:hover { background:var(--green-md); transform:translateY(-1px); }
+
+    .fee-history { display:flex; flex-direction:column; gap:0; }
+    .fee-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
+    .fee-row:last-child { border-bottom:none; }
+    .fee-month { flex:1; font-size:.875rem; font-weight:700; color:var(--text); }
+    .fee-amt   { font-size:.875rem; font-weight:700; color:var(--text2); }
+    .fee-method{ font-size:.72rem; color:var(--text3); font-weight:600; }
+    .fee-rcpt  { font-size:.75rem; font-weight:700; color:var(--blue); cursor:pointer; }
+
+    /* ── MESSAGE FORM ── */
+    .msg-form { display:flex; flex-direction:column; gap:12px; }
+    .msg-to { padding:10px 14px; border:2px solid var(--border); border-radius:12px; font-family:'Nunito',sans-serif; font-size:.875rem; font-weight:600; background:var(--bg2); color:var(--text2); }
+    .msg-textarea {
+      width:100%; padding:12px 14px; border:2px solid var(--border);
+      border-radius:12px; font-family:'Nunito',sans-serif; font-size:.875rem;
+      font-weight:500; color:var(--text); background:var(--bg);
+      outline:none; resize:vertical; min-height:100px; transition:border-color .15s;
+    }
+    .msg-textarea:focus { border-color:var(--pink); }
+    .msg-btn { padding:11px 24px; background:var(--pink); color:#fff; border:none; border-radius:30px; font-family:'Nunito',sans-serif; font-size:.875rem; font-weight:800; cursor:pointer; width:fit-content; transition:all .15s; }
+    .msg-btn:hover { background:var(--pink-dk, #880E4F); }
+
+    .msg-history { display:flex; flex-direction:column; gap:10px; }
+    .msg-bubble { padding:12px 16px; border-radius:16px; max-width:85%; }
+    .msg-from-me { background:var(--pink); color:#fff; align-self:flex-end; border-bottom-right-radius:4px; }
+    .msg-from-teacher { background:var(--bg2); border:2px solid var(--border); color:var(--text); align-self:flex-start; border-bottom-left-radius:4px; }
+    .msg-text { font-size:.875rem; font-weight:500; line-height:1.5; margin-bottom:4px; }
+    .msg-time { font-size:.65rem; opacity:.7; font-weight:700; }
+
+    /* ── REPORT CARD ── */
+    .report-months { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .report-month { background:var(--bg2); border:2px solid var(--border); border-radius:14px; padding:14px; text-align:center; cursor:pointer; transition:all .15s; }
+    .report-month:hover { border-color:var(--blue); background:var(--blue-lt); transform:translateY(-2px); }
+    .report-month-icon  { font-size:1.8rem; margin-bottom:6px; }
+    .report-month-name  { font-size:.82rem; font-weight:800; color:var(--text); margin-bottom:2px; }
+    .report-month-score { font-size:.72rem; color:var(--text2); font-weight:600; }
+
+    /* ── TOAST ── */
+    .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+    .toast { background:var(--text); color:#fff; padding:10px 18px; border-radius:12px; font-size:.875rem; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,.2); animation:slideIn .3s ease; }
+    .toast-success { background:var(--green-dk); }
+    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+    /* ── PAYMENT SUCCESS ── */
+    .pay-success { display:none; text-align:center; padding:24px 0; }
+    .pay-success.show { display:block; }
+    .pay-success-icon  { font-size:3.5rem; margin-bottom:12px; }
+    .pay-success-title { font-family:'Baloo 2',sans-serif; font-size:1.3rem; font-weight:800; margin-bottom:6px; color:var(--green-dk); }
+    .pay-success-sub   { font-size:.875rem; color:var(--text2); font-weight:500; margin-bottom:16px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:768px) {
+      .sidebar { transform:translateX(-100%); }
+      .sidebar.open { transform:translateX(0); }
+      .main { margin-left:0; }
+      .hamburger { display:flex; }
+      .body { padding:16px; }
+      .stats-row { grid-template-columns:repeat(2,1fr); }
+      .upi-apps  { grid-template-columns:repeat(2,1fr); }
+      .report-months { grid-template-columns:repeat(2,1fr); }
+      .att-grid  { grid-template-columns:repeat(5,minmax(0,1fr)); }
+    }
+  </style>
+</head>
+<body>
+<div class="portal">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">👨‍👩‍👧</div>
+      iMath<span>Academy</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">My child</div>
+      <a class="nav-item active" href="#" onclick="showTab('overview',this)"><span class="nav-icon">🏠</span> Overview</a>
+      <a class="nav-item" href="#" onclick="showTab('progress',this)"><span class="nav-icon">📊</span> Progress</a>
+      <a class="nav-item" href="#" onclick="showTab('homework',this)"><span class="nav-icon">📋</span> Homework</a>
+      <a class="nav-item" href="#" onclick="showTab('attendance',this)"><span class="nav-icon">✅</span> Attendance</a>
+      <div class="nav-section">Account</div>
+      <a class="nav-item" href="#" onclick="showTab('fees',this)"><span class="nav-icon">💳</span> Fees & payment</a>
+      <a class="nav-item" href="#" onclick="showTab('reports',this)"><span class="nav-icon">📄</span> Monthly reports</a>
+      <a class="nav-item" href="#" onclick="showTab('message',this)"><span class="nav-icon">💬</span> Message teacher</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-av">SR</div>
+      <div>
+        <div class="user-name">Mrs. Sunita Rao</div>
+        <div class="user-role">Parent</div>
+      </div>
+      <button class="logout-btn" onclick="logout()">⇥</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div class="topbar-title" id="topbarTitle">Parent Portal</div>
+      </div>
+      <div style="font-size:.8rem;font-weight:600;color:var(--text3)" id="topbarDate"></div>
+    </div>
+
+    <div class="body">
+
+      <!-- ══ OVERVIEW TAB ══ -->
+      <div id="tab-overview">
+
+        <!-- Child card -->
+        <div class="child-card">
+          <div class="child-av">AR</div>
+          <div class="child-info">
+            <div class="child-name">Arjun Rao</div>
+            <div class="child-level">Abacus Program · Level 3 · Batch A · Ms. Priya</div>
+            <div class="child-tags">
+              <span class="tag tag-belt">🏅 Orange Belt</span>
+              <span class="tag tag-streak">🔥 7-day streak</span>
+              <span class="tag tag-online">✅ Online student</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- XP card -->
+        <div class="xp-card">
+          <div class="xp-top">
+            <div>
+              <div class="xp-title">Orange Belt — Level 3</div>
+              <div style="font-size:.75rem;opacity:.8;margin-top:2px">760 XP to unlock Green Belt</div>
+            </div>
+            <div class="xp-streak">🔥 7 days!</div>
+          </div>
+          <div class="xp-track"><div class="xp-fill" style="width:62%"></div></div>
+          <div class="xp-info">
+            <span>1,240 XP earned</span>
+            <span>2,000 XP for Green Belt 🟢</span>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-n" style="color:var(--blue)">5</div><div class="stat-l">Sessions this week</div><div class="stat-s">↑ up from 3 last week</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--green)">71%</div><div class="stat-l">Overall accuracy</div><div class="stat-s">↑ +8% this month</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--orange)">9</div><div class="stat-l">Badges earned</div><div class="stat-s">6 more to unlock</div></div>
+        </div>
+
+        <!-- Quick notice -->
+        <div style="background:var(--orange-lt);border:2px solid #FFCC80;border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start">
+          <span style="font-size:1.1rem;flex-shrink:0">📢</span>
+          <div>
+            <div style="font-size:.875rem;font-weight:800;color:var(--orange-dk);margin-bottom:3px">Homework due tomorrow!</div>
+            <div style="font-size:.78rem;color:var(--orange-dk);font-weight:500">Arjun has "Addition with carrying" homework due tomorrow. Please remind him to complete it today.</div>
+          </div>
+        </div>
+
+        <!-- Topic snapshot -->
+        <div class="section-card">
+          <div class="section-title">
+            Arjun's topic progress
+            <span class="section-link" onclick="showTab('progress',document.querySelectorAll('.nav-item')[1])">Full details →</span>
+          </div>
+          <div style="font-size:.78rem;color:var(--text2);font-weight:600;margin-bottom:12px">
+            🟢 Doing well &nbsp;·&nbsp; 🔵 Good &nbsp;·&nbsp; 🟠 Needs practice &nbsp;·&nbsp; 🔴 Needs attention
+          </div>
+          <div class="topic-row"><span class="topic-name">Single digit addition</span><div class="topic-bar"><div class="topic-fill" style="background:var(--green);width:91%"></div></div><span class="topic-pct" style="color:var(--green-dk)">91%</span></div>
+          <div class="topic-row"><span class="topic-name">2-digit addition</span><div class="topic-bar"><div class="topic-fill" style="background:var(--blue);width:74%"></div></div><span class="topic-pct" style="color:var(--blue-dk)">74%</span></div>
+          <div class="topic-row"><span class="topic-name">3-digit subtraction</span><div class="topic-bar"><div class="topic-fill" style="background:var(--orange);width:58%"></div></div><span class="topic-pct" style="color:var(--orange-dk)">58%</span></div>
+          <div class="topic-row"><span class="topic-name">Addition with carrying</span><div class="topic-bar"><div class="topic-fill" style="background:var(--red);width:48%"></div></div><span class="topic-pct" style="color:var(--red-dk)">48%</span></div>
+        </div>
+
+        <!-- Fee reminder -->
+        <div style="background:var(--red-lt);border:2px solid #FFCDD2;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <span style="font-size:1.3rem;flex-shrink:0">💳</span>
+          <div style="flex:1">
+            <div style="font-size:.875rem;font-weight:800;color:var(--red-dk)">June fee due — Rs. 800</div>
+            <div style="font-size:.75rem;color:var(--red-dk);font-weight:500">Due 1 June 2025 · Pay via UPI in seconds</div>
+          </div>
+          <button onclick="showTab('fees',document.querySelectorAll('.nav-item')[4])" style="background:var(--green);color:#fff;border:none;padding:9px 18px;border-radius:20px;font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:800;cursor:pointer;white-space:nowrap">Pay now →</button>
+        </div>
+
+      </div>
+
+      <!-- ══ PROGRESS TAB ══ -->
+      <div id="tab-progress" style="display:none">
+
+        <div class="child-card" style="margin-bottom:16px">
+          <div class="child-av">AR</div>
+          <div class="child-info">
+            <div class="child-name">Arjun Rao</div>
+            <div class="child-level">Abacus Level 3 · Orange Belt · 1,240 XP</div>
+          </div>
+        </div>
+
+        <div class="stats-row" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+          <div class="stat-card"><div class="stat-n" style="color:var(--blue)">24</div><div class="stat-l">Sessions this month</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--green)">71%</div><div class="stat-l">Avg accuracy</div><div class="stat-s">↑ +8%</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--orange)">7</div><div class="stat-l">Day streak</div><div class="stat-s">best: 12</div></div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">Detailed topic accuracy</div>
+          <div style="font-size:.78rem;color:var(--text2);font-weight:600;margin-bottom:12px">Higher percentage = more accurate. Below 60% means extra practice is needed.</div>
+          <div class="topic-row"><span class="topic-name">✅ Single digit addition</span><div class="topic-bar"><div class="topic-fill" style="background:var(--green);width:91%"></div></div><span class="topic-pct" style="color:var(--green-dk)">91%</span></div>
+          <div class="topic-row"><span class="topic-name">✅ Single digit subtraction</span><div class="topic-bar"><div class="topic-fill" style="background:var(--green);width:87%"></div></div><span class="topic-pct" style="color:var(--green-dk)">87%</span></div>
+          <div class="topic-row"><span class="topic-name">👍 2-digit addition</span><div class="topic-bar"><div class="topic-fill" style="background:var(--blue);width:74%"></div></div><span class="topic-pct" style="color:var(--blue-dk)">74%</span></div>
+          <div class="topic-row"><span class="topic-name">👍 2-digit subtraction</span><div class="topic-bar"><div class="topic-fill" style="background:var(--blue);width:68%"></div></div><span class="topic-pct" style="color:var(--blue-dk)">68%</span></div>
+          <div class="topic-row"><span class="topic-name">⚠️ 3-digit subtraction</span><div class="topic-bar"><div class="topic-fill" style="background:var(--orange);width:58%"></div></div><span class="topic-pct" style="color:var(--orange-dk)">58%</span></div>
+          <div class="topic-row"><span class="topic-name">🔴 Addition with carrying</span><div class="topic-bar"><div class="topic-fill" style="background:var(--red);width:48%"></div></div><span class="topic-pct" style="color:var(--red-dk)">48%</span></div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">Badges earned</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span style="background:var(--yellow-lt);border:1.5px solid #FFE082;padding:6px 12px;border-radius:20px;font-size:.78rem;font-weight:800">🎯 First Steps</span>
+            <span style="background:var(--yellow-lt);border:1.5px solid #FFE082;padding:6px 12px;border-radius:20px;font-size:.78rem;font-weight:800">🔥 7-day Streak</span>
+            <span style="background:var(--yellow-lt);border:1.5px solid #FFE082;padding:6px 12px;border-radius:20px;font-size:.78rem;font-weight:800">⚡ Speed Demon</span>
+            <span style="background:var(--yellow-lt);border:1.5px solid #FFE082;padding:6px 12px;border-radius:20px;font-size:.78rem;font-weight:800">💯 Perfect Score</span>
+            <span style="background:var(--yellow-lt);border:1.5px solid #FFE082;padding:6px 12px;border-radius:20px;font-size:.78rem;font-weight:800">🧮 Bead Master</span>
+            <span style="background:var(--yellow-lt);border:1.5px solid #FFE082;padding:6px 12px;border-radius:20px;font-size:.78rem;font-weight:800">🏅 Orange Belt</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ HOMEWORK TAB ══ -->
+      <div id="tab-homework" style="display:none">
+
+        <div class="section-card">
+          <div class="section-title">Current homework</div>
+          <div class="hw-row">
+            <div class="hw-dot" style="background:var(--red)"></div>
+            <div class="hw-info">
+              <div class="hw-title">Addition with carrying — 10 questions</div>
+              <div class="hw-meta">Assigned by Ms. Priya · Due tomorrow</div>
+            </div>
+            <span class="pill pill-r">Due tomorrow!</span>
+          </div>
+          <div class="hw-row">
+            <div class="hw-dot" style="background:var(--orange)"></div>
+            <div class="hw-info">
+              <div class="hw-title">Revision: 3-digit subtraction — 8 questions</div>
+              <div class="hw-meta">Auto-assigned · Weak area revision · 2 days left</div>
+            </div>
+            <span class="pill pill-o">2 days left</span>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">Completed homework</div>
+          <div class="hw-row">
+            <div class="hw-dot" style="background:var(--green)"></div>
+            <div class="hw-info">
+              <div class="hw-title">Single digit addition — 10 questions</div>
+              <div class="hw-meta">Submitted 2 days ago · Score: 9/10 ⭐</div>
+            </div>
+            <span class="pill pill-g">9/10</span>
+          </div>
+          <div class="hw-row">
+            <div class="hw-dot" style="background:var(--green)"></div>
+            <div class="hw-info">
+              <div class="hw-title">2-digit addition practice</div>
+              <div class="hw-meta">Submitted 1 week ago · Score: 7/8</div>
+            </div>
+            <span class="pill pill-g">7/8</span>
+          </div>
+        </div>
+
+        <div style="background:var(--blue-lt);border:2px solid #90CAF9;border-radius:14px;padding:14px 16px">
+          <div style="font-size:.875rem;font-weight:800;color:var(--blue-dk);margin-bottom:4px">💡 Did you know?</div>
+          <div style="font-size:.78rem;color:var(--blue-dk);font-weight:500;line-height:1.6">The portal automatically assigns extra practice homework when Arjun's accuracy drops below 60% in any topic. This ensures he gets targeted help exactly where he needs it — without any action from you!</div>
+        </div>
+
+      </div>
+
+      <!-- ══ ATTENDANCE TAB ══ -->
+      <div id="tab-attendance" style="display:none">
+
+        <div class="section-card">
+          <div class="section-title">May 2025 — Attendance</div>
+          <div style="display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap">
+            <div style="text-align:center"><div style="font-size:1.4rem;font-weight:800;color:var(--green)">18</div><div style="font-size:.72rem;font-weight:700;color:var(--text2)">Present</div></div>
+            <div style="text-align:center"><div style="font-size:1.4rem;font-weight:800;color:var(--red)">2</div><div style="font-size:.72rem;font-weight:700;color:var(--text2)">Absent</div></div>
+            <div style="text-align:center"><div style="font-size:1.4rem;font-weight:800;color:var(--blue)">90%</div><div style="font-size:.72rem;font-weight:700;color:var(--text2)">Attendance rate</div></div>
+          </div>
+
+          <!-- Calendar grid -->
+          <div class="att-grid">
+            <div class="att-day-label">Mon</div>
+            <div class="att-day-label">Tue</div>
+            <div class="att-day-label">Wed</div>
+            <div class="att-day-label">Thu</div>
+            <div class="att-day-label">Fri</div>
+            <div class="att-day-label">Sat</div>
+            <div class="att-day-label">Sun</div>
+          </div>
+          <div class="att-grid" id="calGrid"></div>
+          <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:5px"><div style="width:14px;height:14px;border-radius:3px;background:var(--green)"></div><span style="font-size:.72rem;font-weight:700;color:var(--text2)">Present</span></div>
+            <div style="display:flex;align-items:center;gap:5px"><div style="width:14px;height:14px;border-radius:3px;background:var(--red-lt);border:1.5px solid #FFCDD2"></div><span style="font-size:.72rem;font-weight:700;color:var(--text2)">Absent</span></div>
+            <div style="display:flex;align-items:center;gap:5px"><div style="width:14px;height:14px;border-radius:3px;background:var(--bg2);border:1.5px solid var(--border)"></div><span style="font-size:.72rem;font-weight:700;color:var(--text2)">No class</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ FEES TAB ══ -->
+      <div id="tab-fees" style="display:none">
+
+        <!-- Current fee -->
+        <div class="section-card">
+          <div class="section-title">June 2025 — Payment due</div>
+          <div class="fee-header">
+            <div>
+              <div class="fee-amount">Rs. 800</div>
+              <div style="font-size:.75rem;color:var(--text2);font-weight:600;margin-top:3px">Abacus program · Monthly fee</div>
+            </div>
+            <div class="fee-due">Due 1 June 2025</div>
+          </div>
+
+          <!-- Payment success -->
+          <div class="pay-success" id="paySuccess">
+            <div class="pay-success-icon">✅</div>
+            <div class="pay-success-title">Payment successful!</div>
+            <div class="pay-success-sub">Rs. 800 paid via <span id="payMethod">GPay</span>. Receipt has been emailed to you.</div>
+            <div style="background:var(--green-lt);border:2px solid #A5D6A7;border-radius:12px;padding:12px 16px;display:inline-block">
+              <div style="font-size:.75rem;font-weight:800;color:var(--green-dk)">Receipt #IMA-2025-06-001</div>
+              <div style="font-size:.72rem;color:var(--green-dk);margin-top:2px">June 2025 · Arjun Rao · Rs. 800</div>
+            </div>
+          </div>
+
+          <!-- UPI payment form -->
+          <div id="payForm">
+            <div class="upi-title">Select UPI app to pay</div>
+            <div class="upi-apps">
+              <div class="upi-app sel" id="upi-gpay" onclick="selectUPI('gpay',this)">
+                <div class="upi-app-logo" style="background:#5F259F">G</div>
+                <div class="upi-app-name">GPay</div>
+              </div>
+              <div class="upi-app" id="upi-phonepe" onclick="selectUPI('phonepe',this)">
+                <div class="upi-app-logo" style="background:#5F259F">Pe</div>
+                <div class="upi-app-name">PhonePe</div>
+              </div>
+              <div class="upi-app" id="upi-paytm" onclick="selectUPI('paytm',this)">
+                <div class="upi-app-logo" style="background:#002970">Pt</div>
+                <div class="upi-app-name">Paytm</div>
+              </div>
+              <div class="upi-app" id="upi-any" onclick="selectUPI('any',this)">
+                <div class="upi-app-logo" style="background:#F47920">UPI</div>
+                <div class="upi-app-name">Any UPI</div>
+              </div>
+            </div>
+
+            <div class="qr-section">
+              <div class="qr-scan-label">Scan QR code with your UPI app</div>
+              <div class="qr-box">
+                <div class="qr-corners"></div>
+                <div style="position:relative;z-index:1;font-size:.55rem;font-weight:800;color:var(--text3)">QR<br>CODE</div>
+              </div>
+              <div style="font-size:.75rem;color:var(--text2);font-weight:600;margin-bottom:8px">— or pay using UPI ID —</div>
+              <div class="upi-id-box">imathacademy@razorpay</div>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+              <div>
+                <div style="font-size:.82rem;font-weight:800;color:var(--text)">Amount to pay</div>
+                <div style="font-family:'Baloo 2',sans-serif;font-size:1.5rem;font-weight:800;color:var(--green-dk)">Rs. 800</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-size:.72rem;color:var(--text3);font-weight:600">Student</div>
+                <div style="font-size:.875rem;font-weight:800">Arjun Rao</div>
+              </div>
+            </div>
+            <button class="pay-btn" onclick="simulatePay()">Pay Rs. 800 now ✓</button>
+            <div style="text-align:center;font-size:.72rem;color:var(--text3);font-weight:600;margin-top:8px">🔒 Secured by Razorpay · 100% safe and encrypted</div>
+          </div>
+        </div>
+
+        <!-- Payment history -->
+        <div class="section-card">
+          <div class="section-title">Payment history</div>
+          <div class="fee-history">
+            <div class="fee-row">
+              <div style="flex:1"><div class="fee-month">May 2025 — Abacus</div><div class="fee-method">Paid 2 May via GPay</div></div>
+              <div class="fee-amt">Rs. 800</div>
+              <span class="pill pill-g" style="margin-left:10px">Paid</span>
+              <span class="fee-rcpt" style="margin-left:10px" onclick="downloadReceipt('May 2025')">Receipt</span>
+            </div>
+            <div class="fee-row">
+              <div style="flex:1"><div class="fee-month">April 2025 — Abacus</div><div class="fee-method">Paid 1 Apr via PhonePe</div></div>
+              <div class="fee-amt">Rs. 800</div>
+              <span class="pill pill-g" style="margin-left:10px">Paid</span>
+              <span class="fee-rcpt" style="margin-left:10px" onclick="downloadReceipt('April 2025')">Receipt</span>
+            </div>
+            <div class="fee-row">
+              <div style="flex:1"><div class="fee-month">March 2025 — Abacus</div><div class="fee-method">Paid 3 Mar via UPI</div></div>
+              <div class="fee-amt">Rs. 800</div>
+              <span class="pill pill-g" style="margin-left:10px">Paid</span>
+              <span class="fee-rcpt" style="margin-left:10px" onclick="downloadReceipt('March 2025')">Receipt</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ REPORTS TAB ══ -->
+      <div id="tab-reports" style="display:none">
+
+        <div class="section-card">
+          <div class="section-title">Monthly progress reports</div>
+          <div style="font-size:.82rem;color:var(--text2);font-weight:500;margin-bottom:16px;line-height:1.6">
+            Reports are auto-generated at the end of each month and emailed to you. Download any past report below.
+          </div>
+          <div class="report-months">
+            <div class="report-month" onclick="downloadReport('May 2025')">
+              <div class="report-month-icon">📊</div>
+              <div class="report-month-name">May 2025</div>
+              <div class="report-month-score">Accuracy: 71% · 24 sessions</div>
+            </div>
+            <div class="report-month" onclick="downloadReport('April 2025')">
+              <div class="report-month-icon">📊</div>
+              <div class="report-month-name">April 2025</div>
+              <div class="report-month-score">Accuracy: 63% · 18 sessions</div>
+            </div>
+            <div class="report-month" onclick="downloadReport('March 2025')">
+              <div class="report-month-icon">📊</div>
+              <div class="report-month-name">March 2025</div>
+              <div class="report-month-score">Accuracy: 55% · 14 sessions</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- What's in the report -->
+        <div class="section-card">
+          <div class="section-title">What each report includes</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--green);font-weight:800;flex-shrink:0">✓</span><span style="font-size:.875rem;color:var(--text2)">Topic-wise accuracy with visual charts</span></div>
+            <div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--green);font-weight:800;flex-shrink:0">✓</span><span style="font-size:.875rem;color:var(--text2)">Complete attendance record</span></div>
+            <div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--green);font-weight:800;flex-shrink:0">✓</span><span style="font-size:.875rem;color:var(--text2)">Homework submission rate and scores</span></div>
+            <div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--green);font-weight:800;flex-shrink:0">✓</span><span style="font-size:.875rem;color:var(--text2)">XP progress and badges earned</span></div>
+            <div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--green);font-weight:800;flex-shrink:0">✓</span><span style="font-size:.875rem;color:var(--text2)">Teacher's written comments and recommendations</span></div>
+            <div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--green);font-weight:800;flex-shrink:0">✓</span><span style="font-size:.875rem;color:var(--text2)">Goals for the coming month</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ MESSAGE TAB ══ -->
+      <div id="tab-message" style="display:none">
+
+        <!-- Message history -->
+        <div class="section-card">
+          <div class="section-title">Conversation with Ms. Priya</div>
+          <div class="msg-history" id="msgHistory">
+            <div style="align-self:flex-start">
+              <div class="msg-bubble msg-from-teacher">
+                <div class="msg-text">Hello Mrs. Rao! Arjun is doing great in class. He has improved a lot in single digit addition. However, he needs a bit more practice on carrying — I have assigned extra homework for that. Please encourage him to practice daily!</div>
+                <div class="msg-time">Ms. Priya · 3 days ago</div>
+              </div>
+            </div>
+            <div style="align-self:flex-end">
+              <div class="msg-bubble msg-from-me">
+                <div class="msg-text">Thank you Ms. Priya! We will make sure he practices every evening. He really enjoys the abacus sessions!</div>
+                <div class="msg-time">You · 2 days ago</div>
+              </div>
+            </div>
+            <div style="align-self:flex-start">
+              <div class="msg-bubble msg-from-teacher">
+                <div class="msg-text">That is wonderful to hear! His streak of 7 days shows his dedication. Keep it up Arjun! 🌟</div>
+                <div class="msg-time">Ms. Priya · Yesterday</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- New message form -->
+        <div class="section-card">
+          <div class="section-title">Send a message to Ms. Priya</div>
+          <div class="msg-form">
+            <div class="msg-to">To: Ms. Priya (Arjun's teacher — Batch A)</div>
+            <textarea class="msg-textarea" id="msgText" placeholder="Type your message here... (e.g. Arjun will be absent on Friday, or asking about homework)"></textarea>
+            <button class="msg-btn" onclick="sendMessage()">Send message 📨</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY = 'YOUR_ANON_KEY_HERE';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let selectedUPI = 'gpay';
+
+// ── TAB ────────────────────────────────────────────────────
+function showTab(name, el) {
+  ['overview','progress','homework','attendance','fees','reports','message'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
+  });
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const titles = { overview:'Parent Portal', progress:'Arjun\'s Progress', homework:'Homework', attendance:'Attendance', fees:'Fees & Payment', reports:'Monthly Reports', message:'Message Teacher' };
+  document.getElementById('topbarTitle').textContent = titles[name] || 'Parent Portal';
+  if (name === 'attendance') buildCalendar();
+}
+
+// ── CALENDAR ───────────────────────────────────────────────
+function buildCalendar() {
+  const grid = document.getElementById('calGrid');
+  if (grid.children.length > 0) return;
+  // May 2025 starts on Thursday (day 4), so pad 3 empty days
+  const DAYS_IN_MAY = 31;
+  const START_DAY   = 3; // 0=Mon
+  const CLASS_DAYS  = [1, 3, 5, 8, 10, 12, 15, 17, 19, 22, 24, 26, 29, 31]; // Mon/Wed/Fri
+  const ABSENT_DAYS = [10, 24];
+
+  for (let i = 0; i < START_DAY; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'att-cell att-future';
+    grid.appendChild(empty);
+  }
+
+  for (let d = 1; d <= DAYS_IN_MAY; d++) {
+    const cell = document.createElement('div');
+    if (CLASS_DAYS.includes(d)) {
+      if (ABSENT_DAYS.includes(d)) {
+        cell.className = 'att-cell att-absent';
+        cell.textContent = d;
+      } else {
+        cell.className = 'att-cell att-present';
+        cell.textContent = d;
+      }
+    } else {
+      cell.className = 'att-cell att-future';
+      cell.textContent = d;
+      cell.style.color = 'var(--text3)';
+      cell.style.fontSize = '.62rem';
+    }
+    grid.appendChild(cell);
+  }
+}
+
+// ── UPI PAYMENT ────────────────────────────────────────────
+function selectUPI(app, el) {
+  selectedUPI = app;
+  document.querySelectorAll('.upi-app').forEach(a => a.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function simulatePay() {
+  const names = { gpay:'GPay', phonepe:'PhonePe', paytm:'Paytm', any:'UPI' };
+  document.getElementById('payMethod').textContent = names[selectedUPI] || 'UPI';
+  document.getElementById('payForm').style.display    = 'none';
+  document.getElementById('paySuccess').classList.add('show');
+  showToast('Payment of Rs. 800 successful! Receipt emailed. 🎉', 'success');
+}
+
+function downloadReceipt(month) {
+  showToast(`Downloading receipt for ${month}...`, 'success');
+}
+
+function downloadReport(month) {
+  showToast(`Downloading ${month} progress report PDF...`, 'success');
+}
+
+// ── MESSAGING ───────────────────────────────────────────────
+function sendMessage() {
+  const text = document.getElementById('msgText').value.trim();
+  if (!text) { showToast('Please type a message first!', ''); return; }
+  const history = document.getElementById('msgHistory');
+  const bubble  = document.createElement('div');
+  bubble.style.alignSelf = 'flex-end';
+  bubble.innerHTML = `
+    <div class="msg-bubble msg-from-me">
+      <div class="msg-text">${text}</div>
+      <div class="msg-time">You · Just now</div>
+    </div>`;
+  history.appendChild(bubble);
+  bubble.scrollIntoView({ behavior:'smooth' });
+  document.getElementById('msgText').value = '';
+  showToast('Message sent to Ms. Priya!', 'success');
+}
+
+// ── UTILS ──────────────────────────────────────────────────
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+function showToast(msg, type='') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast${type ? ' toast-'+type : ''}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+async function logout() { await sb.auth.signOut(); window.location.href = '../../login.html'; }
+
+function init() {
+  document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+}
+init();
+</script>
+</body>
+</html>

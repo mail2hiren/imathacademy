@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Progress — iMathAcademy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; min-height: 100vh; }
+    :root {
+      --green:#43A047; --green-dk:#1B5E20; --green-lt:#E8F5E9; --green-md:#2E7D32;
+      --orange:#FB8C00; --orange-dk:#E65100; --orange-lt:#FFF3E0;
+      --blue:#1E88E5; --blue-dk:#0D47A1; --blue-lt:#E3F2FD;
+      --purple:#8E24AA; --purple-dk:#4A148C; --purple-lt:#F3E5F5;
+      --red:#E53935; --red-dk:#B71C1C; --red-lt:#FFEBEE;
+      --yellow:#F9A825; --yellow-lt:#FFFDE7; --yellow-dk:#F57F17;
+      --teal:#00897B; --teal-lt:#E0F2F1; --teal-dk:#004D40;
+      --bg:#FFFFFF; --bg2:#F7F8FF; --border:#E8EAF6;
+      --text2:#4A4A6A; --text3:#9090B0;
+    }
+
+    /* ── LAYOUT ── */
+    .portal { display:flex; min-height:100vh; }
+    .sidebar {
+      width:220px; flex-shrink:0; background:var(--bg);
+      border-right:2px solid var(--border); display:flex;
+      flex-direction:column; position:fixed; top:0; left:0;
+      height:100vh; overflow-y:auto; z-index:100; transition:transform .3s;
+    }
+    .sidebar-logo {
+      padding:20px 16px; border-bottom:2px solid var(--border);
+      font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800;
+      color:var(--green-dk); display:flex; align-items:center; gap:10px;
+    }
+    .sidebar-logo span { color:var(--orange-dk); }
+    .logo-icon { width:34px; height:34px; background:var(--green); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+    .sidebar-nav { flex:1; padding:12px 0; }
+    .nav-section { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--text3); padding:8px 16px 3px; margin-top:6px; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 16px; font-size:.875rem; font-weight:700; color:var(--text2); cursor:pointer; border-left:3px solid transparent; transition:all .12s; text-decoration:none; }
+    .nav-item:hover { color:var(--text); background:var(--bg2); }
+    .nav-item.active { color:var(--teal-dk); background:var(--teal-lt); border-left-color:var(--teal); }
+    .nav-icon { width:20px; text-align:center; font-size:1rem; }
+    .nav-badge { margin-left:auto; background:var(--red); color:#fff; font-size:.62rem; font-weight:800; padding:2px 6px; border-radius:20px; min-width:18px; text-align:center; }
+    .sidebar-user { padding:14px 16px; border-top:2px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .user-av { width:36px; height:36px; border-radius:50%; background:var(--green-lt); border:2px solid var(--green); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; color:var(--green-dk); flex-shrink:0; }
+    .user-name { font-size:.82rem; font-weight:800; color:var(--text); }
+    .user-role { font-size:.7rem; color:var(--text3); font-weight:600; }
+    .logout-btn { margin-left:auto; background:none; border:none; font-size:.85rem; cursor:pointer; color:var(--text3); }
+    .logout-btn:hover { color:var(--red); }
+    .main { flex:1; margin-left:220px; display:flex; flex-direction:column; }
+    .topbar {
+      height:62px; background:var(--bg); border-bottom:2px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 24px; position:sticky; top:0; z-index:50;
+      box-shadow:0 2px 8px rgba(0,0,0,.05);
+    }
+    .topbar-left { display:flex; align-items:center; gap:12px; }
+    .hamburger { display:none; flex-direction:column; gap:4px; cursor:pointer; background:none; border:none; }
+    .hamburger span { width:20px; height:2px; background:var(--text); border-radius:2px; display:block; }
+    .topbar-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; }
+    .back-link { font-size:.82rem; font-weight:700; color:var(--text3); text-decoration:none; }
+    .back-link:hover { color:var(--green-dk); }
+    .body { padding:24px; }
+
+    /* ── PAGE TABS ── */
+    .page-tabs {
+      display:flex; gap:0; background:var(--bg);
+      border:2px solid var(--border); border-radius:30px;
+      overflow:hidden; margin-bottom:24px; width:fit-content;
+    }
+    .page-tab {
+      padding:9px 20px; font-size:.85rem; font-weight:800;
+      cursor:pointer; transition:all .15s; color:var(--text2);
+      border:none; background:transparent; font-family:'Nunito',sans-serif;
+    }
+    .page-tab.active { background:var(--teal); color:#fff; }
+
+    /* ── XP + BELT ── */
+    .xp-belt-row { display:grid; grid-template-columns:1fr 280px; gap:16px; margin-bottom:20px; }
+    .xp-card {
+      background:linear-gradient(135deg,var(--green-dk),var(--green-md));
+      border-radius:20px; padding:22px 24px; color:#fff;
+      box-shadow:0 4px 16px rgba(27,94,32,.3);
+    }
+    .xp-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .xp-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; }
+    .xp-badges { display:flex; gap:8px; }
+    .xp-badge { padding:4px 12px; border-radius:20px; font-size:.78rem; font-weight:800; }
+    .xp-badge-xp { background:rgba(255,255,255,.2); color:#fff; }
+    .xp-badge-s  { background:var(--orange); color:#fff; }
+    .xp-track { height:12px; background:rgba(255,255,255,.25); border-radius:6px; overflow:hidden; margin-bottom:8px; }
+    .xp-fill  { height:100%; background:var(--yellow); border-radius:6px; transition:width .8s ease; }
+    .xp-info  { display:flex; justify-content:space-between; font-size:.78rem; opacity:.85; font-weight:600; }
+
+    .belt-card {
+      background:var(--bg); border:2px solid var(--border);
+      border-radius:20px; padding:20px; text-align:center;
+    }
+    .belt-circle-lg {
+      width:72px; height:72px; border-radius:50%;
+      margin:0 auto 12px; border:4px solid rgba(0,0,0,.1);
+      display:flex; align-items:center; justify-content:center;
+      font-size:2rem;
+    }
+    .belt-name { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; color:var(--text); margin-bottom:4px; }
+    .belt-level { font-size:.8rem; color:var(--text2); font-weight:600; margin-bottom:10px; }
+    .belt-progress-row { display:flex; flex-direction:column; gap:4px; }
+    .belt-prog-label { font-size:.72rem; font-weight:700; color:var(--text3); display:flex; justify-content:space-between; }
+    .belt-prog-track { height:8px; background:var(--bg2); border-radius:4px; overflow:hidden; border:1px solid var(--border); }
+    .belt-prog-fill  { height:100%; border-radius:4px; background:var(--orange); }
+
+    /* ── STATS GRID ── */
+    .stats-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:20px; }
+    .stat-card { background:var(--bg); border:2px solid var(--border); border-radius:16px; padding:14px; text-align:center; transition:all .2s; }
+    .stat-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.08); }
+    .stat-n { font-family:'Baloo 2',sans-serif; font-size:1.7rem; font-weight:800; line-height:1.1; margin-bottom:3px; }
+    .stat-l { font-size:.75rem; font-weight:700; color:var(--text2); }
+    .stat-s { font-size:.68rem; color:var(--text3); margin-top:2px; }
+
+    /* ── SECTION CARD ── */
+    .section-card {
+      background:var(--bg); border:2px solid var(--border);
+      border-radius:18px; padding:20px; margin-bottom:16px;
+    }
+    .section-title {
+      font-size:.75rem; font-weight:800; text-transform:uppercase;
+      letter-spacing:.5px; color:var(--text3); margin-bottom:14px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .section-link { font-size:.72rem; font-weight:700; color:var(--teal); text-transform:none; letter-spacing:0; cursor:pointer; }
+
+    /* ── BAR CHART ── */
+    .bar-chart { display:flex; align-items:flex-end; gap:8px; height:120px; margin-bottom:8px; }
+    .bar-col { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; }
+    .bar-val { font-size:.68rem; font-weight:800; color:var(--text2); }
+    .bar { border-radius:6px 6px 0 0; width:100%; min-height:4px; transition:height .6s ease; }
+    .bar-label { font-size:.62rem; font-weight:700; color:var(--text3); text-align:center; }
+
+    /* ── TOPIC ACCURACY ── */
+    .topic-row {
+      display:flex; align-items:center; gap:10px;
+      padding:9px 0; border-bottom:1px solid var(--border);
+    }
+    .topic-row:last-child { border-bottom:none; }
+    .topic-name { flex:1; font-size:.875rem; font-weight:600; color:var(--text); }
+    .topic-sessions { font-size:.72rem; color:var(--text3); font-weight:600; min-width:50px; text-align:right; }
+    .topic-bar  { width:110px; height:8px; background:var(--bg2); border-radius:4px; overflow:hidden; }
+    .topic-fill { height:100%; border-radius:4px; }
+    .topic-pct  { font-size:.8rem; font-weight:800; width:36px; text-align:right; }
+    .topic-trend { font-size:.75rem; font-weight:800; width:24px; text-align:center; }
+
+    /* ── HEATMAP ── */
+    .heatmap-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
+    .heatmap-cell {
+      border-radius:10px; padding:10px 8px; text-align:center;
+      border:2px solid transparent; transition:all .15s; cursor:default;
+    }
+    .heatmap-cell:hover { transform:scale(1.04); }
+    .hm-icon  { font-size:1rem; margin-bottom:4px; display:block; }
+    .hm-topic { font-size:.65rem; font-weight:700; color:var(--text2); line-height:1.3; margin-bottom:3px; }
+    .hm-pct   { font-size:.8rem; font-weight:800; }
+    .hm-red    { background:var(--red-lt);    border-color:#FFCDD2; }
+    .hm-red    .hm-pct { color:var(--red-dk); }
+    .hm-orange { background:var(--orange-lt); border-color:#FFCC80; }
+    .hm-orange .hm-pct { color:var(--orange-dk); }
+    .hm-yellow { background:var(--yellow-lt); border-color:#FFE082; }
+    .hm-yellow .hm-pct { color:var(--yellow-dk); }
+    .hm-blue   { background:var(--blue-lt);   border-color:#90CAF9; }
+    .hm-blue   .hm-pct { color:var(--blue-dk); }
+    .hm-green  { background:var(--green-lt);  border-color:#A5D6A7; }
+    .hm-green  .hm-pct { color:var(--green-dk); }
+
+    /* ── SESSION HISTORY ── */
+    .session-row {
+      display:flex; align-items:center; gap:12px;
+      padding:10px 0; border-bottom:1px solid var(--border);
+    }
+    .session-row:last-child { border-bottom:none; }
+    .session-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .session-info { flex:1; }
+    .session-topic { font-size:.82rem; font-weight:700; color:var(--text); }
+    .session-meta  { font-size:.72rem; color:var(--text3); font-weight:600; }
+    .session-score { font-size:.82rem; font-weight:800; }
+    .session-xp    { font-size:.72rem; font-weight:700; color:var(--yellow-dk); }
+
+    /* ── BADGE WALL ── */
+    .badge-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; }
+    .badge-cell {
+      background:var(--bg2); border:2px solid var(--border);
+      border-radius:14px; padding:12px 8px; text-align:center;
+      position:relative; transition:all .2s;
+    }
+    .badge-cell.earned { background:var(--yellow-lt); border-color:#FFE082; }
+    .badge-cell.earned:hover { transform:scale(1.06); box-shadow:0 4px 12px rgba(249,168,37,.2); }
+    .badge-cell.locked { opacity:.35; filter:grayscale(1); }
+    .badge-cell-icon  { font-size:1.8rem; display:block; margin-bottom:6px; }
+    .badge-cell-label { font-size:.7rem; font-weight:800; color:var(--text2); line-height:1.3; }
+    .badge-cell-xp    { font-size:.62rem; color:var(--text3); margin-top:3px; }
+    .badge-new-tag {
+      position:absolute; top:-5px; right:-5px;
+      background:var(--red); color:#fff; font-size:.55rem; font-weight:800;
+      padding:2px 5px; border-radius:10px;
+    }
+    .badge-earned-date { font-size:.6rem; color:var(--text3); margin-top:2px; }
+
+    /* ── PERSONAL BESTS ── */
+    .pb-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+    .pb-card { background:var(--bg2); border:2px solid var(--border); border-radius:14px; padding:14px; text-align:center; }
+    .pb-icon  { font-size:1.5rem; margin-bottom:8px; }
+    .pb-val   { font-family:'Baloo 2',sans-serif; font-size:1.4rem; font-weight:800; color:var(--text); margin-bottom:3px; }
+    .pb-label { font-size:.75rem; font-weight:700; color:var(--text2); margin-bottom:2px; }
+    .pb-date  { font-size:.68rem; color:var(--text3); }
+
+    /* ── BELT JOURNEY ── */
+    .belt-journey { display:flex; align-items:center; gap:0; overflow-x:auto; padding-bottom:8px; }
+    .belt-step {
+      display:flex; flex-direction:column; align-items:center;
+      gap:6px; min-width:70px; position:relative;
+    }
+    .belt-step:not(:last-child)::after {
+      content:''; position:absolute; top:18px; left:calc(50% + 18px);
+      width:calc(100% - 36px); height:3px; background:var(--border); z-index:0;
+    }
+    .belt-step.done:not(:last-child)::after { background:var(--green); }
+    .belt-circle-sm {
+      width:36px; height:36px; border-radius:50%;
+      border:3px solid var(--border); position:relative; z-index:1;
+      transition:all .2s;
+    }
+    .belt-step.done  .belt-circle-sm { border-color:var(--green-dk); }
+    .belt-step.current .belt-circle-sm { border-color:var(--orange); box-shadow:0 0 0 3px rgba(251,140,0,.2); }
+    .belt-step-name { font-size:.62rem; font-weight:800; color:var(--text3); text-align:center; }
+    .belt-step.done    .belt-step-name { color:var(--green-dk); }
+    .belt-step.current .belt-step-name { color:var(--orange-dk); }
+    .belt-check { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:.7rem; }
+
+    /* ── DOWNLOAD REPORT ── */
+    .report-card {
+      background:linear-gradient(135deg,var(--blue-dk),var(--blue));
+      border-radius:18px; padding:20px 24px; color:#fff;
+      display:flex; align-items:center; gap:16px; margin-bottom:16px;
+    }
+    .report-icon { font-size:2.5rem; flex-shrink:0; }
+    .report-info { flex:1; }
+    .report-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; margin-bottom:4px; }
+    .report-sub   { font-size:.82rem; opacity:.85; font-weight:500; }
+    .report-btn {
+      background:#fff; color:var(--blue-dk);
+      border:none; padding:10px 20px; border-radius:20px;
+      font-family:'Nunito',sans-serif; font-size:.85rem;
+      font-weight:800; cursor:pointer; white-space:nowrap;
+      transition:all .15s; flex-shrink:0;
+    }
+    .report-btn:hover { background:var(--blue-lt); }
+
+    /* ── TOAST ── */
+    .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+    .toast { background:var(--text); color:#fff; padding:10px 18px; border-radius:12px; font-size:.875rem; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,.2); animation:slideIn .3s ease; }
+    .toast-success { background:var(--green-dk); }
+    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:768px) {
+      .sidebar { transform:translateX(-100%); }
+      .sidebar.open { transform:translateX(0); }
+      .main { margin-left:0; }
+      .hamburger { display:flex; }
+      .body { padding:16px; }
+      .xp-belt-row { grid-template-columns:1fr; }
+      .stats-grid  { grid-template-columns:repeat(2,1fr); }
+      .heatmap-grid { grid-template-columns:repeat(3,1fr); }
+      .badge-grid   { grid-template-columns:repeat(4,1fr); }
+      .pb-grid      { grid-template-columns:1fr; }
+    }
+    @media (max-width:480px) {
+      .badge-grid { grid-template-columns:repeat(3,1fr); }
+      .heatmap-grid { grid-template-columns:repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+<div class="portal">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🧮</div>
+      iMath<span>Academy</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Learning</div>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a class="nav-item" href="lessons.html"><span class="nav-icon">▶️</span> Lessons</a>
+      <a class="nav-item" href="practice.html"><span class="nav-icon">⚡</span> Practice</a>
+      <a class="nav-item" href="homework.html"><span class="nav-icon">📋</span> Homework<span class="nav-badge">2</span></a>
+      <div class="nav-section">Progress</div>
+      <a class="nav-item active" href="progress.html"><span class="nav-icon">📊</span> My progress</a>
+      <a class="nav-item active" href="progress.html"><span class="nav-icon">🏅</span> Badges & XP</a>
+      <div class="nav-section">Classes</div>
+      <a class="nav-item" href="#"><span class="nav-icon">📹</span> Live classes</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-av" id="userAv">AR</div>
+      <div>
+        <div class="user-name" id="userName">Arjun Rao</div>
+        <div class="user-role">Student</div>
+      </div>
+      <button class="logout-btn" onclick="logout()">⇥</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div class="topbar-title">📊 My Progress</div>
+      </div>
+      <a class="back-link" href="dashboard.html">← Back to dashboard</a>
+    </div>
+
+    <div class="body">
+
+      <!-- Page tabs -->
+      <div class="page-tabs">
+        <button class="page-tab active" onclick="showTab('overview',this)">Overview</button>
+        <button class="page-tab" onclick="showTab('topics',this)">Topics</button>
+        <button class="page-tab" onclick="showTab('badges',this)">Badges & XP</button>
+        <button class="page-tab" onclick="showTab('history',this)">History</button>
+      </div>
+
+      <!-- ══ OVERVIEW TAB ══ -->
+      <div id="tab-overview">
+
+        <!-- XP + Belt -->
+        <div class="xp-belt-row">
+          <div class="xp-card">
+            <div class="xp-top">
+              <div>
+                <div class="xp-title" id="xpTitle">Abacus — Level 3 · Orange Belt</div>
+                <div style="font-size:.78rem;opacity:.8;margin-top:2px" id="xpSub">1,240 XP total earned</div>
+              </div>
+              <div class="xp-badges">
+                <div class="xp-badge xp-badge-xp" id="xpBadge">1,240 XP</div>
+                <div class="xp-badge xp-badge-s" id="streakBadge">🔥 7 days</div>
+              </div>
+            </div>
+            <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:62%"></div></div>
+            <div class="xp-info">
+              <span id="xpCurrent">1,240 / 2,000 XP</span>
+              <span id="xpNext">760 XP to Green Belt 🟢</span>
+            </div>
+          </div>
+
+          <div class="belt-card">
+            <div class="belt-circle-lg" id="beltCircle" style="background:#FFB74D">🥋</div>
+            <div class="belt-name" id="beltName">Orange Belt</div>
+            <div class="belt-level" id="beltLevel">Level 3 of 10</div>
+            <div class="belt-progress-row">
+              <div class="belt-prog-label">
+                <span>Progress to Green</span>
+                <span id="beltPct">62%</span>
+              </div>
+              <div class="belt-prog-track">
+                <div class="belt-prog-fill" id="beltProg" style="width:62%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-n" style="color:var(--blue)">24</div><div class="stat-l">Practice sessions</div><div class="stat-s">this month</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--green)">71%</div><div class="stat-l">Overall accuracy</div><div class="stat-s">↑ +8% vs last month</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--orange)">7</div><div class="stat-l">Day streak</div><div class="stat-s">personal best: 12</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--purple)">9</div><div class="stat-l">Badges earned</div><div class="stat-s">6 more to unlock</div></div>
+        </div>
+
+        <!-- Belt journey -->
+        <div class="section-card">
+          <div class="section-title">Belt journey</div>
+          <div class="belt-journey" id="beltJourney"></div>
+        </div>
+
+        <!-- Weekly accuracy chart -->
+        <div class="section-card">
+          <div class="section-title">
+            Weekly accuracy (last 8 weeks)
+            <span class="section-link" onclick="showTab('history',document.querySelectorAll('.page-tab')[3])">View history →</span>
+          </div>
+          <div class="bar-chart" id="barChart"></div>
+          <div style="font-size:.72rem;color:var(--text3);font-weight:600;text-align:center">Each bar shows your average accuracy for that week</div>
+        </div>
+
+        <!-- Needs attention -->
+        <div class="section-card">
+          <div class="section-title">
+            Topics needing attention
+            <span class="section-link" onclick="showTab('topics',document.querySelectorAll('.page-tab')[1])">See all topics →</span>
+          </div>
+          <div id="attentionList"></div>
+        </div>
+
+        <!-- Download report -->
+        <div class="report-card">
+          <div class="report-icon">📄</div>
+          <div class="report-info">
+            <div class="report-title">Monthly progress report</div>
+            <div class="report-sub">Auto-generated PDF with your full progress, attendance and badges — also emailed to your parent</div>
+          </div>
+          <button class="report-btn" onclick="downloadReport()">Download PDF</button>
+        </div>
+
+        <!-- Personal bests -->
+        <div class="section-card">
+          <div class="section-title">Personal bests</div>
+          <div class="pb-grid">
+            <div class="pb-card"><div class="pb-icon">⚡</div><div class="pb-val">34s</div><div class="pb-label">Fastest speed drill</div><div class="pb-date">10 questions · 3 days ago</div></div>
+            <div class="pb-card"><div class="pb-icon">🔥</div><div class="pb-val">12 days</div><div class="pb-label">Longest streak</div><div class="pb-date">Last month</div></div>
+            <div class="pb-card"><div class="pb-icon">💯</div><div class="pb-val">10/10</div><div class="pb-label">Perfect homework score</div><div class="pb-date">Single digit addition</div></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ TOPICS TAB ══ -->
+      <div id="tab-topics" style="display:none">
+
+        <div class="section-card">
+          <div class="section-title">Topic accuracy heatmap</div>
+          <div style="font-size:.78rem;color:var(--text2);font-weight:600;margin-bottom:14px">
+            🔴 Below 40% &nbsp;·&nbsp; 🟠 40–60% &nbsp;·&nbsp; 🟡 60–75% &nbsp;·&nbsp; 🔵 75–85% &nbsp;·&nbsp; 🟢 Above 85%
+          </div>
+          <div class="heatmap-grid" id="heatmapGrid"></div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">All topics — detailed breakdown</div>
+          <div id="allTopicsList"></div>
+        </div>
+
+      </div>
+
+      <!-- ══ BADGES TAB ══ -->
+      <div id="tab-badges" style="display:none">
+
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px">
+          <div class="stat-card"><div class="stat-n" style="color:var(--yellow)">9</div><div class="stat-l">Badges earned</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--text3)">6</div><div class="stat-l">Badges to unlock</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--purple)">1,240</div><div class="stat-l">Total XP</div></div>
+        </div>
+
+        <!-- XP breakdown -->
+        <div class="section-card" style="margin-bottom:16px">
+          <div class="section-title">How to earn more XP</div>
+          <div style="display:flex;flex-direction:column;gap:0">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)"><span style="font-size:.875rem;font-weight:600">Correct answer — first try</span><span style="font-size:.82rem;font-weight:800;color:var(--blue);background:var(--blue-lt);padding:3px 10px;border-radius:20px">+15 XP</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)"><span style="font-size:.875rem;font-weight:600">Complete a 10-question session</span><span style="font-size:.82rem;font-weight:800;color:var(--green-dk);background:var(--green-lt);padding:3px 10px;border-radius:20px">+50 XP</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)"><span style="font-size:.875rem;font-weight:600">Submit homework on time</span><span style="font-size:.82rem;font-weight:800;color:var(--orange-dk);background:var(--orange-lt);padding:3px 10px;border-radius:20px">+80 XP</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)"><span style="font-size:.875rem;font-weight:600">Score 100% on homework</span><span style="font-size:.82rem;font-weight:800;color:var(--green-dk);background:var(--green-lt);padding:3px 10px;border-radius:20px">+150 XP</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)"><span style="font-size:.875rem;font-weight:600">Maintain a 7-day streak</span><span style="font-size:.82rem;font-weight:800;color:var(--yellow-dk);background:var(--yellow-lt);padding:3px 10px;border-radius:20px">+200 XP</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)"><span style="font-size:.875rem;font-weight:600">Complete a full level</span><span style="font-size:.82rem;font-weight:800;color:var(--purple-dk);background:var(--purple-lt);padding:3px 10px;border-radius:20px">+500 XP</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0"><span style="font-size:.875rem;font-weight:600">Personal best speed drill</span><span style="font-size:.82rem;font-weight:800;color:var(--teal-dk);background:var(--teal-lt);padding:3px 10px;border-radius:20px">+100 XP</span></div>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">All badges</div>
+          <div class="badge-grid" id="badgeGrid"></div>
+        </div>
+
+      </div>
+
+      <!-- ══ HISTORY TAB ══ -->
+      <div id="tab-history" style="display:none">
+
+        <div class="section-card">
+          <div class="section-title">Recent practice sessions</div>
+          <div id="sessionHistory"></div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">Homework history</div>
+          <div id="hwHistory"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY = 'YOUR_ANON_KEY_HERE';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── DEMO DATA ──────────────────────────────────────────────
+const TOPICS = [
+  { name:'Single digit addition',    acc:91, sessions:18, trend:'↑', color:'var(--green)',  hClass:'hm-green',  icon:'➕' },
+  { name:'Single digit subtraction', acc:87, sessions:12, trend:'↑', color:'var(--green)',  hClass:'hm-green',  icon:'➖' },
+  { name:'2-digit addition',         acc:74, sessions:10, trend:'↑', color:'var(--blue)',   hClass:'hm-blue',   icon:'📘' },
+  { name:'2-digit subtraction',      acc:68, sessions:8,  trend:'→', color:'var(--blue)',   hClass:'hm-blue',   icon:'📗' },
+  { name:'3-digit addition',         acc:62, sessions:6,  trend:'↑', color:'var(--yellow)', hClass:'hm-yellow', icon:'📒' },
+  { name:'3-digit subtraction',      acc:58, sessions:7,  trend:'↓', color:'var(--orange)', hClass:'hm-orange', icon:'⚠️' },
+  { name:'Addition with carrying',   acc:48, sessions:5,  trend:'↓', color:'var(--red)',    hClass:'hm-red',    icon:'🔴' },
+  { name:'Multiplication (×2–×5)',   acc:35, sessions:2,  trend:'→', color:'var(--red)',    hClass:'hm-red',    icon:'❗' },
+  { name:'Speed flash sums',         acc:72, sessions:4,  trend:'↑', color:'var(--blue)',   hClass:'hm-blue',   icon:'⚡' },
+  { name:'Mental abacus',            acc:0,  sessions:0,  trend:'—', color:'var(--border)', hClass:'hm-gray',   icon:'🔒' },
+];
+
+const BADGES_ALL = [
+  { type:'first_practice',  label:'First Steps',     icon:'🎯', xp:50,   earned:true,  date:'15 Apr',  new:false, desc:'Complete your first practice session' },
+  { type:'streak_7',        label:'7-Day Streak',    icon:'🔥', xp:200,  earned:true,  date:'Today',   new:true,  desc:'Maintain a 7-day practice streak' },
+  { type:'speed_demon',     label:'Speed Demon',     icon:'⚡', xp:100,  earned:true,  date:'20 Apr',  new:false, desc:'Complete a speed drill in under 60 seconds' },
+  { type:'perfect_score',   label:'Perfect Score',   icon:'💯', xp:100,  earned:true,  date:'18 Apr',  new:false, desc:'Score 100% on any homework' },
+  { type:'bead_master',     label:'Bead Master',     icon:'🧮', xp:120,  earned:true,  date:'22 Apr',  new:false, desc:'Complete 10 abacus practice sessions' },
+  { type:'bookworm',        label:'Bookworm',        icon:'📚', xp:80,   earned:true,  date:'16 Apr',  new:false, desc:'Watch 5 lessons in a row' },
+  { type:'top_class',       label:'Top of Class',    icon:'🌟', xp:150,  earned:true,  date:'25 Apr',  new:false, desc:'Highest score in your batch this week' },
+  { type:'orange_belt',     label:'Orange Belt',     icon:'🏅', xp:300,  earned:true,  date:'24 Apr',  new:false, desc:'Earn the Orange Belt — Level 3' },
+  { type:'on_fire',         label:'On Fire',         icon:'🎖', xp:100,  earned:true,  date:'23 Apr',  new:false, desc:'Score above 80% for 5 sessions in a row' },
+  { type:'green_belt',      label:'Green Belt',      icon:'🟢', xp:400,  earned:false, date:'',        new:false, desc:'Earn the Green Belt — Level 4 (need 2,000 XP)' },
+  { type:'week_champ',      label:'Week Champion',   icon:'👑', xp:200,  earned:false, date:'',        new:false, desc:'Top student in your batch for a full week' },
+  { type:'rocket_speed',    label:'Rocket Speed',    icon:'🚀', xp:150,  earned:false, date:'',        new:false, desc:'Complete a 10-question session in under 90 seconds' },
+  { type:'mind_master',     label:'Mind Master',     icon:'🧠', xp:200,  earned:false, date:'',        new:false, desc:'Complete 5 Vedic Maths sessions' },
+  { type:'diamond',         label:'Diamond',         icon:'💎', xp:500,  earned:false, date:'',        new:false, desc:'Maintain 85%+ accuracy for an entire month' },
+  { type:'grand_master',    label:'Grand Master',    icon:'🏆', xp:1000, earned:false, date:'',        new:false, desc:'Reach Level 10 — Grand Master belt' },
+];
+
+const WEEKLY_DATA = [45, 58, 62, 55, 67, 71, 74, 71];
+const WEEK_LABELS = ['Wk 1','Wk 2','Wk 3','Wk 4','Wk 5','Wk 6','Wk 7','This'];
+
+const BELTS = [
+  { name:'White',  color:'#F5F5F5', done:true  },
+  { name:'Yellow', color:'#FFF176', done:true  },
+  { name:'Orange', color:'#FFB74D', done:false, current:true },
+  { name:'Green',  color:'#66BB6A', done:false },
+  { name:'Blue',   color:'#42A5F5', done:false },
+  { name:'Purple', color:'#AB47BC', done:false },
+  { name:'Red',    color:'#EF5350', done:false },
+  { name:'Brown',  color:'#8D6E63', done:false },
+  { name:'Black',  color:'#212121', done:false },
+  { name:'Grand',  color:'#F9A825', done:false },
+];
+
+const SESSION_HISTORY = [
+  { topic:'Addition with carrying', correct:6,  total:10, xp:60,  date:'Today',      color:'var(--orange)' },
+  { topic:'Single digit addition',  correct:9,  total:10, xp:95,  date:'Yesterday',  color:'var(--green)'  },
+  { topic:'2-digit addition',       correct:8,  total:10, xp:85,  date:'2 days ago', color:'var(--green)'  },
+  { topic:'3-digit subtraction',    correct:5,  total:10, xp:55,  date:'3 days ago', color:'var(--orange)' },
+  { topic:'Speed drill — mixed',    correct:7,  total:10, xp:75,  date:'4 days ago', color:'var(--blue)'   },
+  { topic:'Single digit addition',  correct:10, total:10, xp:165, date:'5 days ago', color:'var(--green)'  },
+];
+
+const HW_HISTORY = [
+  { title:'Single digit addition',    score:9,  total:10, xp:150, date:'2 days ago', status:'Graded' },
+  { title:'2-digit addition practice', score:7, total:8,  xp:110, date:'1 week ago', status:'Graded' },
+];
+
+// ── TAB SWITCHING ──────────────────────────────────────────
+function showTab(name, btn) {
+  ['overview','topics','badges','history'].forEach(t => {
+    document.getElementById(`tab-${t}`).style.display = t === name ? 'block' : 'none';
+  });
+  document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+// ── BUILD COMPONENTS ───────────────────────────────────────
+function buildBeltJourney() {
+  const el = document.getElementById('beltJourney');
+  el.innerHTML = '';
+  BELTS.forEach(b => {
+    const step = document.createElement('div');
+    step.className = 'belt-step' + (b.done ? ' done' : '') + (b.current ? ' current' : '');
+    step.innerHTML = `
+      <div class="belt-circle-sm" style="background:${b.color}">
+        ${b.done ? '<span class="belt-check">✓</span>' : ''}
+        ${b.current ? '<span class="belt-check" style="color:var(--orange-dk)">●</span>' : ''}
+      </div>
+      <div class="belt-step-name">${b.name}</div>
+    `;
+    el.appendChild(step);
+  });
+}
+
+function buildBarChart() {
+  const el  = document.getElementById('barChart');
+  const max = Math.max(...WEEKLY_DATA);
+  el.innerHTML = '';
+  WEEKLY_DATA.forEach((val, i) => {
+    const pct   = Math.round((val / 100) * 100);
+    const color = val >= 80 ? 'var(--green)' : val >= 60 ? 'var(--blue)' : val >= 40 ? 'var(--orange)' : 'var(--red)';
+    const col   = document.createElement('div');
+    col.className = 'bar-col';
+    col.innerHTML = `
+      <div class="bar-val">${val}%</div>
+      <div class="bar" style="background:${color};height:${pct}px"></div>
+      <div class="bar-label">${WEEK_LABELS[i]}</div>
+    `;
+    el.appendChild(col);
+  });
+}
+
+function buildAttentionList() {
+  const el = document.getElementById('attentionList');
+  const weak = TOPICS.filter(t => t.acc < 60 && t.sessions > 0).slice(0, 4);
+  el.innerHTML = '';
+  weak.forEach(t => {
+    el.innerHTML += `
+      <div class="topic-row">
+        <span class="topic-name">${t.icon} ${t.name}</span>
+        <div class="topic-bar"><div class="topic-fill" style="background:${t.color};width:${t.acc}%"></div></div>
+        <span class="topic-pct" style="color:${t.color}">${t.acc}%</span>
+        <span class="topic-trend" style="color:${t.trend==='↓'?'var(--red)':t.trend==='↑'?'var(--green)':'var(--text3)'}">${t.trend}</span>
+      </div>`;
+  });
+  if (weak.length === 0) el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-weight:600">All topics looking great!</div>';
+}
+
+function buildHeatmap() {
+  const el = document.getElementById('heatmapGrid');
+  el.innerHTML = '';
+  TOPICS.forEach(t => {
+    el.innerHTML += `
+      <div class="heatmap-cell ${t.acc===0?'hm-gray':t.hClass}" title="${t.name}: ${t.acc}% accuracy">
+        <span class="hm-icon">${t.icon}</span>
+        <div class="hm-topic">${t.name.split(' ').slice(0,3).join(' ')}</div>
+        <div class="hm-pct">${t.acc > 0 ? t.acc+'%' : 'Not started'}</div>
+      </div>`;
+  });
+}
+
+function buildAllTopics() {
+  const el = document.getElementById('allTopicsList');
+  el.innerHTML = '';
+  const sorted = [...TOPICS].sort((a,b) => b.acc - a.acc);
+  sorted.forEach(t => {
+    const color = t.acc >= 80 ? 'var(--green)' : t.acc >= 60 ? 'var(--blue)' : t.acc >= 40 ? 'var(--orange)' : t.acc > 0 ? 'var(--red)' : 'var(--border)';
+    el.innerHTML += `
+      <div class="topic-row">
+        <span class="topic-name">${t.icon} ${t.name}</span>
+        <span class="topic-sessions">${t.sessions} sessions</span>
+        <div class="topic-bar" style="width:130px"><div class="topic-fill" style="background:${color};width:${t.acc}%"></div></div>
+        <span class="topic-pct" style="color:${color}">${t.acc > 0 ? t.acc+'%' : '—'}</span>
+        <span class="topic-trend" style="color:${t.trend==='↓'?'var(--red)':t.trend==='↑'?'var(--green)':'var(--text3)'}">${t.trend}</span>
+      </div>`;
+  });
+}
+
+function buildBadgeGrid() {
+  const el = document.getElementById('badgeGrid');
+  el.innerHTML = '';
+  BADGES_ALL.forEach(b => {
+    el.innerHTML += `
+      <div class="badge-cell ${b.earned ? 'earned' : 'locked'}" title="${b.desc}">
+        ${b.new ? '<span class="badge-new-tag">NEW</span>' : ''}
+        <span class="badge-cell-icon">${b.icon}</span>
+        <div class="badge-cell-label">${b.label}</div>
+        <div class="badge-cell-xp">+${b.xp} XP</div>
+        ${b.earned ? `<div class="badge-earned-date">${b.date}</div>` : '<div class="badge-earned-date">Locked 🔒</div>'}
+      </div>`;
+  });
+}
+
+function buildSessionHistory() {
+  const el = document.getElementById('sessionHistory');
+  el.innerHTML = '';
+  SESSION_HISTORY.forEach(s => {
+    const acc = Math.round((s.correct / s.total) * 100);
+    el.innerHTML += `
+      <div class="session-row">
+        <div class="session-dot" style="background:${s.color}"></div>
+        <div class="session-info">
+          <div class="session-topic">${s.topic}</div>
+          <div class="session-meta">${s.date} · ${s.total} questions</div>
+        </div>
+        <div style="text-align:right">
+          <div class="session-score" style="color:${s.color}">${s.correct}/${s.total} (${acc}%)</div>
+          <div class="session-xp">+${s.xp} XP</div>
+        </div>
+      </div>`;
+  });
+}
+
+function buildHWHistory() {
+  const el = document.getElementById('hwHistory');
+  el.innerHTML = '';
+  HW_HISTORY.forEach(h => {
+    const acc = Math.round((h.score / h.total) * 100);
+    el.innerHTML += `
+      <div class="session-row">
+        <div class="session-dot" style="background:var(--green)"></div>
+        <div class="session-info">
+          <div class="session-topic">${h.title}</div>
+          <div class="session-meta">${h.date} · ${h.status}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="session-score" style="color:var(--green)">${h.score}/${h.total} (${acc}%)</div>
+          <div class="session-xp">+${h.xp} XP</div>
+        </div>
+      </div>`;
+  });
+}
+
+// ── DOWNLOAD REPORT ────────────────────────────────────────
+function downloadReport() {
+  showToast('📄 Generating your monthly report — PDF download coming in Session 21!', '');
+}
+
+// ── LOAD REAL DATA FROM SUPABASE ───────────────────────────
+async function loadRealData() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+
+    const { data: profile } = await sb.from('users')
+      .select('*').eq('id', session.user.id).single();
+
+    if (profile) {
+      const name = profile.full_name;
+      document.getElementById('userAv').textContent   = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+      document.getElementById('userName').textContent = name;
+
+      const xp      = profile.xp_points || 1240;
+      const streak  = profile.streak_days || 7;
+      const belt    = getBelt(xp);
+      const pct     = belt.next ? Math.round((xp - belt.minXP) / (belt.nextXP - belt.minXP) * 100) : 100;
+
+      document.getElementById('xpTitle').textContent   = `Abacus — Level ${profile.current_level||3} · ${belt.name}`;
+      document.getElementById('xpBadge').textContent   = `${xp.toLocaleString()} XP`;
+      document.getElementById('streakBadge').textContent = `🔥 ${streak} days`;
+      document.getElementById('xpFill').style.width    = pct + '%';
+      document.getElementById('xpCurrent').textContent = `${xp.toLocaleString()} / ${belt.nextXP?.toLocaleString() || '∞'} XP`;
+      document.getElementById('xpNext').textContent    = belt.next ? `${(belt.nextXP-xp).toLocaleString()} XP to ${belt.next}` : 'Grand Master achieved!';
+      document.getElementById('beltName').textContent  = belt.name;
+      document.getElementById('beltLevel').textContent = `Level ${profile.current_level||3} of 10`;
+      document.getElementById('beltPct').textContent   = pct + '%';
+      document.getElementById('beltProg').style.width  = pct + '%';
+      document.getElementById('beltCircle').style.background = belt.color;
+
+      // Load weak topics
+      const { data: weak } = await sb.from('student_weak_topics')
+        .select('*').eq('student_id', session.user.id).limit(5);
+
+      if (weak && weak.length > 0) {
+        const el = document.getElementById('attentionList');
+        el.innerHTML = '';
+        weak.forEach(t => {
+          const acc   = parseFloat(t.accuracy)||0;
+          const color = acc >= 60 ? 'var(--blue)' : acc >= 40 ? 'var(--orange)' : 'var(--red)';
+          el.innerHTML += `
+            <div class="topic-row">
+              <span class="topic-name">⚠️ ${t.topic}</span>
+              <div class="topic-bar"><div class="topic-fill" style="background:${color};width:${acc}%"></div></div>
+              <span class="topic-pct" style="color:${color}">${Math.round(acc)}%</span>
+            </div>`;
+        });
+      }
+    }
+  } catch { /* use demo data */ }
+}
+
+const BELTS_DATA = [
+  { name:'White Belt',   minXP:0,     maxXP:499,   color:'#F5F5F5', next:'Yellow Belt',  nextXP:500   },
+  { name:'Yellow Belt',  minXP:500,   maxXP:1199,  color:'#FFF176', next:'Orange Belt',  nextXP:1200  },
+  { name:'Orange Belt',  minXP:1200,  maxXP:2499,  color:'#FFB74D', next:'Green Belt',   nextXP:2500  },
+  { name:'Green Belt',   minXP:2500,  maxXP:4499,  color:'#66BB6A', next:'Blue Belt',    nextXP:4500  },
+  { name:'Blue Belt',    minXP:4500,  maxXP:6999,  color:'#42A5F5', next:'Purple Belt',  nextXP:7000  },
+  { name:'Purple Belt',  minXP:7000,  maxXP:9999,  color:'#AB47BC', next:'Red Belt',     nextXP:10000 },
+  { name:'Red Belt',     minXP:10000, maxXP:13999, color:'#EF5350', next:'Brown Belt',   nextXP:14000 },
+  { name:'Brown Belt',   minXP:14000, maxXP:19999, color:'#8D6E63', next:'Black Belt',   nextXP:20000 },
+  { name:'Black Belt',   minXP:20000, maxXP:29999, color:'#212121', next:'Grand Master', nextXP:30000 },
+  { name:'Grand Master', minXP:30000, maxXP:Infinity, color:'#F9A825', next:'', nextXP:0 },
+];
+function getBelt(xp) { return BELTS_DATA.find(b => xp >= b.minXP && xp <= b.maxXP) || BELTS_DATA[0]; }
+
+// ── UTILS ──────────────────────────────────────────────────
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+function showToast(msg, type='') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast${type?` toast-${type}`:''}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+async function logout() { await sb.auth.signOut(); window.location.href = '../../login.html'; }
+
+// ── INIT ───────────────────────────────────────────────────
+function init() {
+  buildBeltJourney();
+  buildBarChart();
+  buildAttentionList();
+  buildHeatmap();
+  buildAllTopics();
+  buildBadgeGrid();
+  buildSessionHistory();
+  buildHWHistory();
+  loadRealData();
+}
+
+init();
+</script>
+</body>
+</html>

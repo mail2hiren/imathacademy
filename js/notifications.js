@@ -11,7 +11,7 @@
 
 // ── CONFIGURATION ─────────────────────────────────────────
 // Replace with your actual Brevo API key from brevo.com
-const BREVO_API_KEY = 'YOUR_BREVO_API_KEY_HERE';
+const BREVO_API_KEY = 'eyJhcGlfa2V5IjoieGtleXNpYi04MjlhMzgzMzkwN2VjZjYyOTgyMmE0YjA1ZGQ0ZjJhZGRkOGM3NzVmNjE0N2EwOTBmZDk5MTg3MzliOGZmY2ZjLXRmZ2FxdzgzOXo1NnlDMnAifQ==';
 const BREVO_URL     = 'https://api.brevo.com/v3/smtp/email';
 
 const FROM_EMAIL = 'hello@imathacademy.com';

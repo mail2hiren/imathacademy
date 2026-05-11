@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard — iMathAcademy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; min-height: 100vh; }
+    :root {
+      --green:#43A047; --green-dk:#1B5E20; --green-lt:#E8F5E9; --green-md:#2E7D32;
+      --orange:#FB8C00; --orange-dk:#E65100; --orange-lt:#FFF3E0;
+      --blue:#1E88E5; --blue-dk:#0D47A1; --blue-lt:#E3F2FD;
+      --purple:#8E24AA; --purple-dk:#4A148C; --purple-lt:#F3E5F5;
+      --red:#E53935; --red-dk:#B71C1C; --red-lt:#FFEBEE;
+      --yellow:#F9A825; --yellow-lt:#FFFDE7; --yellow-dk:#F57F17;
+      --teal:#00897B; --teal-lt:#E0F2F1; --teal-dk:#004D40;
+      --bg:#FFFFFF; --bg2:#F7F8FF; --border:#E8EAF6;
+      --text2:#4A4A6A; --text3:#9090B0;
+    }
+
+    /* ── LAYOUT ── */
+    .portal { display:flex; min-height:100vh; }
+    .sidebar {
+      width:220px; flex-shrink:0; background:var(--bg);
+      border-right:2px solid var(--border); display:flex;
+      flex-direction:column; position:fixed; top:0; left:0;
+      height:100vh; overflow-y:auto; z-index:100; transition:transform .3s;
+    }
+    .sidebar-logo {
+      padding:20px 16px; border-bottom:2px solid var(--border);
+      font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800;
+      color:var(--blue-dk); display:flex; align-items:center; gap:10px;
+    }
+    .sidebar-logo span { color:var(--orange-dk); }
+    .logo-icon { width:34px; height:34px; background:var(--blue); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+    .sidebar-nav { flex:1; padding:12px 0; }
+    .nav-section { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--text3); padding:8px 16px 3px; margin-top:6px; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 16px; font-size:.875rem; font-weight:700; color:var(--text2); cursor:pointer; border-left:3px solid transparent; transition:all .12s; text-decoration:none; }
+    .nav-item:hover { color:var(--text); background:var(--bg2); }
+    .nav-item.active { color:var(--blue-dk); background:var(--blue-lt); border-left-color:var(--blue); }
+    .nav-icon { width:20px; text-align:center; font-size:1rem; }
+    .nav-badge { margin-left:auto; background:var(--red); color:#fff; font-size:.62rem; font-weight:800; padding:2px 6px; border-radius:20px; min-width:18px; text-align:center; }
+    .sidebar-user { padding:14px 16px; border-top:2px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .user-av { width:36px; height:36px; border-radius:50%; background:var(--blue-lt); border:2px solid var(--blue); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; color:var(--blue-dk); flex-shrink:0; }
+    .user-name { font-size:.82rem; font-weight:800; color:var(--text); }
+    .user-role { font-size:.7rem; color:var(--text3); font-weight:600; }
+    .logout-btn { margin-left:auto; background:none; border:none; font-size:.85rem; cursor:pointer; color:var(--text3); }
+    .logout-btn:hover { color:var(--red); }
+    .main { flex:1; margin-left:220px; display:flex; flex-direction:column; }
+    .topbar {
+      height:62px; background:var(--bg); border-bottom:2px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 24px; position:sticky; top:0; z-index:50;
+      box-shadow:0 2px 8px rgba(0,0,0,.05);
+    }
+    .topbar-left { display:flex; align-items:center; gap:12px; }
+    .hamburger { display:none; flex-direction:column; gap:4px; cursor:pointer; background:none; border:none; }
+    .hamburger span { width:20px; height:2px; background:var(--text); border-radius:2px; display:block; }
+    .topbar-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; }
+    .topbar-right { display:flex; align-items:center; gap:10px; }
+    .notif-btn { position:relative; width:38px; height:38px; border-radius:50%; background:var(--bg2); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1rem; }
+    .notif-dot { position:absolute; top:-2px; right:-2px; width:14px; height:14px; background:var(--red); border-radius:50%; border:2px solid var(--bg); font-size:.55rem; font-weight:800; color:#fff; display:flex; align-items:center; justify-content:center; }
+    .body { padding:24px; }
+
+    /* ── PAGE TABS ── */
+    .page-tabs { display:flex; gap:0; background:var(--bg); border:2px solid var(--border); border-radius:30px; overflow:hidden; margin-bottom:24px; width:fit-content; flex-wrap:wrap; }
+    .page-tab { padding:9px 20px; font-size:.85rem; font-weight:800; cursor:pointer; transition:all .15s; color:var(--text2); border:none; background:transparent; font-family:'Nunito',sans-serif; }
+    .page-tab.active { background:var(--blue); color:#fff; }
+
+    /* ── STATS ── */
+    .stats-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:20px; }
+    .stat-card { background:var(--bg); border:2px solid var(--border); border-radius:16px; padding:14px; text-align:center; transition:all .2s; }
+    .stat-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.08); }
+    .stat-n { font-family:'Baloo 2',sans-serif; font-size:1.7rem; font-weight:800; line-height:1.1; margin-bottom:3px; }
+    .stat-l { font-size:.75rem; font-weight:700; color:var(--text2); }
+    .stat-s { font-size:.68rem; color:var(--text3); margin-top:2px; }
+
+    /* ── ALERTS ── */
+    .alert { display:flex; gap:10px; padding:12px 16px; border-radius:14px; border:2px solid; margin-bottom:10px; }
+    .alert-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:3px; }
+    .alert-body { flex:1; }
+    .alert-title { font-size:.875rem; font-weight:800; line-height:1.4; }
+    .alert-sub   { font-size:.78rem; font-weight:600; margin-top:2px; }
+    .alert-btn { flex-shrink:0; padding:6px 14px; border-radius:20px; font-size:.75rem; font-weight:800; border:none; cursor:pointer; font-family:'Nunito',sans-serif; align-self:center; }
+    .alert-warn { background:var(--orange-lt); border-color:#FFCC80; }
+    .alert-warn .alert-dot { background:var(--orange); }
+    .alert-warn .alert-title { color:var(--orange-dk); }
+    .alert-warn .alert-sub   { color:var(--orange-dk); opacity:.8; }
+    .alert-err  { background:var(--red-lt); border-color:#FFCDD2; }
+    .alert-err .alert-dot { background:var(--red); }
+    .alert-err .alert-title { color:var(--red-dk); }
+    .alert-err .alert-sub   { color:var(--red-dk); opacity:.8; }
+    .alert-info { background:var(--blue-lt); border-color:#90CAF9; }
+    .alert-info .alert-dot { background:var(--blue); }
+    .alert-info .alert-title { color:var(--blue-dk); }
+    .alert-info .alert-sub   { color:var(--blue-dk); opacity:.8; }
+
+    /* ── SECTION CARD ── */
+    .section-card { background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:20px; margin-bottom:16px; }
+    .section-title { font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--text3); margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+    .section-link { font-size:.72rem; font-weight:700; color:var(--blue); text-transform:none; letter-spacing:0; cursor:pointer; }
+
+    /* ── CLASS / SCHEDULE CARDS ── */
+    .class-card {
+      display:flex; align-items:center; gap:14px;
+      padding:14px 16px; border-radius:14px; border:2px solid var(--border);
+      margin-bottom:10px; transition:all .15s;
+    }
+    .class-card.live-now { border-color:var(--green); background:var(--green-lt); }
+    .class-card.upcoming { border-color:var(--border); background:var(--bg); }
+    .class-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+    .dot-live { background:var(--green); animation:pulse 1.2s infinite; }
+    .dot-soon { background:var(--orange); }
+    .dot-later{ background:var(--text3); }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+    .class-info { flex:1; }
+    .class-name { font-size:.9rem; font-weight:800; color:var(--text); margin-bottom:2px; }
+    .class-meta { font-size:.75rem; color:var(--text3); font-weight:600; }
+    .class-btn { padding:8px 18px; border-radius:20px; font-family:'Nunito',sans-serif; font-size:.8rem; font-weight:800; border:none; cursor:pointer; transition:all .15s; white-space:nowrap; }
+    .btn-green-sm { background:var(--green); color:#fff; }
+    .btn-ghost-sm { background:var(--bg2); color:var(--text2); border:2px solid var(--border); }
+
+    /* ── STUDENT ROSTER ── */
+    .roster-header { display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--bg2); border-radius:10px; margin-bottom:8px; font-size:.72rem; font-weight:800; color:var(--text3); text-transform:uppercase; letter-spacing:.3px; }
+    .roster-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg); border:2px solid var(--border); border-radius:12px; margin-bottom:6px; transition:all .12s; cursor:pointer; }
+    .roster-row:hover { box-shadow:0 2px 8px rgba(0,0,0,.06); }
+    .roster-row.at-risk { border-color:#FFCDD2; background:var(--red-lt); }
+    .roster-row.offline { border-color:#FFCC80; background:var(--orange-lt); }
+    .av { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:800; flex-shrink:0; }
+    .av-g { background:var(--green-lt); color:var(--green-dk); }
+    .av-b { background:var(--blue-lt);  color:var(--blue-dk);  }
+    .av-o { background:var(--orange-lt);color:var(--orange-dk);}
+    .av-p { background:var(--purple-lt);color:var(--purple-dk);}
+    .r-name { font-size:.875rem; font-weight:800; color:var(--text); }
+    .r-meta { font-size:.72rem; color:var(--text3); font-weight:600; }
+    .pill { font-size:.7rem; font-weight:800; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+    .pill-g { background:var(--green-lt); color:var(--green-dk); border:1.5px solid #A5D6A7; }
+    .pill-o { background:var(--orange-lt);color:var(--orange-dk);border:1.5px solid #FFCC80; }
+    .pill-r { background:var(--red-lt);  color:var(--red-dk);  border:1.5px solid #FFCDD2; }
+    .pill-b { background:var(--blue-lt); color:var(--blue-dk); border:1.5px solid #90CAF9; }
+    .pill-gray { background:var(--bg2); color:var(--text3); border:1.5px solid var(--border); }
+
+    /* ── ONLINE/OFFLINE TOGGLE ── */
+    .mode-toggle { display:inline-flex; border:2px solid var(--border); border-radius:20px; overflow:hidden; }
+    .mt { padding:4px 10px; font-size:.68rem; font-weight:800; cursor:pointer; color:var(--text2); background:transparent; border:none; font-family:'Nunito',sans-serif; transition:all .12s; }
+    .mt.on-online  { background:var(--green);  color:#fff; }
+    .mt.on-offline { background:var(--orange); color:#fff; }
+
+    /* ── ASSIGN HOMEWORK ── */
+    .assign-box { background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:22px; margin-bottom:16px; }
+    .assign-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; margin-bottom:6px; }
+    .assign-sub { font-size:.82rem; color:var(--text2); font-weight:500; margin-bottom:20px; }
+    .assign-step { display:flex; gap:12px; margin-bottom:16px; align-items:flex-start; }
+    .step-circle { width:28px; height:28px; border-radius:50%; background:var(--blue); color:#fff; font-size:.82rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+    .step-body { flex:1; }
+    .step-label { font-size:.875rem; font-weight:800; color:var(--text); margin-bottom:6px; }
+    .step-inputs { display:flex; gap:8px; flex-wrap:wrap; }
+    .form-sel, .form-inp {
+      padding:10px 12px; border:2px solid var(--border); border-radius:12px;
+      font-family:'Nunito',sans-serif; font-size:.875rem; font-weight:600;
+      color:var(--text); background:var(--bg); outline:none; transition:border-color .15s;
+    }
+    .form-sel:focus, .form-inp:focus { border-color:var(--blue); }
+    .form-sel { flex:1; min-width:120px; }
+    .assign-preview {
+      background:var(--blue-lt); border:2px solid #90CAF9;
+      border-radius:12px; padding:12px 16px; margin-bottom:16px;
+      font-size:.82rem; color:var(--blue-dk); font-weight:600; display:none;
+    }
+    .assign-preview.show { display:block; }
+    .assign-btn {
+      width:100%; padding:13px; background:var(--blue); color:#fff;
+      border:none; border-radius:30px; font-family:'Nunito',sans-serif;
+      font-size:.95rem; font-weight:800; cursor:pointer; transition:all .15s;
+    }
+    .assign-btn:hover { background:var(--blue-dk); transform:translateY(-1px); }
+
+    /* ── SUBMISSIONS REVIEW ── */
+    .sub-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg); border:2px solid var(--border); border-radius:12px; margin-bottom:6px; }
+    .sub-row.not-sub { background:var(--red-lt); border-color:#FFCDD2; }
+    .sub-name { font-size:.875rem; font-weight:800; color:var(--text); flex:1; }
+    .sub-meta { font-size:.72rem; color:var(--text3); }
+    .feedback-input { flex:1; padding:7px 12px; border:2px solid var(--border); border-radius:10px; font-family:'Nunito',sans-serif; font-size:.82rem; font-weight:600; outline:none; }
+    .feedback-input:focus { border-color:var(--blue); }
+
+    /* ── ATTENDANCE ── */
+    .att-row { display:flex; align-items:center; gap:10px; padding:9px 12px; border-bottom:1px solid var(--border); }
+    .att-row:last-child { border-bottom:none; }
+    .att-toggle { display:flex; gap:0; border:2px solid var(--border); border-radius:20px; overflow:hidden; }
+    .att-btn { padding:5px 12px; font-size:.72rem; font-weight:800; cursor:pointer; border:none; background:transparent; font-family:'Nunito',sans-serif; color:var(--text2); transition:all .12s; }
+    .att-btn.present { background:var(--green); color:#fff; }
+    .att-btn.absent  { background:var(--red);   color:#fff; }
+
+    /* ── STUDENT PROFILE ── */
+    .student-profile { background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:20px; display:none; }
+    .student-profile.show { display:block; }
+    .sp-header { display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+    .sp-av { width:52px; height:52px; border-radius:50%; background:var(--green-lt); border:3px solid var(--green); display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:800; color:var(--green-dk); }
+    .sp-name { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; }
+    .sp-meta { font-size:.82rem; color:var(--text2); font-weight:600; }
+    .topic-row { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--border); }
+    .topic-row:last-child { border-bottom:none; }
+    .topic-name { flex:1; font-size:.82rem; font-weight:600; }
+    .topic-bar  { width:100px; height:8px; background:var(--bg2); border-radius:4px; overflow:hidden; }
+    .topic-fill { height:100%; border-radius:4px; }
+    .topic-pct  { font-size:.78rem; font-weight:800; width:34px; text-align:right; }
+
+    /* ── BTN ── */
+    .btn { padding:10px 20px; border-radius:30px; font-family:'Nunito',sans-serif; font-size:.875rem; font-weight:800; border:none; cursor:pointer; transition:all .15s; }
+    .btn-blue   { background:var(--blue);   color:#fff; }
+    .btn-green  { background:var(--green);  color:#fff; }
+    .btn-orange { background:var(--orange); color:#fff; }
+    .btn-ghost  { background:var(--bg2);    color:var(--text2); border:2px solid var(--border); }
+    .btn:hover { opacity:.88; transform:translateY(-1px); }
+
+    /* ── SUCCESS TOAST ── */
+    .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+    .toast { background:var(--text); color:#fff; padding:10px 18px; border-radius:12px; font-size:.875rem; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,.2); animation:slideIn .3s ease; }
+    .toast-success { background:var(--green-dk); }
+    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:768px) {
+      .sidebar { transform:translateX(-100%); }
+      .sidebar.open { transform:translateX(0); }
+      .main { margin-left:0; }
+      .hamburger { display:flex; }
+      .body { padding:16px; }
+      .stats-row { grid-template-columns:repeat(2,1fr); }
+      .step-inputs { flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+<div class="portal">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">👨‍🏫</div>
+      iMath<span>Academy</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Overview</div>
+      <a class="nav-item active" href="#" onclick="showTab('dashboard',this)"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a class="nav-item" href="#" onclick="showTab('classes',this)"><span class="nav-icon">👥</span> My classes</a>
+      <div class="nav-section">Homework</div>
+      <a class="nav-item" href="#" onclick="showTab('assign',this)"><span class="nav-icon">✏️</span> Assign<span class="nav-badge" id="pendingBadge">3</span></a>
+      <a class="nav-item" href="#" onclick="showTab('review',this)"><span class="nav-icon">📝</span> Review submissions</a>
+      <div class="nav-section">Students</div>
+      <a class="nav-item" href="#" onclick="showTab('students',this)"><span class="nav-icon">📊</span> Student progress</a>
+      <a class="nav-item" href="#" onclick="showTab('attendance',this)"><span class="nav-icon">✅</span> Attendance</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-av" id="userAv">MP</div>
+      <div>
+        <div class="user-name" id="userName">Ms. Priya</div>
+        <div class="user-role">Teacher</div>
+      </div>
+      <button class="logout-btn" onclick="logout()">⇥</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div class="topbar-title" id="topbarTitle">Teacher Dashboard</div>
+      </div>
+      <div class="topbar-right">
+        <div style="font-size:.8rem;font-weight:600;color:var(--text3)" id="topbarDate"></div>
+        <div class="notif-btn">🔔<div class="notif-dot">3</div></div>
+      </div>
+    </div>
+
+    <div class="body">
+
+      <!-- ══ DASHBOARD TAB ══ -->
+      <div id="tab-dashboard">
+
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-n" style="color:var(--blue)">28</div><div class="stat-l">Total students</div><div class="stat-s">3 batches</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--red)">7</div><div class="stat-l">Pending review</div><div class="stat-s">homework submissions</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--orange)">3</div><div class="stat-l">At-risk students</div><div class="stat-s">accuracy below 55%</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--green)">84%</div><div class="stat-l">Class avg accuracy</div><div class="stat-s">↑ +5% this week</div></div>
+        </div>
+
+        <!-- Alerts -->
+        <div class="section-card">
+          <div class="section-title">Alerts requiring attention</div>
+          <div class="alert alert-err">
+            <div class="alert-dot"></div>
+            <div class="alert-body">
+              <div class="alert-title">3 students in Batch A — accuracy below 55% on carrying</div>
+              <div class="alert-sub">System auto-assigned revision homework · Review their progress</div>
+            </div>
+            <button class="alert-btn" style="background:var(--red);color:#fff" onclick="showTab('students',null)">View →</button>
+          </div>
+          <div class="alert alert-warn">
+            <div class="alert-dot"></div>
+            <div class="alert-body">
+              <div class="alert-title">Rahul Shah has not logged in for 4 days</div>
+              <div class="alert-sub">Auto re-engagement email sent · Consider personal follow-up</div>
+            </div>
+            <button class="alert-btn" style="background:var(--orange);color:#fff" onclick="viewStudent('rahul')">View →</button>
+          </div>
+          <div class="alert alert-info">
+            <div class="alert-dot"></div>
+            <div class="alert-body">
+              <div class="alert-title">7 homework submissions waiting for your review</div>
+              <div class="alert-sub">Addition with carrying · Batch A · Submitted today</div>
+            </div>
+            <button class="alert-btn" style="background:var(--blue);color:#fff" onclick="showTab('review',null)">Review →</button>
+          </div>
+        </div>
+
+        <!-- Today's schedule -->
+        <div class="section-card">
+          <div class="section-title">Today's schedule</div>
+          <div class="class-card live-now">
+            <div class="class-dot dot-live"></div>
+            <div class="class-info">
+              <div class="class-name">Batch A — Abacus Level 3</div>
+              <div class="class-meta">12 students · 4:30 PM – 5:30 PM · Google Meet</div>
+            </div>
+            <button class="class-btn btn-green-sm" onclick="joinMeet('batchA')">Start class →</button>
+          </div>
+          <div class="class-card upcoming">
+            <div class="class-dot dot-soon"></div>
+            <div class="class-info">
+              <div class="class-name">Batch B — Vedic Maths Module 2</div>
+              <div class="class-meta">9 students · 6:00 PM – 7:00 PM · Google Meet</div>
+            </div>
+            <button class="class-btn btn-ghost-sm">6:00 PM</button>
+          </div>
+          <div class="class-card upcoming">
+            <div class="class-dot dot-later"></div>
+            <div class="class-info">
+              <div class="class-name">Batch C — Abacus Level 1 (Kids)</div>
+              <div class="class-meta">7 students · Ages 4–7 · Tomorrow 10:00 AM</div>
+            </div>
+            <button class="class-btn btn-ghost-sm">Tomorrow</button>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
+          <button class="btn btn-blue" onclick="showTab('assign',null)" style="padding:14px">✏️ Assign homework</button>
+          <button class="btn btn-green" onclick="showTab('attendance',null)" style="padding:14px">✅ Mark attendance</button>
+          <button class="btn btn-orange" onclick="showTab('review',null)" style="padding:14px">📝 Review submissions</button>
+        </div>
+
+      </div>
+
+      <!-- ══ CLASSES TAB ══ -->
+      <div id="tab-classes" style="display:none">
+
+        <!-- Batch selector -->
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+          <button class="btn btn-blue" onclick="selectBatch('A',this)" id="batchBtnA">Batch A — Abacus L3 (12)</button>
+          <button class="btn btn-ghost" onclick="selectBatch('B',this)" id="batchBtnB">Batch B — Vedic M2 (9)</button>
+          <button class="btn btn-ghost" onclick="selectBatch('C',this)" id="batchBtnC">Batch C — Abacus L1 (7)</button>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">
+            <span id="rosterTitle">Batch A — Abacus Level 3 · 12 students</span>
+            <span class="section-link" onclick="exportRoster()">Export CSV →</span>
+          </div>
+
+          <div class="roster-header">
+            <div style="width:32px"></div>
+            <div style="flex:1">Student</div>
+            <div style="width:65px;text-align:center">Accuracy</div>
+            <div style="width:55px;text-align:center">Mode</div>
+            <div style="width:65px;text-align:center">Last active</div>
+            <div style="width:70px;text-align:center">Streak</div>
+          </div>
+
+          <div id="rosterList"></div>
+        </div>
+
+        <!-- Student profile (shown when row clicked) -->
+        <div class="student-profile" id="studentProfile">
+          <button onclick="closeProfile()" style="float:right;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text3)">✕</button>
+          <div class="sp-header">
+            <div class="sp-av" id="spAv">AR</div>
+            <div>
+              <div class="sp-name" id="spName">Arjun Rao</div>
+              <div class="sp-meta" id="spMeta">Abacus Level 3 · Batch A · Online</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px">
+            <div class="stat-card"><div class="stat-n" style="font-size:1.3rem;color:var(--blue)" id="spAcc">71%</div><div class="stat-l">Accuracy</div></div>
+            <div class="stat-card"><div class="stat-n" style="font-size:1.3rem;color:var(--green)" id="spHW">85%</div><div class="stat-l">HW completion</div></div>
+            <div class="stat-card"><div class="stat-n" style="font-size:1.3rem;color:var(--teal)" id="spAtt">92%</div><div class="stat-l">Attendance</div></div>
+          </div>
+          <div class="section-title" style="margin-bottom:8px">Topic performance</div>
+          <div id="spTopics"></div>
+          <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+            <button class="btn btn-orange" onclick="assignRevision()" style="font-size:.82rem;padding:8px 16px">Assign revision HW</button>
+            <button class="btn btn-ghost" style="font-size:.82rem;padding:8px 16px">Send message</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ ASSIGN HOMEWORK TAB ══ -->
+      <div id="tab-assign" style="display:none">
+
+        <div class="assign-box">
+          <div class="assign-title">Assign homework</div>
+          <div class="assign-sub">3 steps — done in under 90 seconds</div>
+
+          <div class="assign-step">
+            <div class="step-circle">1</div>
+            <div class="step-body">
+              <div class="step-label">Select batch and topic</div>
+              <div class="step-inputs">
+                <select class="form-sel" id="aBatch" onchange="updatePreview()">
+                  <option value="">Select batch</option>
+                  <option value="A">Batch A — Abacus Level 3 (12 students)</option>
+                  <option value="B">Batch B — Vedic Maths Module 2 (9 students)</option>
+                  <option value="C">Batch C — Abacus Level 1 (7 students)</option>
+                </select>
+                <select class="form-sel" id="aTopic" onchange="updatePreview()">
+                  <option value="">Select topic</option>
+                  <option>Addition with carrying</option>
+                  <option>3-digit subtraction</option>
+                  <option>2-digit addition</option>
+                  <option>Single digit addition</option>
+                  <option>Multiplication ×2–×5</option>
+                  <option>Nikhilam multiplication</option>
+                  <option>Ekadhikena Purvena</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="assign-step">
+            <div class="step-circle">2</div>
+            <div class="step-body">
+              <div class="step-label">Set difficulty, question count and due date</div>
+              <div class="step-inputs">
+                <select class="form-sel" id="aDiff" onchange="updatePreview()">
+                  <option value="easy">Easy</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+                <select class="form-sel" id="aCount" onchange="updatePreview()">
+                  <option value="5">5 questions</option>
+                  <option value="8">8 questions</option>
+                  <option value="10" selected>10 questions</option>
+                  <option value="15">15 questions</option>
+                </select>
+                <input type="date" class="form-inp" id="aDue" onchange="updatePreview()" style="flex:1">
+              </div>
+            </div>
+          </div>
+
+          <div class="assign-step">
+            <div class="step-circle">3</div>
+            <div class="step-body">
+              <div class="step-label">Review and assign</div>
+              <div class="assign-preview" id="assignPreview">
+                Loading preview...
+              </div>
+              <button class="assign-btn" onclick="assignHomework()">
+                Assign to students — notify by email 🚀
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent assignments -->
+        <div class="section-card">
+          <div class="section-title">Recent assignments</div>
+          <div class="sub-row">
+            <div style="flex:1"><div class="sub-name">Addition with carrying</div><div class="sub-meta">Batch A · 10 questions · Due tomorrow · 9/12 submitted</div></div>
+            <span class="pill pill-o">9/12 submitted</span>
+          </div>
+          <div class="sub-row">
+            <div style="flex:1"><div class="sub-name">Revision: 3-digit subtraction (auto)</div><div class="sub-meta">Batch A · 8 questions · 2 days left · Auto-assigned</div></div>
+            <span class="pill pill-b">Auto</span>
+          </div>
+          <div class="sub-row">
+            <div style="flex:1"><div class="sub-name">Single digit addition</div><div class="sub-meta">Batch A · 10 questions · Completed · Avg 90%</div></div>
+            <span class="pill pill-g">Complete</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ REVIEW TAB ══ -->
+      <div id="tab-review" style="display:none">
+
+        <!-- HW selector -->
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+          <select class="form-sel" id="hwSelect" onchange="loadSubmissions()" style="max-width:340px">
+            <option value="hw1">Addition with carrying — Batch A</option>
+            <option value="hw2">Single digit addition — Batch A (complete)</option>
+          </select>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">
+            <span id="submTitle">Addition with carrying · 9 of 12 submitted · Avg score 74%</span>
+            <span class="section-link" onclick="exportScores()">Export scores →</span>
+          </div>
+          <div id="submList"></div>
+        </div>
+
+      </div>
+
+      <!-- ══ STUDENTS TAB ══ -->
+      <div id="tab-students" style="display:none">
+
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+          <input type="text" class="form-inp" placeholder="Search student..." id="studentSearch" oninput="filterStudents()" style="flex:1;max-width:300px">
+          <select class="form-sel" id="filterBatch" onchange="filterStudents()" style="max-width:200px">
+            <option value="">All batches</option>
+            <option value="A">Batch A</option>
+            <option value="B">Batch B</option>
+            <option value="C">Batch C</option>
+          </select>
+          <select class="form-sel" id="filterStatus" onchange="filterStudents()" style="max-width:200px">
+            <option value="">All students</option>
+            <option value="risk">At risk only</option>
+            <option value="online">Online only</option>
+            <option value="offline">Offline only</option>
+          </select>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">All students — progress overview</div>
+          <div class="roster-header">
+            <div style="width:32px"></div>
+            <div style="flex:1">Student</div>
+            <div style="width:70px;text-align:center">Accuracy</div>
+            <div style="width:55px;text-align:center">Mode</div>
+            <div style="width:80px;text-align:center">HW done</div>
+            <div style="width:70px;text-align:center">Last seen</div>
+          </div>
+          <div id="allStudentsList"></div>
+        </div>
+
+      </div>
+
+      <!-- ══ ATTENDANCE TAB ══ -->
+      <div id="tab-attendance" style="display:none">
+
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+          <select class="form-sel" id="attBatch" onchange="loadAttendance()" style="max-width:300px">
+            <option value="A">Batch A — Abacus Level 3</option>
+            <option value="B">Batch B — Vedic Maths M2</option>
+            <option value="C">Batch C — Abacus Level 1</option>
+          </select>
+          <input type="date" class="form-inp" id="attDate" style="max-width:180px">
+          <span style="font-size:.82rem;color:var(--text2);font-weight:600">Class date</span>
+        </div>
+
+        <div class="section-card">
+          <div class="section-title">
+            <span id="attTitle">Batch A — Mark attendance</span>
+            <span class="section-link" onclick="markAllPresent()">Mark all present</span>
+          </div>
+          <div id="attList"></div>
+          <div style="margin-top:14px;display:flex;gap:10px">
+            <button class="btn btn-green" onclick="saveAttendance()">Save attendance ✓</button>
+            <button class="btn btn-ghost" onclick="exportAttendance()">Export report</button>
+          </div>
+        </div>
+
+        <!-- Attendance summary -->
+        <div class="section-card">
+          <div class="section-title">Attendance summary — this month</div>
+          <div id="attSummary"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY = 'YOUR_ANON_KEY_HERE';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── DEMO DATA ──────────────────────────────────────────────
+const STUDENTS = {
+  A: [
+    { id:'ar', initials:'AR', name:'Arjun Rao',    meta:'L3 · 1,240 XP · 🔥7',  acc:71, hw:85,  att:92,  lastSeen:'Today',      streak:7,  mode:'online',  avClass:'av-g', risk:false,
+      topics:[{n:'Single digit addition',acc:91,c:var_g},{n:'2-digit addition',acc:74,c:var_b},{n:'Addition with carrying',acc:48,c:var_r},{n:'3-digit subtraction',acc:58,c:var_o}] },
+    { id:'ps', initials:'PS', name:'Priya Sharma',  meta:'L3 · 1,560 XP · 🔥12', acc:84, hw:96,  att:96,  lastSeen:'Yesterday',  streak:12, mode:'online',  avClass:'av-b', risk:false,
+      topics:[{n:'Single digit addition',acc:95,c:var_g},{n:'2-digit addition',acc:88,c:var_g},{n:'Addition with carrying',acc:76,c:var_b},{n:'3-digit subtraction',acc:79,c:var_b}] },
+    { id:'rs', initials:'RS', name:'Rahul Shah',    meta:'L2 · 640 XP · No streak',acc:43, hw:60,  att:75,  lastSeen:'4 days ago', streak:0,  mode:'online',  avClass:'av-o', risk:true,
+      topics:[{n:'Single digit addition',acc:72,c:var_b},{n:'2-digit addition',acc:45,c:var_o},{n:'Addition with carrying',acc:22,c:var_r},{n:'3-digit subtraction',acc:33,c:var_r}] },
+    { id:'nk', initials:'NK', name:'Neha Kulkarni', meta:'L3 · 980 XP · 🔥3',    acc:68, hw:78,  att:88,  lastSeen:'Today',      streak:3,  mode:'offline', avClass:'av-p', risk:false,
+      topics:[{n:'Single digit addition',acc:88,c:var_g},{n:'2-digit addition',acc:71,c:var_b},{n:'Addition with carrying',acc:52,c:var_o},{n:'3-digit subtraction',acc:61,c:var_y}] },
+    { id:'sv', initials:'SV', name:'Sai Varma',     meta:'L3 · 1,100 XP · 🔥5',  acc:77, hw:90,  att:90,  lastSeen:'Yesterday',  streak:5,  mode:'online',  avClass:'av-g', risk:false,
+      topics:[{n:'Single digit addition',acc:91,c:var_g},{n:'2-digit addition',acc:80,c:var_g},{n:'Addition with carrying',acc:65,c:var_y},{n:'3-digit subtraction',acc:72,c:var_b}] },
+  ],
+  B: [
+    { id:'rm', initials:'RM', name:'Riya Mehta',    meta:'M2 · 820 XP · 🔥4',   acc:79, hw:88, att:92, lastSeen:'Today',     streak:4, mode:'online',  avClass:'av-b', risk:false, topics:[] },
+    { id:'ak', initials:'AK', name:'Aditya Kumar',  meta:'M2 · 650 XP · 🔥2',   acc:61, hw:70, att:80, lastSeen:'2 days ago',streak:2, mode:'online',  avClass:'av-g', risk:false, topics:[] },
+    { id:'dp', initials:'DP', name:'Diya Patel',    meta:'M1 · 380 XP · No streak',acc:38, hw:50, att:70, lastSeen:'5 days ago',streak:0, mode:'online', avClass:'av-o', risk:true, topics:[] },
+  ],
+  C: [
+    { id:'ar2',initials:'AR', name:'Arnav Rao',     meta:'L1 · 120 XP · 🔥2',   acc:82, hw:90, att:95, lastSeen:'Today',     streak:2, mode:'online',  avClass:'av-g', risk:false, topics:[] },
+    { id:'ms', initials:'MS', name:'Mia Shah',      meta:'L1 · 80 XP · 🔥1',    acc:75, hw:80, att:88, lastSeen:'Yesterday', streak:1, mode:'offline', avClass:'av-b', risk:false, topics:[] },
+  ]
+};
+
+// colour helpers
+function var_g(){ return 'var(--green)'; } function var_b(){ return 'var(--blue)'; }
+function var_o(){ return 'var(--orange)';} function var_r(){ return 'var(--red)';  }
+function var_y(){ return 'var(--yellow)';}
+const var_g='var(--green)', var_b='var(--blue)', var_o='var(--orange)', var_r='var(--red)', var_y='var(--yellow)';
+
+const SUBMISSIONS_HW1 = [
+  { name:'Arjun Rao',   initials:'AR', avClass:'av-g', score:8,  total:10, time:'12 min', submitted:true  },
+  { name:'Priya Sharma',initials:'PS', avClass:'av-b', score:10, total:10, time:'8 min',  submitted:true  },
+  { name:'Neha Kulkarni',initials:'NK',avClass:'av-p', score:7,  total:10, time:'15 min', submitted:true  },
+  { name:'Sai Varma',   initials:'SV', avClass:'av-g', score:9,  total:10, time:'10 min', submitted:true  },
+  { name:'Rahul Shah',  initials:'RS', avClass:'av-o', score:null,total:10,time:'—',      submitted:false },
+];
+
+const ATT_DATA = {
+  A: [
+    { id:'ar', name:'Arjun Rao',    initials:'AR', avClass:'av-g', present:true  },
+    { id:'ps', name:'Priya Sharma', initials:'PS', avClass:'av-b', present:true  },
+    { id:'rs', name:'Rahul Shah',   initials:'RS', avClass:'av-o', present:false },
+    { id:'nk', name:'Neha Kulkarni',initials:'NK', avClass:'av-p', present:true  },
+    { id:'sv', name:'Sai Varma',    initials:'SV', avClass:'av-g', present:true  },
+  ]
+};
+
+// ── TAB SWITCHING ──────────────────────────────────────────
+function showTab(name, el) {
+  ['dashboard','classes','assign','review','students','attendance'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
+  });
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('topbarTitle').textContent = {
+    dashboard:'Teacher Dashboard', classes:'My Classes',
+    assign:'Assign Homework', review:'Review Submissions',
+    students:'Student Progress', attendance:'Attendance'
+  }[name] || 'Teacher Dashboard';
+
+  if (name === 'classes')    { selectBatch('A', document.getElementById('batchBtnA')); }
+  if (name === 'review')     { loadSubmissions(); }
+  if (name === 'students')   { renderAllStudents(Object.values(STUDENTS).flat()); }
+  if (name === 'attendance') { loadAttendance(); setDefaultDate(); }
+}
+
+// ── CLASSES ────────────────────────────────────────────────
+let currentBatch = 'A';
+function selectBatch(batch, btn) {
+  currentBatch = batch;
+  document.querySelectorAll('[id^="batchBtn"]').forEach(b => b.className = 'btn btn-ghost');
+  if (btn) btn.className = 'btn btn-blue';
+  const s = STUDENTS[batch] || [];
+  document.getElementById('rosterTitle').textContent = `Batch ${batch} · ${s.length} students`;
+  renderRoster(s);
+  document.getElementById('studentProfile').classList.remove('show');
+}
+
+function renderRoster(students) {
+  const el = document.getElementById('rosterList');
+  el.innerHTML = '';
+  students.forEach(s => {
+    const accColor = s.acc >= 75 ? 'pill-g' : s.acc >= 55 ? 'pill-o' : 'pill-r';
+    const row = document.createElement('div');
+    row.className = 'roster-row' + (s.risk ? ' at-risk' : '') + (s.mode==='offline' ? ' offline' : '');
+    row.onclick = () => viewStudent(s.id);
+    row.innerHTML = `
+      <div class="av ${s.avClass}">${s.initials}</div>
+      <div style="flex:1"><div class="r-name">${s.name}</div><div class="r-meta">${s.meta}</div></div>
+      <div style="width:65px;text-align:center"><span class="pill ${accColor}">${s.acc}%</span></div>
+      <div style="width:55px;text-align:center">
+        <div class="mode-toggle">
+          <button class="mt ${s.mode==='online'?'on-online':''}" onclick="event.stopPropagation();toggleMode(this,'${s.id}','online')">On</button>
+          <button class="mt ${s.mode==='offline'?'on-offline':''}" onclick="event.stopPropagation();toggleMode(this,'${s.id}','offline')">Off</button>
+        </div>
+      </div>
+      <div style="width:65px;text-align:center;font-size:.75rem;color:var(--text2);font-weight:600">${s.lastSeen}</div>
+      <div style="width:70px;text-align:center;font-size:.75rem;font-weight:700;color:${s.streak>0?'var(--orange)':'var(--text3)'}">🔥${s.streak}d</div>
+    `;
+    el.appendChild(row);
+  });
+}
+
+function toggleMode(btn, studentId, mode) {
+  const grp = btn.parentElement;
+  grp.querySelectorAll('.mt').forEach(b => b.className = 'mt');
+  btn.classList.add(mode === 'online' ? 'on-online' : 'on-offline');
+  showToast(`${studentId} switched to ${mode} mode`, 'success');
+}
+
+function viewStudent(id) {
+  const all = Object.values(STUDENTS).flat();
+  const s   = all.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('studentProfile').classList.add('show');
+  document.getElementById('spAv').textContent   = s.initials;
+  document.getElementById('spName').textContent  = s.name;
+  document.getElementById('spMeta').textContent  = s.meta;
+  document.getElementById('spAcc').textContent   = s.acc + '%';
+  document.getElementById('spHW').textContent    = s.hw + '%';
+  document.getElementById('spAtt').textContent   = s.att + '%';
+  const tp = document.getElementById('spTopics');
+  tp.innerHTML = '';
+  if (s.topics && s.topics.length > 0) {
+    s.topics.forEach(t => {
+      tp.innerHTML += `<div class="topic-row"><span class="topic-name">${t.n}</span><div class="topic-bar"><div class="topic-fill" style="background:${t.c};width:${t.acc}%"></div></div><span class="topic-pct" style="color:${t.c}">${t.acc}%</span></div>`;
+    });
+  } else {
+    tp.innerHTML = '<div style="color:var(--text3);font-size:.82rem;padding:8px 0">No practice data yet</div>';
+  }
+  document.getElementById('studentProfile').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function closeProfile() { document.getElementById('studentProfile').classList.remove('show'); }
+function assignRevision() { showToast('Revision homework assigned successfully!', 'success'); }
+function exportRoster()   { showToast('Roster exported as CSV — check your downloads!', 'success'); }
+
+// ── ASSIGN HOMEWORK ────────────────────────────────────────
+function updatePreview() {
+  const batch = document.getElementById('aBatch').value;
+  const topic = document.getElementById('aTopic').value;
+  const diff  = document.getElementById('aDiff').value;
+  const count = document.getElementById('aCount').value;
+  const due   = document.getElementById('aDue').value;
+  const prev  = document.getElementById('assignPreview');
+  if (batch && topic && due) {
+    const students = STUDENTS[batch]?.filter(s => s.mode === 'online') || [];
+    prev.classList.add('show');
+    prev.innerHTML = `
+      ✅ Ready to assign:<br>
+      <strong>${topic}</strong> · ${count} questions · ${diff} difficulty<br>
+      Batch ${batch} · ${students.length} online students will receive this<br>
+      Due: ${new Date(due).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})} · Students will be notified by email immediately
+    `;
+  } else {
+    prev.classList.remove('show');
+  }
+}
+
+function assignHomework() {
+  const batch = document.getElementById('aBatch').value;
+  const topic = document.getElementById('aTopic').value;
+  const due   = document.getElementById('aDue').value;
+  if (!batch || !topic || !due) { showToast('Please fill all fields first!', ''); return; }
+  showToast(`Homework assigned to Batch ${batch}! Students notified by email. 🚀`, 'success');
+  document.getElementById('aBatch').value = '';
+  document.getElementById('aTopic').value = '';
+  document.getElementById('aDue').value   = '';
+  document.getElementById('assignPreview').classList.remove('show');
+}
+
+// ── REVIEW SUBMISSIONS ─────────────────────────────────────
+function loadSubmissions() {
+  const el  = document.getElementById('submList');
+  const sel = document.getElementById('hwSelect').value;
+  const data = sel === 'hw1' ? SUBMISSIONS_HW1 : [];
+  const submitted = data.filter(s => s.submitted);
+  const avgScore  = submitted.length ? Math.round(submitted.reduce((a,s) => a + (s.score/s.total*100), 0) / submitted.length) : 0;
+  document.getElementById('submTitle').textContent = `${sel==='hw1'?'Addition with carrying':'Single digit addition'} · ${submitted.length} of ${data.length} submitted · Avg ${avgScore}%`;
+  el.innerHTML = '';
+  data.forEach(s => {
+    const acc = s.submitted ? Math.round(s.score / s.total * 100) : 0;
+    const accPill = acc >= 80 ? 'pill-g' : acc >= 60 ? 'pill-o' : acc > 0 ? 'pill-r' : 'pill-gray';
+    const div = document.createElement('div');
+    div.className = 'sub-row' + (!s.submitted ? ' not-sub' : '');
+    div.innerHTML = `
+      <div class="av ${s.avClass}">${s.initials}</div>
+      <div style="flex:1"><div class="sub-name">${s.name}</div><div class="sub-meta">${s.submitted ? `Submitted · ${s.time}` : 'Not submitted'}</div></div>
+      ${s.submitted ? `<span class="pill ${accPill}">${s.score}/${s.total} (${acc}%)</span>` : '<span class="pill pill-r">Missing</span>'}
+      ${s.submitted
+        ? `<input class="feedback-input" placeholder="Add feedback (optional)" style="max-width:200px" onkeydown="if(event.key==='Enter'){saveFeedback(this,'${s.name}')}">`
+        : `<button class="btn-ghost-sm" style="padding:6px 12px;border-radius:20px;font-size:.75rem;font-weight:800;border:2px solid var(--border);background:var(--bg2);cursor:pointer" onclick="sendReminder('${s.name}')">Send reminder</button>`}
+    `;
+    el.appendChild(div);
+  });
+}
+
+function saveFeedback(inp, name) {
+  if (!inp.value.trim()) return;
+  inp.style.borderColor = 'var(--green)';
+  showToast(`Feedback saved for ${name}`, 'success');
+}
+
+function sendReminder(name) { showToast(`Reminder sent to ${name}!`, 'success'); }
+function exportScores()     { showToast('Scores exported as CSV!', 'success'); }
+
+// ── ALL STUDENTS ───────────────────────────────────────────
+function renderAllStudents(students) {
+  const el = document.getElementById('allStudentsList');
+  el.innerHTML = '';
+  students.forEach(s => {
+    const accColor = s.acc >= 75 ? 'pill-g' : s.acc >= 55 ? 'pill-o' : 'pill-r';
+    const hwColor  = s.hw >= 80 ? 'var(--green)' : s.hw >= 60 ? 'var(--orange)' : 'var(--red)';
+    const row = document.createElement('div');
+    row.className = 'roster-row' + (s.risk ? ' at-risk' : '');
+    row.onclick = () => { showTab('classes', null); setTimeout(() => viewStudent(s.id), 100); };
+    row.innerHTML = `
+      <div class="av ${s.avClass}">${s.initials}</div>
+      <div style="flex:1"><div class="r-name">${s.name}</div><div class="r-meta">${s.meta}</div></div>
+      <div style="width:70px;text-align:center"><span class="pill ${accColor}">${s.acc}%</span></div>
+      <div style="width:55px;text-align:center"><span class="pill ${s.mode==='online'?'pill-g':'pill-o'}" style="font-size:.65rem">${s.mode}</span></div>
+      <div style="width:80px;text-align:center;font-size:.75rem;font-weight:700;color:${hwColor}">${s.hw}%</div>
+      <div style="width:70px;text-align:center;font-size:.75rem;color:var(--text2);font-weight:600">${s.lastSeen}</div>
+    `;
+    el.appendChild(row);
+  });
+}
+
+function filterStudents() {
+  const search = document.getElementById('studentSearch').value.toLowerCase();
+  const batch  = document.getElementById('filterBatch').value;
+  const status = document.getElementById('filterStatus').value;
+  let all = batch ? (STUDENTS[batch] || []) : Object.values(STUDENTS).flat();
+  if (search) all = all.filter(s => s.name.toLowerCase().includes(search));
+  if (status === 'risk')    all = all.filter(s => s.risk);
+  if (status === 'online')  all = all.filter(s => s.mode === 'online');
+  if (status === 'offline') all = all.filter(s => s.mode === 'offline');
+  renderAllStudents(all);
+}
+
+// ── ATTENDANCE ─────────────────────────────────────────────
+let attState = {};
+function setDefaultDate() {
+  const d = document.getElementById('attDate');
+  if (!d.value) d.value = new Date().toISOString().split('T')[0];
+}
+
+function loadAttendance() {
+  const batch = document.getElementById('attBatch').value;
+  const data  = ATT_DATA[batch] || ATT_DATA['A'];
+  attState = {};
+  data.forEach(s => { attState[s.id] = s.present; });
+  document.getElementById('attTitle').textContent = `Batch ${batch} — Mark attendance`;
+  const el = document.getElementById('attList');
+  el.innerHTML = '';
+  data.forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'att-row';
+    div.innerHTML = `
+      <div class="av ${s.avClass}">${s.initials}</div>
+      <div style="flex:1"><div class="r-name">${s.name}</div></div>
+      <div class="att-toggle">
+        <button class="att-btn ${s.present?'present':''}" id="atp-${s.id}" onclick="markAtt('${s.id}','present')">Present</button>
+        <button class="att-btn ${!s.present?'absent':''}"  id="ata-${s.id}" onclick="markAtt('${s.id}','absent')">Absent</button>
+      </div>
+    `;
+    el.appendChild(div);
+  });
+
+  // Summary
+  const sumEl = document.getElementById('attSummary');
+  sumEl.innerHTML = '';
+  const allBatch = Object.values(STUDENTS).flat().filter(s => s);
+  const sample = STUDENTS['A'] || [];
+  sample.forEach(s => {
+    sumEl.innerHTML += `
+      <div class="topic-row">
+        <span class="topic-name">${s.name}</span>
+        <div class="topic-bar"><div class="topic-fill" style="background:${s.att>=80?'var(--green)':'var(--orange)'};width:${s.att}%"></div></div>
+        <span class="topic-pct" style="color:${s.att>=80?'var(--green-dk)':'var(--orange-dk)'}">${s.att}%</span>
+      </div>`;
+  });
+}
+
+function markAtt(id, status) {
+  attState[id] = (status === 'present');
+  const pBtn = document.getElementById(`atp-${id}`);
+  const aBtn = document.getElementById(`ata-${id}`);
+  if (pBtn) { pBtn.classList.toggle('present', status === 'present'); }
+  if (aBtn) { aBtn.classList.toggle('absent',  status === 'absent'); }
+}
+
+function markAllPresent() {
+  Object.keys(attState).forEach(id => {
+    attState[id] = true;
+    const pBtn = document.getElementById(`atp-${id}`);
+    const aBtn = document.getElementById(`ata-${id}`);
+    if (pBtn) pBtn.classList.add('present');
+    if (aBtn) aBtn.classList.remove('absent');
+  });
+  showToast('All students marked present!', 'success');
+}
+
+async function saveAttendance() {
+  const date  = document.getElementById('attDate').value;
+  const batch = document.getElementById('attBatch').value;
+  if (!date) { showToast('Please select a date!', ''); return; }
+  showToast(`Attendance saved for Batch ${batch} on ${date}!`, 'success');
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    // In production: save each student's attendance to the DB
+  } catch { /* silent */ }
+}
+
+function exportAttendance() { showToast('Attendance report exported!', 'success'); }
+
+// ── SCHEDULE ───────────────────────────────────────────────
+function joinMeet(batch) {
+  showToast('Opening Google Meet for Batch A...', 'success');
+  window.open('https://meet.google.com', '_blank');
+}
+
+// ── UTILS ──────────────────────────────────────────────────
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+function showToast(msg, type='') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast${type ? ' toast-'+type : ''}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+async function logout() { await sb.auth.signOut(); window.location.href = '../../login.html'; }
+
+// ── INIT ───────────────────────────────────────────────────
+async function init() {
+  document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      const { data: profile } = await sb.from('users').select('full_name, role').eq('id', session.user.id).single();
+      if (profile && profile.role === 'teacher') {
+        const name = profile.full_name;
+        document.getElementById('userAv').textContent   = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+        document.getElementById('userName').textContent = name;
+      }
+    }
+  } catch { /* demo mode */ }
+}
+
+init();
+</script>
+</body>
+</html>

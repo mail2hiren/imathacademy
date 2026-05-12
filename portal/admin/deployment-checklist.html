@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deployment Checklist — iMathAcademy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; padding: 24px; }
+    :root {
+      --green:#43A047; --green-dk:#1B5E20; --green-lt:#E8F5E9;
+      --orange:#FB8C00; --orange-dk:#E65100; --orange-lt:#FFF3E0;
+      --blue:#1E88E5; --blue-dk:#0D47A1; --blue-lt:#E3F2FD;
+      --red:#E53935; --red-lt:#FFEBEE;
+      --yellow:#F9A825; --yellow-lt:#FFFDE7;
+      --bg:#FFFFFF; --bg2:#F7F8FF; --border:#E8EAF6;
+      --text2:#4A4A6A; --text3:#9090B0;
+    }
+
+    .shell { max-width: 860px; margin: 0 auto; }
+
+    .hero {
+      background: linear-gradient(135deg, #1B5E20, #2E7D32);
+      border-radius: 20px;
+      padding: 28px 32px;
+      color: #fff;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .hero p { font-size: .9rem; opacity: .85; font-weight: 500; }
+
+    .progress-bar-wrap {
+      background: rgba(255,255,255,.2);
+      border-radius: 10px;
+      height: 14px;
+      overflow: hidden;
+      margin-top: 16px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: #F9A825;
+      border-radius: 10px;
+      transition: width .4s ease;
+    }
+
+    .progress-label {
+      font-size: .82rem;
+      opacity: .85;
+      margin-top: 6px;
+      font-weight: 700;
+    }
+
+    .section-card {
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 18px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .section-sub {
+      font-size: .8rem;
+      color: var(--text3);
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    /* ── CHECKLIST ITEMS ── */
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background .1s;
+    }
+
+    .check-item:last-child { border-bottom: none; }
+    .check-item:hover { background: #FAFBFF; margin: 0 -24px; padding: 12px 24px; }
+
+    .check-box {
+      width: 22px;
+      height: 22px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .8rem;
+      transition: all .15s;
+      margin-top: 1px;
+      cursor: pointer;
+    }
+
+    .check-box.done {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+
+    .check-content { flex: 1; }
+
+    .check-title {
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 3px;
+      line-height: 1.4;
+    }
+
+    .check-title.done-text {
+      text-decoration: line-through;
+      color: var(--text3);
+    }
+
+    .check-desc {
+      font-size: .78rem;
+      color: var(--text3);
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    .check-tag {
+      font-size: .68rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 10px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      align-self: flex-start;
+      margin-top: 2px;
+    }
+
+    .tag-done     { background: var(--green-lt);  color: var(--green-dk); }
+    .tag-required { background: var(--red-lt);    color: var(--red); }
+    .tag-optional { background: var(--blue-lt);   color: var(--blue-dk); }
+    .tag-later    { background: var(--yellow-lt); color: var(--yellow-dk); }
+
+    /* ── KEY UPDATE TABLE ── */
+    .key-table { width: 100%; border-collapse: collapse; }
+    .key-table th {
+      text-align: left;
+      font-size: .72rem;
+      font-weight: 800;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .3px;
+      padding: 8px 12px;
+      background: var(--bg2);
+      border-bottom: 2px solid var(--border);
+    }
+    .key-table td {
+      padding: 10px 12px;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .key-table tr:last-child td { border-bottom: none; }
+    .key-table tr:hover td { background: var(--bg2); }
+
+    .key-file {
+      font-family: monospace;
+      font-size: .78rem;
+      background: var(--bg2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--blue-dk);
+    }
+
+    .key-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* ── COPY BOX ── */
+    .copy-box {
+      background: var(--bg2);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .copy-label {
+      font-size: .72rem;
+      font-weight: 800;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .3px;
+      margin-bottom: 6px;
+    }
+
+    .copy-code {
+      font-family: monospace;
+      font-size: .82rem;
+      color: var(--text);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-family: 'Nunito', sans-serif;
+      font-size: .72rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    /* ── LAUNCH CARD ── */
+    .launch-card {
+      background: linear-gradient(135deg, #0D47A1, #1E88E5);
+      border-radius: 18px;
+      padding: 24px 28px;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .launch-url {
+      font-family: monospace;
+      font-size: 1rem;
+      background: rgba(255,255,255,.15);
+      padding: 10px 20px;
+      border-radius: 10px;
+      margin: 12px auto;
+      display: inline-block;
+      word-break: break-all;
+    }
+
+    .btn {
+      padding: 11px 24px;
+      border-radius: 30px;
+      font-family: 'Nunito', sans-serif;
+      font-size: .9rem;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      transition: all .15s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-green  { background: var(--green);  color: #fff; }
+    .btn-white  { background: #fff; color: var(--blue-dk); }
+    .btn-ghost  { background: rgba(255,255,255,.15); color: #fff; border: 2px solid rgba(255,255,255,.3); }
+
+    /* ── FILE STRUCTURE ── */
+    .file-tree {
+      font-family: monospace;
+      font-size: .82rem;
+      line-height: 1.9;
+      color: var(--text2);
+      background: var(--bg2);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .ft-folder { color: var(--blue-dk); font-weight: 800; }
+    .ft-file   { color: var(--text); }
+    .ft-done   { color: var(--green-dk); }
+    .ft-pending{ color: var(--orange-dk); }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div style="font-size:2.5rem;margin-bottom:8px">🚀</div>
+    <h1>iMathAcademy — Final Deployment</h1>
+    <p>Complete all items below to fully launch your portal. Tick each item as you finish.</p>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <div class="progress-label" id="progressLabel">0 of 20 tasks complete</div>
+  </div>
+
+  <!-- Live URL -->
+  <div class="launch-card">
+    <div style="font-size:1rem;font-weight:800;margin-bottom:4px">Your portal is live at</div>
+    <div class="launch-url">https://mail2hiren.github.io/imathacademy</div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px">
+      <a href="https://mail2hiren.github.io/imathacademy" target="_blank" class="btn btn-white">Open live site →</a>
+      <a href="https://mail2hiren.github.io/imathacademy/login.html" target="_blank" class="btn btn-ghost">Test login page</a>
+    </div>
+  </div>
+
+  <!-- Section 1: Keys to update -->
+  <div class="section-card">
+    <div class="section-title">🔑 Step 1 — Update Supabase anon key in all files</div>
+    <div class="section-sub">Find and replace YOUR_ANON_KEY_HERE in every file below. Do this on GitHub using the pencil edit icon.</div>
+
+    <table class="key-table">
+      <thead>
+        <tr>
+          <th>File</th>
+          <th>Location on GitHub</th>
+          <th>Variable to replace</th>
+          <th>Done?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="key-file">login.html</span></td>
+          <td>Root folder</td>
+          <td><span class="key-file">YOUR_ANON_KEY_HERE</span></td>
+          <td><input type="checkbox" class="task-check" onchange="updateProgress()"></td>
+        </tr>
+        <tr>
+          <td><span class="key-file">dashboard.html</span></td>
+          <td>portal/student/</td>
+          <td><span class="key-file">YOUR_ANON_KEY_HERE</span></td>
+          <td><input type="checkbox" class="task-check" onchange="updateProgress()"></td>
+        </tr>
+        <tr>
+          <td><span class="key-file">practice.html</span></td>
+          <td>portal/student/</td>
+          <td><span class="key-file">YOUR_ANON_KEY_HERE</span></td>
+          <td><input type="checkbox" class="task-check" onchange="updateProgress()"></td>
+        </tr>
+        <tr>
+          <td><span class="key-file">vedic.html</span></td>
+          <td>portal/student/</td>
+          <td><span class="key-file">YOUR_ANON_KEY_HERE</span></td>
+          <td><input type="checkbox" class="task-check" onchange="updateProgress()"></td>
+        </tr>
+        <tr>
+          <td><span class="key-file">homework.html</span></td>
+          <td>portal/student/</td>
+          <td><span class="key-file">YOUR_ANON_KEY_HERE</span></td>
+          <td><input type="checkbox" class="task-check" onchange="updateProgress()"></td>
+        </tr>
+        <tr>
+          <td><span class="key-file">progress.html</span></td>
+          <td>portal/student/</td>
+          <td><span class="key-file">YOUR_ANON_KEY_HERE</span></td>
+          <td><input type="checkbox" class="task-check" onchange="updateProgress()"></td>
+        </tr>
+        <tr>
+          <td><span class="key-file">dashboard.html</span></td>
+          <td>portal/teacher/</td>
+          <td><span class="key-file">YOUR_ANON_KEY_HERE</span></td>
+          <td><input type="checkbox" class="task-check" onchange="updateProgress()"></td>
+        </tr>
+        <tr>
+          <td><span class="key-file">dashboard.html</span></td>
+          <td>portal/parent/</td>
+          <td><span class="key-file">YOUR_ANON_KEY_HERE</span></td>
+          <td><input type="checkbox" class="task-check" onchange="updateProgress()"></td>
+        </tr>
+        <tr>
+          <td><span class="key-file">dashboard.html</span></td>
+          <td>portal/admin/</td>
+          <td><span class="key-file">YOUR_ANON_KEY_HERE</span></td>
+          <td><input type="checkbox" class="task-check" onchange="updateProgress()"></td>
+        </tr>
+        <tr>
+          <td><span class="key-file">notifications.js</span></td>
+          <td>js/</td>
+          <td><span class="key-file">YOUR_BREVO_API_KEY_HERE</span></td>
+          <td><input type="checkbox" class="task-check" onchange="updateProgress()"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:16px;background:var(--blue-lt);border:2px solid #90CAF9;border-radius:12px;padding:14px 16px">
+      <div style="font-size:.82rem;font-weight:800;color:var(--blue-dk);margin-bottom:6px">How to edit on GitHub</div>
+      <div style="font-size:.78rem;color:var(--blue-dk);font-weight:500;line-height:1.7">
+        1. Go to the file on GitHub → click the pencil ✏️ icon to edit<br>
+        2. Press <strong>Ctrl+H</strong> (Windows) or <strong>Cmd+Option+F</strong> (Mac) — Find and Replace<br>
+        3. Find: <code>YOUR_ANON_KEY_HERE</code> → Replace with your actual key<br>
+        4. Scroll down → click <strong>Commit changes</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: Supabase setup -->
+  <div class="section-card">
+    <div class="section-title">🗄️ Step 2 — Supabase setup</div>
+    <div class="section-sub">Verify your database and edge functions are configured correctly</div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box">✓</div>
+      <div class="check-content">
+        <div class="check-title">Database schema created — 17 tables</div>
+        <div class="check-desc">Session 1 SQL ran successfully in Supabase SQL Editor</div>
+      </div>
+      <span class="check-tag tag-done">Done ✅</span>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box">✓</div>
+      <div class="check-content">
+        <div class="check-title">Edge Function: daily-automation deployed</div>
+        <div class="check-desc">Visible at supabase.com → Edge Functions → daily-automation</div>
+      </div>
+      <span class="check-tag tag-done">Done ✅</span>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">BREVO_API_KEY secret added to Edge Function</div>
+        <div class="check-desc">Supabase → Edge Functions → daily-automation → Secrets tab → Add BREVO_API_KEY</div>
+      </div>
+      <span class="check-tag tag-required">Required</span>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Cron job scheduled — daily-automation runs at 8AM IST</div>
+        <div class="check-desc">Supabase → Integrations → Cron → Create job → 30 2 * * *</div>
+      </div>
+      <span class="check-tag tag-required">Required</span>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Test edge function manually</div>
+        <div class="check-desc">Visit: https://bhullfoajenhkxlkiubs.supabase.co/functions/v1/daily-automation — should return {"ok":true}</div>
+      </div>
+      <span class="check-tag tag-required">Required</span>
+    </div>
+  </div>
+
+  <!-- Section 3: Brevo -->
+  <div class="section-card">
+    <div class="section-title">📧 Step 3 — Brevo email setup</div>
+    <div class="section-sub">Configure your email sending domain for better deliverability</div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box">✓</div>
+      <div class="check-content">
+        <div class="check-title">Brevo account created and API key generated</div>
+        <div class="check-desc">MCP option enabled on the API key</div>
+      </div>
+      <span class="check-tag tag-done">Done ✅</span>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Sender email verified in Brevo</div>
+        <div class="check-desc">Brevo → Senders & IP → Add sender → hello@imathacademy.com → Verify</div>
+      </div>
+      <span class="check-tag tag-required">Required</span>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Send a test welcome email</div>
+        <div class="check-desc">Call sendWelcomeEmail() from browser console to verify emails arrive</div>
+      </div>
+      <span class="check-tag tag-required">Required</span>
+    </div>
+  </div>
+
+  <!-- Section 4: First student -->
+  <div class="section-card">
+    <div class="section-title">👤 Step 4 — Add your first real student</div>
+    <div class="section-sub">Test the full flow end to end with a real account</div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Create your own student account for testing</div>
+        <div class="check-desc">Admin panel → Students → Add student → use your own email</div>
+      </div>
+      <span class="check-tag tag-required">Required</span>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Log in as that student and complete a practice session</div>
+        <div class="check-desc">Verify XP updates, streak works, session saves to Supabase</div>
+      </div>
+      <span class="check-tag tag-required">Required</span>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Submit a homework as student — check it shows in teacher review</div>
+        <div class="check-desc">Full end to end flow test</div>
+      </div>
+      <span class="check-tag tag-required">Required</span>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Log in as parent — verify child progress shows correctly</div>
+        <div class="check-desc">Create parent account, link to student in Supabase parent_student table</div>
+      </div>
+      <span class="check-tag tag-required">Required</span>
+    </div>
+  </div>
+
+  <!-- Section 5: Razorpay -->
+  <div class="section-card">
+    <div class="section-title">💳 Step 5 — Razorpay (when KYC is ready)</div>
+    <div class="section-sub">Can be done later — payments work in demo mode until then</div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Complete Razorpay KYC verification</div>
+        <div class="check-desc">razorpay.com → Settings → Account details → Complete KYC</div>
+      </div>
+      <span class="check-tag tag-later">Later</span>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Generate Razorpay Test API keys</div>
+        <div class="check-desc">razorpay.com → Settings → API Keys → Generate Test Key</div>
+      </div>
+      <span class="check-tag tag-later">Later</span>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Deploy create-razorpay-order Edge Function</div>
+        <div class="check-desc">supabase functions deploy create-razorpay-order · Add RAZORPAY_KEY_SECRET secret</div>
+      </div>
+      <span class="check-tag tag-later">Later</span>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Replace YOUR_RAZORPAY_KEY_ID in razorpay.js and parent dashboard</div>
+        <div class="check-desc">Update and upload both files to GitHub</div>
+      </div>
+      <span class="check-tag tag-later">Later</span>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Test a Rs. 1 payment in test mode</div>
+        <div class="check-desc">Use Razorpay test card: 4111 1111 1111 1111 · CVV: any 3 digits</div>
+      </div>
+      <span class="check-tag tag-later">Later</span>
+    </div>
+  </div>
+
+  <!-- Section 6: Go live -->
+  <div class="section-card">
+    <div class="section-title">🎉 Step 6 — Go live!</div>
+    <div class="section-sub">Final steps before enrolling real students</div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Update contact details on homepage</div>
+        <div class="check-desc">index.html → replace +91 99999 99999 and hello@imathacademy.com with your real details</div>
+      </div>
+      <span class="check-tag tag-required">Required</span>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Update student count on homepage</div>
+        <div class="check-desc">index.html → change "200+ Happy students" to your actual number</div>
+      </div>
+      <span class="check-tag tag-optional">Optional</span>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Test on mobile phone</div>
+        <div class="check-desc">Open mail2hiren.github.io/imathacademy on your phone — check all pages look good</div>
+      </div>
+      <span class="check-tag tag-required">Required</span>
+    </div>
+
+    <div class="check-item" onclick="toggleCheck(this)">
+      <div class="check-box"></div>
+      <div class="check-content">
+        <div class="check-title">Share the portal link with your first batch of students!</div>
+        <div class="check-desc">https://mail2hiren.github.io/imathacademy · Send via WhatsApp to parents</div>
+      </div>
+      <span class="check-tag tag-required">Required</span>
+    </div>
+  </div>
+
+  <!-- File structure -->
+  <div class="section-card">
+    <div class="section-title">📁 Complete file structure</div>
+    <div class="section-sub">Every file that should be on your GitHub repository</div>
+    <div class="file-tree">
+<span class="ft-folder">imathacademy/</span>
+├── <span class="ft-done">index.html</span>              ✅ Homepage
+├── <span class="ft-done">login.html</span>              ✅ Login page
+├── <span class="ft-folder">css/</span>
+│   ├── <span class="ft-done">main.css</span>            ✅ Global styles
+│   ├── <span class="ft-done">abacus.css</span>          ✅ Abacus styles
+│   └── <span class="ft-done">portal.css</span>          ✅ Portal styles
+├── <span class="ft-folder">js/</span>
+│   ├── <span class="ft-done">supabase-client.js</span>  ✅ Database helpers
+│   ├── <span class="ft-done">notifications.js</span>    ✅ Email automation
+│   ├── <span class="ft-done">razorpay.js</span>         ✅ Payments
+│   └── <span class="ft-done">gamification.js</span>     ✅ XP + badges
+├── <span class="ft-folder">portal/</span>
+│   ├── <span class="ft-folder">student/</span>
+│   │   ├── <span class="ft-done">dashboard.html</span>  ✅ Student home
+│   │   ├── <span class="ft-done">practice.html</span>   ✅ Abacus practice
+│   │   ├── <span class="ft-done">vedic.html</span>      ✅ Vedic maths
+│   │   ├── <span class="ft-done">homework.html</span>   ✅ Homework
+│   │   └── <span class="ft-done">progress.html</span>   ✅ Progress
+│   ├── <span class="ft-folder">teacher/</span>
+│   │   └── <span class="ft-done">dashboard.html</span>  ✅ Teacher portal
+│   ├── <span class="ft-folder">parent/</span>
+│   │   └── <span class="ft-done">dashboard.html</span>  ✅ Parent portal
+│   └── <span class="ft-folder">admin/</span>
+│       ├── <span class="ft-done">dashboard.html</span>  ✅ Admin panel
+│       └── <span class="ft-done">report-generator.html</span> ✅ PDF reports
+└── <span class="ft-folder">assets/</span>
+    └── <span class="ft-pending">logo.png</span>          ⏳ Add your logo
+    </div>
+  </div>
+
+  <!-- Congratulations -->
+  <div style="background:linear-gradient(135deg,#F9A825,#E65100);border-radius:18px;padding:28px;text-align:center;color:#fff;margin-bottom:24px">
+    <div style="font-size:3rem;margin-bottom:10px">🎉</div>
+    <div style="font-family:'Baloo 2',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:8px">
+      Your portal is ready!
+    </div>
+    <div style="font-size:.9rem;opacity:.9;font-weight:500;margin-bottom:16px;line-height:1.6">
+      iMathAcademy portal was built in 17 sessions — completely free to run.<br>
+      Monthly cost: Rs. 0 (Supabase free + GitHub Pages free + Brevo free up to 300 emails/day)
+    </div>
+    <div style="background:rgba(255,255,255,.2);border-radius:12px;padding:14px 20px;display:inline-block;font-size:.875rem;font-weight:700">
+      Total one-time cost: Rs. 0 · Monthly: Rs. 0–500 (only if Razorpay fees apply)
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggleCheck(item) {
+  const box = item.querySelector('.check-box');
+  const title = item.querySelector('.check-title');
+  box.classList.toggle('done');
+  if (box.classList.contains('done')) {
+    box.textContent = '✓';
+    title.classList.add('done-text');
+  } else {
+    box.textContent = '';
+    title.classList.remove('done-text');
+  }
+  updateProgress();
+}
+
+function updateProgress() {
+  const checkboxes = document.querySelectorAll('.task-check');
+  const checked    = [...checkboxes].filter(c => c.checked).length;
+  const checkItems = document.querySelectorAll('.check-box.done').length;
+  const total      = checkboxes.length + document.querySelectorAll('.check-item').length;
+  const done       = checked + checkItems;
+  const pct        = Math.round((done / total) * 100);
+
+  document.getElementById('progressFill').style.width  = pct + '%';
+  document.getElementById('progressLabel').textContent = `${done} of ${total} tasks complete`;
+}
+
+function copyToClipboard(text, btn) {
+  navigator.clipboard.writeText(text);
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = 'Copy', 2000);
+}
+
+// Init
+updateProgress();
+</script>
+</body>
+</html>

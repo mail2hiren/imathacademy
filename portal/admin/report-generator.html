@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Progress Report — iMathAcademy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ── SCREEN STYLES ── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #F7F8FF;
+      color: #1A1A2E;
+    }
+
+    .generator-shell {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .gen-header {
+      background: linear-gradient(135deg, #1B5E20, #2E7D32);
+      border-radius: 18px;
+      padding: 24px 28px;
+      color: #fff;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .gen-title {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+    }
+
+    .gen-sub {
+      font-size: 0.85rem;
+      opacity: 0.85;
+      margin-top: 4px;
+    }
+
+    .controls {
+      background: #fff;
+      border: 2px solid #E8EAF6;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+
+    .ctrl-group { display: flex; flex-direction: column; gap: 6px; }
+    .ctrl-label { font-size: 0.8rem; font-weight: 800; color: #4A4A6A; }
+    .ctrl-input, .ctrl-select {
+      padding: 9px 14px;
+      border: 2px solid #E8EAF6;
+      border-radius: 10px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #1A1A2E;
+      background: #fff;
+      outline: none;
+    }
+    .ctrl-input:focus, .ctrl-select:focus { border-color: #43A047; }
+
+    .btn {
+      padding: 10px 22px;
+      border-radius: 30px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-green  { background: #43A047; color: #fff; }
+    .btn-blue   { background: #1E88E5; color: #fff; }
+    .btn-ghost  { background: #F7F8FF; color: #4A4A6A; border: 2px solid #E8EAF6; }
+    .btn:hover  { opacity: 0.88; transform: translateY(-1px); }
+
+    /* ── REPORT PREVIEW ── */
+    #reportPreview {
+      background: #fff;
+      border: 2px solid #E8EAF6;
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    /* ── PRINT / PDF STYLES ── */
+    @media print {
+      body { background: #fff !important; }
+      .generator-shell { padding: 0 !important; }
+      .gen-header, .controls, .print-actions { display: none !important; }
+      #reportPreview {
+        border: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+      }
+      .report-page { box-shadow: none !important; }
+    }
+
+    /* ── REPORT PAGE STYLES ── */
+    .report-page {
+      padding: 36px 40px;
+      font-family: 'Nunito', sans-serif;
+      color: #1A1A2E;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .report-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 20px;
+      border-bottom: 3px solid #1B5E20;
+      margin-bottom: 24px;
+    }
+
+    .report-logo {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #1B5E20;
+    }
+    .report-logo span { color: #E65100; }
+
+    .report-meta {
+      text-align: right;
+      font-size: 0.78rem;
+      color: #9090B0;
+      font-weight: 600;
+    }
+
+    .report-title-section {
+      background: linear-gradient(135deg, #1B5E20, #2E7D32);
+      border-radius: 16px;
+      padding: 20px 24px;
+      color: #fff;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .student-name-big {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .student-detail {
+      font-size: 0.85rem;
+      opacity: 0.9;
+      font-weight: 600;
+    }
+
+    .belt-badge-lg {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      border: 4px solid rgba(255,255,255,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+
+    /* ── STAT ROW ── */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-box {
+      border-radius: 14px;
+      padding: 14px;
+      text-align: center;
+      border: 2px solid transparent;
+    }
+
+    .stat-box-n {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+
+    .stat-box-l {
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    /* ── SECTION ── */
+    .report-section {
+      margin-bottom: 24px;
+    }
+
+    .section-heading {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #9090B0;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #E8EAF6;
+    }
+
+    /* ── TOPIC BARS ── */
+    .topic-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .tb-name {
+      width: 180px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #1A1A2E;
+      flex-shrink: 0;
+    }
+
+    .tb-track {
+      flex: 1;
+      height: 10px;
+      background: #F7F8FF;
+      border-radius: 5px;
+      overflow: hidden;
+      border: 1px solid #E8EAF6;
+    }
+
+    .tb-fill {
+      height: 100%;
+      border-radius: 5px;
+    }
+
+    .tb-pct {
+      width: 40px;
+      text-align: right;
+      font-size: 0.82rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .tb-sessions {
+      width: 60px;
+      text-align: right;
+      font-size: 0.72rem;
+      color: #9090B0;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    /* ── ATTENDANCE CALENDAR ── */
+    .att-calendar {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0,1fr));
+      gap: 4px;
+    }
+
+    .att-day-hdr {
+      font-size: 0.62rem;
+      font-weight: 800;
+      color: #9090B0;
+      text-align: center;
+      padding: 3px 0;
+    }
+
+    .att-day-cell {
+      border-radius: 5px;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.62rem;
+      font-weight: 800;
+    }
+
+    .att-present { background: #43A047; color: #fff; }
+    .att-absent  { background: #FFEBEE; color: #E53935; border: 1px solid #FFCDD2; }
+    .att-noclass { background: #F7F8FF; color: #9090B0; border: 1px solid #E8EAF6; }
+
+    /* ── BADGES ── */
+    .badges-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      background: #FFFDE7;
+      border: 1.5px solid #FFE082;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: #F57F17;
+    }
+
+    /* ── XP PROGRESS ── */
+    .xp-report-bar {
+      background: linear-gradient(135deg, #1B5E20, #2E7D32);
+      border-radius: 12px;
+      padding: 14px 18px;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+
+    .xp-bar-track {
+      height: 10px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 5px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    .xp-bar-fill {
+      height: 100%;
+      background: #F9A825;
+      border-radius: 5px;
+    }
+
+    /* ── TEACHER COMMENTS ── */
+    .teacher-comments {
+      background: #E3F2FD;
+      border: 2px solid #90CAF9;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .tc-label {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #0D47A1;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .tc-text {
+      font-size: 0.875rem;
+      color: #1565C0;
+      font-weight: 500;
+      line-height: 1.6;
+    }
+
+    /* ── GOALS ── */
+    .goal-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 0.875rem;
+      color: #4A4A6A;
+      font-weight: 500;
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .goal-arrow {
+      color: #43A047;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+
+    /* ── FOOTER ── */
+    .report-footer {
+      border-top: 2px solid #E8EAF6;
+      padding-top: 16px;
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: #9090B0;
+    }
+
+    .report-stamp {
+      background: #E8F5E9;
+      border: 2px solid #A5D6A7;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #1B5E20;
+    }
+  </style>
+</head>
+<body>
+
+<div class="generator-shell">
+
+  <!-- Generator header -->
+  <div class="gen-header">
+    <div>
+      <div class="gen-title">📄 Progress Report Generator</div>
+      <div class="gen-sub">Generate and download monthly PDF reports for any student</div>
+    </div>
+    <button class="btn btn-ghost" onclick="window.history.back()" style="color:#fff;border-color:rgba(255,255,255,.4)">← Back</button>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="ctrl-group">
+      <div class="ctrl-label">Student</div>
+      <select class="ctrl-select" id="ctrlStudent" onchange="generatePreview()">
+        <option value="arjun">Arjun Rao — Abacus L3</option>
+        <option value="priya">Priya Sharma — Abacus L3</option>
+        <option value="riya">Riya Mehta — Vedic M2</option>
+      </select>
+    </div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Month</div>
+      <select class="ctrl-select" id="ctrlMonth" onchange="generatePreview()">
+        <option value="May 2025">May 2025</option>
+        <option value="April 2025">April 2025</option>
+        <option value="March 2025">March 2025</option>
+      </select>
+    </div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Teacher comments</div>
+      <input type="text" class="ctrl-input" id="ctrlComments"
+        value="Arjun is improving steadily. Focus on carrying practice this month."
+        style="width:280px" onchange="generatePreview()">
+    </div>
+    <button class="btn btn-green" onclick="downloadPDF()">⬇ Download PDF</button>
+    <button class="btn btn-blue" onclick="emailReport()">📧 Email to parent</button>
+  </div>
+
+  <!-- Report preview -->
+  <div id="reportPreview">
+    <div class="report-page" id="reportContent">
+      <!-- Generated by JS -->
+    </div>
+  </div>
+
+  <div class="print-actions" style="text-align:center;color:#9090B0;font-size:.82rem;font-weight:600">
+    💡 Tip — Click "Download PDF" to save. The report is print-ready and looks professional on A4 paper.
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY = 'YOUR_ANON_KEY_HERE';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── DEMO DATA ──────────────────────────────────────────────
+const STUDENTS_DEMO = {
+  arjun: {
+    name: 'Arjun Rao',
+    program: 'Abacus',
+    level: 3,
+    belt: 'Orange Belt',
+    beltColor: '#FFB74D',
+    beltEmoji: '🟧',
+    xp: 1240,
+    xpNext: 2000,
+    streak: 7,
+    teacher: 'Ms. Priya',
+    batch: 'Batch A',
+    parent: 'Mrs. Sunita Rao',
+    accuracy: 71,
+    sessions: 24,
+    hwCompletion: 85,
+    attendance: 90,
+    badges: ['🎯 First Steps','🔥 7-Day Streak','⚡ Speed Demon','💯 Perfect Score','🧮 Bead Master'],
+    topics: [
+      { name: 'Single digit addition',    acc: 91, sessions: 18, color: '#43A047' },
+      { name: 'Single digit subtraction', acc: 87, sessions: 12, color: '#43A047' },
+      { name: '2-digit addition',         acc: 74, sessions: 10, color: '#1E88E5' },
+      { name: '2-digit subtraction',      acc: 68, sessions: 8,  color: '#1E88E5' },
+      { name: '3-digit subtraction',      acc: 58, sessions: 7,  color: '#FB8C00' },
+      { name: 'Addition with carrying',   acc: 48, sessions: 5,  color: '#E53935' },
+    ],
+    attendance_days: [1,3,5,8,10,12,15,17,19,22,24,26,29,31],
+    absent_days: [10, 24],
+    goals: [
+      'Improve addition with carrying accuracy from 48% to 65%',
+      'Complete Level 3 by end of June to earn Green Belt',
+      'Maintain 7-day practice streak — currently on track!',
+      'Submit all homework on time this month',
+    ],
+    hwHistory: [
+      { title: 'Single digit addition',  score: 9,  total: 10 },
+      { title: 'Addition with carrying', score: 6,  total: 10 },
+    ]
+  },
+  priya: {
+    name: 'Priya Sharma',
+    program: 'Abacus',
+    level: 3,
+    belt: 'Orange Belt',
+    beltColor: '#FFB74D',
+    beltEmoji: '🟧',
+    xp: 1560,
+    xpNext: 2000,
+    streak: 12,
+    teacher: 'Ms. Priya',
+    batch: 'Batch A',
+    parent: 'Mr. Rajesh Sharma',
+    accuracy: 84,
+    sessions: 28,
+    hwCompletion: 96,
+    attendance: 96,
+    badges: ['🎯 First Steps','🔥 7-Day Streak','💯 Perfect Score','🧠 Sharp Mind','🧮 Bead Master'],
+    topics: [
+      { name: 'Single digit addition',    acc: 95, sessions: 20, color: '#43A047' },
+      { name: 'Single digit subtraction', acc: 92, sessions: 16, color: '#43A047' },
+      { name: '2-digit addition',         acc: 88, sessions: 14, color: '#43A047' },
+      { name: 'Addition with carrying',   acc: 76, sessions: 8,  color: '#1E88E5' },
+    ],
+    attendance_days: [1,3,5,8,10,12,15,17,19,22,24,26,29,31],
+    absent_days: [5],
+    goals: [
+      'Maintain excellent accuracy above 80% across all topics',
+      'Focus on addition with carrying to reach 85%+',
+      'Aim for Green Belt by completing Level 3',
+    ],
+    hwHistory: [
+      { title: 'Single digit addition',  score: 10, total: 10 },
+      { title: 'Addition with carrying', score: 8,  total: 10 },
+    ]
+  },
+  riya: {
+    name: 'Riya Mehta',
+    program: 'Vedic Maths',
+    level: 2,
+    belt: 'Scholar',
+    beltColor: '#AB47BC',
+    beltEmoji: '🟪',
+    xp: 820,
+    xpNext: 1200,
+    streak: 4,
+    teacher: 'Ms. Priya',
+    batch: 'Batch B',
+    parent: 'Mrs. Anita Mehta',
+    accuracy: 79,
+    sessions: 18,
+    hwCompletion: 88,
+    attendance: 92,
+    badges: ['🎯 First Steps','⚡ Speed Demon','📚 Homework Hero'],
+    topics: [
+      { name: 'Ekadhikena Purvena (×5)', acc: 88, sessions: 10, color: '#43A047' },
+      { name: 'Nikhilam multiplication', acc: 71, sessions: 8,  color: '#1E88E5' },
+    ],
+    attendance_days: [2,4,6,9,11,13,16,18,20,23,25],
+    absent_days: [6],
+    goals: [
+      'Master Nikhilam multiplication — bring accuracy to 85%',
+      'Start Module 3 (Urdhva Tiryagbhyam) next month',
+      'Maintain attendance above 90%',
+    ],
+    hwHistory: [
+      { title: 'Vedic Module 1 practice', score: 8, total: 10 },
+    ]
+  }
+};
+
+// ── GENERATE REPORT ────────────────────────────────────────
+function generatePreview() {
+  const studentKey = document.getElementById('ctrlStudent').value;
+  const month      = document.getElementById('ctrlMonth').value;
+  const comments   = document.getElementById('ctrlComments').value;
+  const student    = STUDENTS_DEMO[studentKey];
+  const today      = new Date().toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+  const xpPct      = Math.round((student.xp / student.xpNext) * 100);
+
+  const content = document.getElementById('reportContent');
+  content.innerHTML = `
+
+    <!-- HEADER -->
+    <div class="report-header">
+      <div>
+        <div class="report-logo">iMath<span>Academy</span></div>
+        <div style="font-size:.72rem;color:#9090B0;margin-top:2px">Vedic Maths &amp; Abacus Learning Portal</div>
+      </div>
+      <div class="report-meta">
+        <div style="font-weight:800;color:#1A1A2E;font-size:.85rem">Monthly Progress Report</div>
+        <div>${month}</div>
+        <div>Generated: ${today}</div>
+      </div>
+    </div>
+
+    <!-- STUDENT INFO -->
+    <div class="report-title-section">
+      <div>
+        <div class="student-name-big">${student.name}</div>
+        <div class="student-detail">${student.program} Program · Level ${student.level} · ${student.batch}</div>
+        <div class="student-detail" style="margin-top:4px">Teacher: ${student.teacher} · Parent: ${student.parent}</div>
+      </div>
+      <div class="belt-badge-lg" style="background:${student.beltColor}">
+        ${student.beltEmoji}
+      </div>
+    </div>
+
+    <!-- KEY STATS -->
+    <div class="stat-row">
+      <div class="stat-box" style="background:#E8F5E9;border-color:#A5D6A7">
+        <div class="stat-box-n" style="color:#1B5E20">${student.accuracy}%</div>
+        <div class="stat-box-l" style="color:#2E7D32">Avg accuracy</div>
+      </div>
+      <div class="stat-box" style="background:#E3F2FD;border-color:#90CAF9">
+        <div class="stat-box-n" style="color:#0D47A1">${student.sessions}</div>
+        <div class="stat-box-l" style="color:#1565C0">Sessions done</div>
+      </div>
+      <div class="stat-box" style="background:#FFF3E0;border-color:#FFCC80">
+        <div class="stat-box-n" style="color:#E65100">${student.hwCompletion}%</div>
+        <div class="stat-box-l" style="color:#E65100">HW completion</div>
+      </div>
+      <div class="stat-box" style="background:#F3E5F5;border-color:#CE93D8">
+        <div class="stat-box-n" style="color:#4A148C">${student.attendance}%</div>
+        <div class="stat-box-l" style="color:#6A1B9A">Attendance</div>
+      </div>
+    </div>
+
+    <!-- XP PROGRESS -->
+    <div class="report-section">
+      <div class="section-heading">XP &amp; Belt progress</div>
+      <div class="xp-report-bar">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-size:.9rem;font-weight:800">${student.belt} · ${student.xp.toLocaleString()} XP total</div>
+          <div style="font-size:.78rem;opacity:.8;font-weight:600">🔥 ${student.streak}-day streak</div>
+        </div>
+        <div class="xp-bar-track">
+          <div class="xp-bar-fill" style="width:${xpPct}%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.72rem;opacity:.85;font-weight:600">
+          <span>${student.xp.toLocaleString()} XP earned</span>
+          <span>${(student.xpNext - student.xp).toLocaleString()} XP to next belt</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPIC ACCURACY -->
+    <div class="report-section">
+      <div class="section-heading">Topic accuracy breakdown</div>
+      ${student.topics.map(t => `
+        <div class="topic-bar-row">
+          <div class="tb-name">${t.name}</div>
+          <div class="tb-track">
+            <div class="tb-fill" style="background:${t.color};width:${t.acc}%"></div>
+          </div>
+          <div class="tb-pct" style="color:${t.color}">${t.acc}%</div>
+          <div class="tb-sessions">${t.sessions} sessions</div>
+        </div>
+      `).join('')}
+      <div style="font-size:.72rem;color:#9090B0;margin-top:8px;font-weight:600">
+        🟢 85%+ Excellent &nbsp;·&nbsp; 🔵 70–84% Good &nbsp;·&nbsp; 🟠 55–69% Needs practice &nbsp;·&nbsp; 🔴 Below 55% Attention needed
+      </div>
+    </div>
+
+    <!-- ATTENDANCE -->
+    <div class="report-section">
+      <div class="section-heading">Attendance — ${month}</div>
+      <div style="display:flex;gap:20px;margin-bottom:12px">
+        <div style="font-size:.875rem;font-weight:800;color:#43A047">✅ Present: ${student.attendance_days.length - student.absent_days.length} classes</div>
+        <div style="font-size:.875rem;font-weight:800;color:#E53935">❌ Absent: ${student.absent_days.length} classes</div>
+        <div style="font-size:.875rem;font-weight:800;color:#1E88E5">📊 Rate: ${student.attendance}%</div>
+      </div>
+      <div class="att-calendar">
+        ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `<div class="att-day-hdr">${d}</div>`).join('')}
+        ${generateCalendarCells(student.attendance_days, student.absent_days)}
+      </div>
+    </div>
+
+    <!-- HOMEWORK -->
+    <div class="report-section">
+      <div class="section-heading">Homework summary</div>
+      ${student.hwHistory.map(h => {
+        const pct = Math.round(h.score / h.total * 100);
+        const col = pct >= 80 ? '#43A047' : pct >= 60 ? '#FB8C00' : '#E53935';
+        return `
+          <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #E8EAF6">
+            <div style="flex:1;font-size:.875rem;font-weight:700;color:#1A1A2E">${h.title}</div>
+            <div style="font-size:.875rem;font-weight:800;color:${col}">${h.score}/${h.total} (${pct}%)</div>
+          </div>`;
+      }).join('')}
+    </div>
+
+    <!-- BADGES -->
+    <div class="report-section">
+      <div class="section-heading">Badges earned</div>
+      <div class="badges-row">
+        ${student.badges.map(b => `<div class="badge-chip">${b}</div>`).join('')}
+      </div>
+    </div>
+
+    <!-- TEACHER COMMENTS -->
+    <div class="report-section">
+      <div class="section-heading">Teacher comments</div>
+      <div class="teacher-comments">
+        <div class="tc-label">👨‍🏫 ${student.teacher}</div>
+        <div class="tc-text">${comments || 'No comments added for this month.'}</div>
+      </div>
+    </div>
+
+    <!-- GOALS -->
+    <div class="report-section">
+      <div class="section-heading">Goals for next month</div>
+      ${student.goals.map(g => `
+        <div class="goal-row">
+          <span class="goal-arrow">→</span>
+          <span>${g}</span>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- FOOTER -->
+    <div class="report-footer">
+      <div>
+        <div style="font-weight:700;color:#1A1A2E;font-size:.78rem">iMathAcademy</div>
+        <div>hello@imathacademy.com · mail2hiren.github.io/imathacademy</div>
+      </div>
+      <div class="report-stamp">✓ Auto-generated report</div>
+    </div>
+  `;
+}
+
+// ── CALENDAR CELLS ─────────────────────────────────────────
+function generateCalendarCells(classDays, absentDays) {
+  const DAYS_IN_MAY = 31;
+  const START_PAD   = 3; // May 2025 starts on Thursday
+  let cells = '';
+
+  // Padding
+  for (let i = 0; i < START_PAD; i++) {
+    cells += `<div class="att-day-cell att-noclass"></div>`;
+  }
+
+  for (let d = 1; d <= DAYS_IN_MAY; d++) {
+    if (classDays.includes(d)) {
+      if (absentDays.includes(d)) {
+        cells += `<div class="att-day-cell att-absent">${d}</div>`;
+      } else {
+        cells += `<div class="att-day-cell att-present">${d}</div>`;
+      }
+    } else {
+      cells += `<div class="att-day-cell att-noclass" style="color:#C5CAE9;font-size:.58rem">${d}</div>`;
+    }
+  }
+  return cells;
+}
+
+// ── DOWNLOAD PDF ───────────────────────────────────────────
+function downloadPDF() {
+  const student  = document.getElementById('ctrlStudent');
+  const month    = document.getElementById('ctrlMonth').value;
+  const name     = student.options[student.selectedIndex].text.split(' — ')[0];
+
+  // Set document title for PDF filename
+  const originalTitle = document.title;
+  document.title      = `iMathAcademy_Report_${name.replace(' ','_')}_${month.replace(' ','_')}`;
+
+  // Print (browser converts to PDF)
+  window.print();
+
+  // Restore title
+  document.title = originalTitle;
+}
+
+// ── EMAIL REPORT ───────────────────────────────────────────
+async function emailReport() {
+  const studentKey = document.getElementById('ctrlStudent').value;
+  const month      = document.getElementById('ctrlMonth').value;
+  const student    = STUDENTS_DEMO[studentKey];
+
+  // Show sending state
+  const btn = event.target;
+  btn.textContent = 'Sending...';
+  btn.disabled    = true;
+
+  try {
+    // In production: call Brevo API to send report
+    // For now simulate delay
+    await new Promise(r => setTimeout(r, 1500));
+
+    btn.textContent = '✅ Sent!';
+    btn.style.background = '#43A047';
+
+    setTimeout(() => {
+      btn.textContent = '📧 Email to parent';
+      btn.disabled    = false;
+      btn.style.background = '';
+    }, 3000);
+
+    alert(`Progress report for ${student.name} emailed to ${student.parent}!`);
+
+  } catch (err) {
+    btn.textContent = '📧 Email to parent';
+    btn.disabled    = false;
+    alert('Email failed. Please try again.');
+  }
+}
+
+// ── LOAD FROM SUPABASE (when connected) ───────────────────
+async function loadStudentData(studentId, month) {
+  try {
+    const { data: student } = await sb
+      .from('student_progress_summary')
+      .select('*')
+      .eq('id', studentId)
+      .single();
+
+    const { data: topics } = await sb
+      .from('student_weak_topics')
+      .select('*')
+      .eq('student_id', studentId);
+
+    const { data: badges } = await sb
+      .from('badges')
+      .select('badge_label, badge_icon')
+      .eq('student_id', studentId);
+
+    return { student, topics, badges };
+  } catch {
+    return null;
+  }
+}
+
+// ── INIT ───────────────────────────────────────────────────
+generatePreview();
+</script>
+</body>
+</html>

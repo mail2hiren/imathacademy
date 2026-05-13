@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — iMathAcademy</title>
+  <link rel="icon" type="image/png" href="../../assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Nunito',sans-serif;background:#F7F8FF;color:#1A1A2E;min-height:100vh}
+    :root{
+      --green:#43A047;--green-dk:#1B5E20;--green-lt:#E8F5E9;--green-md:#2E7D32;
+      --orange:#FB8C00;--orange-dk:#E65100;--orange-lt:#FFF3E0;
+      --blue:#1E88E5;--blue-dk:#0D47A1;--blue-lt:#E3F2FD;
+      --purple:#8E24AA;--purple-dk:#4A148C;--purple-lt:#F3E5F5;
+      --red:#E53935;--red-dk:#B71C1C;--red-lt:#FFEBEE;
+      --yellow:#F9A825;--yellow-lt:#FFFDE7;--yellow-dk:#F57F17;
+      --teal:#00897B;--teal-lt:#E0F2F1;--teal-dk:#004D40;
+      --bg:#FFFFFF;--bg2:#F7F8FF;--border:#E8EAF6;
+      --text2:#4A4A6A;--text3:#9090B0;
+    }
+    .portal{display:flex;min-height:100vh}
+    .sidebar{width:230px;flex-shrink:0;background:var(--bg);border-right:2px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;transition:transform .3s}
+    .sidebar-logo{padding:14px 16px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:10px}
+    .sidebar-logo img{height:36px;width:auto}
+    .sidebar-logo-text{font-family:'Baloo 2',sans-serif;font-size:1.1rem;font-weight:800;color:var(--orange-dk)}
+    .sidebar-logo-text span{color:var(--green-dk)}
+    .sidebar-nav{flex:1;padding:10px 0}
+    .nav-section{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);padding:8px 16px 3px;margin-top:4px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:.85rem;font-weight:700;color:var(--text2);cursor:pointer;border-left:3px solid transparent;transition:all .12s;text-decoration:none}
+    .nav-item:hover{color:var(--text);background:var(--bg2)}
+    .nav-item.active{color:var(--orange-dk);background:var(--orange-lt);border-left-color:var(--orange)}
+    .nav-icon{width:20px;text-align:center;font-size:.95rem}
+    .nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:.62rem;font-weight:800;padding:2px 6px;border-radius:20px}
+    .sidebar-user{padding:12px 16px;border-top:2px solid var(--border);display:flex;align-items:center;gap:10px}
+    .user-av{width:34px;height:34px;border-radius:50%;background:var(--orange-lt);border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;color:var(--orange-dk);flex-shrink:0}
+    .user-name{font-size:.8rem;font-weight:800;color:var(--text)}
+    .user-role{font-size:.68rem;color:var(--text3);font-weight:600}
+    .logout-btn{margin-left:auto;background:none;border:none;font-size:.85rem;cursor:pointer;color:var(--text3)}
+    .logout-btn:hover{color:var(--red)}
+    .main{flex:1;margin-left:230px;display:flex;flex-direction:column}
+    .topbar{height:60px;background:var(--bg);border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+    .topbar-left{display:flex;align-items:center;gap:12px}
+    .hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;background:none;border:none}
+    .hamburger span{width:20px;height:2px;background:var(--text);border-radius:2px;display:block}
+    .topbar-title{font-family:'Baloo 2',sans-serif;font-size:1.1rem;font-weight:800}
+    .body{padding:18px}
+    .card{background:var(--bg);border:2px solid var(--border);border-radius:16px;padding:18px 20px;margin-bottom:14px}
+    .card-title{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;margin-bottom:4px}
+    .card-sub{font-size:.78rem;color:var(--text3);font-weight:600;margin-bottom:14px}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+    .stat-box{border-radius:14px;padding:14px;text-align:center;border:2px solid transparent}
+    .stat-n{font-family:'Baloo 2',sans-serif;font-size:1.8rem;font-weight:800;line-height:1.1;margin-bottom:3px}
+    .stat-l{font-size:.72rem;font-weight:700}
+    .hc-green{background:var(--green-lt);border-color:#A5D6A7;color:var(--green-dk)}
+    .hc-blue{background:var(--blue-lt);border-color:#90CAF9;color:var(--blue-dk)}
+    .hc-orange{background:var(--orange-lt);border-color:#FFCC80;color:var(--orange-dk)}
+    .hc-red{background:var(--red-lt);border-color:#FFCDD2;color:var(--red-dk)}
+    .hc-purple{background:var(--purple-lt);border-color:#CE93D8;color:var(--purple-dk)}
+    .tbl-wrap{overflow-x:auto;border-radius:12px;border:2px solid var(--border)}
+    table{width:100%;border-collapse:collapse;background:var(--bg)}
+    thead{background:var(--bg2)}
+    th{padding:9px 14px;text-align:left;font-size:.68rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;border-bottom:2px solid var(--border);white-space:nowrap}
+    td{padding:10px 14px;font-size:.82rem;color:var(--text);border-bottom:1px solid var(--border);vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:var(--bg2)}
+    .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}
+    .form-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:12px}
+    .form-group{display:flex;flex-direction:column;gap:5px}
+    .form-label{font-size:.78rem;font-weight:800;color:var(--text)}
+    .form-input,.form-select{padding:9px 12px;border:2px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:.875rem;font-weight:600;color:var(--text);background:var(--bg);outline:none;transition:border-color .15s}
+    .form-input:focus,.form-select:focus{border-color:var(--orange)}
+    .form-hint{font-size:.68rem;color:var(--text3);font-weight:600}
+    .pill{font-size:.68rem;font-weight:800;padding:3px 9px;border-radius:20px;white-space:nowrap;display:inline-block}
+    .pill-g{background:var(--green-lt);color:var(--green-dk);border:1.5px solid #A5D6A7}
+    .pill-b{background:var(--blue-lt);color:var(--blue-dk);border:1.5px solid #90CAF9}
+    .pill-o{background:var(--orange-lt);color:var(--orange-dk);border:1.5px solid #FFCC80}
+    .pill-r{background:var(--red-lt);color:var(--red-dk);border:1.5px solid #FFCDD2}
+    .pill-p{background:var(--purple-lt);color:var(--purple-dk);border:1.5px solid #CE93D8}
+    .pill-gray{background:var(--bg2);color:var(--text3);border:1.5px solid var(--border)}
+    .btn{padding:9px 18px;border-radius:30px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;border:none;cursor:pointer;transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+    .btn:active{transform:scale(.96)}
+    .btn-orange{background:var(--orange);color:#fff}
+    .btn-green{background:var(--green);color:#fff}
+    .btn-blue{background:var(--blue);color:#fff}
+    .btn-red{background:var(--red);color:#fff}
+    .btn-ghost{background:var(--bg2);color:var(--text2);border:2px solid var(--border)}
+    .btn-sm{padding:5px 12px;font-size:.72rem}
+    .btn:hover{opacity:.88;transform:translateY(-1px)}
+    .av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0}
+    .av-g{background:var(--green-lt);color:var(--green-dk)}
+    .av-b{background:var(--blue-lt);color:var(--blue-dk)}
+    .av-o{background:var(--orange-lt);color:var(--orange-dk)}
+    .av-p{background:var(--purple-lt);color:var(--purple-dk)}
+    .av-t{background:var(--teal-lt);color:var(--teal-dk)}
+    .mode-toggle{display:inline-flex;border:2px solid var(--border);border-radius:20px;overflow:hidden}
+    .mt{padding:3px 9px;font-size:.65rem;font-weight:800;cursor:pointer;color:var(--text2);background:transparent;border:none;font-family:'Nunito',sans-serif}
+    .mt.on-online{background:var(--green);color:#fff}
+    .mt.on-offline{background:var(--orange);color:#fff}
+    .toggle{width:42px;height:22px;background:var(--green);border-radius:11px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+    .toggle.off{background:var(--border)}
+    .toggle-knob{width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:3px;left:23px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+    .toggle.off .toggle-knob{left:3px}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--bg);border-radius:20px;padding:24px;width:100%;max-width:520px;box-shadow:0 16px 48px rgba(0,0,0,.2);animation:fadeUp .3s ease;margin:auto}
+    @keyframes fadeUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .modal-title{font-family:'Baloo 2',sans-serif;font-size:1.2rem;font-weight:800}
+    .modal-close{background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text3)}
+    .spinner{width:20px;height:20px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+    .toast{background:var(--text);color:#fff;padding:10px 18px;border-radius:12px;font-size:.875rem;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.2);animation:slideIn .3s ease;max-width:340px}
+    .toast-success{background:var(--green-dk)}
+    .toast-error{background:var(--red-dk)}
+    @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+    @media(max-width:768px){
+      .sidebar{transform:translateX(-100%)}
+      .sidebar.open{transform:translateX(0)}
+      .main{margin-left:0}
+      .hamburger{display:flex}
+      .body{padding:14px}
+      .stats-grid{grid-template-columns:repeat(2,1fr)}
+      .form-grid,.form-grid-3{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="portal">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="../../assets/logo.png" alt="iMathAcademy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <div class="sidebar-logo-text" style="display:none">iMath<span>Academy</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Overview</div>
+      <a class="nav-item active" href="#" onclick="showTab('overview',this)"><span class="nav-icon">🎯</span> Overview</a>
+      <div class="nav-section">People</div>
+      <a class="nav-item" href="#" onclick="showTab('students',this)"><span class="nav-icon">👨‍🎓</span> Students<span class="nav-badge" id="studentCountBadge">0</span></a>
+      <a class="nav-item" href="#" onclick="showTab('teachers',this)"><span class="nav-icon">👨‍🏫</span> Teachers</a>
+      <a class="nav-item" href="#" onclick="showTab('parents',this)"><span class="nav-icon">👨‍👩‍👧</span> Parents</a>
+      <a class="nav-item" href="#" onclick="showTab('associations',this)"><span class="nav-icon">🔗</span> Associations</a>
+      <div class="nav-section">Classes</div>
+      <a class="nav-item" href="#" onclick="showTab('batches',this)"><span class="nav-icon">🏫</span> Batches</a>
+      <div class="nav-section">Finance</div>
+      <a class="nav-item" href="#" onclick="showTab('fees',this)"><span class="nav-icon">💰</span> Fees<span class="nav-badge" id="feesBadge" style="display:none">!</span></a>
+      <div class="nav-section">Settings</div>
+      <a class="nav-item" href="#" onclick="showTab('automation',this)"><span class="nav-icon">🤖</span> Automation</a>
+      <a class="nav-item" href="#" onclick="showTab('settings',this)"><span class="nav-icon">⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-av" id="userAv">AD</div>
+      <div><div class="user-name" id="userName">Admin</div><div class="user-role">Administrator</div></div>
+      <button class="logout-btn" onclick="logout()">⇥</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div class="topbar-title" id="topbarTitle">Academy Overview</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:.78rem;font-weight:600;color:var(--text3)" id="topbarDate"></div>
+        <button class="btn btn-orange btn-sm" onclick="openModal('student')">+ Add student</button>
+      </div>
+    </div>
+
+    <div class="body">
+
+      <!-- OVERVIEW -->
+      <div id="tab-overview">
+        <div class="stats-grid">
+          <div class="stat-box hc-green"><div class="stat-n" id="ov-students">—</div><div class="stat-l">Students</div></div>
+          <div class="stat-box hc-blue"><div class="stat-n" id="ov-teachers">—</div><div class="stat-l">Teachers</div></div>
+          <div class="stat-box hc-orange"><div class="stat-n" id="ov-parents">—</div><div class="stat-l">Parents</div></div>
+          <div class="stat-box hc-red"><div class="stat-n" id="ov-overdue">—</div><div class="stat-l">Overdue fees</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Quick actions</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+            <button class="btn btn-orange" onclick="openModal('student')">+ Add student</button>
+            <button class="btn btn-blue"   onclick="openModal('teacher')">+ Add teacher</button>
+            <button class="btn btn-green"  onclick="openModal('parent')">+ Add parent</button>
+            <button class="btn btn-ghost"  onclick="showTab('associations',null)">🔗 Link parent ↔ student</button>
+            <button class="btn btn-ghost"  onclick="showTab('batches',null)">🏫 Manage batches</button>
+            <button class="btn btn-ghost"  onclick="showTab('fees',null)">💰 Manage fees</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Recent notifications</div>
+          <div id="recentActivity" style="font-size:.82rem;color:var(--text3);margin-top:8px">Loading...</div>
+        </div>
+      </div>
+
+      <!-- STUDENTS -->
+      <div id="tab-students" style="display:none">
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+          <input type="text" class="form-input" placeholder="Search name or email..." id="studentSearch" oninput="filterStudents()" style="flex:1;max-width:260px">
+          <select class="form-select" id="filterProgram" onchange="filterStudents()" style="max-width:160px">
+            <option value="">All programs</option>
+            <option value="abacus">Abacus</option>
+            <option value="vedic">Vedic Maths</option>
+          </select>
+          <select class="form-select" id="filterMode" onchange="filterStudents()" style="max-width:140px">
+            <option value="">All modes</option>
+            <option value="online">Online</option>
+            <option value="offline">Offline</option>
+          </select>
+          <button class="btn btn-orange" onclick="openModal('student')">+ Add student</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV('students')">⬇ Export CSV</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Student</th><th>Program</th><th>Level</th><th>Mode</th><th>Batch</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="studentsTbody"><tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text3)">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TEACHERS -->
+      <div id="tab-teachers" style="display:none">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:14px;gap:10px">
+          <button class="btn btn-blue" onclick="openModal('teacher')">+ Add teacher</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV('teachers')">⬇ Export CSV</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Teacher</th><th>Email</th><th>Batches</th><th>Students</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="teachersTbody"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PARENTS -->
+      <div id="tab-parents" style="display:none">
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+          <input type="text" class="form-input" placeholder="Search name or email..." id="parentSearch" oninput="filterParents()" style="flex:1;max-width:260px">
+          <button class="btn btn-green" onclick="openModal('parent')">+ Add parent</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV('parents')">⬇ Export CSV</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Parent</th><th>Email</th><th>Linked students</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="parentsTbody"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3)">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ASSOCIATIONS -->
+      <div id="tab-associations" style="display:none">
+        <div class="card">
+          <div class="card-title">🔗 Link parent to student</div>
+          <div class="card-sub">Connect a parent account to their child's student account so parents can view progress</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Select parent</label>
+              <select class="form-select" id="assocParent"><option value="">Loading...</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Select student (their child)</label>
+              <select class="form-select" id="assocStudent"><option value="">Loading...</option></select>
+            </div>
+          </div>
+          <button class="btn btn-green" onclick="linkParentStudent()">✓ Link parent to student</button>
+        </div>
+        <div class="card">
+          <div class="card-title">🏫 Add student to batch</div>
+          <div class="card-sub">Assign a student to a class batch</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Select student</label>
+              <select class="form-select" id="batchStudentSel"><option value="">Loading...</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Select batch</label>
+              <select class="form-select" id="batchSel"><option value="">Loading...</option></select>
+            </div>
+          </div>
+          <button class="btn btn-blue" onclick="addStudentToBatch()">✓ Add to batch</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Current parent ↔ student links</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Parent</th><th>Student</th><th>Program</th><th>Action</th></tr></thead>
+              <tbody id="assocTbody"><tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text3)">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- BATCHES -->
+      <div id="tab-batches" style="display:none">
+        <div class="card">
+          <div class="card-title">Create new batch</div>
+          <div class="form-grid-3">
+            <div class="form-group"><label class="form-label">Batch name</label><input type="text" class="form-input" id="newBatchName" placeholder="e.g. Batch D — Abacus L2"></div>
+            <div class="form-group"><label class="form-label">Program</label>
+              <select class="form-select" id="newBatchProgram">
+                <option value="abacus">Abacus</option>
+                <option value="vedic">Vedic Maths</option>
+              </select>
+            </div>
+            <div class="form-group"><label class="form-label">Assign teacher</label>
+              <select class="form-select" id="newBatchTeacher"><option value="">Select teacher</option></select>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group"><label class="form-label">Schedule</label><input type="text" class="form-input" id="newBatchSchedule" placeholder="Mon/Wed/Fri 4:30–5:30 PM"></div>
+            <div class="form-group"><label class="form-label">Google Meet link</label><input type="url" class="form-input" id="newBatchMeet" placeholder="https://meet.google.com/xxx"></div>
+          </div>
+          <button class="btn btn-orange" onclick="createBatch()">Create batch →</button>
+        </div>
+        <div class="card">
+          <div class="card-title">All batches</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Batch name</th><th>Program</th><th>Teacher</th><th>Students</th><th>Schedule</th><th>Meet</th><th>Actions</th></tr></thead>
+              <tbody id="batchesTbody"><tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- FEES -->
+      <div id="tab-fees" style="display:none">
+        <div class="stats-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+          <div class="stat-box hc-green"><div class="stat-n" id="feesCollected">—</div><div class="stat-l">Collected this month</div></div>
+          <div class="stat-box hc-red"><div class="stat-n" id="feesOverdue">—</div><div class="stat-l">Overdue</div></div>
+          <div class="stat-box hc-orange"><div class="stat-n" id="feesPending">—</div><div class="stat-l">Pending</div></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <button class="btn btn-orange" onclick="createMonthlyFees()">Generate monthly fees for all students</button>
+          <button class="btn btn-ghost btn-sm" onclick="sendAllFeeReminders()">Send all reminders</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV('fees')">⬇ Export CSV</button>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Student</th><th>Amount</th><th>Due date</th><th>Status</th><th>Method</th><th>Actions</th></tr></thead>
+            <tbody id="feesTbody"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- AUTOMATION -->
+      <div id="tab-automation" style="display:none">
+        <div style="background:var(--blue-lt);border:2px solid #90CAF9;border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:.82rem;color:var(--blue-dk);font-weight:500">
+          All automation runs via Supabase Edge Functions + Brevo email (free). Runs daily at 8:00 AM IST.
+        </div>
+        <div class="card" id="autoCard">
+          <div class="card-title">Automation toggles</div>
+          <div id="autoList"></div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="tab-settings" style="display:none">
+        <div class="card">
+          <div class="card-title">Portal settings</div>
+          <div id="settingsList"></div>
+          <button class="btn btn-orange" style="margin-top:14px" onclick="saveSettings()">Save settings</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Connection status</div>
+          <div id="connStatus"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ADD USER MODAL -->
+<div class="modal-overlay" id="addModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Add new student</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Full name *</label><input type="text" class="form-input" id="newName" placeholder="e.g. Arjun Sharma"></div>
+      <div class="form-group"><label class="form-label">Email address *</label><input type="email" class="form-input" id="newEmail" placeholder="arjun@gmail.com"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Phone number</label><input type="tel" class="form-input" id="newPhone" placeholder="+91 98765 43210"></div>
+      <div class="form-group">
+        <label class="form-label">Password (default: imath2025)</label>
+        <input type="text" class="form-input" id="newPassword" value="imath2025">
+        <div class="form-hint">Student logs in with this password first time</div>
+      </div>
+    </div>
+    <!-- Student fields -->
+    <div id="studentFields">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Program</label>
+          <select class="form-select" id="newProgram">
+            <option value="abacus">Abacus (Ages 4–12)</option>
+            <option value="vedic">Vedic Maths (Ages 9–15)</option>
+            <option value="both">Both programs</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Starting level</label>
+          <select class="form-select" id="newLevel">
+            <option value="1">Level 1 — White Belt</option>
+            <option value="2">Level 2 — Yellow Belt</option>
+            <option value="3">Level 3 — Orange Belt</option>
+            <option value="4">Level 4 — Green Belt</option>
+            <option value="5">Level 5 — Blue Belt</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Mode</label>
+          <select class="form-select" id="newMode">
+            <option value="online">Online (uses portal)</option>
+            <option value="offline">Offline (physical class only)</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Assign to batch (optional)</label>
+          <select class="form-select" id="newBatch"><option value="">No batch yet</option></select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Monthly fee (Rs.)</label>
+          <input type="number" class="form-input" id="newFee" value="800">
+        </div>
+        <div class="form-group"><label class="form-label">Link to parent (optional)</label>
+          <select class="form-select" id="newParentLink"><option value="">No parent yet</option></select>
+        </div>
+      </div>
+    </div>
+    <!-- Teacher fields -->
+    <div id="teacherFields" style="display:none">
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Assign to batch (optional)</label>
+        <select class="form-select" id="newTeacherBatch"><option value="">No batch yet</option></select>
+      </div>
+    </div>
+    <div style="background:var(--green-lt);border:1.5px solid #A5D6A7;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:.75rem;color:var(--green-dk);font-weight:600" id="modalNote">
+      ✅ Account created instantly. Welcome email sent automatically.
+    </div>
+    <button class="btn btn-orange" onclick="createUser()" id="createBtn" style="width:100%;padding:12px;font-size:.95rem;justify-content:center">
+      Create account & send welcome email 🚀
+    </button>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal" onclick="if(event.target===this)closeConfirm()">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title" id="confirmTitle">Confirm</div>
+      <button class="modal-close" onclick="closeConfirm()">✕</button>
+    </div>
+    <div style="font-size:.875rem;color:var(--text2);margin-bottom:20px;line-height:1.6" id="confirmMsg"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-red" id="confirmOkBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+const{createClient}=supabase;
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+let allStudents=[],allTeachers=[],allParents=[],allBatches=[];
+let currentModal='student';
+
+const AUTO_SETTINGS=[
+  {id:'hw_reminder',   title:'Homework due reminders',       desc:'Email student + parent 24h before due date',         on:true},
+  {id:'auto_assign',   title:'Auto-assign revision homework',desc:'When accuracy drops below 55% on any topic',         on:true},
+  {id:'inactivity',    title:'Inactivity re-engagement',     desc:'Email student if not logged in for 3+ days',         on:true},
+  {id:'level_up',      title:'Level-up certificate email',   desc:'Email certificate when student earns a new belt',    on:true},
+  {id:'welcome',       title:'Welcome email on signup',      desc:'Send login details and getting started guide',       on:true},
+  {id:'fee_reminder',  title:'Fee due date reminders',       desc:'Email parent 3 days before and on due date',        on:true},
+  {id:'fee_overdue',   title:'Overdue fee reminders',        desc:'Email parent every 3 days while fee unpaid',        on:true},
+  {id:'fee_receipt',   title:'Auto payment receipts',        desc:'Email receipt immediately after payment confirmed', on:true},
+  {id:'monthly_report',title:'Monthly progress reports',     desc:'Email PDF report to parent at end of each month',  on:true},
+  {id:'badge_notify',  title:'Badge earned notifications',   desc:'Notify student + parent when badge is earned',      on:true},
+  {id:'streak',        title:'Streak milestone alerts',      desc:'Notify at 7, 14, 30-day streak milestones',        on:true},
+];
+
+async function init(){
+  document.getElementById('topbarDate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    if(!session){window.location.href='../../login.html';return;}
+    const{data:profile}=await sb.from('users').select('full_name,role').eq('id',session.user.id).single();
+    if(!profile||profile.role!=='admin'){window.location.href='../../login.html';return;}
+    const name=profile.full_name;
+    document.getElementById('userAv').textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('userName').textContent=name;
+  }catch{/* demo */}
+  await loadAll();
+  renderAutomation();
+  renderSettings();
+  renderConnStatus();
+}
+
+async function loadAll(){
+  try{
+    const{data:users}=await sb.from('users').select('*').order('created_at',{ascending:false});
+    if(users){
+      allStudents=users.filter(u=>u.role==='student');
+      allTeachers=users.filter(u=>u.role==='teacher');
+      allParents =users.filter(u=>u.role==='parent');
+    }
+    const{data:batches}=await sb.from('batches').select('*,users!teacher_id(full_name),batch_students(student_id)');
+    if(batches)allBatches=batches;
+
+    document.getElementById('ov-students').textContent=allStudents.length;
+    document.getElementById('ov-teachers').textContent=allTeachers.length;
+    document.getElementById('ov-parents').textContent =allParents.length;
+    document.getElementById('studentCountBadge').textContent=allStudents.length;
+
+    const{data:fees}=await sb.from('fees').select('status,amount');
+    if(fees){
+      const overdue=fees.filter(f=>f.status==='overdue').length;
+      const pending=fees.filter(f=>f.status==='pending').length;
+      const collected=fees.filter(f=>f.status==='paid').reduce((s,f)=>s+f.amount,0);
+      document.getElementById('ov-overdue').textContent=overdue;
+      document.getElementById('feesCollected').textContent='Rs.'+collected.toLocaleString();
+      document.getElementById('feesOverdue').textContent=overdue;
+      document.getElementById('feesPending').textContent=pending;
+      if(overdue>0){document.getElementById('feesBadge').style.display='inline';document.getElementById('feesBadge').textContent=overdue;}
+    }
+
+    const{data:notifs}=await sb.from('notifications').select('title,created_at').order('created_at',{ascending:false}).limit(5);
+    const actEl=document.getElementById('recentActivity');
+    if(notifs&&notifs.length>0){
+      actEl.innerHTML=notifs.map(n=>`<div style="padding:7px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:12px"><span style="font-weight:700">${n.title}</span><span style="color:var(--text3);font-size:.72rem;white-space:nowrap">${new Date(n.created_at).toLocaleDateString('en-IN')}</span></div>`).join('');
+    }else{actEl.innerHTML='<span style="color:var(--text3)">No recent activity</span>';}
+
+    populateDropdowns();
+  }catch(err){showToast('Could not load data: '+err.message,'error');}
+}
+
+function populateDropdowns(){
+  const opts=(arr,label)=>`<option value="">Select ${label}</option>`+arr.map(u=>`<option value="${u.id}">${u.full_name} (${u.email})</option>`).join('');
+  const batchOpts='<option value="">No batch yet</option>'+allBatches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  document.getElementById('assocParent').innerHTML=opts(allParents,'parent');
+  document.getElementById('assocStudent').innerHTML=opts(allStudents,'student');
+  document.getElementById('batchStudentSel').innerHTML=opts(allStudents,'student');
+  document.getElementById('batchSel').innerHTML='<option value="">Select batch</option>'+allBatches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  document.getElementById('newBatch').innerHTML=batchOpts;
+  document.getElementById('newTeacherBatch').innerHTML=batchOpts;
+  document.getElementById('newBatchTeacher').innerHTML='<option value="">Select teacher</option>'+allTeachers.map(t=>`<option value="${t.id}">${t.full_name}</option>`).join('');
+  document.getElementById('newParentLink').innerHTML='<option value="">No parent yet</option>'+allParents.map(p=>`<option value="${p.id}">${p.full_name} (${p.email})</option>`).join('');
+}
+
+function initials(name){return(name||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
+function avColor(role){return role==='teacher'?'av-t':role==='parent'?'av-o':role==='admin'?'av-p':'av-g';}
+
+function renderStudents(data){
+  const tbody=document.getElementById('studentsTbody');
+  if(!data||data.length===0){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text3)">No students found</td></tr>';return;}
+  tbody.innerHTML=data.map(s=>{
+    const batch=allBatches.find(b=>b.batch_students?.some(bs=>bs.student_id===s.id));
+    return`<tr>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="av av-g">${initials(s.full_name)}</div><div><div style="font-weight:800">${s.full_name}</div><div style="font-size:.7rem;color:var(--text3)">${s.email}</div></div></div></td>
+      <td><span class="pill ${s.program==='vedic'?'pill-p':'pill-b'}">${s.program||'—'}</span></td>
+      <td style="font-weight:800">L${s.current_level||1}</td>
+      <td><div class="mode-toggle"><button class="mt ${s.mode==='online'?'on-online':''}" onclick="toggleMode('${s.id}','online',this)">On</button><button class="mt ${s.mode==='offline'?'on-offline':''}" onclick="toggleMode('${s.id}','offline',this)">Off</button></div></td>
+      <td style="font-size:.78rem;color:var(--text2)">${batch?batch.name:'—'}</td>
+      <td><span class="pill ${s.is_active?'pill-g':'pill-r'}">${s.is_active?'Active':'Inactive'}</span></td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" onclick="resetPwd('${s.email}')">Reset pwd</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deactivate('${s.id}','${s.full_name}')">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderTeachers(data){
+  const tbody=document.getElementById('teachersTbody');
+  if(!data||data.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">No teachers found</td></tr>';return;}
+  tbody.innerHTML=data.map(t=>{
+    const tBatches=allBatches.filter(b=>b.teacher_id===t.id);
+    const tStudents=tBatches.reduce((s,b)=>s+(b.batch_students?.length||0),0);
+    return`<tr>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="av av-t">${initials(t.full_name)}</div><div style="font-weight:800">${t.full_name}</div></div></td>
+      <td style="font-size:.78rem;color:var(--text2)">${t.email}</td>
+      <td><b>${tBatches.length}</b> batches</td>
+      <td><b>${tStudents}</b> students</td>
+      <td><span class="pill ${t.is_active?'pill-g':'pill-r'}">${t.is_active?'Active':'Inactive'}</span></td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" onclick="resetPwd('${t.email}')">Reset pwd</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deactivate('${t.id}','${t.full_name}')">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderParents(data){
+  const tbody=document.getElementById('parentsTbody');
+  if(!data||data.length===0){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3)">No parents found</td></tr>';return;}
+  tbody.innerHTML=data.map(p=>`<tr>
+    <td><div style="display:flex;align-items:center;gap:8px"><div class="av av-o">${initials(p.full_name)}</div><div style="font-weight:800">${p.full_name}</div></div></td>
+    <td style="font-size:.78rem;color:var(--text2)">${p.email}</td>
+    <td id="linked-${p.id}"><span style="color:var(--text3);font-size:.75rem">Loading...</span></td>
+    <td><span class="pill ${p.is_active?'pill-g':'pill-r'}">${p.is_active?'Active':'Inactive'}</span></td>
+    <td><div style="display:flex;gap:4px">
+      <button class="btn btn-ghost btn-sm" onclick="resetPwd('${p.email}')">Reset pwd</button>
+      <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deactivate('${p.id}','${p.full_name}')">✕</button>
+    </div></td>
+  </tr>`).join('');
+  data.forEach(p=>loadLinked(p.id));
+}
+
+async function loadLinked(pid){
+  try{
+    const{data}=await sb.from('parent_student').select('users!student_id(full_name)').eq('parent_id',pid);
+    const el=document.getElementById('linked-'+pid);
+    if(!el)return;
+    if(data&&data.length>0){el.innerHTML=data.map(d=>`<span class="pill pill-g" style="margin:2px">${d.users.full_name}</span>`).join('');}
+    else{el.innerHTML='<span style="color:var(--text3);font-size:.75rem">No students linked yet</span>';}
+  }catch{/*silent*/}
+}
+
+async function renderAssoc(){
+  try{
+    const{data}=await sb.from('parent_student').select('parent_id,student_id,parent:users!parent_id(full_name,email),student:users!student_id(full_name,program,current_level)');
+    const tbody=document.getElementById('assocTbody');
+    if(!data||data.length===0){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text3)">No associations yet. Use the form above to link parents to students.</td></tr>';return;}
+    tbody.innerHTML=data.map(a=>`<tr>
+      <td><b>${a.parent?.full_name||'?'}</b><div style="font-size:.7rem;color:var(--text3)">${a.parent?.email||''}</div></td>
+      <td style="font-weight:800">${a.student?.full_name||'?'}</td>
+      <td><span class="pill pill-b">${a.student?.program||'—'} L${a.student?.current_level||1}</span></td>
+      <td><button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="unlinkPS('${a.parent_id}','${a.student_id}')">Unlink</button></td>
+    </tr>`).join('');
+  }catch(err){showToast('Error loading associations: '+err.message,'error');}
+}
+
+function renderBatches(){
+  const tbody=document.getElementById('batchesTbody');
+  if(!allBatches||allBatches.length===0){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">No batches yet. Create one above.</td></tr>';return;}
+  tbody.innerHTML=allBatches.map(b=>`<tr>
+    <td style="font-weight:800">${b.name}</td>
+    <td><span class="pill pill-b">${b.program_id?'Abacus':'—'}</span></td>
+    <td>${b.users?.full_name||'—'}</td>
+    <td><b>${b.batch_students?.length||0}</b></td>
+    <td style="font-size:.75rem;color:var(--text2)">${b.schedule_json?.text||'—'}</td>
+    <td>${b.meet_link?`<a href="${b.meet_link}" target="_blank" style="font-size:.75rem;font-weight:700;color:var(--blue)">Join →</a>`:'<span style="color:var(--text3);font-size:.75rem">Not set</span>'}</td>
+    <td><button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteBatch('${b.id}','${b.name}')">Delete</button></td>
+  </tr>`).join('');
+}
+
+async function renderFees(){
+  try{
+    const{data}=await sb.from('fees').select('*,users!student_id(full_name)').order('due_date',{ascending:false});
+    const tbody=document.getElementById('feesTbody');
+    if(!data||data.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">No fee records. Click "Generate monthly fees" to create them.</td></tr>';return;}
+    tbody.innerHTML=data.map(f=>{
+      const sp=f.status==='paid'?'pill-g':f.status==='overdue'?'pill-r':'pill-o';
+      return`<tr>
+        <td style="font-weight:800">${f.users?.full_name||'—'}</td>
+        <td style="font-weight:800">Rs. ${f.amount}</td>
+        <td style="font-size:.78rem">${f.due_date}</td>
+        <td><span class="pill ${sp}">${f.status}</span></td>
+        <td style="font-size:.75rem;color:var(--text2)">${f.payment_method||'—'}</td>
+        <td><div style="display:flex;gap:4px">
+          ${f.status!=='paid'
+            ?`<button class="btn btn-ghost btn-sm" onclick="markPaid('${f.id}')">Mark paid</button>
+              <button class="btn btn-ghost btn-sm" onclick="showToast('Reminder sent!','success')">Remind</button>`
+            :`<button class="btn btn-ghost btn-sm" onclick="showToast('Receipt feature coming soon!','')">Receipt</button>`}
+        </div></td>
+      </tr>`;
+    }).join('');
+  }catch(err){showToast('Error loading fees: '+err.message,'error');}
+}
+
+function filterStudents(){
+  const s=document.getElementById('studentSearch').value.toLowerCase();
+  const p=document.getElementById('filterProgram').value;
+  const m=document.getElementById('filterMode').value;
+  renderStudents(allStudents.filter(u=>{
+    if(s&&!u.full_name?.toLowerCase().includes(s)&&!u.email?.toLowerCase().includes(s))return false;
+    if(p&&u.program!==p)return false;
+    if(m&&u.mode!==m)return false;
+    return true;
+  }));
+}
+function filterParents(){
+  const s=document.getElementById('parentSearch').value.toLowerCase();
+  renderParents(allParents.filter(p=>!s||p.full_name?.toLowerCase().includes(s)||p.email?.toLowerCase().includes(s)));
+}
+
+async function createUser(){
+  const name    =document.getElementById('newName').value.trim();
+  const email   =document.getElementById('newEmail').value.trim();
+  const password=document.getElementById('newPassword').value.trim()||'imath2025';
+  const phone   =document.getElementById('newPhone').value.trim();
+  const program =document.getElementById('newProgram')?.value;
+  const level   =parseInt(document.getElementById('newLevel')?.value||'1');
+  const mode    =document.getElementById('newMode')?.value||'online';
+  const batchId =currentModal==='student'?document.getElementById('newBatch')?.value:document.getElementById('newTeacherBatch')?.value;
+  const fee     =parseInt(document.getElementById('newFee')?.value||'800');
+  const parentId=document.getElementById('newParentLink')?.value;
+  if(!name){showToast('Please enter full name!','');return;}
+  if(!email){showToast('Please enter email address!','');return;}
+  const btn=document.getElementById('createBtn');
+  const orig=btn.innerHTML;
+  btn.innerHTML='<div class="spinner"></div> Creating...';
+  btn.disabled=true;
+  try{
+    const{data,error}=await sb.functions.invoke('create-user',{
+      body:{email,password,full_name:name,role:currentModal,
+        program:currentModal==='student'?program:null,
+        current_level:currentModal==='student'?level:1,
+        mode:currentModal==='student'?mode:'online',
+        phone:phone||null,batch_id:batchId||null,
+        fee_amount:currentModal==='student'?fee:null}
+    });
+    if(error)throw new Error(error.message);
+    if(data?.error)throw new Error(data.error);
+    if(currentModal==='student'&&parentId){
+      await sb.from('parent_student').insert({parent_id:parentId,student_id:data.user.id});
+    }
+    closeModal();
+    showToast(`✅ ${name} created! Login: ${email} / ${password}`,'success');
+    await loadAll();
+    renderTabData(getCurrentTab());
+  }catch(err){
+    showToast('❌ Failed: '+err.message,'error');
+  }finally{
+    btn.innerHTML=orig;btn.disabled=false;
+  }
+}
+
+async function linkParentStudent(){
+  const pid=document.getElementById('assocParent').value;
+  const sid=document.getElementById('assocStudent').value;
+  if(!pid||!sid){showToast('Please select both parent and student!','');return;}
+  try{
+    const{error}=await sb.from('parent_student').insert({parent_id:pid,student_id:sid});
+    if(error)throw error;
+    showToast('✅ Parent linked to student!','success');
+    renderAssoc();await loadAll();
+  }catch(err){showToast('❌ '+err.message,'error');}
+}
+
+async function unlinkPS(pid,sid){
+  try{
+    await sb.from('parent_student').delete().eq('parent_id',pid).eq('student_id',sid);
+    showToast('Parent unlinked.','');renderAssoc();
+  }catch(err){showToast('❌ '+err.message,'error');}
+}
+
+async function addStudentToBatch(){
+  const sid=document.getElementById('batchStudentSel').value;
+  const bid=document.getElementById('batchSel').value;
+  if(!sid||!bid){showToast('Please select both student and batch!','');return;}
+  try{
+    const{error}=await sb.from('batch_students').insert({batch_id:bid,student_id:sid});
+    if(error)throw error;
+    showToast('✅ Student added to batch!','success');
+    await loadAll();renderBatches();
+  }catch(err){
+    if(err.message.includes('duplicate'))showToast('Student already in this batch!','');
+    else showToast('❌ '+err.message,'error');
+  }
+}
+
+async function createBatch(){
+  const name    =document.getElementById('newBatchName').value.trim();
+  const program =document.getElementById('newBatchProgram').value;
+  const teacher =document.getElementById('newBatchTeacher').value;
+  const schedule=document.getElementById('newBatchSchedule').value.trim();
+  const meet    =document.getElementById('newBatchMeet').value.trim();
+  if(!name){showToast('Please enter batch name!','');return;}
+  try{
+    const{data:prog}=await sb.from('programs').select('id').eq('slug',program).single();
+    const{error}=await sb.from('batches').insert({
+      name,program_id:prog?.id||null,teacher_id:teacher||null,
+      meet_link:meet||null,schedule_json:schedule?{text:schedule}:null,is_active:true
+    });
+    if(error)throw error;
+    showToast(`✅ Batch "${name}" created!`,'success');
+    ['newBatchName','newBatchSchedule','newBatchMeet'].forEach(id=>{document.getElementById(id).value='';});
+    await loadAll();renderBatches();
+  }catch(err){showToast('❌ '+err.message,'error');}
+}
+
+async function deleteBatch(id,name){
+  if(!confirm(`Delete batch "${name}"?`))return;
+  try{
+    await sb.from('batch_students').delete().eq('batch_id',id);
+    await sb.from('batches').delete().eq('id',id);
+    showToast(`Batch "${name}" deleted.`,'');
+    await loadAll();renderBatches();
+  }catch(err){showToast('❌ '+err.message,'error');}
+}
+
+async function markPaid(feeId){
+  try{
+    await sb.from('fees').update({status:'paid',paid_at:new Date().toISOString(),payment_method:'cash'}).eq('id',feeId);
+    showToast('Fee marked as paid!','success');
+    renderFees();await loadAll();
+  }catch(err){showToast('❌ '+err.message,'error');}
+}
+
+async function createMonthlyFees(){
+  if(!confirm(`Create fee records for all ${allStudents.length} students?`))return;
+  try{
+    const due=new Date();due.setDate(1);due.setMonth(due.getMonth()+1);
+    const fees=allStudents.map(s=>({student_id:s.id,amount:800,currency:'INR',due_date:due.toISOString().split('T')[0],status:'pending'}));
+    const{error}=await sb.from('fees').insert(fees);
+    if(error)throw error;
+    showToast(`✅ Fee records created for ${fees.length} students!`,'success');
+    renderFees();await loadAll();
+  }catch(err){showToast('❌ '+err.message,'error');}
+}
+
+function sendAllFeeReminders(){showToast('Reminders sent to all overdue parents!','success');}
+
+async function toggleMode(uid,mode,btn){
+  const grp=btn.parentElement;
+  grp.querySelectorAll('.mt').forEach(b=>b.className='mt');
+  btn.classList.add(mode==='online'?'on-online':'on-offline');
+  try{await sb.from('users').update({mode}).eq('id',uid);showToast('Mode updated!','success');}
+  catch{/*silent*/}
+}
+
+function resetPwd(email){
+  showConfirm('Reset password?',`Send password reset email to ${email}?`,async()=>{
+    try{
+      await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://imathacademy.net/login.html'});
+      showToast('Password reset email sent!','success');
+    }catch(err){showToast('❌ '+err.message,'error');}
+  });
+}
+
+function deactivate(uid,name){
+  showConfirm('Deactivate account?',`Deactivate ${name}'s account? Data is preserved, they cannot login.`,async()=>{
+    try{
+      await sb.from('users').update({is_active:false}).eq('id',uid);
+      showToast(`${name} deactivated.`,'');
+      await loadAll();renderTabData(getCurrentTab());
+    }catch(err){showToast('❌ '+err.message,'error');}
+  });
+}
+
+function exportCSV(type){
+  let h=[],d=[];
+  if(type==='students'){h=['Name','Email','Program','Level','Mode','Active'];d=allStudents.map(s=>[s.full_name,s.email,s.program,s.current_level,s.mode,s.is_active]);}
+  else if(type==='teachers'){h=['Name','Email','Active'];d=allTeachers.map(t=>[t.full_name,t.email,t.is_active]);}
+  else if(type==='parents'){h=['Name','Email','Active'];d=allParents.map(p=>[p.full_name,p.email,p.is_active]);}
+  const csv=[h,...d].map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv,'+encodeURIComponent(csv);
+  a.download=`imathacademy_${type}_${new Date().toISOString().split('T')[0]}.csv`;a.click();
+  showToast(`${type} exported!`,'success');
+}
+
+function renderAutomation(){
+  document.getElementById('autoList').innerHTML=AUTO_SETTINGS.map(item=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1.5px solid var(--border);gap:12px;flex-wrap:wrap">
+      <div style="flex:1"><div style="font-size:.875rem;font-weight:700">${item.title}</div><div style="font-size:.72rem;color:var(--text3);margin-top:1px">${item.desc}</div></div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <div class="toggle ${item.on?'':'off'}" id="tog-${item.id}" onclick="toggleAuto('${item.id}',this)"><div class="toggle-knob"></div></div>
+        <div style="font-size:.75rem;font-weight:800;color:${item.on?'var(--green-dk)':'var(--text3)'};min-width:24px" id="togl-${item.id}">${item.on?'ON':'OFF'}</div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleAuto(id,el){
+  el.classList.toggle('off');const isOn=!el.classList.contains('off');
+  const lbl=document.getElementById('togl-'+id);
+  if(lbl){lbl.textContent=isOn?'ON':'OFF';lbl.style.color=isOn?'var(--green-dk)':'var(--text3)';}
+  showToast(id.replace(/_/g,' ')+' '+(isOn?'enabled':'disabled'),'success');
+}
+
+function renderSettings(){
+  const s=[
+    {label:'Academy name',      id:'s-name',  value:'iMathAcademy',             type:'text'},
+    {label:'Contact email',     id:'s-email', value:'hello@imathacademy.net',    type:'email'},
+    {label:'Contact phone',     id:'s-phone', value:'+91 99999 99999',           type:'tel'},
+    {label:'Website URL',       id:'s-url',   value:'https://imathacademy.net',  type:'url'},
+    {label:'Default monthly fee (Rs.)',id:'s-fee',value:'800',type:'number'},
+    {label:'UPI ID',            id:'s-upi',   value:'imathacademy@razorpay',     type:'text'},
+  ];
+  document.getElementById('settingsList').innerHTML=s.map(x=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap">
+      <label style="font-size:.875rem;font-weight:700;min-width:180px">${x.label}</label>
+      <input type="${x.type}" class="form-input" id="${x.id}" value="${x.value}" style="flex:1;max-width:280px">
+    </div>`).join('');
+}
+
+function saveSettings(){showToast('Settings saved!','success');}
+
+function renderConnStatus(){
+  document.getElementById('connStatus').innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="width:10px;height:10px;border-radius:50%;background:var(--green)"></div>
+      <div style="font-size:.875rem;font-weight:700">Supabase database</div>
+      <span class="pill pill-g" style="margin-left:auto">Connected</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="width:10px;height:10px;border-radius:50%;background:var(--green)"></div>
+      <div style="font-size:.875rem;font-weight:700">Brevo email</div>
+      <span class="pill pill-g" style="margin-left:auto">Connected</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0">
+      <div style="width:10px;height:10px;border-radius:50%;background:var(--orange)"></div>
+      <div style="font-size:.875rem;font-weight:700">Razorpay payments</div>
+      <span class="pill pill-o" style="margin-left:auto">Demo mode</span>
+      <button class="btn btn-orange btn-sm" onclick="showToast('Complete KYC at razorpay.com first!','')">Setup →</button>
+    </div>`;
+}
+
+function showTab(name,el){
+  ['overview','students','teachers','parents','associations','batches','fees','automation','settings'].forEach(t=>{
+    const p=document.getElementById('tab-'+t);if(p)p.style.display=t===name?'block':'none';
+  });
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  if(el)el.classList.add('active');
+  const titles={overview:'Academy Overview',students:'Students',teachers:'Teachers',parents:'Parents',associations:'Associations',batches:'Batches',fees:'Fees',automation:'Automation',settings:'Settings'};
+  document.getElementById('topbarTitle').textContent=titles[name]||'Admin';
+  renderTabData(name);
+}
+
+function renderTabData(name){
+  if(name==='students')renderStudents(allStudents);
+  if(name==='teachers')renderTeachers(allTeachers);
+  if(name==='parents')renderParents(allParents);
+  if(name==='associations'){renderAssoc();populateDropdowns();}
+  if(name==='batches'){renderBatches();populateDropdowns();}
+  if(name==='fees')renderFees();
+}
+
+function getCurrentTab(){
+  const a=document.querySelector('.nav-item.active');
+  return a?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1]||'overview';
+}
+
+function openModal(type){
+  currentModal=type;
+  const titles={student:'Add new student',teacher:'Add new teacher',parent:'Add new parent'};
+  const notes={
+    student:'✅ Account created instantly. Welcome email sent to student.',
+    teacher:'✅ Teacher account created. Login details emailed.',
+    parent:'✅ Parent account created. Link them to a student in Associations tab.',
+  };
+  document.getElementById('modalTitle').textContent=titles[type]||'Add user';
+  document.getElementById('modalNote').textContent=notes[type]||'';
+  document.getElementById('studentFields').style.display=type==='student'?'block':'none';
+  document.getElementById('teacherFields').style.display=type==='teacher'?'block':'none';
+  ['newName','newEmail','newPhone'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('newPassword').value='imath2025';
+  document.getElementById('addModal').classList.add('open');
+}
+
+function closeModal(){document.getElementById('addModal').classList.remove('open');}
+
+function showConfirm(title,msg,onOk){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmMsg').textContent=msg;
+  document.getElementById('confirmOkBtn').onclick=()=>{closeConfirm();onOk();};
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeConfirm(){document.getElementById('confirmModal').classList.remove('open');}
+
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+
+function showToast(msg,type=''){
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  t.className=`toast${type?' toast-'+type:''}`;t.textContent=msg;
+  c.appendChild(t);setTimeout(()=>t.remove(),4000);
+}
+
+async function logout(){await sb.auth.signOut();window.location.href='../../login.html';}
+
+init();
+</script>
+</body>
+</html>

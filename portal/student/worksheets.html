@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Worksheets — iMathAcademy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; min-height: 100vh; }
+    :root {
+      --green:#43A047; --green-dk:#1B5E20; --green-lt:#E8F5E9; --green-md:#2E7D32;
+      --orange:#FB8C00; --orange-dk:#E65100; --orange-lt:#FFF3E0;
+      --blue:#1E88E5; --blue-dk:#0D47A1; --blue-lt:#E3F2FD;
+      --purple:#8E24AA; --purple-dk:#4A148C; --purple-lt:#F3E5F5;
+      --red:#E53935; --red-dk:#B71C1C; --red-lt:#FFEBEE;
+      --yellow:#F9A825; --yellow-lt:#FFFDE7; --yellow-dk:#F57F17;
+      --teal:#00897B; --teal-lt:#E0F2F1; --teal-dk:#004D40;
+      --bg:#FFFFFF; --bg2:#F7F8FF; --border:#E8EAF6;
+      --text2:#4A4A6A; --text3:#9090B0;
+    }
+    .portal { display:flex; min-height:100vh; }
+    .sidebar { width:220px; flex-shrink:0; background:var(--bg); border-right:2px solid var(--border); display:flex; flex-direction:column; position:fixed; top:0; left:0; height:100vh; overflow-y:auto; z-index:100; }
+    .sidebar-logo { padding:20px 16px; border-bottom:2px solid var(--border); font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800; color:var(--green-dk); display:flex; align-items:center; gap:10px; }
+    .sidebar-logo span { color:var(--orange-dk); }
+    .logo-icon { width:34px; height:34px; background:var(--green); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+    .sidebar-nav { flex:1; padding:12px 0; }
+    .nav-section { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--text3); padding:8px 16px 3px; margin-top:6px; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 16px; font-size:.875rem; font-weight:700; color:var(--text2); cursor:pointer; border-left:3px solid transparent; transition:all .12s; text-decoration:none; }
+    .nav-item:hover { color:var(--text); background:var(--bg2); }
+    .nav-item.active { color:var(--teal-dk); background:var(--teal-lt); border-left-color:var(--teal); }
+    .nav-icon { width:20px; text-align:center; font-size:1rem; }
+    .nav-badge { margin-left:auto; background:var(--red); color:#fff; font-size:.62rem; font-weight:800; padding:2px 6px; border-radius:20px; }
+    .sidebar-user { padding:14px 16px; border-top:2px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .user-av { width:36px; height:36px; border-radius:50%; background:var(--green-lt); border:2px solid var(--green); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; color:var(--green-dk); }
+    .user-name { font-size:.82rem; font-weight:800; }
+    .user-role { font-size:.7rem; color:var(--text3); font-weight:600; }
+    .logout-btn { margin-left:auto; background:none; border:none; font-size:.85rem; cursor:pointer; color:var(--text3); }
+    .main { flex:1; margin-left:220px; display:flex; flex-direction:column; }
+    .topbar { height:62px; background:var(--bg); border-bottom:2px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 24px; position:sticky; top:0; z-index:50; box-shadow:0 2px 8px rgba(0,0,0,.05); }
+    .topbar-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; }
+    .body { padding:24px; max-width:900px; }
+
+    /* ── STREAK BAR ── */
+    .streak-card { background:linear-gradient(135deg,var(--teal-dk),var(--teal)); border-radius:20px; padding:20px 24px; color:#fff; margin-bottom:24px; display:flex; align-items:center; gap:20px; }
+    .streak-days { display:flex; gap:8px; }
+    .streak-day { width:40px; height:40px; border-radius:50%; border:2px solid rgba(255,255,255,.4); display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:800; background:rgba(255,255,255,.15); }
+    .streak-day.done { background:#fff; color:var(--teal-dk); border-color:#fff; }
+    .streak-day.today { background:var(--yellow); color:var(--yellow-dk); border-color:var(--yellow); }
+    .streak-info h3 { font-size:1rem; font-weight:800; margin-bottom:3px; }
+    .streak-info p { font-size:.82rem; opacity:.85; }
+    .streak-lock { margin-left:auto; text-align:center; }
+    .streak-lock .lock-icon { font-size:2rem; }
+    .streak-lock p { font-size:.72rem; opacity:.85; margin-top:4px; }
+
+    /* ── LEVEL TABS ── */
+    .level-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px; }
+    .level-tab { padding:8px 18px; border-radius:20px; font-size:.82rem; font-weight:800; border:2px solid var(--border); background:var(--bg); color:var(--text2); cursor:pointer; transition:all .15s; font-family:'Nunito',sans-serif; }
+    .level-tab.active { background:var(--teal); color:#fff; border-color:var(--teal); }
+
+    /* ── WORKSHEET TYPES ── */
+    .ws-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:24px; }
+    .ws-card { background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:18px; cursor:pointer; transition:all .15s; }
+    .ws-card:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(0,0,0,.08); }
+    .ws-card.locked { opacity:.55; cursor:not-allowed; }
+    .ws-icon { font-size:2rem; margin-bottom:8px; }
+    .ws-title { font-size:.95rem; font-weight:800; margin-bottom:4px; }
+    .ws-desc { font-size:.78rem; color:var(--text2); font-weight:600; line-height:1.5; }
+    .ws-badge { display:inline-block; margin-top:8px; padding:3px 10px; border-radius:20px; font-size:.7rem; font-weight:800; }
+    .badge-green { background:var(--green-lt); color:var(--green-dk); }
+    .badge-orange { background:var(--orange-lt); color:var(--orange-dk); }
+    .badge-teal { background:var(--teal-lt); color:var(--teal-dk); }
+    .badge-lock { background:var(--bg2); color:var(--text3); border:1.5px solid var(--border); }
+
+    /* ── ACTIVE WORKSHEET ── */
+    .ws-active { background:var(--bg); border:2px solid var(--border); border-radius:20px; padding:24px; display:none; }
+    .ws-active.show { display:block; }
+    .ws-header { display:flex; align-items:center; gap:14px; margin-bottom:20px; }
+    .ws-progress { background:var(--bg2); border-radius:30px; height:10px; flex:1; overflow:hidden; }
+    .ws-progress-fill { height:100%; border-radius:30px; background:var(--teal); transition:width .4s; }
+    .q-card { background:var(--bg2); border:2px solid var(--border); border-radius:16px; padding:20px; margin-bottom:16px; text-align:center; }
+    .q-num { font-family:'Baloo 2',sans-serif; font-size:2.2rem; font-weight:800; color:var(--text); margin-bottom:12px; }
+    .ws-input { width:120px; padding:10px 14px; font-size:1.4rem; font-weight:800; text-align:center; border:3px solid var(--border); border-radius:14px; font-family:'Baloo 2',sans-serif; outline:none; transition:border-color .15s; }
+    .ws-input:focus { border-color:var(--teal); }
+    .ws-actions { display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap; }
+    .btn { padding:10px 22px; border-radius:30px; font-family:'Nunito',sans-serif; font-size:.875rem; font-weight:800; border:none; cursor:pointer; transition:all .15s; }
+    .btn-teal { background:var(--teal); color:#fff; }
+    .btn-ghost { background:var(--bg2); color:var(--text2); border:2px solid var(--border); }
+    .btn:hover { opacity:.88; transform:translateY(-1px); }
+
+    /* ── COMPLETE ── */
+    .ws-complete { text-align:center; padding:32px; display:none; }
+    .ws-complete.show { display:block; }
+    .complete-emoji { font-size:3.5rem; margin-bottom:12px; }
+    .complete-title { font-family:'Baloo 2',sans-serif; font-size:1.6rem; font-weight:800; margin-bottom:6px; }
+    .complete-sub { color:var(--text2); font-size:.9rem; font-weight:600; margin-bottom:20px; }
+    .xp-earned { display:inline-block; background:var(--yellow-lt); color:var(--yellow-dk); border:2px solid #FFE082; border-radius:30px; padding:8px 24px; font-size:1.1rem; font-weight:800; margin-bottom:20px; }
+
+    /* ── TOAST ── */
+    .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+    .toast { background:#212121; color:#fff; padding:10px 18px; border-radius:12px; font-size:.875rem; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,.2); animation:slideIn .3s ease; }
+    .toast-success { background:var(--green-dk); }
+    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+    @media(max-width:768px) {
+      .sidebar { display:none; }
+      .main { margin-left:0; }
+      .ws-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="portal">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon">🧮</div>iMath<span>Academy</span></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Overview</div>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <div class="nav-section">Learning</div>
+      <a class="nav-item" href="lessons.html"><span class="nav-icon">▶️</span> Lessons</a>
+      <a class="nav-item" href="practice.html"><span class="nav-icon">⚡</span> Practice</a>
+      <a class="nav-item active" href="worksheets.html"><span class="nav-icon">📋</span> Worksheets</a>
+      <a class="nav-item" href="weekly-quiz.html"><span class="nav-icon">⭐</span> Weekly Quiz</a>
+      <div class="nav-section">Progress</div>
+      <a class="nav-item" href="progress.html"><span class="nav-icon">📊</span> My progress</a>
+      <a class="nav-item" href="homework.html"><span class="nav-icon">📚</span> Homework</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-av" id="userAv">—</div>
+      <div><div class="user-name" id="userName">Loading...</div><div class="user-role">Student</div></div>
+      <button class="logout-btn" onclick="logout()">⇥</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">📋 Worksheets</div>
+      <div style="font-size:.8rem;font-weight:600;color:var(--text3)" id="topbarDate"></div>
+    </div>
+
+    <div class="body">
+
+      <!-- Streak Bar -->
+      <div class="streak-card" id="streakCard">
+        <div>
+          <div style="font-size:.82rem;font-weight:800;margin-bottom:10px;opacity:.9">This week's streak</div>
+          <div class="streak-days" id="streakDays"></div>
+        </div>
+        <div class="streak-info" style="flex:1;margin-left:16px">
+          <h3 id="streakTitle">Complete today's worksheet!</h3>
+          <p id="streakSub">5-day streak unlocks the Weekly Quiz ⭐</p>
+        </div>
+        <div class="streak-lock">
+          <div class="lock-icon" id="quizLockIcon">🔒</div>
+          <p id="quizLockText">Weekly Quiz<br>locked</p>
+        </div>
+      </div>
+
+      <!-- Level selector -->
+      <div class="level-tabs" id="levelTabs"></div>
+
+      <!-- Worksheet type cards -->
+      <div id="worksheetPanel">
+        <div class="ws-grid" id="wsGrid"></div>
+      </div>
+
+      <!-- Active worksheet -->
+      <div class="ws-active" id="wsActive">
+        <div class="ws-header">
+          <button class="btn btn-ghost" style="padding:7px 14px;font-size:.82rem" onclick="closeWorksheet()">← Back</button>
+          <div style="flex:1">
+            <div style="font-size:.82rem;font-weight:800;color:var(--text2);margin-bottom:4px" id="wsActiveTitle">Worksheet</div>
+            <div class="ws-progress"><div class="ws-progress-fill" id="wsProgressFill" style="width:0%"></div></div>
+          </div>
+          <div style="font-size:.82rem;font-weight:700;color:var(--text3)" id="wsQCounter">0/0</div>
+        </div>
+        <div class="q-card">
+          <div class="q-num" id="wsQText">2 + 3</div>
+          <input class="ws-input" type="number" id="wsInput" placeholder="?" onkeydown="if(event.key==='Enter') wsCheckAnswer()">
+        </div>
+        <div class="ws-actions">
+          <button class="btn btn-ghost" onclick="wsSkip()">Skip →</button>
+          <button class="btn btn-teal" onclick="wsCheckAnswer()">Check answer ✓</button>
+        </div>
+        <div id="wsFeedback" style="text-align:center;margin-top:14px;font-size:.9rem;font-weight:700;min-height:24px"></div>
+      </div>
+
+      <!-- Complete screen -->
+      <div class="ws-complete" id="wsComplete">
+        <div class="complete-emoji">🎉</div>
+        <div class="complete-title" id="wcTitle">Worksheet complete!</div>
+        <div class="complete-sub" id="wcSub">Great work today!</div>
+        <div class="xp-earned" id="wcXP">+20 XP earned</div>
+        <div id="wcStreakMsg" style="margin-bottom:20px;font-size:.9rem;font-weight:700;color:var(--teal-dk)"></div>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-teal" onclick="closeWorksheet()">Try another worksheet</button>
+          <button class="btn btn-ghost" onclick="window.location.href='dashboard.html'">Back to dashboard</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let studentId = null, studentLevel = 1, streakDays = 0;
+let currentWs = null, wsQuestions = [], wsIdx = 0, wsCorrect = 0;
+
+// ── WORKSHEET DEFINITIONS BY LEVEL ────────────────────────
+const LEVELS = [
+  { id:1, name:'Level 1', topics:['Simple addition', 'Simple subtraction'], sumsPerWs:5 },
+  { id:2, name:'Level 2', topics:['Big friends addition', 'Small friends addition'], sumsPerWs:10 },
+  { id:3, name:'Level 3', topics:['Big friends subtraction', 'Small friends subtraction'], sumsPerWs:10 },
+  { id:4, name:'Level 4', topics:['Combination addition', 'Combination subtraction'], sumsPerWs:10 },
+  { id:5, name:'Level 5', topics:['Multiplication 2×1', 'Division 2÷1'], sumsPerWs:10 },
+  { id:6, name:'Level 6', topics:['Multiplication 3×1', 'Division 3÷1'], sumsPerWs:10 },
+];
+
+const WS_TYPES = [
+  { id:'standard',    icon:'📝', title:'Daily Worksheet',       desc:'Sums for today\'s topic. Complete 5 days in a row to unlock the Weekly Quiz!', badge:'Daily', badgeClass:'badge-teal' },
+  { id:'sudoku',      icon:'🔢', title:'Sudoku Maths',          desc:'Fill the grid so every row and column adds up correctly. Great for logic!', badge:'Puzzle', badgeClass:'badge-green' },
+  { id:'mindmath',    icon:'⚡', title:'Mind Math',              desc:'Quick calculations — no writing, just think fast! Beat your best time.', badge:'Speed', badgeClass:'badge-orange' },
+  { id:'skipcounting',icon:'🔢', title:'Skip Counting',         desc:'Complete the number pattern. Count by 2s, 5s, 10s and more.', badge:'Pattern', badgeClass:'badge-green' },
+];
+
+// ── QUESTION GENERATORS ────────────────────────────────────
+function generateQuestions(level, wsType, count) {
+  const qs = [];
+  for (let i = 0; i < count; i++) {
+    let q, a;
+    const l = level;
+    if (wsType === 'skipcounting') {
+      const skip = [2,3,5,10][Math.floor(Math.random()*4)];
+      const start = Math.floor(Math.random()*5)*skip;
+      const pos   = Math.floor(Math.random()*3)+1;
+      q = `${start}, ${start+skip}, ___, ${start+3*skip}  (skip by ${skip})`;
+      a = start + pos*skip;
+    } else if (l <= 2) {
+      const a1 = Math.floor(Math.random()*9)+1;
+      const a2 = Math.floor(Math.random()*9)+1;
+      q = `${a1} + ${a2}`; a = a1+a2;
+    } else if (l === 3) {
+      const a1 = Math.floor(Math.random()*9)+2;
+      const a2 = Math.floor(Math.random()*(a1-1))+1;
+      q = `${a1} − ${a2}`; a = a1-a2;
+    } else if (l === 4) {
+      const a1 = Math.floor(Math.random()*50)+10;
+      const a2 = Math.floor(Math.random()*20)+5;
+      q = Math.random()>.5 ? `${a1} + ${a2}` : `${a1} − ${Math.min(a2,a1-1)}`;
+      a = q.includes('+') ? a1+a2 : a1-Math.min(a2,a1-1);
+    } else if (l === 5) {
+      if (Math.random()>.5) { const m=Math.floor(Math.random()*9)+2,n=Math.floor(Math.random()*9)+1; q=`${m} × ${n}`; a=m*n; }
+      else { const d=Math.floor(Math.random()*9)+2,r=Math.floor(Math.random()*9)+1; q=`${d*r} ÷ ${d}`; a=r; }
+    } else {
+      if (Math.random()>.5) { const m=Math.floor(Math.random()*9)+2,n=Math.floor(Math.random()*99)+10; q=`${m} × ${n}`; a=m*n; }
+      else { const d=Math.floor(Math.random()*9)+2,r=Math.floor(Math.random()*99)+10; q=`${d*r} ÷ ${d}`; a=r; }
+    }
+    qs.push({ q, a });
+  }
+  return qs;
+}
+
+// ── UI BUILDERS ────────────────────────────────────────────
+function buildLevelTabs() {
+  const el = document.getElementById('levelTabs');
+  LEVELS.forEach((lv, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'level-tab' + (lv.id === studentLevel ? ' active' : '');
+    btn.textContent = lv.name;
+    btn.onclick = () => { document.querySelectorAll('.level-tab').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); buildWsGrid(lv.id); };
+    el.appendChild(btn);
+  });
+  buildWsGrid(studentLevel);
+}
+
+function buildWsGrid(levelId) {
+  const el = document.getElementById('wsGrid');
+  el.innerHTML = '';
+  WS_TYPES.forEach(ws => {
+    const card = document.createElement('div');
+    card.className = 'ws-card';
+    card.innerHTML = `
+      <div class="ws-icon">${ws.icon}</div>
+      <div class="ws-title">${ws.title}</div>
+      <div class="ws-desc">${ws.desc}</div>
+      <div class="ws-badge ${ws.badgeClass}">${ws.badge}</div>
+    `;
+    card.onclick = () => startWorksheet(ws, levelId);
+    el.appendChild(card);
+  });
+}
+
+function buildStreakBar() {
+  const el = document.getElementById('streakDays');
+  el.innerHTML = '';
+  const days = ['M','T','W','T','F'];
+  const today = new Date().getDay(); // 0=Sun
+  const weekDay = today === 0 ? 4 : Math.min(today-1, 4);
+  days.forEach((d, i) => {
+    const div = document.createElement('div');
+    div.className = 'streak-day' + (i < streakDays ? ' done' : i === weekDay ? ' today' : '');
+    div.textContent = i < streakDays ? '✓' : d;
+    el.appendChild(div);
+  });
+  const locked = streakDays < 5;
+  document.getElementById('quizLockIcon').textContent  = locked ? '🔒' : '⭐';
+  document.getElementById('quizLockText').textContent  = locked ? `Weekly Quiz\n${streakDays}/5 days` : 'Weekly Quiz\nUnlocked!';
+  document.getElementById('streakTitle').textContent   = streakDays >= 5 ? '🎉 Weekly Quiz unlocked!' : `Day ${streakDays} of 5 complete`;
+  document.getElementById('streakSub').textContent     = streakDays >= 5 ? 'Head to Weekly Quiz to earn XP and badges!' : `${5-streakDays} more day${5-streakDays!==1?'s':''} to unlock the Weekly Quiz ⭐`;
+}
+
+// ── WORKSHEET FLOW ─────────────────────────────────────────
+function startWorksheet(ws, levelId) {
+  currentWs  = ws;
+  const lv   = LEVELS.find(l => l.id === levelId) || LEVELS[0];
+  wsQuestions = generateQuestions(levelId, ws.id, lv.sumsPerWs);
+  wsIdx = 0; wsCorrect = 0;
+  document.getElementById('wsActiveTitle').textContent = `${ws.title} — ${lv.name}`;
+  document.getElementById('worksheetPanel').style.display = 'none';
+  document.getElementById('wsActive').classList.add('show');
+  document.getElementById('wsComplete').classList.remove('show');
+  document.getElementById('levelTabs').style.display = 'none';
+  document.getElementById('streakCard').style.display = 'none';
+  loadWsQuestion();
+}
+
+function loadWsQuestion() {
+  if (wsIdx >= wsQuestions.length) { finishWorksheet(); return; }
+  const q = wsQuestions[wsIdx];
+  document.getElementById('wsQText').textContent = q.q;
+  document.getElementById('wsInput').value = '';
+  document.getElementById('wsInput').style.borderColor = 'var(--border)';
+  document.getElementById('wsFeedback').textContent = '';
+  document.getElementById('wsQCounter').textContent = `${wsIdx+1}/${wsQuestions.length}`;
+  document.getElementById('wsProgressFill').style.width = `${(wsIdx/wsQuestions.length)*100}%`;
+  document.getElementById('wsInput').focus();
+}
+
+let _wsLocked = false;
+function wsCheckAnswer() {
+  if (_wsLocked) return;
+  const val = parseInt(document.getElementById('wsInput').value);
+  const q   = wsQuestions[wsIdx];
+  if (isNaN(val)) { showToast('Type your answer first!', ''); return; }
+  if (val === q.a) {
+    wsCorrect++;
+    document.getElementById('wsInput').style.borderColor = 'var(--green)';
+    document.getElementById('wsFeedback').innerHTML = `<span style="color:var(--green-dk)">✓ Correct! ${q.q} = ${q.a}</span>`;
+    _wsLocked = true;
+    setTimeout(() => { _wsLocked = false; wsIdx++; loadWsQuestion(); }, 900);
+  } else {
+    document.getElementById('wsInput').style.borderColor = 'var(--red)';
+    document.getElementById('wsFeedback').innerHTML = `<span style="color:var(--red-dk)">✗ Not quite — try again!</span>`;
+  }
+}
+
+function wsSkip() {
+  if (_wsLocked) return;
+  const q = wsQuestions[wsIdx];
+  document.getElementById('wsFeedback').innerHTML = `<span style="color:var(--text3)">Skipped — answer was ${q.a}</span>`;
+  _wsLocked = true;
+  setTimeout(() => { _wsLocked = false; wsIdx++; loadWsQuestion(); }, 1000);
+}
+
+async function finishWorksheet() {
+  document.getElementById('wsActive').classList.remove('show');
+  document.getElementById('wsComplete').classList.add('show');
+  const total = wsQuestions.length;
+  const xp    = wsCorrect * 5 + (wsCorrect === total ? 20 : 0);
+  document.getElementById('wcTitle').textContent = `${currentWs.title} complete!`;
+  document.getElementById('wcSub').textContent   = `${wsCorrect}/${total} correct`;
+  document.getElementById('wcXP').textContent    = `+${xp} XP earned`;
+
+  // Update streak in DB
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      streakDays = Math.min(streakDays + 1, 5);
+      await sb.from('users').update({
+        streak_days: streakDays,
+        last_active: new Date().toISOString().split('T')[0],
+        xp_points: (await sb.from('users').select('xp_points').eq('id',session.user.id).single()).data?.xp_points + xp || xp
+      }).eq('id', session.user.id);
+
+      // Notify about weekly quiz unlock
+      if (streakDays >= 5) {
+        document.getElementById('wcStreakMsg').textContent = '🎉 5-day streak! Weekly Quiz is now unlocked!';
+        await sb.from('notifications').insert({ user_id:session.user.id, type:'streak', title:'Weekly Quiz Unlocked! 🎉', message:'You completed a 5-day worksheet streak! Your weekly quiz is now available.' });
+      } else {
+        document.getElementById('wcStreakMsg').textContent = `🔥 ${streakDays}/5 day streak — keep going!`;
+      }
+    }
+  } catch(e) { console.error(e); }
+}
+
+function closeWorksheet() {
+  document.getElementById('wsActive').classList.remove('show');
+  document.getElementById('wsComplete').classList.remove('show');
+  document.getElementById('worksheetPanel').style.display = '';
+  document.getElementById('levelTabs').style.display = '';
+  document.getElementById('streakCard').style.display = '';
+  buildStreakBar();
+}
+
+// ── UTILS ──────────────────────────────────────────────────
+function showToast(msg, type='') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast${type?' toast-'+type:''}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+async function logout() { await sb.auth.signOut(); window.location.href='../../login.html'; }
+
+// ── INIT ───────────────────────────────────────────────────
+async function init() {
+  document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+  try {
+    const { data:{ session } } = await sb.auth.getSession();
+    if (!session) { window.location.href='../../login.html'; return; }
+    const { data:profile } = await sb.from('users').select('full_name,current_level,streak_days').eq('id',session.user.id).single();
+    if (!profile) { window.location.href='../../login.html'; return; }
+    studentId    = session.user.id;
+    studentLevel = profile.current_level || 1;
+    streakDays   = Math.min(profile.streak_days || 0, 5);
+    const name   = profile.full_name || 'Student';
+    document.getElementById('userAv').textContent   = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('userName').textContent = name;
+    buildStreakBar();
+    buildLevelTabs();
+  } catch(err) {
+    console.error(err);
+    window.location.href='../../login.html';
+  }
+}
+init();
+</script>
+</body>
+</html>

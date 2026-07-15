@@ -92,6 +92,24 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } });
     }
 
+    // ── READ ALL DATA ─────────────────────────────────────
+    if (action === 'read_all') {
+      const [
+        { data: users },
+        { data: batches },
+        { data: fees },
+        { data: notifs },
+      ] = await Promise.all([
+        adminSb.from('users').select('*').order('created_at', { ascending: false }),
+        adminSb.from('batches').select('*, users!teacher_id(full_name), batch_students(student_id)'),
+        adminSb.from('fees').select('status, amount'),
+        adminSb.from('notifications').select('title, created_at').order('created_at', { ascending: false }).limit(5),
+      ]);
+      return new Response(JSON.stringify({ success: true, users, batches, fees, notifs }), {
+        status: 200, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS }
+      });
+    }
+
     return new Response(JSON.stringify({ error: 'Unknown action: ' + action }), { status: 400, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } });
 
   } catch (err) {

@@ -479,6 +479,26 @@ const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 const{createClient}=supabase;
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 
+// ── ADMIN OPS — uses Edge Function with service role ──────
+const ADMIN_FN_URL = 'https://bhullfoajenhkxlkiubs.supabase.co/functions/v1/admin-ops';
+
+async function adminCall(action, params = {}) {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) throw new Error('Not logged in');
+  const resp = await fetch(ADMIN_FN_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+      'apikey':        SUPABASE_KEY,
+    },
+    body: JSON.stringify({ action, ...params }),
+  });
+  const data = await resp.json();
+  if (!resp.ok || data.error) throw new Error(data.error || 'Admin operation failed');
+  return data;
+}
+
 let allStudents=[],allTeachers=[],allParents=[],allBatches=[];
 let currentModal='student';
 
@@ -777,7 +797,7 @@ async function addStudentToBatch(){
   }
 }
 
-async function createBatch(){
+async async function createBatch(){
   const name    =document.getElementById('newBatchName').value.trim();
   const program =document.getElementById('newBatchProgram').value;
   const teacher =document.getElementById('newBatchTeacher').value;
@@ -785,12 +805,15 @@ async function createBatch(){
   const meet    =document.getElementById('newBatchMeet').value.trim();
   if(!name){showToast('Please enter batch name!','');return;}
   try{
+    // Get program_id from slug
     const{data:prog}=await sb.from('programs').select('id').eq('slug',program).single();
-    const{error}=await sb.from('batches').insert({
-      name,program_id:prog?.id||null,teacher_id:teacher||null,
-      meet_link:meet||null,schedule_json:schedule?{text:schedule}:null,is_active:true
+    await adminCall('create_batch',{
+      name,
+      program_id:    prog?.id||null,
+      teacher_id:    teacher||null,
+      schedule_json: schedule?{text:schedule}:null,
+      meet_link:     meet||null,
     });
-    if(error)throw error;
     showToast(`✅ Batch "${name}" created!`,'success');
     ['newBatchName','newBatchSchedule','newBatchMeet'].forEach(id=>{document.getElementById(id).value='';});
     await loadAll();renderBatches();

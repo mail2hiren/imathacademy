@@ -798,24 +798,37 @@ async function addStudentToBatch(){
 }
 
 async function createBatch(){
-  const name    =document.getElementById('newBatchName').value.trim();
-  const program =document.getElementById('newBatchProgram').value;
-  const teacher =document.getElementById('newBatchTeacher').value;
-  const schedule=document.getElementById('newBatchSchedule').value.trim();
-  const meet    =document.getElementById('newBatchMeet').value.trim();
-  if(!name){showToast('Please enter batch name!','');return;}
+  const name    =(document.getElementById('newBatchName')?.value||'').trim();
+  const program =document.getElementById('newBatchProgram')?.value||'';
+  const teacher =document.getElementById('newBatchTeacher')?.value||'';
+  const schedule=(document.getElementById('newBatchSchedule')?.value||'').trim();
+  const meet    =(document.getElementById('newBatchMeet')?.value||'').trim();
+  console.log('createBatch called:', {name, program, teacher, schedule});
+  if(!name){showToast('Please enter a batch name first!','');return;}
+  const btn = document.querySelector('[onclick="createBatch()"]');
+  if(btn){btn.textContent='Creating...';btn.disabled=true;}
   try{
-    await adminCall('create_batch',{
+    console.log('Calling adminCall...');
+    const result = await adminCall('create_batch',{
       name,
       program:       program||null,
       teacher_id:    teacher||null,
       schedule_json: schedule?{text:schedule}:null,
       meet_link:     meet||null,
     });
+    console.log('adminCall result:', result);
     showToast(`✅ Batch "${name}" created!`,'success');
-    ['newBatchName','newBatchSchedule','newBatchMeet'].forEach(id=>{document.getElementById(id).value='';});
+    ['newBatchName','newBatchSchedule','newBatchMeet'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
     await loadAll();renderBatches();
-  }catch(err){showToast('❌ '+err.message,'error');}
+  }catch(err){
+    console.error('createBatch error:', err);
+    showToast('❌ '+(err.message||'Unknown error'),'error');
+    alert('Batch creation failed: '+(err.message||'Unknown error'));
+  }finally{
+    if(btn){btn.textContent='Create batch →';btn.disabled=false;}
+  }
 }
 
 async function deleteBatch(id,name){

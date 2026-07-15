@@ -249,7 +249,7 @@
       <a class="nav-item active" href="#" onclick="showTab('dashboard',this)"><span class="nav-icon">🏠</span> Dashboard</a>
       <a class="nav-item" href="#" onclick="showTab('classes',this)"><span class="nav-icon">👥</span> My classes</a>
       <div class="nav-section">Homework</div>
-      <a class="nav-item" href="#" onclick="showTab('assign',this)"><span class="nav-icon">✏️</span> Assign<span class="nav-badge" id="pendingBadge">3</span></a>
+      <a class="nav-item" href="#" onclick="showTab('assign',this)"><span class="nav-icon">✏️</span> Assign<span class="nav-badge" id="pendingBadge" style="display:none">0</span></a>
       <a class="nav-item" href="#" onclick="showTab('review',this)"><span class="nav-icon">📝</span> Review submissions</a>
       <div class="nav-section">Students</div>
       <a class="nav-item" href="#" onclick="showTab('students',this)"><span class="nav-icon">📊</span> Student progress</a>
@@ -258,7 +258,7 @@
     <div class="sidebar-user">
       <div class="user-av" id="userAv">MP</div>
       <div>
-        <div class="user-name" id="userName">Ms. Priya</div>
+        <div class="user-name" id="userName">Loading...</div>
         <div class="user-role">Teacher</div>
       </div>
       <button class="logout-btn" onclick="logout()">⇥</button>
@@ -284,67 +284,25 @@
       <div id="tab-dashboard">
 
         <div class="stats-row">
-          <div class="stat-card"><div class="stat-n" style="color:var(--blue)">28</div><div class="stat-l">Total students</div><div class="stat-s">3 batches</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--red)">7</div><div class="stat-l">Pending review</div><div class="stat-s">homework submissions</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--orange)">3</div><div class="stat-l">At-risk students</div><div class="stat-s">accuracy below 55%</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--blue)" id="statTotalStudents">—</div><div class="stat-l">Total students</div><div class="stat-s" id="statBatchCount">Loading...</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--red)" id="statPendingReview">—</div><div class="stat-l">Pending review</div><div class="stat-s">homework submissions</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--orange)" id="statAtRisk">—</div><div class="stat-l">At-risk students</div><div class="stat-s">accuracy below 55%</div></div>
           <div class="stat-card"><div class="stat-n" style="color:var(--green)">84%</div><div class="stat-l">Class avg accuracy</div><div class="stat-s">↑ +5% this week</div></div>
         </div>
 
         <!-- Alerts -->
         <div class="section-card">
           <div class="section-title">Alerts requiring attention</div>
-          <div class="alert alert-err">
-            <div class="alert-dot"></div>
-            <div class="alert-body">
-              <div class="alert-title">3 students in Batch A — accuracy below 55% on carrying</div>
-              <div class="alert-sub">System auto-assigned revision homework · Review their progress</div>
-            </div>
-            <button class="alert-btn" style="background:var(--red);color:#fff" onclick="showTab('students',null)">View →</button>
-          </div>
-          <div class="alert alert-warn">
-            <div class="alert-dot"></div>
-            <div class="alert-body">
-              <div class="alert-title">Rahul Shah has not logged in for 4 days</div>
-              <div class="alert-sub">Auto re-engagement email sent · Consider personal follow-up</div>
-            </div>
-            <button class="alert-btn" style="background:var(--orange);color:#fff" onclick="viewStudent('rahul')">View →</button>
-          </div>
-          <div class="alert alert-info">
-            <div class="alert-dot"></div>
-            <div class="alert-body">
-              <div class="alert-title">7 homework submissions waiting for your review</div>
-              <div class="alert-sub">Addition with carrying · Batch A · Submitted today</div>
-            </div>
-            <button class="alert-btn" style="background:var(--blue);color:#fff" onclick="showTab('review',null)">Review →</button>
+          <div id="alertsContainer">
+            <div style="padding:16px;color:var(--text3);font-weight:600;text-align:center">Loading alerts...</div>
           </div>
         </div>
 
-        <!-- Today's schedule -->
+        <!-- Today's schedule — dynamically loaded from batches -->
         <div class="section-card">
           <div class="section-title">Today's schedule</div>
-          <div class="class-card live-now">
-            <div class="class-dot dot-live"></div>
-            <div class="class-info">
-              <div class="class-name">Batch A — Abacus Level 3</div>
-              <div class="class-meta">12 students · 4:30 PM – 5:30 PM · Google Meet</div>
-            </div>
-            <button class="class-btn btn-green-sm" onclick="joinMeet('batchA')">Start class →</button>
-          </div>
-          <div class="class-card upcoming">
-            <div class="class-dot dot-soon"></div>
-            <div class="class-info">
-              <div class="class-name">Batch B — Vedic Maths Module 2</div>
-              <div class="class-meta">9 students · 6:00 PM – 7:00 PM · Google Meet</div>
-            </div>
-            <button class="class-btn btn-ghost-sm">6:00 PM</button>
-          </div>
-          <div class="class-card upcoming">
-            <div class="class-dot dot-later"></div>
-            <div class="class-info">
-              <div class="class-name">Batch C — Abacus Level 1 (Kids)</div>
-              <div class="class-meta">7 students · Ages 4–7 · Tomorrow 10:00 AM</div>
-            </div>
-            <button class="class-btn btn-ghost-sm">Tomorrow</button>
+          <div id="scheduleContainer">
+            <div style="padding:16px;color:var(--text3);font-weight:600;text-align:center">Loading your batches...</div>
           </div>
         </div>
 
@@ -1018,26 +976,99 @@ async function init() {
   document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
   try {
     const { data: { session } } = await sb.auth.getSession();
-    if (!session) {
-      window.location.href = '../../login.html';
-      return;
-    }
+    if (!session) { window.location.href = '../../login.html'; return; }
+
     const { data: profile } = await sb.from('users').select('full_name, role').eq('id', session.user.id).single();
-    if (!profile || profile.role !== 'teacher') {
-      window.location.href = '../../login.html';
-      return;
-    }
+    if (!profile || profile.role !== 'teacher') { window.location.href = '../../login.html'; return; }
+
+    // ── Real name from DB ──
     const name = profile.full_name || 'Teacher';
     document.getElementById('userAv').textContent   = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
     document.getElementById('userName').textContent = name;
+
     await loadTeacherData(session.user.id);
 
-    // Clear demo dashboard numbers when empty roster
+    // ── Populate real stats ──
     const all = Object.values(STUDENTS).flat();
-    if (!all.length) {
-      const riskBox = document.getElementById('atRiskList');
-      if (riskBox) riskBox.innerHTML = '<div style="padding:12px;color:var(--text3);font-weight:600">No students in your batches yet</div>';
+    const batchCount = Object.keys(STUDENTS).length;
+    document.getElementById('statTotalStudents').textContent = all.length || '0';
+    document.getElementById('statBatchCount').textContent    = `${batchCount} batch${batchCount !== 1 ? 'es' : ''}`;
+    document.getElementById('statAtRisk').textContent        = all.filter(s => s.risk).length;
+
+    // ── Pending submissions count ──
+    const { count: pendingCount } = await sb
+      .from('submissions')
+      .select('id', { count: 'exact' })
+      .in('homework_id',
+        (await sb.from('homework').select('id').eq('teacher_id', session.user.id)).data?.map(h=>h.id) || []
+      )
+      .is('feedback', null);
+    const pc = pendingCount || 0;
+    document.getElementById('statPendingReview').textContent = pc;
+    const badge = document.getElementById('pendingBadge');
+    if (pc > 0) { badge.textContent = pc; badge.style.display = ''; }
+
+    // ── Dynamic alerts ──
+    const alertsEl = document.getElementById('alertsContainer');
+    const alerts = [];
+    const atRisk = all.filter(s => s.risk);
+    if (atRisk.length > 0) {
+      alerts.push(`<div class="alert alert-err">
+        <div class="alert-dot"></div>
+        <div class="alert-body">
+          <div class="alert-title">${atRisk.length} student${atRisk.length>1?'s':''} — accuracy below 55%</div>
+          <div class="alert-sub">${atRisk.map(s=>s.name).join(', ')} · Review their progress</div>
+        </div>
+        <button class="alert-btn" style="background:var(--red);color:#fff" onclick="showTab('students',null)">View →</button>
+      </div>`);
     }
+    // Inactive students (no login for 4+ days)
+    const cutoff = new Date(Date.now() - 4*24*60*60*1000).toISOString().split('T')[0];
+    const inactive = all.filter(s => s.lastSeen && s.lastSeen !== '—' && s.lastSeen < cutoff);
+    inactive.forEach(s => {
+      alerts.push(`<div class="alert alert-warn">
+        <div class="alert-dot"></div>
+        <div class="alert-body">
+          <div class="alert-title">${s.name} has not logged in recently</div>
+          <div class="alert-sub">Consider reaching out to re-engage this student</div>
+        </div>
+        <button class="alert-btn" style="background:var(--orange);color:#fff" onclick="showTab('students',null)">View →</button>
+      </div>`);
+    });
+    if (pc > 0) {
+      alerts.push(`<div class="alert alert-info">
+        <div class="alert-dot"></div>
+        <div class="alert-body">
+          <div class="alert-title">${pc} homework submission${pc>1?'s':''} waiting for your review</div>
+          <div class="alert-sub">Students are waiting for feedback</div>
+        </div>
+        <button class="alert-btn" style="background:var(--blue);color:#fff" onclick="showTab('review',null)">Review →</button>
+      </div>`);
+    }
+    alertsEl.innerHTML = alerts.length
+      ? alerts.join('')
+      : '<div style="padding:16px;color:var(--green-dk);font-weight:700;text-align:center">✅ No alerts — all students are on track!</div>';
+
+    // ── Dynamic schedule from teacher batches ──
+    const scheduleEl = document.getElementById('scheduleContainer');
+    const batchKeys  = Object.keys(STUDENTS);
+    if (!batchKeys.length) {
+      scheduleEl.innerHTML = '<div style="padding:16px;color:var(--text3);font-weight:600">No batches assigned yet</div>';
+    } else {
+      scheduleEl.innerHTML = batchKeys.map(key => {
+        const s = STUDENTS[key] || [];
+        const batchName = s[0]?.batchName || 'Batch';
+        return `<div class="class-card upcoming">
+          <div class="class-dot dot-later"></div>
+          <div class="class-info">
+            <div class="class-name">${batchName}</div>
+            <div class="class-meta">${s.length} student${s.length!==1?'s':''}</div>
+          </div>
+          <button class="class-btn btn-ghost-sm" onclick="showTab('classes',null)">View →</button>
+        </div>`;
+      }).join('');
+    }
+
   } catch (err) {
     console.error(err);
     window.location.href = '../../login.html';
@@ -1048,3 +1079,4 @@ init();
 </script>
 </body>
 </html>
+

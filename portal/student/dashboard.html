@@ -832,8 +832,8 @@ async function loadStats(studentId) {
     document.getElementById('statSessions').textContent = list.length;
 
     if (list.length > 0) {
-      const totalCorrect = list.reduce((s, r) => s + (r.score || 0), 0);
-      const totalQ = list.reduce((s, r) => s + (r.total_questions || 0), 0);
+      const totalCorrect = list.reduce((s, r) => s + (r.questions_correct || 0), 0);
+      const totalQ = list.reduce((s, r) => s + (r.questions_attempted || 0), 0);
       const acc = totalQ > 0 ? Math.round((totalCorrect / totalQ) * 100) : 0;
       document.getElementById('statAccuracy').textContent = `${acc}%`;
       document.getElementById('statAccuracyChange').textContent = 'this month';

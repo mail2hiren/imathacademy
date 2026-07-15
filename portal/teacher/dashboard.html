@@ -1297,14 +1297,19 @@ async function init() {
     document.getElementById('statAtRisk').textContent        = all.filter(s => s.risk).length;
 
     // ── Pending submissions count ──
-    const { count: pendingCount } = await sb
-      .from('submissions')
-      .select('id', { count: 'exact' })
-      .in('homework_id',
-        (await sb.from('homework').select('id').eq('teacher_id', session.user.id)).data?.map(h=>h.id) || []
-      )
-      .is('feedback', null);
-    const pc = pendingCount || 0;
+    let pc = 0;
+    try {
+      const { data: hwData } = await sb.from('homework').select('id').eq('teacher_id', session.user.id);
+      const hwIds = (hwData || []).map(h => h.id);
+      if (hwIds.length > 0) {
+        const { count: pendingCount } = await sb
+          .from('submissions')
+          .select('id', { count: 'exact' })
+          .in('homework_id', hwIds)
+          .is('feedback', null);
+        pc = pendingCount || 0;
+      }
+    } catch(e) { pc = 0; }
     document.getElementById('statPendingReview').textContent = pc;
     const badge = document.getElementById('pendingBadge');
     if (pc > 0) { badge.textContent = pc; badge.style.display = ''; }
@@ -1371,8 +1376,11 @@ async function init() {
     }
 
   } catch (err) {
-    console.error(err);
-    window.location.href = '../../login.html';
+    console.error('Dashboard init error:', err);
+    // Only redirect on auth errors, not general errors
+    if (err?.message?.includes('not authenticated') || err?.status === 401) {
+      window.location.href = '../../login.html';
+    }
   }
 }
 

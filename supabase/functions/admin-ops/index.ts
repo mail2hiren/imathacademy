@@ -18,7 +18,7 @@ Deno.serve(async (req: Request) => {
     const authHeader = req.headers.get('Authorization') || '';
     const userToken  = authHeader.replace('Bearer ', '');
     
-    const anonSb = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_ANON_KEY') || '');
+    const anonSb = createClient(SUPABASE_URL, Deno.env.get('ANON_KEY') || '');
     const { data: { user }, error: authErr } = await anonSb.auth.getUser(userToken);
     if (authErr || !user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } });
 

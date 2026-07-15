@@ -1059,11 +1059,11 @@ async function loadLiveClass(studentId) {
     let   isUpcoming = false;
 
     if (nextDate) {
-      const classStart = new Date(nextDate + 'T00:00:00');
-      const classEnd   = new Date(classStart.getTime() + 90*60000); // assume up to 90 min
-      const today      = now.toISOString().split('T')[0];
-      isLive     = nextDate === today;
-      isUpcoming = nextDate > today;
+      const batchStart = new Date(nextDate + 'T00:00:00');
+      const batchEnd   = new Date(batchStart.getTime() + 90*60000); // assume up to 90 min
+      const classToday = now.toISOString().split('T')[0];
+      isLive     = nextDate === classToday;
+      isUpcoming = nextDate > classToday;
     } else {
       // If no specific date, show as available
       isLive = true;
@@ -1104,11 +1104,11 @@ async function loadLiveClass(studentId) {
         let classData = null;
         try { classData = JSON.parse(latest.data || '{}'); } catch {}
         if (classData?.meet_link) {
-          const classStart = new Date(`${classData.date}T${classData.start_time}`);
-          const classEnd   = new Date(classStart.getTime() + (classData.duration||60)*60000);
+          const notifStart = new Date(`${classData.date}T${classData.start_time}`);
+          const notifEnd   = new Date(notifStart.getTime() + (classData.duration||60)*60000);
           const nowTime    = new Date();
 
-          if (nowTime >= classStart && nowTime <= classEnd) {
+          if (nowTime >= notifStart && nowTime <= notifEnd) {
             // Class is LIVE right now!
             document.getElementById('liveNowBanner').style.display  = 'flex';
             document.getElementById('upcomingBanner').style.display = 'none';
@@ -1119,12 +1119,12 @@ async function loadLiveClass(studentId) {
               showToast('Joining class now! 📹', 'success');
             };
             section.style.display = 'block';
-          } else if (nowTime < classStart) {
+          } else if (nowTime < notifStart) {
             // Upcoming
             document.getElementById('liveNowBanner').style.display  = 'none';
             document.getElementById('upcomingBanner').style.display = 'flex';
-            const timeStr = classStart.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-            const dateStr = classStart.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'});
+            const timeStr = notifStart.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+            const dateStr = notifStart.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'});
             document.getElementById('upcomingClassTitle').textContent = `${classData.topic} — ${classData.batch_name}`;
             document.getElementById('upcomingClassMeta').textContent  = `${teacher} · ${dateStr} at ${timeStr}`;
             // Enable join button 5 min before class

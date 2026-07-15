@@ -1057,7 +1057,7 @@ async function loadLiveClass(studentId) {
 
     // First check notification-based scheduled classes (most precise)
     const { data: classNotifs } = await sb.from('notifications')
-      .select('data')
+      .select('title,message')
       .eq('user_id', studentId)
       .eq('type', 'class_scheduled')
       .order('created_at', { ascending: false })
@@ -1068,7 +1068,8 @@ async function loadLiveClass(studentId) {
 
     for (const notif of (classNotifs || [])) {
       let cd = null;
-      try { cd = JSON.parse(notif.data || '{}'); } catch { continue; }
+      // class info stored as JSON in message field
+      try { cd = JSON.parse(notif.message || '{}'); } catch { continue; }
       if (!cd?.meet_link || !cd?.date || !cd?.start_time) continue;
 
       const cs = new Date(`${cd.date}T${cd.start_time}`);

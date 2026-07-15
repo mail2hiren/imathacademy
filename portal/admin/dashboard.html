@@ -516,7 +516,7 @@ const AUTO_SETTINGS=[
   {id:'streak',        title:'Streak milestone alerts',      desc:'Notify at 7, 14, 30-day streak milestones',        on:true},
 ];
 
-async async function init(){
+async function init(){
   document.getElementById('topbarDate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
   try{
     const{data:{session}}=await sb.auth.getSession();
@@ -533,7 +533,7 @@ async async function init(){
   renderConnStatus();
 }
 
-async async function loadAll(){
+async function loadAll(){
   try{
     const{data:users}=await sb.from('users').select('*').order('created_at',{ascending:false});
     if(users){
@@ -541,8 +541,9 @@ async async function loadAll(){
       allTeachers=users.filter(u=>u.role==='teacher');
       allParents =users.filter(u=>u.role==='parent');
     }
-    const{data:batches}=await sb.from('batches').select('*,users!teacher_id(full_name),batch_students(student_id)');
-    if(batches)allBatches=batches;
+    const{data:batches,error:bErr}=await sb.from('batches').select('*,users!teacher_id(full_name),batch_students(student_id)');
+    if(bErr){console.error('Batches RLS error:',bErr); showToast('Cannot load batches: '+bErr.message,'error');}
+    if(batches){allBatches=batches; console.log('Loaded batches:',batches.length);}
 
     document.getElementById('ov-students').textContent=allStudents.length;
     document.getElementById('ov-teachers').textContent=allTeachers.length;
@@ -643,7 +644,7 @@ function renderParents(data){
   data.forEach(p=>loadLinked(p.id));
 }
 
-async async function loadLinked(pid){
+async function loadLinked(pid){
   try{
     const{data}=await sb.from('parent_student').select('users!student_id(full_name)').eq('parent_id',pid);
     const el=document.getElementById('linked-'+pid);
@@ -653,7 +654,7 @@ async async function loadLinked(pid){
   }catch{/*silent*/}
 }
 
-async async function renderAssoc(){
+async function renderAssoc(){
   try{
     const{data}=await sb.from('parent_student').select('parent_id,student_id,parent:users!parent_id(full_name,email),student:users!student_id(full_name,program,current_level)');
     const tbody=document.getElementById('assocTbody');
@@ -681,7 +682,7 @@ function renderBatches(){
   </tr>`).join('');
 }
 
-async async function renderFees(){
+async function renderFees(){
   try{
     const{data}=await sb.from('fees').select('*,users!student_id(full_name)').order('due_date',{ascending:false});
     const tbody=document.getElementById('feesTbody');
@@ -721,7 +722,7 @@ function filterParents(){
   renderParents(allParents.filter(p=>!s||p.full_name?.toLowerCase().includes(s)||p.email?.toLowerCase().includes(s)));
 }
 
-async async function createUser(){
+async function createUser(){
   const name    =document.getElementById('newName').value.trim();
   const email   =document.getElementById('newEmail').value.trim();
   const password=document.getElementById('newPassword').value.trim()||'imath2025';
@@ -763,7 +764,7 @@ async async function createUser(){
   }
 }
 
-async async function linkParentStudent(){
+async function linkParentStudent(){
   const pid=document.getElementById('assocParent').value;
   const sid=document.getElementById('assocStudent').value;
   if(!pid||!sid){showToast('Please select both parent and student!','');return;}
@@ -775,14 +776,14 @@ async async function linkParentStudent(){
   }catch(err){showToast('❌ '+err.message,'error');}
 }
 
-async async function unlinkPS(pid,sid){
+async function unlinkPS(pid,sid){
   try{
     await sb.from('parent_student').delete().eq('parent_id',pid).eq('student_id',sid);
     showToast('Parent unlinked.','');renderAssoc();
   }catch(err){showToast('❌ '+err.message,'error');}
 }
 
-async async function addStudentToBatch(){
+async function addStudentToBatch(){
   const sid=document.getElementById('batchStudentSel').value;
   const bid=document.getElementById('batchSel').value;
   if(!sid||!bid){showToast('Please select both student and batch!','');return;}
@@ -831,7 +832,7 @@ async function createBatch(){
   }
 }
 
-async async function deleteBatch(id,name){
+async function deleteBatch(id,name){
   if(!confirm(`Delete batch "${name}"?`))return;
   try{
     await sb.from('batch_students').delete().eq('batch_id',id);
@@ -841,7 +842,7 @@ async async function deleteBatch(id,name){
   }catch(err){showToast('❌ '+err.message,'error');}
 }
 
-async async function markPaid(feeId){
+async function markPaid(feeId){
   try{
     await sb.from('fees').update({status:'paid',paid_at:new Date().toISOString(),payment_method:'cash'}).eq('id',feeId);
     showToast('Fee marked as paid!','success');
@@ -849,7 +850,7 @@ async async function markPaid(feeId){
   }catch(err){showToast('❌ '+err.message,'error');}
 }
 
-async async function createMonthlyFees(){
+async function createMonthlyFees(){
   if(!confirm(`Create fee records for all ${allStudents.length} students?`))return;
   try{
     const due=new Date();due.setDate(1);due.setMonth(due.getMonth()+1);
@@ -863,7 +864,7 @@ async async function createMonthlyFees(){
 
 function sendAllFeeReminders(){showToast('Reminders sent to all overdue parents!','success');}
 
-async async function toggleMode(uid,mode,btn){
+async function toggleMode(uid,mode,btn){
   const grp=btn.parentElement;
   grp.querySelectorAll('.mt').forEach(b=>b.className='mt');
   btn.classList.add(mode==='online'?'on-online':'on-offline');
@@ -1018,7 +1019,7 @@ function showToast(msg,type=''){
   c.appendChild(t);setTimeout(()=>t.remove(),4000);
 }
 
-async async function logout(){await sb.auth.signOut();window.location.href='../../login.html';}
+async function logout(){await sb.auth.signOut();window.location.href='../../login.html';}
 
 init();
 </script>

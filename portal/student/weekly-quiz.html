@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weekly Quiz — iMathAcademy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Nunito',sans-serif; background:#F7F8FF; color:#1A1A2E; min-height:100vh; }
+    :root {
+      --green:#43A047; --green-dk:#1B5E20; --green-lt:#E8F5E9; --green-md:#2E7D32;
+      --orange:#FB8C00; --orange-dk:#E65100; --orange-lt:#FFF3E0;
+      --blue:#1E88E5; --blue-dk:#0D47A1; --blue-lt:#E3F2FD;
+      --purple:#8E24AA; --purple-dk:#4A148C; --purple-lt:#F3E5F5;
+      --red:#E53935; --red-dk:#B71C1C; --red-lt:#FFEBEE;
+      --yellow:#F9A825; --yellow-lt:#FFFDE7; --yellow-dk:#F57F17;
+      --teal:#00897B; --teal-lt:#E0F2F1; --teal-dk:#004D40;
+      --bg:#FFFFFF; --bg2:#F7F8FF; --border:#E8EAF6;
+      --text2:#4A4A6A; --text3:#9090B0;
+    }
+
+    /* ── LAYOUT ── */
+    .portal { display:flex; min-height:100vh; }
+    .sidebar { width:220px; flex-shrink:0; background:var(--bg); border-right:2px solid var(--border); display:flex; flex-direction:column; position:fixed; top:0; left:0; height:100vh; overflow-y:auto; z-index:100; }
+    .sidebar-logo { padding:20px 16px; border-bottom:2px solid var(--border); font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800; color:var(--green-dk); display:flex; align-items:center; gap:10px; }
+    .sidebar-logo span { color:var(--orange-dk); }
+    .logo-icon { width:34px; height:34px; background:var(--green); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+    .sidebar-nav { flex:1; padding:12px 0; }
+    .nav-section { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--text3); padding:8px 16px 3px; margin-top:6px; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 16px; font-size:.875rem; font-weight:700; color:var(--text2); cursor:pointer; border-left:3px solid transparent; transition:all .12s; text-decoration:none; }
+    .nav-item:hover { background:var(--bg2); }
+    .nav-item.active { color:var(--yellow-dk); background:var(--yellow-lt); border-left-color:var(--yellow); }
+    .nav-icon { width:20px; text-align:center; font-size:1rem; }
+    .sidebar-user { padding:14px 16px; border-top:2px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .user-av { width:36px; height:36px; border-radius:50%; background:var(--green-lt); border:2px solid var(--green); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; color:var(--green-dk); }
+    .user-name { font-size:.82rem; font-weight:800; }
+    .user-role { font-size:.7rem; color:var(--text3); font-weight:600; }
+    .logout-btn { margin-left:auto; background:none; border:none; font-size:.85rem; cursor:pointer; color:var(--text3); }
+    .main { flex:1; margin-left:220px; display:flex; flex-direction:column; }
+    .topbar { height:62px; background:var(--bg); border-bottom:2px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 24px; position:sticky; top:0; z-index:50; box-shadow:0 2px 8px rgba(0,0,0,.05); }
+    .topbar-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; }
+    .body { padding:24px; max-width:860px; }
+
+    /* ── LOCKED STATE ── */
+    .locked-card { background:var(--bg); border:2px solid var(--border); border-radius:20px; padding:40px; text-align:center; }
+    .lock-emoji { font-size:4rem; margin-bottom:16px; }
+    .lock-title { font-family:'Baloo 2',sans-serif; font-size:1.5rem; font-weight:800; margin-bottom:8px; }
+    .lock-sub { color:var(--text2); font-size:.9rem; font-weight:600; margin-bottom:24px; line-height:1.6; }
+    .streak-mini { display:flex; gap:8px; justify-content:center; margin-bottom:24px; }
+    .sm-day { width:44px; height:44px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:.85rem; font-weight:800; color:var(--text3); background:var(--bg2); }
+    .sm-day.done { background:var(--teal); color:#fff; border-color:var(--teal); }
+
+    /* ── WEEK PROGRESS ── */
+    .week-banner { background:linear-gradient(135deg,var(--yellow-dk),var(--orange)); border-radius:20px; padding:20px 24px; color:#fff; margin-bottom:24px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+    .week-banner h2 { font-family:'Baloo 2',sans-serif; font-size:1.3rem; font-weight:800; margin-bottom:4px; }
+    .week-banner p { font-size:.85rem; opacity:.9; font-weight:600; }
+    .week-xp { margin-left:auto; text-align:center; }
+    .week-xp .xp-num { font-family:'Baloo 2',sans-serif; font-size:2rem; font-weight:800; }
+    .week-xp .xp-lbl { font-size:.75rem; opacity:.85; }
+
+    /* ── WEEK CARDS ── */
+    .weeks-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:24px; }
+    .week-card { background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:20px; transition:all .15s; }
+    .week-card.available { cursor:pointer; }
+    .week-card.available:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(0,0,0,.08); border-color:var(--yellow); }
+    .week-card.completed { border-color:var(--green); background:var(--green-lt); }
+    .week-card.locked-week { opacity:.55; }
+    .wc-header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+    .wc-icon { font-size:1.8rem; }
+    .wc-title { font-family:'Baloo 2',sans-serif; font-size:1rem; font-weight:800; }
+    .wc-sub { font-size:.75rem; color:var(--text2); font-weight:600; }
+    .wc-xp { display:inline-block; padding:3px 12px; border-radius:20px; font-size:.78rem; font-weight:800; margin-top:8px; }
+    .xp-yellow { background:var(--yellow-lt); color:var(--yellow-dk); border:1.5px solid #FFE082; }
+    .xp-green  { background:var(--green-lt);  color:var(--green-dk);  border:1.5px solid #A5D6A7; }
+    .xp-gray   { background:var(--bg2);       color:var(--text3);     border:1.5px solid var(--border); }
+    .wc-score { font-size:.82rem; font-weight:700; color:var(--green-dk); margin-top:6px; }
+
+    /* ── BADGE SECTION ── */
+    .badge-card { background:linear-gradient(135deg,var(--purple-dk),var(--purple)); border-radius:20px; padding:22px 24px; color:#fff; margin-bottom:24px; }
+    .badge-card h3 { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; margin-bottom:14px; }
+    .badges-row { display:flex; gap:12px; flex-wrap:wrap; }
+    .badge-slot { width:64px; text-align:center; }
+    .badge-circle { width:56px; height:56px; border-radius:50%; border:3px solid rgba(255,255,255,.3); display:flex; align-items:center; justify-content:center; font-size:1.6rem; margin:0 auto 6px; background:rgba(255,255,255,.1); }
+    .badge-circle.earned { background:#fff; border-color:#fff; }
+    .badge-circle.locked-b { background:rgba(0,0,0,.2); }
+    .badge-lbl { font-size:.65rem; font-weight:700; opacity:.85; line-height:1.3; }
+
+    /* ── QUIZ SCREEN ── */
+    .quiz-screen { display:none; }
+    .quiz-screen.show { display:block; }
+    .quiz-header { background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:16px 20px; display:flex; align-items:center; gap:14px; margin-bottom:20px; }
+    .quiz-progress { flex:1; background:var(--bg2); border-radius:30px; height:12px; overflow:hidden; }
+    .quiz-progress-fill { height:100%; border-radius:30px; background:linear-gradient(90deg,var(--yellow),var(--orange)); transition:width .4s; }
+    .quiz-timer { font-family:'Baloo 2',sans-serif; font-size:1.4rem; font-weight:800; color:var(--orange-dk); min-width:36px; text-align:center; }
+    .quiz-timer.urgent { color:var(--red); animation:pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+    .q-card { background:var(--bg); border:2px solid var(--border); border-radius:20px; padding:28px 24px; text-align:center; margin-bottom:20px; }
+    .q-week-label { display:inline-block; padding:4px 14px; border-radius:20px; font-size:.75rem; font-weight:800; background:var(--yellow-lt); color:var(--yellow-dk); margin-bottom:14px; }
+    .q-number { font-size:.82rem; font-weight:700; color:var(--text3); margin-bottom:8px; }
+    .q-text { font-family:'Baloo 2',sans-serif; font-size:clamp(1.8rem,5vw,2.8rem); font-weight:800; color:var(--text); margin-bottom:20px; }
+    .q-text .op { color:var(--red); }
+
+    /* MCQ options */
+    .options-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; max-width:480px; margin:0 auto; }
+    .opt-btn { padding:14px 10px; border-radius:14px; border:2px solid var(--border); background:var(--bg2); font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800; cursor:pointer; transition:all .15s; }
+    .opt-btn:hover { border-color:var(--yellow); background:var(--yellow-lt); }
+    .opt-btn.correct { border-color:var(--green); background:var(--green-lt); color:var(--green-dk); }
+    .opt-btn.wrong   { border-color:var(--red);   background:var(--red-lt);   color:var(--red-dk); }
+    .opt-btn:disabled { cursor:not-allowed; }
+
+    /* fill-in for higher weeks */
+    .fill-input { width:140px; padding:12px 16px; font-size:1.6rem; font-weight:800; text-align:center; border:3px solid var(--border); border-radius:14px; font-family:'Baloo 2',sans-serif; outline:none; transition:border-color .15s; }
+    .fill-input:focus { border-color:var(--yellow); }
+    .fill-input.correct { border-color:var(--green); background:var(--green-lt); }
+    .fill-input.wrong   { border-color:var(--red);   background:var(--red-lt); }
+
+    .submit-row { display:flex; gap:10px; justify-content:center; margin-top:16px; }
+    .btn { padding:11px 24px; border-radius:30px; font-family:'Nunito',sans-serif; font-size:.9rem; font-weight:800; border:none; cursor:pointer; transition:all .15s; }
+    .btn-yellow { background:var(--yellow); color:#fff; }
+    .btn-ghost  { background:var(--bg2); color:var(--text2); border:2px solid var(--border); }
+    .btn:hover  { opacity:.88; transform:translateY(-1px); }
+
+    /* ── RESULT SCREEN ── */
+    .result-screen { display:none; text-align:center; padding:32px 24px; background:var(--bg); border:2px solid var(--border); border-radius:20px; }
+    .result-screen.show { display:block; }
+    .result-emoji { font-size:4rem; margin-bottom:12px; }
+    .result-title { font-family:'Baloo 2',sans-serif; font-size:1.8rem; font-weight:800; margin-bottom:6px; }
+    .result-sub   { color:var(--text2); font-size:.9rem; font-weight:600; margin-bottom:20px; }
+    .result-xp    { display:inline-block; background:var(--yellow-lt); color:var(--yellow-dk); border:2px solid #FFE082; border-radius:30px; padding:10px 28px; font-size:1.2rem; font-weight:800; margin-bottom:16px; }
+    .result-badge { background:var(--purple-lt); border:2px solid #CE93D8; border-radius:16px; padding:16px; margin:0 auto 20px; max-width:320px; display:none; }
+    .result-badge.show { display:block; }
+    .result-badge h3 { font-size:1rem; font-weight:800; color:var(--purple-dk); margin-bottom:4px; }
+    .result-badge p  { font-size:.82rem; color:var(--purple-dk); }
+
+    /* ── TOAST ── */
+    .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+    .toast { background:#212121; color:#fff; padding:10px 18px; border-radius:12px; font-size:.875rem; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,.2); animation:slideIn .3s ease; }
+    .toast-success { background:var(--green-dk); }
+    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+    @media(max-width:768px) {
+      .sidebar { display:none; }
+      .main { margin-left:0; }
+      .weeks-grid { grid-template-columns:1fr; }
+      .options-grid { grid-template-columns:1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="portal">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon">🧮</div>iMath<span>Academy</span></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Overview</div>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <div class="nav-section">Learning</div>
+      <a class="nav-item" href="lessons.html"><span class="nav-icon">▶️</span> Lessons</a>
+      <a class="nav-item" href="practice.html"><span class="nav-icon">⚡</span> Practice</a>
+      <a class="nav-item" href="worksheets.html"><span class="nav-icon">📋</span> Worksheets</a>
+      <a class="nav-item active" href="weekly-quiz.html"><span class="nav-icon">⭐</span> Weekly Quiz</a>
+      <div class="nav-section">Progress</div>
+      <a class="nav-item" href="progress.html"><span class="nav-icon">📊</span> My progress</a>
+      <a class="nav-item" href="homework.html"><span class="nav-icon">📚</span> Homework</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-av" id="userAv">—</div>
+      <div><div class="user-name" id="userName">Loading...</div><div class="user-role">Student</div></div>
+      <button class="logout-btn" onclick="logout()">⇥</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">⭐ Weekly Quiz</div>
+      <div style="font-size:.8rem;font-weight:600;color:var(--text3)" id="topbarDate"></div>
+    </div>
+
+    <div class="body">
+
+      <!-- LOCKED STATE -->
+      <div id="lockedPanel">
+        <div class="locked-card">
+          <div class="lock-emoji">🔒</div>
+          <div class="lock-title">Weekly Quiz is locked</div>
+          <div class="lock-sub">
+            Complete worksheets for <strong>5 days in a row</strong> to unlock this week's quiz.<br>
+            Your current streak:
+          </div>
+          <div class="streak-mini" id="lockedStreak"></div>
+          <a href="worksheets.html" class="btn btn-yellow" style="display:inline-block;text-decoration:none">Go to Worksheets →</a>
+        </div>
+      </div>
+
+      <!-- UNLOCKED LOBBY -->
+      <div id="lobbyPanel" style="display:none">
+
+        <!-- Banner -->
+        <div class="week-banner">
+          <div>
+            <h2 id="bannerTitle">Weekly Quiz Challenge</h2>
+            <p id="bannerSub">Complete all 4 weeks to earn the Quiz Master badge! 🏆</p>
+          </div>
+          <div class="week-xp">
+            <div class="xp-num" id="totalXPEarned">0</div>
+            <div class="xp-lbl">Total XP<br>from quizzes</div>
+          </div>
+        </div>
+
+        <!-- 4 Week cards -->
+        <div class="weeks-grid" id="weeksGrid"></div>
+
+        <!-- Badge progress -->
+        <div class="badge-card">
+          <h3>🏅 Badge progress — complete all 4 weeks!</h3>
+          <div class="badges-row" id="badgesRow"></div>
+        </div>
+
+      </div>
+
+      <!-- QUIZ SCREEN -->
+      <div class="quiz-screen" id="quizScreen">
+        <div class="quiz-header">
+          <button class="btn btn-ghost" style="padding:7px 14px;font-size:.82rem" onclick="exitQuiz()">← Exit</button>
+          <div class="quiz-progress"><div class="quiz-progress-fill" id="qProgressFill" style="width:0%"></div></div>
+          <div style="font-size:.82rem;font-weight:700;color:var(--text3)" id="qCounter">1/10</div>
+          <div class="quiz-timer" id="qTimer">15</div>
+        </div>
+
+        <div class="q-card">
+          <div class="q-week-label" id="qWeekLabel">Week 1</div>
+          <div class="q-number" id="qNumber">Question 1 of 10</div>
+          <div class="q-text" id="qText">2 + 3 = ?</div>
+
+          <!-- MCQ options (weeks 1-2) -->
+          <div class="options-grid" id="optionsGrid"></div>
+
+          <!-- Fill-in input (weeks 3-4) -->
+          <div id="fillInPanel" style="display:none">
+            <input class="fill-input" type="number" id="fillInput" placeholder="?"
+              onkeydown="if(event.key==='Enter') submitFill()">
+            <div class="submit-row">
+              <button class="btn btn-yellow" onclick="submitFill()">Submit ✓</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="qFeedback" style="text-align:center;min-height:28px;font-size:.95rem;font-weight:700;margin-top:4px"></div>
+      </div>
+
+      <!-- RESULT SCREEN -->
+      <div class="result-screen" id="resultScreen">
+        <div class="result-emoji" id="resultEmoji">🎉</div>
+        <div class="result-title" id="resultTitle">Quiz complete!</div>
+        <div class="result-sub" id="resultSub">Great effort this week!</div>
+        <div class="result-xp" id="resultXP">+10 XP</div>
+        <div class="result-badge" id="resultBadge">
+          <h3>🏆 New Badge Earned!</h3>
+          <p id="resultBadgeText"></p>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-yellow" onclick="backToLobby()">Back to Quiz Hub</button>
+          <button class="btn btn-ghost"  onclick="window.location.href='dashboard.html'">Dashboard</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── CONSTANTS ─────────────────────────────────────────────
+const WEEK_XP    = { 1:10, 2:15, 3:20, 4:30 };
+const WEEK_LABEL = { 1:'Week 1 — Basics', 2:'Week 2 — Speed Round', 3:'Week 3 — Mixed Challenge', 4:'Week 4 — Grand Finale' };
+const WEEK_ICON  = { 1:'🌱', 2:'⚡', 3:'🔥', 4:'🏆' };
+const WEEK_DESC  = {
+  1:'10 multiple-choice questions on your current level. Take your time!',
+  2:'10 MCQ questions but faster — 12 seconds each. Beat the clock!',
+  3:'10 fill-in questions — type the exact answer. Mixed topics.',
+  4:'10 fill-in questions, 10 seconds each. Show what you\'ve learned!'
+};
+const TIMER_SECS = { 1:15, 2:12, 3:0, 4:10 };
+const BADGES = [
+  { week:1, icon:'🌱', label:'First Quiz',   desc:'Completed Week 1 quiz' },
+  { week:2, icon:'⚡', label:'Speed Star',   desc:'Completed Week 2 quiz' },
+  { week:3, icon:'🔥', label:'On Fire',      desc:'Completed Week 3 quiz' },
+  { week:4, icon:'🏆', label:'Quiz Master',  desc:'Completed all 4 weeks!' },
+];
+
+let studentId = null, studentLevel = 1, streakDays = 0;
+let completedWeeks = {}, weekXPearned = {};
+let currentWeek = 1, questions = [], qIdx = 0, qCorrect = 0;
+let timerInterval = null, timerSecs = 0;
+let _answerLocked = false;
+
+// ── QUESTION GENERATOR ────────────────────────────────────
+function genQuestions(level, week, count=10) {
+  const qs = [];
+  for (let i=0; i<count; i++) {
+    let q, a, opts;
+    const useMCQ = week <= 2;
+
+    if (level <= 2) {
+      const a1=rand(1,9), a2=rand(1,9);
+      q=`${a1} + ${a2}`; a=a1+a2;
+    } else if (level === 3) {
+      const a1=rand(5,15), a2=rand(1,a1-1);
+      q=`${a1} − ${a2}`; a=a1-a2;
+    } else if (level === 4) {
+      const a1=rand(10,50), a2=rand(5,20);
+      if (Math.random()>.5) { q=`${a1} + ${a2}`; a=a1+a2; }
+      else { q=`${a1} − ${a2}`; a=a1-a2; }
+    } else if (level === 5) {
+      if (Math.random()>.5) { const m=rand(2,9),n=rand(2,9); q=`${m} × ${n}`; a=m*n; }
+      else { const d=rand(2,9),r=rand(2,9); q=`${d*r} ÷ ${d}`; a=r; }
+    } else {
+      if (Math.random()>.5) { const m=rand(2,9),n=rand(10,99); q=`${m} × ${n}`; a=m*n; }
+      else { const d=rand(2,9),r=rand(10,20); q=`${d*r} ÷ ${d}`; a=r; }
+    }
+
+    if (useMCQ) {
+      const wrongs = new Set();
+      while (wrongs.size < 3) {
+        const w = a + (Math.random()>.5?1:-1)*rand(1,5);
+        if (w !== a && w >= 0) wrongs.add(w);
+      }
+      opts = shuffle([a, ...[...wrongs]]);
+    }
+    qs.push({ q, a, opts });
+  }
+  return qs;
+}
+
+function rand(min, max) { return Math.floor(Math.random()*(max-min+1))+min; }
+function shuffle(arr) { const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+// ── LOBBY UI ──────────────────────────────────────────────
+function buildLobby() {
+  // Week cards
+  const grid = document.getElementById('weeksGrid');
+  grid.innerHTML = '';
+  let totalXP = 0;
+  for (let w=1; w<=4; w++) {
+    const done      = !!completedWeeks[w];
+    const available = w === 1 || completedWeeks[w-1];
+    const xp        = weekXPearned[w] || 0;
+    totalXP        += xp;
+
+    const card = document.createElement('div');
+    card.className = 'week-card ' + (done ? 'completed' : available ? 'available' : 'locked-week');
+    card.innerHTML = `
+      <div class="wc-header">
+        <div class="wc-icon">${WEEK_ICON[w]}</div>
+        <div>
+          <div class="wc-title">${WEEK_LABEL[w]}</div>
+          <div class="wc-sub">${done ? 'Completed ✓' : available ? 'Ready to play!' : 'Complete previous week first'}</div>
+        </div>
+      </div>
+      <div style="font-size:.82rem;color:var(--text2);font-weight:600;line-height:1.5;margin-bottom:10px">${WEEK_DESC[w]}</div>
+      <span class="wc-xp ${done?'xp-green':available?'xp-yellow':'xp-gray'}">
+        ${done ? `+${WEEK_XP[w]} XP earned` : `+${WEEK_XP[w]} XP`}
+      </span>
+      ${done ? `<div class="wc-score">Score: ${completedWeeks[w].score}/10</div>` : ''}
+    `;
+    if (available && !done) card.onclick = () => startQuiz(w);
+    if (done) card.onclick = () => startQuiz(w); // allow replay
+    grid.appendChild(card);
+  }
+  document.getElementById('totalXPEarned').textContent = totalXP;
+
+  // Badge row
+  const br = document.getElementById('badgesRow');
+  br.innerHTML = '';
+  BADGES.forEach(b => {
+    const earned = !!completedWeeks[b.week];
+    br.innerHTML += `
+      <div class="badge-slot">
+        <div class="badge-circle ${earned?'earned':'locked-b'}">${earned ? b.icon : '🔒'}</div>
+        <div class="badge-lbl">${b.label}</div>
+      </div>`;
+  });
+}
+
+// ── QUIZ FLOW ─────────────────────────────────────────────
+function startQuiz(week) {
+  currentWeek = week;
+  questions   = genQuestions(studentLevel, week, 10);
+  qIdx = 0; qCorrect = 0; _answerLocked = false;
+
+  document.getElementById('lobbyPanel').style.display  = 'none';
+  document.getElementById('quizScreen').classList.add('show');
+  document.getElementById('resultScreen').classList.remove('show');
+
+  loadQuestion();
+}
+
+function loadQuestion() {
+  if (qIdx >= questions.length) { finishQuiz(); return; }
+  const q   = questions[qIdx];
+  const pct = (qIdx/questions.length)*100;
+  _answerLocked = false;
+
+  document.getElementById('qProgressFill').style.width = pct+'%';
+  document.getElementById('qCounter').textContent      = `${qIdx+1}/${questions.length}`;
+  document.getElementById('qWeekLabel').textContent    = `${WEEK_ICON[currentWeek]} ${WEEK_LABEL[currentWeek]}`;
+  document.getElementById('qNumber').textContent       = `Question ${qIdx+1} of ${questions.length}`;
+  document.getElementById('qText').textContent         = `${q.q} = ?`;
+  document.getElementById('qFeedback').textContent     = '';
+
+  const useMCQ = currentWeek <= 2;
+  document.getElementById('optionsGrid').style.display  = useMCQ ? 'grid' : 'none';
+  document.getElementById('fillInPanel').style.display  = useMCQ ? 'none' : 'block';
+
+  if (useMCQ) {
+    const grid = document.getElementById('optionsGrid');
+    grid.innerHTML = '';
+    q.opts.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'opt-btn';
+      btn.textContent = opt;
+      btn.onclick = () => selectOption(btn, opt, q.a);
+      grid.appendChild(btn);
+    });
+  } else {
+    const inp = document.getElementById('fillInput');
+    inp.value = '';
+    inp.className = 'fill-input';
+    inp.style.borderColor = 'var(--border)';
+    inp.focus();
+  }
+
+  // Timer
+  clearInterval(timerInterval);
+  const secs = TIMER_SECS[currentWeek];
+  if (secs > 0) {
+    timerSecs = secs;
+    const timerEl = document.getElementById('qTimer');
+    timerEl.textContent = timerSecs;
+    timerEl.className   = 'quiz-timer';
+    timerEl.style.display = '';
+    timerInterval = setInterval(() => {
+      timerSecs--;
+      timerEl.textContent = timerSecs;
+      if (timerSecs <= 5) timerEl.classList.add('urgent');
+      if (timerSecs <= 0) {
+        clearInterval(timerInterval);
+        timeUp();
+      }
+    }, 1000);
+  } else {
+    document.getElementById('qTimer').style.display = 'none';
+  }
+}
+
+function selectOption(btn, chosen, correct) {
+  if (_answerLocked) return;
+  _answerLocked = true;
+  clearInterval(timerInterval);
+  document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+
+  if (chosen === correct) {
+    btn.classList.add('correct');
+    qCorrect++;
+    document.getElementById('qFeedback').innerHTML = `<span style="color:var(--green-dk)">✓ Correct!</span>`;
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.opt-btn').forEach(b => { if (parseInt(b.textContent)===correct) b.classList.add('correct'); });
+    document.getElementById('qFeedback').innerHTML = `<span style="color:var(--red-dk)">✗ Answer was ${correct}</span>`;
+  }
+  setTimeout(() => { qIdx++; loadQuestion(); }, 1100);
+}
+
+function submitFill() {
+  if (_answerLocked) return;
+  const inp = document.getElementById('fillInput');
+  const val = parseInt(inp.value);
+  const q   = questions[qIdx];
+  if (isNaN(val)) return;
+  _answerLocked = true;
+  clearInterval(timerInterval);
+
+  if (val === q.a) {
+    inp.className = 'fill-input correct';
+    qCorrect++;
+    document.getElementById('qFeedback').innerHTML = `<span style="color:var(--green-dk)">✓ Correct!</span>`;
+  } else {
+    inp.className = 'fill-input wrong';
+    document.getElementById('qFeedback').innerHTML = `<span style="color:var(--red-dk)">✗ Answer was ${q.a}</span>`;
+  }
+  setTimeout(() => { qIdx++; loadQuestion(); }, 1000);
+}
+
+function timeUp() {
+  if (_answerLocked) return;
+  _answerLocked = true;
+  const q = questions[qIdx];
+  document.getElementById('qFeedback').innerHTML = `<span style="color:var(--red-dk)">⏱ Time's up! Answer: ${q.a}</span>`;
+  document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+  setTimeout(() => { qIdx++; loadQuestion(); }, 1200);
+}
+
+async function finishQuiz() {
+  clearInterval(timerInterval);
+  document.getElementById('quizScreen').classList.remove('show');
+  document.getElementById('resultScreen').classList.add('show');
+
+  const xp      = WEEK_XP[currentWeek] + (qCorrect >= 8 ? 5 : 0);
+  const emoji   = qCorrect >= 8 ? '🏆' : qCorrect >= 5 ? '🎉' : '💪';
+  const msg     = qCorrect >= 8 ? 'Excellent work!' : qCorrect >= 5 ? 'Great effort!' : 'Keep practising!';
+
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultTitle').textContent = `Week ${currentWeek} complete!`;
+  document.getElementById('resultSub').textContent   = `${qCorrect}/10 correct — ${msg}`;
+  document.getElementById('resultXP').textContent    = `+${xp} XP earned`;
+
+  // Check if Quiz Master badge earned (all 4 weeks done)
+  const allDone = [1,2,3,4].every(w => w===currentWeek || completedWeeks[w]);
+  if (allDone) {
+    document.getElementById('resultBadge').classList.add('show');
+    document.getElementById('resultBadgeText').textContent = 'You completed all 4 weeks of the Weekly Quiz! 🏆';
+  }
+
+  // Save to DB
+  try {
+    const { data:{ session } } = await sb.auth.getSession();
+    if (session) {
+      completedWeeks[currentWeek] = { score: qCorrect };
+      weekXPearned[currentWeek]   = xp;
+
+      // Update XP
+      const { data:u } = await sb.from('users').select('xp_points').eq('id',session.user.id).single();
+      await sb.from('users').update({ xp_points:(u?.xp_points||0)+xp }).eq('id',session.user.id);
+
+      // Store quiz result in notifications table as record
+      await sb.from('notifications').insert({
+        user_id: session.user.id,
+        type:    'quiz_result',
+        title:   `Week ${currentWeek} Quiz: ${qCorrect}/10`,
+        message: `Completed Week ${currentWeek} quiz with score ${qCorrect}/10. +${xp} XP earned.`,
+      });
+
+      // Award Quiz Master badge if all 4 done
+      if (allDone) {
+        await sb.from('badges').upsert({
+          student_id: session.user.id,
+          badge_type: 'quiz_master',
+          badge_label:'Quiz Master',
+          badge_icon: '🏆',
+          xp_value:   100,
+        }, { onConflict:'student_id,badge_type' });
+        await sb.from('users').update({ xp_points:(u?.xp_points||0)+xp+100 }).eq('id',session.user.id);
+        await sb.from('notifications').insert({ user_id:session.user.id, type:'badge', title:'🏆 Quiz Master Badge Earned!', message:'You completed all 4 weekly quizzes! Amazing achievement!' });
+      }
+    }
+  } catch(e) { console.error(e); }
+}
+
+function exitQuiz() {
+  clearInterval(timerInterval);
+  document.getElementById('quizScreen').classList.remove('show');
+  document.getElementById('lobbyPanel').style.display = 'block';
+  buildLobby();
+}
+
+function backToLobby() {
+  document.getElementById('resultScreen').classList.remove('show');
+  document.getElementById('lobbyPanel').style.display = 'block';
+  buildLobby();
+}
+
+// ── UTILS ─────────────────────────────────────────────────
+function showToast(msg, type='') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast${type?' toast-'+type:''}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+async function logout() { await sb.auth.signOut(); window.location.href='../../login.html'; }
+
+// ── INIT ──────────────────────────────────────────────────
+async function init() {
+  document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+  try {
+    const { data:{ session } } = await sb.auth.getSession();
+    if (!session) { window.location.href='../../login.html'; return; }
+
+    const { data:profile } = await sb.from('users').select('full_name,current_level,streak_days').eq('id',session.user.id).single();
+    if (!profile) { window.location.href='../../login.html'; return; }
+
+    studentId    = session.user.id;
+    studentLevel = profile.current_level || 1;
+    streakDays   = profile.streak_days   || 0;
+
+    const name = profile.full_name || 'Student';
+    document.getElementById('userAv').textContent   = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('userName').textContent = name;
+
+    // Load past quiz results from notifications
+    const { data:quizNotes } = await sb.from('notifications')
+      .select('title,message').eq('user_id',session.user.id).eq('type','quiz_result');
+    (quizNotes||[]).forEach(n => {
+      const m = n.title.match(/Week (\d+) Quiz: (\d+)\/10/);
+      if (m) {
+        const w=parseInt(m[1]), score=parseInt(m[2]);
+        if (!completedWeeks[w] || completedWeeks[w].score < score) {
+          completedWeeks[w] = { score };
+          weekXPearned[w]   = WEEK_XP[w] + (score>=8?5:0);
+        }
+      }
+    });
+
+    // Show locked or lobby
+    if (streakDays < 5) {
+      document.getElementById('lockedPanel').style.display = 'block';
+      // Build streak dots
+      const el = document.getElementById('lockedStreak');
+      for (let i=0;i<5;i++) {
+        const d = document.createElement('div');
+        d.className = 'sm-day' + (i<streakDays?' done':'');
+        d.textContent = i<streakDays ? '✓' : i+1;
+        el.appendChild(d);
+      }
+    } else {
+      document.getElementById('lockedPanel').style.display = 'none';
+      document.getElementById('lobbyPanel').style.display  = 'block';
+      buildLobby();
+    }
+
+  } catch(err) {
+    console.error(err);
+    window.location.href='../../login.html';
+  }
+}
+init();
+</script>
+</body>
+</html>

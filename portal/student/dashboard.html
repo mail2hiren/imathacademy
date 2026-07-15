@@ -1032,6 +1032,7 @@ async function loadNotifications(studentId) {
 }
 
 async function loadLiveClass(studentId) {
+  const section = document.getElementById('liveClassSection');
   try {
     const { data: links } = await sb
       .from('batch_students')
@@ -1039,113 +1040,90 @@ async function loadLiveClass(studentId) {
       .eq('student_id', studentId)
       .limit(1);
 
-    const section = document.getElementById('liveClassSection');
     if (!links || links.length === 0 || !links[0].batches) {
-      section.style.display = 'none';
-      return;
+      section.style.display = 'none'; return;
     }
 
     const batch    = links[0].batches;
     const meetLink = batch.meet_link;
     const teacher  = batch.users?.full_name || 'Your teacher';
-    const schedule = batch.schedule_json   || {};
+    const schedule = batch.schedule_json || {};
 
-    if (!meetLink) { section.style.display = 'none'; return; }
+    // First check notification-based scheduled classes (most precise)
+    const { data: classNotifs } = await sb.from('notifications')
+      .select('data')
+      .eq('user_id', studentId)
+      .eq('type', 'class_scheduled')
+      .order('created_at', { ascending: false })
+      .limit(5);
 
-    // Determine if class is live now or upcoming
-    const nextDate   = schedule.next_class;
-    const now        = new Date();
-    let   isLive     = false;
-    let   isUpcoming = false;
+    const now = new Date();
+    let foundClass = false;
 
-    if (nextDate) {
-      const batchStart = new Date(nextDate + 'T00:00:00');
-      const batchEnd   = new Date(batchStart.getTime() + 90*60000); // assume up to 90 min
-      const classToday = now.toISOString().split('T')[0];
-      isLive     = nextDate === classToday;
-      isUpcoming = nextDate > classToday;
-    } else {
-      // If no specific date, show as available
-      isLive = true;
+    for (const notif of (classNotifs || [])) {
+      let cd = null;
+      try { cd = JSON.parse(notif.data || '{}'); } catch { continue; }
+      if (!cd?.meet_link || !cd?.date || !cd?.start_time) continue;
+
+      const cs = new Date(`${cd.date}T${cd.start_time}`);
+      const ce = new Date(cs.getTime() + (cd.duration || 60) * 60000);
+
+      if (now >= cs && now <= ce) {
+        // LIVE NOW
+        section.style.display = 'block';
+        document.getElementById('liveNowBanner').style.display  = 'flex';
+        document.getElementById('upcomingBanner').style.display = 'none';
+        document.getElementById('liveClassTitle').textContent   = `${cd.batch_name || batch.name} — ${cd.topic}`;
+        document.getElementById('liveClassMeta').textContent    = `${teacher} is live now!`;
+        document.getElementById('joinClassBtn').onclick = () => {
+          window.open(cd.meet_link, '_blank');
+          showToast('Joining class now! 📹', 'success');
+        };
+        foundClass = true;
+        break;
+      } else if (now < cs) {
+        // UPCOMING
+        section.style.display = 'block';
+        document.getElementById('liveNowBanner').style.display  = 'none';
+        document.getElementById('upcomingBanner').style.display = 'flex';
+        const timeStr = cs.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+        const dateStr = cs.toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'short' });
+        document.getElementById('upcomingClassTitle').textContent = `${cd.topic} — ${cd.batch_name || batch.name}`;
+        document.getElementById('upcomingClassMeta').textContent  = `${teacher} · ${dateStr} at ${timeStr}`;
+        const minsLeft = (cs - now) / 60000;
+        if (minsLeft <= 5) {
+          const joinBtn = document.getElementById('upcomingJoinBtn');
+          joinBtn.textContent   = '📹 Join class →';
+          joinBtn.style.opacity = '1';
+          joinBtn.style.cursor  = 'pointer';
+          joinBtn.onclick = () => window.open(cd.meet_link, '_blank');
+        }
+        foundClass = true;
+        break;
+      }
     }
 
-    section.style.display = 'block';
-
-    if (isLive) {
+    // Fall back to batch meet_link if no notification-based class found
+    if (!foundClass && meetLink) {
+      section.style.display = 'block';
       document.getElementById('liveNowBanner').style.display  = 'flex';
       document.getElementById('upcomingBanner').style.display = 'none';
-      document.getElementById('liveClassTitle').textContent   = `${batch.name} — ${schedule.text || 'Class in progress'}`;
-      document.getElementById('liveClassMeta').textContent    = `${teacher} is in the class now!`;
-      document.getElementById('joinClassBtn').onclick         = () => {
+      document.getElementById('liveClassTitle').textContent   = `${batch.name} — ${schedule.text || 'Class available'}`;
+      document.getElementById('liveClassMeta').textContent    = `${teacher}`;
+      document.getElementById('joinClassBtn').onclick = () => {
         window.open(meetLink, '_blank');
-        showToast('Opening Google Meet — join your class! 📹', 'success');
+        showToast('Opening Google Meet! 📹', 'success');
       };
-    } else if (isUpcoming) {
-      document.getElementById('liveNowBanner').style.display  = 'none';
-      document.getElementById('upcomingBanner').style.display = 'flex';
-      const classDate = new Date(nextDate).toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'});
-      document.getElementById('upcomingClassTitle').textContent = `Upcoming: ${batch.name} — ${schedule.text || 'Class'}`;
-      document.getElementById('upcomingClassMeta').textContent  = `${teacher} · ${classDate}`;
-    } else {
+    } else if (!foundClass) {
       section.style.display = 'none';
     }
 
-    // Check notifications for scheduled class details
-    try {
-      const { data:classNotifs } = await sb.from('notifications')
-        .select('title,message,data')
-        .eq('user_id', studentId)
-        .eq('type','class_scheduled')
-        .order('created_at',{ascending:false})
-        .limit(3);
-
-      if (classNotifs?.length) {
-        const latest = classNotifs[0];
-        let classData = null;
-        try { classData = JSON.parse(latest.data || '{}'); } catch {}
-        if (classData?.meet_link) {
-          const notifStart = new Date(`${classData.date}T${classData.start_time}`);
-          const notifEnd   = new Date(notifStart.getTime() + (classData.duration||60)*60000);
-          const nowTime    = new Date();
-
-          if (nowTime >= notifStart && nowTime <= notifEnd) {
-            // Class is LIVE right now!
-            document.getElementById('liveNowBanner').style.display  = 'flex';
-            document.getElementById('upcomingBanner').style.display = 'none';
-            document.getElementById('liveClassTitle').textContent   = `${classData.batch_name} — ${classData.topic}`;
-            document.getElementById('liveClassMeta').textContent    = `${teacher} is live now!`;
-            document.getElementById('joinClassBtn').onclick         = () => {
-              window.open(classData.meet_link, '_blank');
-              showToast('Joining class now! 📹', 'success');
-            };
-            section.style.display = 'block';
-          } else if (nowTime < notifStart) {
-            // Upcoming
-            document.getElementById('liveNowBanner').style.display  = 'none';
-            document.getElementById('upcomingBanner').style.display = 'flex';
-            const timeStr = notifStart.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-            const dateStr = notifStart.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'});
-            document.getElementById('upcomingClassTitle').textContent = `${classData.topic} — ${classData.batch_name}`;
-            document.getElementById('upcomingClassMeta').textContent  = `${teacher} · ${dateStr} at ${timeStr}`;
-            // Enable join button 5 min before class
-            const minsToClass = (classStart - nowTime)/60000;
-            if (minsToClass <= 5) {
-              const btn = document.getElementById('upcomingJoinBtn');
-              btn.textContent    = '📹 Join class →';
-              btn.style.opacity  = '1';
-              btn.style.cursor   = 'pointer';
-              btn.onclick        = () => window.open(classData.meet_link,'_blank');
-            }
-            section.style.display = 'block';
-          }
-        }
-      }
-    } catch(e) { console.error(e); }
-
-  } catch {
-    document.getElementById('liveClassSection').style.display = 'none';
+  } catch(e) {
+    console.error('loadLiveClass error:', e);
+    section.style.display = 'none';
   }
 }
+
 
 // ── UI HELPERS ────────────────────────────────────────────
 function toggleSidebar() {

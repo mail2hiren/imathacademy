@@ -805,11 +805,9 @@ async function createBatch(){
   const meet    =document.getElementById('newBatchMeet').value.trim();
   if(!name){showToast('Please enter batch name!','');return;}
   try{
-    // Get program_id from slug
-    const{data:prog}=await sb.from('programs').select('id').eq('slug',program).single();
     await adminCall('create_batch',{
       name,
-      program_id:    prog?.id||null,
+      program:       program||null,
       teacher_id:    teacher||null,
       schedule_json: schedule?{text:schedule}:null,
       meet_link:     meet||null,

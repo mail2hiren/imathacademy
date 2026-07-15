@@ -614,14 +614,31 @@
         </div>
 
         <!-- Live class (shown only when student is in a batch) -->
+        <!-- Virtual Class Banner — shown when a class is scheduled or live -->
         <div id="liveClassSection" style="display:none;margin-bottom:20px">
-          <div class="live-class">
-            <div class="live-dot"></div>
-            <div class="live-info">
-              <div class="live-title" id="liveClassTitle"></div>
-              <div class="live-meta" id="liveClassMeta"></div>
+
+          <!-- LIVE NOW banner -->
+          <div id="liveNowBanner" style="display:none;background:linear-gradient(135deg,var(--green-dk),var(--green-md));border-radius:16px;padding:16px 20px;color:#fff;display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap">
+            <div style="width:12px;height:12px;border-radius:50%;background:#4eff91;animation:pulse 1.2s infinite;flex-shrink:0"></div>
+            <div style="flex:1">
+              <div style="font-weight:800;font-size:.95rem;margin-bottom:2px" id="liveClassTitle">Class in progress</div>
+              <div style="font-size:.78rem;opacity:.9" id="liveClassMeta">Your teacher is waiting!</div>
             </div>
-            <button class="ac-cta" style="background:var(--green);color:#fff;padding:9px 18px;font-size:.8rem" id="joinClassBtn">Join class →</button>
+            <button id="joinClassBtn" style="background:#fff;color:var(--green-dk);border:none;border-radius:20px;padding:10px 22px;font-family:'Nunito',sans-serif;font-size:.875rem;font-weight:800;cursor:pointer;white-space:nowrap">
+              📹 Join class now
+            </button>
+          </div>
+
+          <!-- UPCOMING class banner -->
+          <div id="upcomingBanner" style="display:none;background:var(--blue-lt);border:2px solid #90CAF9;border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div style="font-size:1.4rem">📅</div>
+            <div style="flex:1">
+              <div style="font-weight:800;font-size:.875rem;color:var(--blue-dk);margin-bottom:2px" id="upcomingClassTitle">Upcoming class</div>
+              <div style="font-size:.75rem;color:var(--blue-dk);opacity:.8" id="upcomingClassMeta">Check back at class time to join</div>
+            </div>
+            <button id="upcomingJoinBtn" style="background:var(--blue);color:#fff;border:none;border-radius:20px;padding:8px 18px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;opacity:.6;cursor:not-allowed">
+              🔒 Not started yet
+            </button>
           </div>
         </div>
 
@@ -1028,19 +1045,104 @@ async function loadLiveClass(studentId) {
       return;
     }
 
-    const batch = links[0].batches;
-    const schedule = batch.schedule_json?.text || 'Check your schedule';
-    document.getElementById('liveClassTitle').textContent = `${batch.name} · ${schedule}`;
-    document.getElementById('liveClassMeta').textContent =
-      `${batch.users?.full_name || 'Your teacher'}${batch.meet_link ? ' · Live class available' : ''}`;
+    const batch    = links[0].batches;
+    const meetLink = batch.meet_link;
+    const teacher  = batch.users?.full_name || 'Your teacher';
+    const schedule = batch.schedule_json   || {};
+    const section  = document.getElementById('liveClassSection');
 
-    const btn = document.getElementById('joinClassBtn');
-    if (batch.meet_link) {
-      btn.onclick = () => window.open(batch.meet_link, '_blank');
-      section.style.display = 'block';
+    if (!meetLink) { section.style.display = 'none'; return; }
+
+    // Determine if class is live now or upcoming
+    const nextDate   = schedule.next_class;
+    const now        = new Date();
+    let   isLive     = false;
+    let   isUpcoming = false;
+
+    if (nextDate) {
+      const classStart = new Date(nextDate + 'T00:00:00');
+      const classEnd   = new Date(classStart.getTime() + 90*60000); // assume up to 90 min
+      const today      = now.toISOString().split('T')[0];
+      isLive     = nextDate === today;
+      isUpcoming = nextDate > today;
+    } else {
+      // If no specific date, show as available
+      isLive = true;
+    }
+
+    section.style.display = 'block';
+
+    if (isLive) {
+      document.getElementById('liveNowBanner').style.display  = 'flex';
+      document.getElementById('upcomingBanner').style.display = 'none';
+      document.getElementById('liveClassTitle').textContent   = `${batch.name} — ${schedule.text || 'Class in progress'}`;
+      document.getElementById('liveClassMeta').textContent    = `${teacher} is in the class now!`;
+      document.getElementById('joinClassBtn').onclick         = () => {
+        window.open(meetLink, '_blank');
+        showToast('Opening Google Meet — join your class! 📹', 'success');
+      };
+    } else if (isUpcoming) {
+      document.getElementById('liveNowBanner').style.display  = 'none';
+      document.getElementById('upcomingBanner').style.display = 'flex';
+      const classDate = new Date(nextDate).toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'});
+      document.getElementById('upcomingClassTitle').textContent = `Upcoming: ${batch.name} — ${schedule.text || 'Class'}`;
+      document.getElementById('upcomingClassMeta').textContent  = `${teacher} · ${classDate}`;
     } else {
       section.style.display = 'none';
     }
+
+    // Check notifications for scheduled class details
+    try {
+      const { data:classNotifs } = await sb.from('notifications')
+        .select('title,message,data')
+        .eq('user_id', studentId)
+        .eq('type','class_scheduled')
+        .order('created_at',{ascending:false})
+        .limit(3);
+
+      if (classNotifs?.length) {
+        const latest = classNotifs[0];
+        let classData = null;
+        try { classData = JSON.parse(latest.data || '{}'); } catch {}
+        if (classData?.meet_link) {
+          const classStart = new Date(`${classData.date}T${classData.start_time}`);
+          const classEnd   = new Date(classStart.getTime() + (classData.duration||60)*60000);
+          const nowTime    = new Date();
+
+          if (nowTime >= classStart && nowTime <= classEnd) {
+            // Class is LIVE right now!
+            document.getElementById('liveNowBanner').style.display  = 'flex';
+            document.getElementById('upcomingBanner').style.display = 'none';
+            document.getElementById('liveClassTitle').textContent   = `${classData.batch_name} — ${classData.topic}`;
+            document.getElementById('liveClassMeta').textContent    = `${teacher} is live now!`;
+            document.getElementById('joinClassBtn').onclick         = () => {
+              window.open(classData.meet_link, '_blank');
+              showToast('Joining class now! 📹', 'success');
+            };
+            section.style.display = 'block';
+          } else if (nowTime < classStart) {
+            // Upcoming
+            document.getElementById('liveNowBanner').style.display  = 'none';
+            document.getElementById('upcomingBanner').style.display = 'flex';
+            const timeStr = classStart.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+            const dateStr = classStart.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'});
+            document.getElementById('upcomingClassTitle').textContent = `${classData.topic} — ${classData.batch_name}`;
+            document.getElementById('upcomingClassMeta').textContent  = `${teacher} · ${dateStr} at ${timeStr}`;
+            // Enable join button 5 min before class
+            const minsToClass = (classStart - nowTime)/60000;
+            if (minsToClass <= 5) {
+              const btn = document.getElementById('upcomingJoinBtn');
+              btn.textContent    = '📹 Join class →';
+              btn.style.opacity  = '1';
+              btn.style.cursor   = 'pointer';
+              btn.onclick        = () => window.open(classData.meet_link,'_blank');
+            }
+            section.style.display = 'block';
+          }
+        }
+      }
+    } catch(e) { console.error(e); }
+
   } catch {
     document.getElementById('liveClassSection').style.display = 'none';
   }

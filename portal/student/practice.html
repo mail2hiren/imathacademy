@@ -222,7 +222,7 @@
       transform:translateX(-50%); border-radius:2px; z-index:0;
     }
 
-    /* Heaven bead */
+    /* Top bead */
     .h-bead {
       width:34px; height:18px; border-radius:50%;
       cursor:pointer; border:2.5px solid rgba(0,0,0,.15);
@@ -243,7 +243,7 @@
     .h-bead:hover { transform:scale(1.12); }
     .h-bead.on:hover { transform:scale(1.15); }
 
-    /* Earth bead */
+    /* Lower bead */
     .e-bead {
       width:34px; height:18px; border-radius:50%;
       cursor:pointer; border:2.5px solid rgba(0,0,0,.15);
@@ -610,25 +610,24 @@
             <span id="qNum2">5</span>
             <span class="eq"> = ?</span>
           </div>
-          <div class="q-instruction">Set the answer on the abacus below, then click Check!</div>
-        </div>
 
-        <!-- Abacus -->
-        <div class="abacus-section" id="abacusSection">
-          <div class="soroban-outer">
-            <div class="soroban-inner">
-              <div class="soroban-frame" id="sorobanFrame"></div>
-              <div class="soroban-divider"></div>
-            </div>
+          <!-- Answer input box immediately after question -->
+          <div style="margin:18px auto 0;max-width:200px">
+            <input type="number" id="answerInput" placeholder="Your answer"
+              style="width:100%;padding:12px 16px;font-size:1.4rem;font-weight:800;
+                     text-align:center;border:3px solid var(--border);border-radius:16px;
+                     font-family:'Baloo 2',sans-serif;color:var(--text);outline:none;
+                     transition:border-color .15s;background:var(--bg2);"
+              onfocus="this.style.borderColor='var(--blue)'"
+              onblur="this.style.borderColor='var(--border)'"
+              onkeydown="if(event.key==='Enter') checkAnswer()">
           </div>
-          <div class="abacus-value" id="abacusValue">0</div>
-          <div class="value-label">Current abacus value</div>
 
-          <div class="action-btns">
-            <button class="btn btn-reset"  onclick="resetAbacus()">Reset beads</button>
-            <button class="btn btn-hint"   onclick="toggleHint()" id="hintBtn">Show hint 💡</button>
-            <button class="btn btn-check"  onclick="checkAnswer()" id="checkBtn">Check answer ✓</button>
-            <button class="btn btn-next"   onclick="nextQuestion()" id="nextBtn">Next question →</button>
+          <!-- Hint and Check buttons above abacus -->
+          <div class="action-btns" style="margin-top:14px">
+            <button class="btn btn-hint"  onclick="toggleHint()" id="hintBtn">Show hint 💡</button>
+            <button class="btn btn-check" onclick="checkAnswer()" id="checkBtn">Check answer ✓</button>
+            <button class="btn btn-next"  onclick="nextQuestion()" id="nextBtn">Next question →</button>
           </div>
 
           <div class="hint-box" id="hintBox">
@@ -646,7 +645,25 @@
           <div class="feedback-wrong" id="feedbackWrong">
             <div class="fb-emoji">🤔</div>
             <div class="fb-title" style="color:var(--red-dk)" id="fbWrongTitle">Not quite!</div>
-            <div class="fb-sub" style="color:var(--red-dk)" id="fbWrongSub">Try adjusting the beads and check again.</div>
+            <div class="fb-sub" style="color:var(--red-dk)" id="fbWrongSub">Try again — type your answer above or use the abacus below.</div>
+          </div>
+        </div>
+
+        <!-- Abacus — optional, shown below -->
+        <div class="abacus-section" id="abacusSection">
+          <div style="font-size:.78rem;font-weight:700;color:var(--text3);margin-bottom:12px;text-align:center">
+            🧮 Use the abacus to help (optional)
+          </div>
+          <div class="soroban-outer">
+            <div class="soroban-inner">
+              <div class="soroban-frame" id="sorobanFrame"></div>
+              <div class="soroban-divider"></div>
+            </div>
+          </div>
+          <div class="abacus-value" id="abacusValue">0</div>
+          <div class="value-label">Current abacus value</div>
+          <div style="margin-top:10px;text-align:center">
+            <button class="btn btn-reset" onclick="resetAbacus()">Reset beads</button>
           </div>
         </div>
 
@@ -698,26 +715,26 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── QUESTION BANK (used when Supabase not yet connected) ──
 const DEMO_QUESTIONS = [
-  { q:'2 + 3', a:5,  topic:'Single digit addition',    hint:'Set 2 ones, then add 3 more earth beads',    explanation:'2 + 3 = 5. Set 2 beads, push 3 more up.' },
-  { q:'7 + 5', a:12, topic:'Single digit addition',    hint:'7 ones = heaven bead (5) + 2 earth. Add 5 more ones', explanation:'7 + 5 = 12. Move to tens column.' },
-  { q:'9 - 3', a:6,  topic:'Single digit subtraction', hint:'Set 9 on ones column, then remove 3 earth beads', explanation:'9 - 3 = 6.' },
-  { q:'8 - 5', a:3,  topic:'Single digit subtraction', hint:'Set 8, then push the heaven bead down', explanation:'8 - 5 = 3. Remove the heaven bead (5).' },
-  { q:'4 + 4', a:8,  topic:'Single digit addition',    hint:'4 earth beads up, then 4 more earth beads', explanation:'4 + 4 = 8.' },
+  { q:'2 + 3', a:5,  topic:'Single digit addition',    hint:'Set 2 ones, then add 3 more lower beads',    explanation:'2 + 3 = 5. Set 2 beads, push 3 more up.' },
+  { q:'7 + 5', a:12, topic:'Single digit addition',    hint:'7 ones = top bead (5) + 2 earth. Add 5 more ones', explanation:'7 + 5 = 12. Move to tens column.' },
+  { q:'9 - 3', a:6,  topic:'Single digit subtraction', hint:'Set 9 on ones column, then remove 3 lower beads', explanation:'9 - 3 = 6.' },
+  { q:'8 - 5', a:3,  topic:'Single digit subtraction', hint:'Set 8, then push the top bead down', explanation:'8 - 5 = 3. Remove the top bead (5).' },
+  { q:'4 + 4', a:8,  topic:'Single digit addition',    hint:'4 lower beads up, then 4 more lower beads', explanation:'4 + 4 = 8.' },
   { q:'23 + 14',a:37,topic:'Two digit addition',       hint:'Set tens first: 2 tens. Then ones: 3. Add 1 ten and 4 ones.', explanation:'23 + 14 = 37. Work left to right.' },
   { q:'45 - 23',a:22,topic:'Two digit subtraction',    hint:'Set 45, remove 2 tens then 3 ones', explanation:'45 - 23 = 22.' },
   { q:'37 + 46',a:83,topic:'Addition with carrying',   hint:'Set 3 tens + 7 ones. Add 4 tens = 7 tens. Add 6 ones = 13 ones = carry 1 ten + 3 ones', explanation:'37 + 46 = 83. Carry 1 ten when ones exceed 9.' },
   { q:'62 + 17',a:79,topic:'Two digit addition',       hint:'6 tens + 1 ten = 7 tens. 2 ones + 7 ones = 9 ones', explanation:'62 + 17 = 79.' },
-  { q:'5 + 4',  a:9,  topic:'Single digit addition',   hint:'Heaven bead (5) is active, add 4 earth beads', explanation:'5 + 4 = 9. Heaven bead + 4 earths = 9.' },
+  { q:'5 + 4',  a:9,  topic:'Single digit addition',   hint:'Top bead (5) is active, add 4 lower beads', explanation:'5 + 4 = 9. Top bead + 4 earths = 9.' },
   { q:'31 + 25',a:56,topic:'Two digit addition',       hint:'3 tens + 2 tens = 5 tens. 1 one + 5 ones = 6 ones', explanation:'31 + 25 = 56.' },
   { q:'78 - 34',a:44,topic:'Two digit subtraction',    hint:'7 tens - 3 tens = 4 tens. 8 ones - 4 ones = 4 ones', explanation:'78 - 34 = 44.' },
   { q:'6 + 7',  a:13,topic:'Single digit addition',    hint:'6 ones + 7 ones = 13. Set 1 ten and 3 ones', explanation:'6 + 7 = 13. Carry to tens column.' },
   { q:'96 - 53',a:43,topic:'Two digit subtraction',    hint:'9 tens - 5 tens = 4 tens. 6 ones - 3 ones = 3 ones', explanation:'96 - 53 = 43.' },
   { q:'54 + 23',a:77,topic:'Two digit addition',       hint:'5 tens + 2 tens = 7 tens. 4 ones + 3 ones = 7 ones', explanation:'54 + 23 = 77.' },
-  { q:'3 + 6',  a:9,  topic:'Single digit addition',   hint:'3 earth beads, then add 6 more — use heaven bead for 5', explanation:'3 + 6 = 9.' },
+  { q:'3 + 6',  a:9,  topic:'Single digit addition',   hint:'3 lower beads, then add 6 more — use top bead for 5', explanation:'3 + 6 = 9.' },
   { q:'87 - 62',a:25,topic:'Two digit subtraction',    hint:'8 tens - 6 tens = 2 tens. 7 ones - 2 ones = 5 ones', explanation:'87 - 62 = 25.' },
-  { q:'1 + 8',  a:9,  topic:'Single digit addition',   hint:'1 earth bead, add 5 (heaven) + 3 earth = 8 more', explanation:'1 + 8 = 9.' },
+  { q:'1 + 8',  a:9,  topic:'Single digit addition',   hint:'1 lower bead, add 5 (heaven) + 3 earth = 8 more', explanation:'1 + 8 = 9.' },
   { q:'42 + 36',a:78,topic:'Two digit addition',       hint:'4+3=7 tens, 2+6=8 ones', explanation:'42 + 36 = 78.' },
-  { q:'9 - 4',  a:5,  topic:'Single digit subtraction',hint:'Set 9 ones, remove 4 earth beads', explanation:'9 - 4 = 5.' },
+  { q:'9 - 4',  a:5,  topic:'Single digit subtraction',hint:'Set 9 ones, remove 4 lower beads', explanation:'9 - 4 = 5.' },
 ];
 
 // ── STATE ─────────────────────────────────────────────────
@@ -758,10 +775,10 @@ function buildSoroban() {
     const rod = document.createElement('div');
     rod.className = 's-rod'; col.appendChild(rod);
 
-    // Heaven bead (top, worth 5)
+    // Top bead (top, worth 5)
     const hb = document.createElement('div');
     hb.className = 'h-bead off';
-    hb.title = 'Heaven bead = 5';
+    hb.title = 'Top bead = 5';
     const ci = c;
     hb.onclick = () => {
       colState[ci].h = !colState[ci].h;
@@ -776,11 +793,11 @@ function buildSoroban() {
     bar.style.cssText = 'height:4px;background:#3E2723;border-radius:2px;margin:4px 0;width:100%;position:relative;z-index:2';
     col.appendChild(bar);
 
-    // Earth beads (bottom, worth 1 each)
+    // Lower beads (bottom, worth 1 each)
     for (let r = 0; r < 4; r++) {
       const eb = document.createElement('div');
       eb.className = 'e-bead off';
-      eb.title = 'Earth bead = 1';
+      eb.title = 'Lower bead = 1';
       const ri = r;
       eb.onclick = () => {
         colState[ci].e[ri] = !colState[ci].e[ri];
@@ -884,6 +901,9 @@ function startSession() {
 
 // ── LOAD QUESTION ─────────────────────────────────────────
 function loadQuestion(idx) {
+  // Clear answer input box
+  const inp = document.getElementById('answerInput');
+  if (inp) { inp.value = ''; inp.style.borderColor = 'var(--border)'; inp.focus(); }
   if (idx >= questions.length) { showComplete(); return; }
 
   const q = questions[idx];
@@ -935,14 +955,20 @@ function loadQuestion(idx) {
 // ── CHECK ANSWER ──────────────────────────────────────────
 function checkAnswer() {
   const q       = questions[currentIdx];
-  const val     = getAbacusValue();
-  const correct = q.a;
+  // Check typed answer box first; fall back to abacus value
+  const typedInput = document.getElementById('answerInput');
+  const typedVal   = typedInput && typedInput.value !== '' ? parseInt(typedInput.value) : NaN;
+  const abacusVal  = getAbacusValue();
+  const val        = !isNaN(typedVal) ? typedVal : abacusVal;
+  const correct    = q.a;
   attempts++;
 
   if (val === correct) {
     handleCorrect(q);
+    if (typedInput) typedInput.style.borderColor = 'var(--green)';
   } else {
     handleWrong(q, val, attempts);
+    if (typedInput) typedInput.style.borderColor = 'var(--red)';
   }
 }
 

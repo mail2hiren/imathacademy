@@ -1049,7 +1049,6 @@ async function loadLiveClass(studentId) {
     const meetLink = batch.meet_link;
     const teacher  = batch.users?.full_name || 'Your teacher';
     const schedule = batch.schedule_json   || {};
-    const section  = document.getElementById('liveClassSection');
 
     if (!meetLink) { section.style.display = 'none'; return; }
 

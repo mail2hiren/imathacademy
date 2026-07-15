@@ -35,12 +35,19 @@ Deno.serve(async (req: Request) => {
 
     // ── CREATE BATCH ──────────────────────────────────────
     if (action === 'create_batch') {
-      const { name, program_id, teacher_id, schedule_json, meet_link } = body;
+      const { name, program, teacher_id, schedule_json, meet_link } = body;
       if (!name) return new Response(JSON.stringify({ error: 'Batch name required' }), { status: 400, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } });
+
+      // Look up program_id from slug if provided
+      let program_id = null;
+      if (program) {
+        const { data: progData } = await adminSb.from('programs').select('id').eq('slug', program).maybeSingle();
+        program_id = progData?.id || null;
+      }
       
       const { data, error } = await adminSb.from('batches').insert({
         name,
-        program_id:    program_id    || null,
+        program_id,
         teacher_id:    teacher_id    || null,
         schedule_json: schedule_json || null,
         meet_link:     meet_link     || null,

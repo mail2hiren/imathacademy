@@ -1148,8 +1148,7 @@ async function scheduleClass() {
       user_id: s.id,
       type:    'class_scheduled',
       title:   `📹 Virtual class scheduled: ${topic}`,
-      message: `Your teacher has scheduled a class on "${topic}" on ${new Date(date).toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'})} at ${formatTime(start)} for ${duration} minutes. Join via Google Meet.`,
-      data:    JSON.stringify(classRecord),
+      message: JSON.stringify(classRecord),
     }));
     if (notifs.length) await sb.from('notifications').insert(notifs);
 

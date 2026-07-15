@@ -326,7 +326,7 @@
       <a class="nav-item" href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
       <a class="nav-item" href="lessons.html"><span class="nav-icon">▶️</span> Lessons</a>
       <a class="nav-item" href="practice.html"><span class="nav-icon">⚡</span> Practice</a>
-      <a class="nav-item active" href="homework.html"><span class="nav-icon">📋</span> Homework<span class="nav-badge" id="hwBadge">2</span></a>
+      <a class="nav-item active" href="homework.html"><span class="nav-icon">📋</span> Homework<span class="nav-badge" id="hwBadge" style="display:none">0</span></a>
       <div class="nav-section">Progress</div>
       <a class="nav-item" href="progress.html"><span class="nav-icon">📊</span> My progress</a>
       <a class="nav-item" href="progress.html"><span class="nav-icon">🏅</span> Badges & XP</a>
@@ -334,9 +334,9 @@
       <a class="nav-item" href="#"><span class="nav-icon">📹</span> Live classes</a>
     </nav>
     <div class="sidebar-user">
-      <div class="user-av" id="userAv">AR</div>
+      <div class="user-av" id="userAv">?</div>
       <div>
-        <div class="user-name" id="userName">Arjun Rao</div>
+        <div class="user-name" id="userName">Loading...</div>
         <div class="user-role">Student</div>
       </div>
       <button class="logout-btn" onclick="logout()">⇥</button>
@@ -361,26 +361,26 @@
       <div id="listScreen">
 
         <div class="hw-tabs">
-          <button class="hw-tab active" onclick="showTab('pending',this)">Pending (2)</button>
-          <button class="hw-tab" onclick="showTab('completed',this)">Completed (1)</button>
+          <button class="hw-tab active" id="tabPendingBtn" onclick="showTab('pending',this)">Pending (0)</button>
+          <button class="hw-tab" id="tabCompletedBtn" onclick="showTab('completed',this)">Completed (0)</button>
           <button class="hw-tab" onclick="showTab('all',this)">All</button>
         </div>
 
         <div class="hw-stats">
           <div class="hw-stat">
-            <div class="hw-stat-n" style="color:var(--red)">2</div>
+            <div class="hw-stat-n" style="color:var(--red)" id="statPending">0</div>
             <div class="hw-stat-l">Pending</div>
           </div>
           <div class="hw-stat">
-            <div class="hw-stat-n" style="color:var(--green)">1</div>
+            <div class="hw-stat-n" style="color:var(--green)" id="statCompleted">0</div>
             <div class="hw-stat-l">Completed</div>
           </div>
           <div class="hw-stat">
-            <div class="hw-stat-n" style="color:var(--blue)">90%</div>
+            <div class="hw-stat-n" style="color:var(--blue)" id="statAvg">—</div>
             <div class="hw-stat-l">Avg score</div>
           </div>
           <div class="hw-stat">
-            <div class="hw-stat-n" style="color:var(--yellow)">180</div>
+            <div class="hw-stat-n" style="color:var(--yellow)" id="statXp">0</div>
             <div class="hw-stat-l">XP from HW</div>
           </div>
         </div>
@@ -388,63 +388,13 @@
         <!-- Pending homework -->
         <div id="pendingList">
           <div style="font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:10px">Pending</div>
-
-          <!-- Urgent homework -->
-          <div class="hw-card urgent" onclick="startHomework('hw1')">
-            <div class="hw-icon" style="background:var(--red-lt)">📋</div>
-            <div class="hw-info">
-              <div class="hw-title">Addition with carrying — 10 questions</div>
-              <div class="hw-meta">Assigned by Ms. Priya · Abacus Level 3 · 10 questions</div>
-              <div class="hw-tags">
-                <span class="hw-tag" style="background:var(--red-lt);color:var(--red-dk)">Abacus</span>
-                <span class="hw-tag" style="background:var(--orange-lt);color:var(--orange-dk)">Level 3</span>
-                <span class="hw-tag" style="background:var(--bg2);color:var(--text2)">Medium</span>
-              </div>
-            </div>
-            <div class="hw-right">
-              <span class="due-pill due-red">Due tomorrow!</span>
-              <button class="hw-btn hw-btn-urgent" onclick="event.stopPropagation();startHomework('hw1')">Start now →</button>
-            </div>
-          </div>
-
-          <!-- Auto-assigned homework -->
-          <div class="hw-card auto" onclick="startHomework('hw2')">
-            <div class="hw-icon" style="background:var(--blue-lt)">🤖</div>
-            <div class="hw-info">
-              <div class="hw-title">Revision: 3-digit subtraction — 8 questions</div>
-              <div class="hw-meta">Auto-assigned · Weak area detected · 8 questions</div>
-              <div class="hw-tags">
-                <span class="hw-tag" style="background:var(--blue-lt);color:var(--blue-dk)">Auto-assigned</span>
-                <span class="hw-tag" style="background:var(--orange-lt);color:var(--orange-dk)">Level 3</span>
-                <span class="hw-tag" style="background:var(--bg2);color:var(--text2)">Easy</span>
-              </div>
-            </div>
-            <div class="hw-right">
-              <span class="due-pill due-orange">2 days left</span>
-              <button class="hw-btn hw-btn-start" onclick="event.stopPropagation();startHomework('hw2')">Start →</button>
-            </div>
-          </div>
+          <div style="text-align:center;padding:28px;color:var(--text3);font-weight:600">Loading your homework...</div>
         </div>
 
         <!-- Completed homework -->
-        <div id="completedList" style="margin-top:20px">
+        <div id="completedList" style="margin-top:20px;display:none">
           <div style="font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:10px">Completed</div>
-
-          <div class="hw-card done" onclick="showResults('hw3')">
-            <div class="hw-icon" style="background:var(--green-lt)">✅</div>
-            <div class="hw-info">
-              <div class="hw-title">Single digit addition — 10 questions</div>
-              <div class="hw-meta">Submitted 2 days ago · Graded · Score: 9/10</div>
-              <div class="hw-tags">
-                <span class="hw-tag" style="background:var(--green-lt);color:var(--green-dk)">Submitted</span>
-                <span class="hw-tag" style="background:var(--green-lt);color:var(--green-dk)">9/10 ⭐</span>
-              </div>
-            </div>
-            <div class="hw-right">
-              <span class="due-pill due-green">Submitted</span>
-              <button class="hw-btn hw-btn-review" onclick="event.stopPropagation();showResults('hw3')">Review →</button>
-            </div>
-          </div>
+          <div style="text-align:center;padding:28px;color:var(--text3);font-weight:600">No completed homework yet</div>
         </div>
 
       </div>
@@ -530,7 +480,7 @@
         <!-- Teacher feedback (shown if teacher has left feedback) -->
         <div class="teacher-feedback" id="teacherFeedback">
           <div class="tf-title">👨‍🏫 Teacher feedback</div>
-          <div class="tf-text" id="teacherFeedbackText">Excellent work Arjun! You are improving well on single digit addition. Keep practising the carrying technique — I have assigned you some revision homework to strengthen that area. Keep it up!</div>
+          <div class="tf-text" id="teacherFeedbackText">Your teacher will leave feedback here after grading.</div>
         </div>
 
         <!-- Question review -->
@@ -575,59 +525,8 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── DEMO HOMEWORK DATA ─────────────────────────────────────
-const HOMEWORK_DB = {
-  hw1: {
-    id:'hw1', title:'Addition with carrying', topic:'Addition with carrying',
-    assignedBy:'Ms. Priya', meta:'Abacus Level 3 · 10 questions · Medium',
-    due:'Due tomorrow', dueClass:'due-red', totalQ:10,
-    questions:[
-      { q:'37 + 46', n1:37, n2:46, op:'+', a:83, topic:'Addition with carrying', hint:'Set 37, then add 46 — carry 1 ten when ones exceed 9', explanation:'37 + 46 = 83. 7+6=13, write 3 carry 1. 3+4+1=8 tens.' },
-      { q:'28 + 35', n1:28, n2:35, op:'+', a:63, topic:'Addition with carrying', hint:'8+5=13, carry 1 ten', explanation:'28 + 35 = 63' },
-      { q:'49 + 27', n1:49, n2:27, op:'+', a:76, topic:'Addition with carrying', hint:'9+7=16, write 6 carry 1', explanation:'49 + 27 = 76' },
-      { q:'56 + 38', n1:56, n2:38, op:'+', a:94, topic:'Addition with carrying', hint:'6+8=14, carry 1', explanation:'56 + 38 = 94' },
-      { q:'67 + 25', n1:67, n2:25, op:'+', a:92, topic:'Addition with carrying', hint:'7+5=12, carry 1', explanation:'67 + 25 = 92' },
-      { q:'43 + 59', n1:43, n2:59, op:'+', a:102, topic:'Addition with carrying', hint:'3+9=12, carry 1. 4+5+1=10, carry 1 again', explanation:'43 + 59 = 102' },
-      { q:'78 + 14', n1:78, n2:14, op:'+', a:92, topic:'Addition with carrying', hint:'8+4=12, carry 1', explanation:'78 + 14 = 92' },
-      { q:'35 + 47', n1:35, n2:47, op:'+', a:82, topic:'Addition with carrying', hint:'5+7=12, carry 1', explanation:'35 + 47 = 82' },
-      { q:'69 + 23', n1:69, n2:23, op:'+', a:92, topic:'Addition with carrying', hint:'9+3=12, carry 1', explanation:'69 + 23 = 92' },
-      { q:'58 + 36', n1:58, n2:36, op:'+', a:94, topic:'Addition with carrying', hint:'8+6=14, carry 1', explanation:'58 + 36 = 94' },
-    ]
-  },
-  hw2: {
-    id:'hw2', title:'Revision: 3-digit subtraction', topic:'3-digit subtraction',
-    assignedBy:'Auto-assigned system', meta:'Weak area revision · 8 questions · Easy',
-    due:'2 days left', dueClass:'due-orange', totalQ:8,
-    questions:[
-      { q:'456 - 234', n1:456, n2:234, op:'-', a:222, topic:'3-digit subtraction', hint:'Subtract ones, tens, hundreds separately', explanation:'456 - 234 = 222' },
-      { q:'789 - 345', n1:789, n2:345, op:'-', a:444, topic:'3-digit subtraction', hint:'Work column by column', explanation:'789 - 345 = 444' },
-      { q:'653 - 421', n1:653, n2:421, op:'-', a:232, topic:'3-digit subtraction', hint:'Each column independently', explanation:'653 - 421 = 232' },
-      { q:'978 - 564', n1:978, n2:564, op:'-', a:414, topic:'3-digit subtraction', hint:'9-5=4, 7-6=1, 8-4=4', explanation:'978 - 564 = 414' },
-      { q:'845 - 312', n1:845, n2:312, op:'-', a:533, topic:'3-digit subtraction', hint:'Column by column', explanation:'845 - 312 = 533' },
-      { q:'567 - 243', n1:567, n2:243, op:'-', a:324, topic:'3-digit subtraction', hint:'5-2=3, 6-4=2, 7-3=4', explanation:'567 - 243 = 324' },
-      { q:'896 - 472', n1:896, n2:472, op:'-', a:424, topic:'3-digit subtraction', hint:'Column by column subtraction', explanation:'896 - 472 = 424' },
-      { q:'734 - 521', n1:734, n2:521, op:'-', a:213, topic:'3-digit subtraction', hint:'7-5=2, 3-2=1, 4-1=3', explanation:'734 - 521 = 213' },
-    ]
-  },
-  hw3: {
-    id:'hw3', title:'Single digit addition', topic:'Single digit addition',
-    assignedBy:'Ms. Priya', meta:'Abacus Level 1 · 10 questions · Easy',
-    due:'Submitted', dueClass:'due-green', totalQ:10, submitted:true,
-    score:9, timeStr:'8 min',
-    questions:[
-      { q:'2 + 3', n1:2, n2:3, op:'+', a:5, topic:'Single digit addition', hint:'2 beads, add 3 more', explanation:'2 + 3 = 5', studentAnswer:5,  correct:true  },
-      { q:'7 + 2', n1:7, n2:2, op:'+', a:9, topic:'Single digit addition', hint:'7 beads, add 2 more', explanation:'7 + 2 = 9', studentAnswer:9,  correct:true  },
-      { q:'4 + 4', n1:4, n2:4, op:'+', a:8, topic:'Single digit addition', hint:'4 beads, add 4 more', explanation:'4 + 4 = 8', studentAnswer:8,  correct:true  },
-      { q:'5 + 3', n1:5, n2:3, op:'+', a:8, topic:'Single digit addition', hint:'Heaven bead + 3 earth beads', explanation:'5 + 3 = 8', studentAnswer:8,  correct:true  },
-      { q:'1 + 6', n1:1, n2:6, op:'+', a:7, topic:'Single digit addition', hint:'1 bead, add 6 more', explanation:'1 + 6 = 7', studentAnswer:9,  correct:false },
-      { q:'3 + 5', n1:3, n2:5, op:'+', a:8, topic:'Single digit addition', hint:'3 beads, add 5 (heaven bead)', explanation:'3 + 5 = 8', studentAnswer:8,  correct:true  },
-      { q:'6 + 2', n1:6, n2:2, op:'+', a:8, topic:'Single digit addition', hint:'6 beads, add 2 more', explanation:'6 + 2 = 8', studentAnswer:8,  correct:true  },
-      { q:'4 + 5', n1:4, n2:5, op:'+', a:9, topic:'Single digit addition', hint:'4 earth beads + heaven bead', explanation:'4 + 5 = 9', studentAnswer:9,  correct:true  },
-      { q:'2 + 7', n1:2, n2:7, op:'+', a:9, topic:'Single digit addition', hint:'2 beads, add 7 more', explanation:'2 + 7 = 9', studentAnswer:9,  correct:true  },
-      { q:'8 + 1', n1:8, n2:1, op:'+', a:9, topic:'Single digit addition', hint:'8 beads, add 1 more', explanation:'8 + 1 = 9', studentAnswer:9,  correct:true  },
-    ]
-  }
-};
+// ── HOMEWORK STORE (scoped to logged-in student only) ──────
+const HOMEWORK_DB = {};
 
 // ── STATE ──────────────────────────────────────────────────
 let currentHW     = null;
@@ -635,6 +534,168 @@ let currentQIdx   = 0;
 let answers       = {};
 let startTime     = null;
 let currentTab    = 'pending';
+let currentStudentId = null;
+
+function escapeHtml(str) {
+  return String(str || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+function formatDueLabel(due) {
+  if (!due) return { text: 'Assigned', cls: 'due-orange' };
+  const today = new Date().toISOString().split('T')[0];
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  if (due < today) return { text: 'Overdue', cls: 'due-red' };
+  if (due === today) return { text: 'Due today', cls: 'due-red' };
+  if (due === tomorrow) return { text: 'Due tomorrow!', cls: 'due-red' };
+  return { text: due, cls: 'due-orange' };
+}
+
+function mapQuestion(q) {
+  const text = q.question_text || q.prompt || q.q || '?';
+  const parts = String(text).match(/(-?\d+)\s*([+\-×x*÷/])\s*(-?\d+)/);
+  return {
+    q: text,
+    n1: parts ? parts[1] : '',
+    n2: parts ? parts[3] : '',
+    op: parts ? parts[2].replace('x','×').replace('*','×').replace('/','÷') : '',
+    a: Number(q.answer ?? q.correct_answer),
+    topic: q.topic || 'Practice',
+    hint: q.hint || 'Take your time and solve carefully',
+    explanation: q.explanation || `${text} = ${q.answer ?? q.correct_answer}`,
+  };
+}
+
+async function buildHomeworkEntry(row, studentId) {
+  const mine = (row.submissions || []).find(s => s.student_id === studentId) || null;
+  let questions = [];
+  const ids = Array.isArray(row.question_ids) ? row.question_ids : [];
+  if (ids.length) {
+    const { data: qs } = await sb.from('questions').select('*').in('id', ids);
+    questions = (qs || []).map(mapQuestion);
+  }
+
+  const due = formatDueLabel(row.due_date);
+  return {
+    id: row.id,
+    title: row.title || row.topic || 'Homework',
+    topic: row.topic || 'Homework',
+    assignedBy: row.is_auto_assigned ? 'Auto-assigned system' : 'Your teacher',
+    meta: `${questions.length || ids.length} questions`,
+    due: due.text,
+    dueClass: due.cls,
+    totalQ: questions.length || ids.length || 0,
+    questions,
+    submitted: !!mine,
+    score: mine?.score,
+    timeStr: mine?.time_taken_secs ? `${Math.max(1, Math.round(mine.time_taken_secs / 60))} min` : '',
+    xp: mine?.xp_awarded || 0,
+    results: null,
+    feedback: mine?.teacher_feedback || '',
+    submission: mine,
+  };
+}
+
+function renderHomeworkLists() {
+  const all = Object.values(HOMEWORK_DB);
+  const pending = all.filter(h => !h.submitted);
+  const completed = all.filter(h => h.submitted);
+
+  document.getElementById('statPending').textContent = pending.length;
+  document.getElementById('statCompleted').textContent = completed.length;
+  document.getElementById('tabPendingBtn').textContent = `Pending (${pending.length})`;
+  document.getElementById('tabCompletedBtn').textContent = `Completed (${completed.length})`;
+
+  const badge = document.getElementById('hwBadge');
+  badge.textContent = pending.length;
+  badge.style.display = pending.length ? 'inline-flex' : 'none';
+
+  if (completed.length) {
+    const avg = Math.round(completed.reduce((s, h) => s + ((h.score || 0) / Math.max(1, h.totalQ)) * 100, 0) / completed.length);
+    document.getElementById('statAvg').textContent = `${avg}%`;
+    document.getElementById('statXp').textContent = completed.reduce((s, h) => s + (h.xp || 0), 0);
+  } else {
+    document.getElementById('statAvg').textContent = '—';
+    document.getElementById('statXp').textContent = '0';
+  }
+
+  const pendingEl = document.getElementById('pendingList');
+  const completedEl = document.getElementById('completedList');
+
+  pendingEl.innerHTML = `<div style="font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:10px">Pending</div>`;
+  if (!pending.length) {
+    pendingEl.innerHTML += `<div style="text-align:center;padding:28px;color:var(--text3);font-weight:600">No homework assigned yet</div>`;
+  } else {
+    pending.forEach(h => {
+      const urgent = h.dueClass === 'due-red';
+      pendingEl.innerHTML += `
+        <div class="hw-card ${urgent ? 'urgent' : ''}" onclick="startHomework('${h.id}')">
+          <div class="hw-icon" style="background:${urgent ? 'var(--red-lt)' : 'var(--orange-lt)'}">📋</div>
+          <div class="hw-info">
+            <div class="hw-title">${escapeHtml(h.title)}${h.totalQ ? ` — ${h.totalQ} questions` : ''}</div>
+            <div class="hw-meta">${escapeHtml(h.assignedBy)} · ${escapeHtml(h.meta)}</div>
+          </div>
+          <div class="hw-right">
+            <span class="due-pill ${h.dueClass}">${escapeHtml(h.due)}</span>
+            <button class="hw-btn ${urgent ? 'hw-btn-urgent' : 'hw-btn-start'}" onclick="event.stopPropagation();startHomework('${h.id}')">Start →</button>
+          </div>
+        </div>`;
+    });
+  }
+
+  completedEl.innerHTML = `<div style="font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:10px">Completed</div>`;
+  if (!completed.length) {
+    completedEl.innerHTML += `<div style="text-align:center;padding:28px;color:var(--text3);font-weight:600">No completed homework yet</div>`;
+  } else {
+    completed.forEach(h => {
+      completedEl.innerHTML += `
+        <div class="hw-card done" onclick="showResults('${h.id}')">
+          <div class="hw-icon" style="background:var(--green-lt)">✅</div>
+          <div class="hw-info">
+            <div class="hw-title">${escapeHtml(h.title)}</div>
+            <div class="hw-meta">Submitted · Score: ${h.score ?? '—'}/${h.totalQ || '?'}</div>
+          </div>
+          <div class="hw-right">
+            <span class="due-pill due-green">Submitted</span>
+            <button class="hw-btn hw-btn-review" onclick="event.stopPropagation();showResults('${h.id}')">Review →</button>
+          </div>
+        </div>`;
+    });
+  }
+}
+
+async function loadStudentHomework(studentId) {
+  Object.keys(HOMEWORK_DB).forEach(k => delete HOMEWORK_DB[k]);
+
+  const { data: batches } = await sb
+    .from('batch_students')
+    .select('batch_id')
+    .eq('student_id', studentId);
+
+  if (!batches?.length) {
+    renderHomeworkLists();
+    return;
+  }
+
+  const { data: homework } = await sb
+    .from('homework')
+    .select('*, submissions(id, score, total_questions, submitted_at, student_id, time_taken_secs, xp_awarded, teacher_feedback, answers)')
+    .in('batch_id', batches.map(b => b.batch_id))
+    .eq('is_active', true)
+    .order('due_date', { ascending: true });
+
+  for (const row of (homework || [])) {
+    // Strip other students' submissions before mapping
+    row.submissions = (row.submissions || []).filter(s => s.student_id === studentId);
+    const entry = await buildHomeworkEntry(row, studentId);
+    HOMEWORK_DB[entry.id] = entry;
+  }
+
+  renderHomeworkLists();
+}
 
 // ── TAB SWITCHING ──────────────────────────────────────────
 function showTab(tab, btn) {
@@ -651,11 +712,19 @@ function showTab(tab, btn) {
 // ── START HOMEWORK ─────────────────────────────────────────
 function startHomework(hwId) {
   currentHW   = HOMEWORK_DB[hwId];
+  if (!currentHW) {
+    showToast('Homework not found for your account', 'error');
+    return;
+  }
   currentQIdx = 0;
   answers     = {};
   startTime   = Date.now();
 
   if (currentHW.submitted) { showResults(hwId); return; }
+  if (!currentHW.questions?.length) {
+    showToast('This homework has no questions yet', '');
+    return;
+  }
 
   document.getElementById('listScreen').style.display    = 'none';
   document.getElementById('attemptScreen').style.display = 'block';
@@ -831,21 +900,40 @@ async function saveToSupabase(score, results, timeSecs, xp) {
 // ── SHOW RESULTS ───────────────────────────────────────────
 function showResults(hwId) {
   const hw = HOMEWORK_DB[hwId];
+  if (!hw) {
+    showToast('Homework not found for your account', 'error');
+    return;
+  }
   currentHW = hw;
 
   let results, score, timeStr, xp;
 
   if (hw.results) {
     results = hw.results; score = hw.score; timeStr = hw.timeStr; xp = hw.xp;
+  } else if (hw.submission?.answers && hw.questions?.length) {
+    results = hw.questions.map((q, i) => {
+      const saved = hw.submission.answers[i] || {};
+      return {
+        ...q,
+        studentAnswer: saved.answer,
+        correct: !!saved.correct,
+      };
+    });
+    score = hw.score ?? 0;
+    timeStr = hw.timeStr || '—';
+    xp = hw.xp || 0;
   } else {
-    // Pre-submitted demo (hw3)
-    results  = hw.questions.map(q => ({ ...q }));
-    score    = hw.score    || 9;
-    timeStr  = hw.timeStr  || '8 min';
-    xp       = score * 10 + 80;
+    results = (hw.questions || []).map(q => ({ ...q, studentAnswer: undefined, correct: false }));
+    score = hw.score ?? 0;
+    timeStr = hw.timeStr || '—';
+    xp = hw.xp || 0;
   }
 
-  displayResults(score, hw.totalQ, xp, timeStr, results, true);
+  if (hw.feedback) {
+    document.getElementById('teacherFeedbackText').textContent = hw.feedback;
+  }
+
+  displayResults(score, hw.totalQ || results.length || 0, xp, timeStr, results, !!hw.feedback);
 }
 
 function displayResults(score, total, xp, timeStr, results, showFeedback) {
@@ -854,7 +942,7 @@ function displayResults(score, total, xp, timeStr, results, showFeedback) {
   document.getElementById('resultsScreen').style.display = 'block';
   document.getElementById('topbarTitle').textContent     = '📊 Results';
 
-  const acc = Math.round((score / total) * 100);
+  const acc = total ? Math.round((score / total) * 100) : 0;
 
   // Header
   let emoji = '💪', color = 'linear-gradient(135deg,#E53935,#B71C1C)';
@@ -870,7 +958,7 @@ function displayResults(score, total, xp, timeStr, results, showFeedback) {
 
   // Stats
   document.getElementById('rCorrect').textContent = score;
-  document.getElementById('rWrong').textContent   = total - score;
+  document.getElementById('rWrong').textContent   = Math.max(0, total - score);
   document.getElementById('rXP').textContent      = xp;
   document.getElementById('rTime').textContent    = timeStr;
 
@@ -880,7 +968,7 @@ function displayResults(score, total, xp, timeStr, results, showFeedback) {
   // Review list
   const list = document.getElementById('reviewList');
   list.innerHTML = '';
-  results.forEach((r, i) => {
+  (results || []).forEach((r, i) => {
     const div = document.createElement('div');
     div.className = `review-item ${r.correct ? 'correct' : 'wrong'}`;
     div.innerHTML = `
@@ -889,7 +977,7 @@ function displayResults(score, total, xp, timeStr, results, showFeedback) {
         Your answer: ${r.studentAnswer !== undefined ? r.studentAnswer : 'Not answered'} ${r.correct?'✅':'❌'}
       </div>
       ${!r.correct ? `<div class="review-right">Correct answer: ${r.a}</div>` : ''}
-      <div class="review-expl">${r.explanation}</div>
+      <div class="review-expl">${r.explanation || ''}</div>
     `;
     list.appendChild(div);
   });
@@ -903,6 +991,7 @@ function backToList() {
   document.getElementById('topbarTitle').textContent     = '📋 Homework';
   document.getElementById('backLink').onclick            = null;
   document.getElementById('backLink').href               = 'dashboard.html';
+  if (currentStudentId) loadStudentHomework(currentStudentId);
 }
 
 // ── UTILS ──────────────────────────────────────────────────
@@ -925,15 +1014,27 @@ async function logout() {
 async function init() {
   try {
     const { data: { session } } = await sb.auth.getSession();
-    if (session) {
-      const { data: profile } = await sb.from('users').select('full_name').eq('id', session.user.id).single();
-      if (profile) {
-        const name = profile.full_name;
-        document.getElementById('userAv').textContent   = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-        document.getElementById('userName').textContent = name;
-      }
+    if (!session) {
+      window.location.href = '../../login.html';
+      return;
     }
-  } catch { /* demo mode */ }
+
+    currentStudentId = session.user.id;
+    const { data: profile } = await sb.from('users').select('full_name, role').eq('id', session.user.id).single();
+    if (!profile || profile.role !== 'student') {
+      window.location.href = '../../login.html';
+      return;
+    }
+
+    const name = profile.full_name || 'Student';
+    document.getElementById('userAv').textContent = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    document.getElementById('userName').textContent = name;
+
+    await loadStudentHomework(session.user.id);
+  } catch (err) {
+    console.error(err);
+    window.location.href = '../../login.html';
+  }
 }
 
 init();

@@ -295,17 +295,17 @@
       <a class="nav-item" href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
       <a class="nav-item" href="lessons.html"><span class="nav-icon">▶️</span> Lessons</a>
       <a class="nav-item" href="practice.html"><span class="nav-icon">⚡</span> Practice</a>
-      <a class="nav-item" href="homework.html"><span class="nav-icon">📋</span> Homework<span class="nav-badge">2</span></a>
+      <a class="nav-item" href="homework.html"><span class="nav-icon">📋</span> Homework<span class="nav-badge" id="hwBadge" style="display:none">0</span></a>
       <div class="nav-section">Progress</div>
       <a class="nav-item active" href="progress.html"><span class="nav-icon">📊</span> My progress</a>
-      <a class="nav-item active" href="progress.html"><span class="nav-icon">🏅</span> Badges & XP</a>
+      <a class="nav-item" href="progress.html"><span class="nav-icon">🏅</span> Badges & XP</a>
       <div class="nav-section">Classes</div>
       <a class="nav-item" href="#"><span class="nav-icon">📹</span> Live classes</a>
     </nav>
     <div class="sidebar-user">
-      <div class="user-av" id="userAv">AR</div>
+      <div class="user-av" id="userAv">?</div>
       <div>
-        <div class="user-name" id="userName">Arjun Rao</div>
+        <div class="user-name" id="userName">Loading...</div>
         <div class="user-role">Student</div>
       </div>
       <button class="logout-btn" onclick="logout()">⇥</button>
@@ -340,32 +340,32 @@
           <div class="xp-card">
             <div class="xp-top">
               <div>
-                <div class="xp-title" id="xpTitle">Abacus — Level 3 · Orange Belt</div>
-                <div style="font-size:.78rem;opacity:.8;margin-top:2px" id="xpSub">1,240 XP total earned</div>
+                <div class="xp-title" id="xpTitle">Getting started · White Belt</div>
+                <div style="font-size:.78rem;opacity:.8;margin-top:2px" id="xpSub">0 XP total earned</div>
               </div>
               <div class="xp-badges">
-                <div class="xp-badge xp-badge-xp" id="xpBadge">1,240 XP</div>
-                <div class="xp-badge xp-badge-s" id="streakBadge">🔥 7 days</div>
+                <div class="xp-badge xp-badge-xp" id="xpBadge">0 XP</div>
+                <div class="xp-badge xp-badge-s" id="streakBadge">🔥 0 days</div>
               </div>
             </div>
-            <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:62%"></div></div>
+            <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
             <div class="xp-info">
-              <span id="xpCurrent">1,240 / 2,000 XP</span>
-              <span id="xpNext">760 XP to Green Belt 🟢</span>
+              <span id="xpCurrent">0 / 500 XP</span>
+              <span id="xpNext">Start practising to earn XP</span>
             </div>
           </div>
 
           <div class="belt-card">
-            <div class="belt-circle-lg" id="beltCircle" style="background:#FFB74D">🥋</div>
-            <div class="belt-name" id="beltName">Orange Belt</div>
-            <div class="belt-level" id="beltLevel">Level 3 of 10</div>
+            <div class="belt-circle-lg" id="beltCircle" style="background:#F5F5F5">🥋</div>
+            <div class="belt-name" id="beltName">White Belt</div>
+            <div class="belt-level" id="beltLevel">Level 1 of 10</div>
             <div class="belt-progress-row">
               <div class="belt-prog-label">
-                <span>Progress to Green</span>
-                <span id="beltPct">62%</span>
+                <span>Progress to Yellow</span>
+                <span id="beltPct">0%</span>
               </div>
               <div class="belt-prog-track">
-                <div class="belt-prog-fill" id="beltProg" style="width:62%"></div>
+                <div class="belt-prog-fill" id="beltProg" style="width:0%"></div>
               </div>
             </div>
           </div>
@@ -373,10 +373,10 @@
 
         <!-- Stats -->
         <div class="stats-grid">
-          <div class="stat-card"><div class="stat-n" style="color:var(--blue)">24</div><div class="stat-l">Practice sessions</div><div class="stat-s">this month</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--green)">71%</div><div class="stat-l">Overall accuracy</div><div class="stat-s">↑ +8% vs last month</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--orange)">7</div><div class="stat-l">Day streak</div><div class="stat-s">personal best: 12</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--purple)">9</div><div class="stat-l">Badges earned</div><div class="stat-s">6 more to unlock</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--blue)" id="statSessions">0</div><div class="stat-l">Practice sessions</div><div class="stat-s">this month</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--green)" id="statAccuracy">—</div><div class="stat-l">Overall accuracy</div><div class="stat-s" id="statAccuracySub">No data yet</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--orange)" id="statStreak">0</div><div class="stat-l">Day streak</div><div class="stat-s">keep practising</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--purple)" id="statBadges">0</div><div class="stat-l">Badges earned</div><div class="stat-s" id="statBadgesSub">complete practice to earn</div></div>
         </div>
 
         <!-- Belt journey -->
@@ -448,9 +448,9 @@
       <div id="tab-badges" style="display:none">
 
         <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px">
-          <div class="stat-card"><div class="stat-n" style="color:var(--yellow)">9</div><div class="stat-l">Badges earned</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--text3)">6</div><div class="stat-l">Badges to unlock</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--purple)">1,240</div><div class="stat-l">Total XP</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--yellow)" id="badgeCountStat">0</div><div class="stat-l">Badges earned</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--text3)" id="badgeLockedStat">0</div><div class="stat-l">Badges to unlock</div></div>
+          <div class="stat-card"><div class="stat-n" style="color:var(--purple)" id="badgeXpStat">0</div><div class="stat-l">Total XP</div></div>
         </div>
 
         <!-- XP breakdown -->
@@ -502,69 +502,47 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── DEMO DATA ──────────────────────────────────────────────
-const TOPICS = [
-  { name:'Single digit addition',    acc:91, sessions:18, trend:'↑', color:'var(--green)',  hClass:'hm-green',  icon:'➕' },
-  { name:'Single digit subtraction', acc:87, sessions:12, trend:'↑', color:'var(--green)',  hClass:'hm-green',  icon:'➖' },
-  { name:'2-digit addition',         acc:74, sessions:10, trend:'↑', color:'var(--blue)',   hClass:'hm-blue',   icon:'📘' },
-  { name:'2-digit subtraction',      acc:68, sessions:8,  trend:'→', color:'var(--blue)',   hClass:'hm-blue',   icon:'📗' },
-  { name:'3-digit addition',         acc:62, sessions:6,  trend:'↑', color:'var(--yellow)', hClass:'hm-yellow', icon:'📒' },
-  { name:'3-digit subtraction',      acc:58, sessions:7,  trend:'↓', color:'var(--orange)', hClass:'hm-orange', icon:'⚠️' },
-  { name:'Addition with carrying',   acc:48, sessions:5,  trend:'↓', color:'var(--red)',    hClass:'hm-red',    icon:'🔴' },
-  { name:'Multiplication (×2–×5)',   acc:35, sessions:2,  trend:'→', color:'var(--red)',    hClass:'hm-red',    icon:'❗' },
-  { name:'Speed flash sums',         acc:72, sessions:4,  trend:'↑', color:'var(--blue)',   hClass:'hm-blue',   icon:'⚡' },
-  { name:'Mental abacus',            acc:0,  sessions:0,  trend:'—', color:'var(--border)', hClass:'hm-gray',   icon:'🔒' },
+const BADGE_CATALOG = [
+  { type:'first_practice',  label:'First Steps',     icon:'🎯', xp:50,   desc:'Complete your first practice session' },
+  { type:'streak_7',        label:'7-Day Streak',    icon:'🔥', xp:200,  desc:'Maintain a 7-day practice streak' },
+  { type:'speed_demon',     label:'Speed Demon',     icon:'⚡', xp:100,  desc:'Complete a speed drill in under 60 seconds' },
+  { type:'perfect_score',   label:'Perfect Score',   icon:'💯', xp:100,  desc:'Score 100% on any homework' },
+  { type:'bead_master',     label:'Bead Master',     icon:'🧮', xp:120,  desc:'Complete 10 abacus practice sessions' },
+  { type:'bookworm',        label:'Bookworm',        icon:'📚', xp:80,   desc:'Watch 5 lessons in a row' },
+  { type:'top_class',       label:'Top of Class',    icon:'🌟', xp:150,  desc:'Highest score in your batch this week' },
+  { type:'orange_belt',     label:'Orange Belt',     icon:'🏅', xp:300,  desc:'Earn the Orange Belt — Level 3' },
+  { type:'on_fire',         label:'On Fire',         icon:'🎖', xp:100,  desc:'Score above 80% for 5 sessions in a row' },
+  { type:'green_belt',      label:'Green Belt',      icon:'🟢', xp:400,  desc:'Earn the Green Belt — Level 4' },
+  { type:'week_champ',      label:'Week Champion',   icon:'👑', xp:200,  desc:'Top student in your batch for a full week' },
+  { type:'rocket_speed',    label:'Rocket Speed',    icon:'🚀', xp:150,  desc:'Complete a 10-question session in under 90 seconds' },
+  { type:'mind_master',     label:'Mind Master',     icon:'🧠', xp:200,  desc:'Complete 5 Vedic Maths sessions' },
+  { type:'diamond',         label:'Diamond',         icon:'💎', xp:500,  desc:'Maintain 85%+ accuracy for an entire month' },
+  { type:'grand_master',    label:'Grand Master',    icon:'🏆', xp:1000, desc:'Reach Level 10 — Grand Master belt' },
 ];
 
-const BADGES_ALL = [
-  { type:'first_practice',  label:'First Steps',     icon:'🎯', xp:50,   earned:true,  date:'15 Apr',  new:false, desc:'Complete your first practice session' },
-  { type:'streak_7',        label:'7-Day Streak',    icon:'🔥', xp:200,  earned:true,  date:'Today',   new:true,  desc:'Maintain a 7-day practice streak' },
-  { type:'speed_demon',     label:'Speed Demon',     icon:'⚡', xp:100,  earned:true,  date:'20 Apr',  new:false, desc:'Complete a speed drill in under 60 seconds' },
-  { type:'perfect_score',   label:'Perfect Score',   icon:'💯', xp:100,  earned:true,  date:'18 Apr',  new:false, desc:'Score 100% on any homework' },
-  { type:'bead_master',     label:'Bead Master',     icon:'🧮', xp:120,  earned:true,  date:'22 Apr',  new:false, desc:'Complete 10 abacus practice sessions' },
-  { type:'bookworm',        label:'Bookworm',        icon:'📚', xp:80,   earned:true,  date:'16 Apr',  new:false, desc:'Watch 5 lessons in a row' },
-  { type:'top_class',       label:'Top of Class',    icon:'🌟', xp:150,  earned:true,  date:'25 Apr',  new:false, desc:'Highest score in your batch this week' },
-  { type:'orange_belt',     label:'Orange Belt',     icon:'🏅', xp:300,  earned:true,  date:'24 Apr',  new:false, desc:'Earn the Orange Belt — Level 3' },
-  { type:'on_fire',         label:'On Fire',         icon:'🎖', xp:100,  earned:true,  date:'23 Apr',  new:false, desc:'Score above 80% for 5 sessions in a row' },
-  { type:'green_belt',      label:'Green Belt',      icon:'🟢', xp:400,  earned:false, date:'',        new:false, desc:'Earn the Green Belt — Level 4 (need 2,000 XP)' },
-  { type:'week_champ',      label:'Week Champion',   icon:'👑', xp:200,  earned:false, date:'',        new:false, desc:'Top student in your batch for a full week' },
-  { type:'rocket_speed',    label:'Rocket Speed',    icon:'🚀', xp:150,  earned:false, date:'',        new:false, desc:'Complete a 10-question session in under 90 seconds' },
-  { type:'mind_master',     label:'Mind Master',     icon:'🧠', xp:200,  earned:false, date:'',        new:false, desc:'Complete 5 Vedic Maths sessions' },
-  { type:'diamond',         label:'Diamond',         icon:'💎', xp:500,  earned:false, date:'',        new:false, desc:'Maintain 85%+ accuracy for an entire month' },
-  { type:'grand_master',    label:'Grand Master',    icon:'🏆', xp:1000, earned:false, date:'',        new:false, desc:'Reach Level 10 — Grand Master belt' },
+const BELTS_DATA = [
+  { name:'White Belt',   minXP:0,     maxXP:499,   color:'#F5F5F5', next:'Yellow Belt',  nextXP:500,   short:'White'  },
+  { name:'Yellow Belt',  minXP:500,   maxXP:1199,  color:'#FFF176', next:'Orange Belt',  nextXP:1200,  short:'Yellow' },
+  { name:'Orange Belt',  minXP:1200,  maxXP:2499,  color:'#FFB74D', next:'Green Belt',   nextXP:2500,  short:'Orange' },
+  { name:'Green Belt',   minXP:2500,  maxXP:4499,  color:'#66BB6A', next:'Blue Belt',    nextXP:4500,  short:'Green'  },
+  { name:'Blue Belt',    minXP:4500,  maxXP:6999,  color:'#42A5F5', next:'Purple Belt',  nextXP:7000,  short:'Blue'   },
+  { name:'Purple Belt',  minXP:7000,  maxXP:9999,  color:'#AB47BC', next:'Red Belt',     nextXP:10000, short:'Purple' },
+  { name:'Red Belt',     minXP:10000, maxXP:13999, color:'#EF5350', next:'Brown Belt',   nextXP:14000, short:'Red'    },
+  { name:'Brown Belt',   minXP:14000, maxXP:19999, color:'#8D6E63', next:'Black Belt',   nextXP:20000, short:'Brown'  },
+  { name:'Black Belt',   minXP:20000, maxXP:29999, color:'#212121', next:'Grand Master', nextXP:30000, short:'Black'  },
+  { name:'Grand Master', minXP:30000, maxXP:Infinity, color:'#F9A825', next:'', nextXP:0, short:'Grand' },
 ];
 
-const WEEKLY_DATA = [45, 58, 62, 55, 67, 71, 74, 71];
-const WEEK_LABELS = ['Wk 1','Wk 2','Wk 3','Wk 4','Wk 5','Wk 6','Wk 7','This'];
+function getBelt(xp) { return BELTS_DATA.find(b => xp >= b.minXP && xp <= b.maxXP) || BELTS_DATA[0]; }
 
-const BELTS = [
-  { name:'White',  color:'#F5F5F5', done:true  },
-  { name:'Yellow', color:'#FFF176', done:true  },
-  { name:'Orange', color:'#FFB74D', done:false, current:true },
-  { name:'Green',  color:'#66BB6A', done:false },
-  { name:'Blue',   color:'#42A5F5', done:false },
-  { name:'Purple', color:'#AB47BC', done:false },
-  { name:'Red',    color:'#EF5350', done:false },
-  { name:'Brown',  color:'#8D6E63', done:false },
-  { name:'Black',  color:'#212121', done:false },
-  { name:'Grand',  color:'#F9A825', done:false },
-];
+function escapeHtml(str) {
+  return String(str || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
 
-const SESSION_HISTORY = [
-  { topic:'Addition with carrying', correct:6,  total:10, xp:60,  date:'Today',      color:'var(--orange)' },
-  { topic:'Single digit addition',  correct:9,  total:10, xp:95,  date:'Yesterday',  color:'var(--green)'  },
-  { topic:'2-digit addition',       correct:8,  total:10, xp:85,  date:'2 days ago', color:'var(--green)'  },
-  { topic:'3-digit subtraction',    correct:5,  total:10, xp:55,  date:'3 days ago', color:'var(--orange)' },
-  { topic:'Speed drill — mixed',    correct:7,  total:10, xp:75,  date:'4 days ago', color:'var(--blue)'   },
-  { topic:'Single digit addition',  correct:10, total:10, xp:165, date:'5 days ago', color:'var(--green)'  },
-];
-
-const HW_HISTORY = [
-  { title:'Single digit addition',    score:9,  total:10, xp:150, date:'2 days ago', status:'Graded' },
-  { title:'2-digit addition practice', score:7, total:8,  xp:110, date:'1 week ago', status:'Graded' },
-];
-
-// ── TAB SWITCHING ──────────────────────────────────────────
 function showTab(name, btn) {
   ['overview','topics','badges','history'].forEach(t => {
     document.getElementById(`tab-${t}`).style.display = t === name ? 'block' : 'none';
@@ -573,216 +551,321 @@ function showTab(name, btn) {
   if (btn) btn.classList.add('active');
 }
 
-// ── BUILD COMPONENTS ───────────────────────────────────────
-function buildBeltJourney() {
+function emptyState(msg) {
+  return `<div style="text-align:center;padding:24px;color:var(--text3);font-weight:600">${msg}</div>`;
+}
+
+function buildBeltJourney(xp) {
+  const current = getBelt(xp);
   const el = document.getElementById('beltJourney');
   el.innerHTML = '';
-  BELTS.forEach(b => {
+  BELTS_DATA.forEach(b => {
+    const done = xp > b.maxXP || (b.nextXP === 0 && xp >= b.minXP);
+    const isCurrent = b.name === current.name;
     const step = document.createElement('div');
-    step.className = 'belt-step' + (b.done ? ' done' : '') + (b.current ? ' current' : '');
+    step.className = 'belt-step' + (done && !isCurrent ? ' done' : '') + (isCurrent ? ' current' : '');
     step.innerHTML = `
       <div class="belt-circle-sm" style="background:${b.color}">
-        ${b.done ? '<span class="belt-check">✓</span>' : ''}
-        ${b.current ? '<span class="belt-check" style="color:var(--orange-dk)">●</span>' : ''}
+        ${done && !isCurrent ? '<span class="belt-check">✓</span>' : ''}
+        ${isCurrent ? '<span class="belt-check" style="color:var(--orange-dk)">●</span>' : ''}
       </div>
-      <div class="belt-step-name">${b.name}</div>
+      <div class="belt-step-name">${b.short}</div>
     `;
     el.appendChild(step);
   });
 }
 
-function buildBarChart() {
-  const el  = document.getElementById('barChart');
-  const max = Math.max(...WEEKLY_DATA);
+function buildBarChart(weeklyData) {
+  const el = document.getElementById('barChart');
+  if (!weeklyData.length) {
+    el.innerHTML = emptyState('Complete practice sessions to see weekly accuracy');
+    return;
+  }
   el.innerHTML = '';
-  WEEKLY_DATA.forEach((val, i) => {
-    const pct   = Math.round((val / 100) * 100);
+  weeklyData.forEach((val, i) => {
     const color = val >= 80 ? 'var(--green)' : val >= 60 ? 'var(--blue)' : val >= 40 ? 'var(--orange)' : 'var(--red)';
-    const col   = document.createElement('div');
+    const col = document.createElement('div');
     col.className = 'bar-col';
     col.innerHTML = `
       <div class="bar-val">${val}%</div>
-      <div class="bar" style="background:${color};height:${pct}px"></div>
-      <div class="bar-label">${WEEK_LABELS[i]}</div>
+      <div class="bar" style="background:${color};height:${Math.max(4, val)}px"></div>
+      <div class="bar-label">Wk ${i + 1}</div>
     `;
     el.appendChild(col);
   });
 }
 
-function buildAttentionList() {
-  const el = document.getElementById('attentionList');
-  const weak = TOPICS.filter(t => t.acc < 60 && t.sessions > 0).slice(0, 4);
-  el.innerHTML = '';
-  weak.forEach(t => {
-    el.innerHTML += `
-      <div class="topic-row">
-        <span class="topic-name">${t.icon} ${t.name}</span>
-        <div class="topic-bar"><div class="topic-fill" style="background:${t.color};width:${t.acc}%"></div></div>
-        <span class="topic-pct" style="color:${t.color}">${t.acc}%</span>
-        <span class="topic-trend" style="color:${t.trend==='↓'?'var(--red)':t.trend==='↑'?'var(--green)':'var(--text3)'}">${t.trend}</span>
-      </div>`;
-  });
-  if (weak.length === 0) el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-weight:600">All topics looking great!</div>';
+function buildTopics(topics) {
+  const attention = document.getElementById('attentionList');
+  const heatmap = document.getElementById('heatmapGrid');
+  const allList = document.getElementById('allTopicsList');
+
+  if (!topics.length) {
+    const msg = emptyState('No topic data yet — practise to unlock insights');
+    attention.innerHTML = msg;
+    if (heatmap) heatmap.innerHTML = msg;
+    if (allList) allList.innerHTML = msg;
+    return;
+  }
+
+  const weak = topics.filter(t => t.acc < 60 && t.sessions > 0).slice(0, 4);
+  attention.innerHTML = '';
+  if (weak.length === 0) {
+    attention.innerHTML = emptyState('All topics looking great!');
+  } else {
+    weak.forEach(t => {
+      attention.innerHTML += `
+        <div class="topic-row">
+          <span class="topic-name">${escapeHtml(t.name)}</span>
+          <div class="topic-bar"><div class="topic-fill" style="background:${t.color};width:${t.acc}%"></div></div>
+          <span class="topic-pct" style="color:${t.color}">${t.acc}%</span>
+        </div>`;
+    });
+  }
+
+  if (heatmap) {
+    heatmap.innerHTML = '';
+    topics.forEach(t => {
+      heatmap.innerHTML += `
+        <div class="heatmap-cell ${t.hClass}" title="${escapeHtml(t.name)}: ${t.acc}% accuracy">
+          <div class="hm-topic">${escapeHtml(t.name)}</div>
+          <div class="hm-pct">${t.acc > 0 ? t.acc + '%' : 'Not started'}</div>
+        </div>`;
+    });
+  }
+
+  if (allList) {
+    allList.innerHTML = '';
+    [...topics].sort((a, b) => b.acc - a.acc).forEach(t => {
+      allList.innerHTML += `
+        <div class="topic-row">
+          <span class="topic-name">${escapeHtml(t.name)}</span>
+          <span class="topic-sessions">${t.sessions} sessions</span>
+          <div class="topic-bar" style="width:130px"><div class="topic-fill" style="background:${t.color};width:${t.acc}%"></div></div>
+          <span class="topic-pct" style="color:${t.color}">${t.acc > 0 ? t.acc + '%' : '—'}</span>
+        </div>`;
+    });
+  }
 }
 
-function buildHeatmap() {
-  const el = document.getElementById('heatmapGrid');
-  el.innerHTML = '';
-  TOPICS.forEach(t => {
-    el.innerHTML += `
-      <div class="heatmap-cell ${t.acc===0?'hm-gray':t.hClass}" title="${t.name}: ${t.acc}% accuracy">
-        <span class="hm-icon">${t.icon}</span>
-        <div class="hm-topic">${t.name.split(' ').slice(0,3).join(' ')}</div>
-        <div class="hm-pct">${t.acc > 0 ? t.acc+'%' : 'Not started'}</div>
-      </div>`;
-  });
-}
-
-function buildAllTopics() {
-  const el = document.getElementById('allTopicsList');
-  el.innerHTML = '';
-  const sorted = [...TOPICS].sort((a,b) => b.acc - a.acc);
-  sorted.forEach(t => {
-    const color = t.acc >= 80 ? 'var(--green)' : t.acc >= 60 ? 'var(--blue)' : t.acc >= 40 ? 'var(--orange)' : t.acc > 0 ? 'var(--red)' : 'var(--border)';
-    el.innerHTML += `
-      <div class="topic-row">
-        <span class="topic-name">${t.icon} ${t.name}</span>
-        <span class="topic-sessions">${t.sessions} sessions</span>
-        <div class="topic-bar" style="width:130px"><div class="topic-fill" style="background:${color};width:${t.acc}%"></div></div>
-        <span class="topic-pct" style="color:${color}">${t.acc > 0 ? t.acc+'%' : '—'}</span>
-        <span class="topic-trend" style="color:${t.trend==='↓'?'var(--red)':t.trend==='↑'?'var(--green)':'var(--text3)'}">${t.trend}</span>
-      </div>`;
-  });
-}
-
-function buildBadgeGrid() {
+function buildBadgeGrid(earnedBadges) {
+  const earnedTypes = new Set(earnedBadges.map(b => b.badge_type || b.type));
   const el = document.getElementById('badgeGrid');
   el.innerHTML = '';
-  BADGES_ALL.forEach(b => {
+  BADGE_CATALOG.forEach(b => {
+    const earned = earnedTypes.has(b.type);
+    const match = earnedBadges.find(x => (x.badge_type || x.type) === b.type);
     el.innerHTML += `
-      <div class="badge-cell ${b.earned ? 'earned' : 'locked'}" title="${b.desc}">
-        ${b.new ? '<span class="badge-new-tag">NEW</span>' : ''}
+      <div class="badge-cell ${earned ? 'earned' : 'locked'}" title="${escapeHtml(b.desc)}">
         <span class="badge-cell-icon">${b.icon}</span>
-        <div class="badge-cell-label">${b.label}</div>
+        <div class="badge-cell-label">${escapeHtml(b.label)}</div>
         <div class="badge-cell-xp">+${b.xp} XP</div>
-        ${b.earned ? `<div class="badge-earned-date">${b.date}</div>` : '<div class="badge-earned-date">Locked 🔒</div>'}
+        ${earned
+          ? `<div class="badge-earned-date">${match?.earned_at ? new Date(match.earned_at).toLocaleDateString('en-IN') : 'Earned'}</div>`
+          : '<div class="badge-earned-date">Locked 🔒</div>'}
       </div>`;
   });
+
+  document.getElementById('badgeCountStat').textContent = earnedBadges.length;
+  document.getElementById('badgeLockedStat').textContent = Math.max(0, BADGE_CATALOG.length - earnedBadges.length);
 }
 
-function buildSessionHistory() {
+function buildSessionHistory(sessions) {
   const el = document.getElementById('sessionHistory');
+  if (!sessions.length) {
+    el.innerHTML = emptyState('No practice sessions yet');
+    return;
+  }
   el.innerHTML = '';
-  SESSION_HISTORY.forEach(s => {
-    const acc = Math.round((s.correct / s.total) * 100);
+  sessions.forEach(s => {
+    const total = s.total_questions || 0;
+    const correct = s.score || 0;
+    const acc = total ? Math.round((correct / total) * 100) : 0;
+    const color = acc >= 80 ? 'var(--green)' : acc >= 60 ? 'var(--blue)' : 'var(--orange)';
     el.innerHTML += `
       <div class="session-row">
-        <div class="session-dot" style="background:${s.color}"></div>
+        <div class="session-dot" style="background:${color}"></div>
         <div class="session-info">
-          <div class="session-topic">${s.topic}</div>
-          <div class="session-meta">${s.date} · ${s.total} questions</div>
+          <div class="session-topic">${escapeHtml(s.topic || 'Practice')}</div>
+          <div class="session-meta">${s.created_at ? new Date(s.created_at).toLocaleString('en-IN') : ''} · ${total} questions</div>
         </div>
         <div style="text-align:right">
-          <div class="session-score" style="color:${s.color}">${s.correct}/${s.total} (${acc}%)</div>
-          <div class="session-xp">+${s.xp} XP</div>
+          <div class="session-score" style="color:${color}">${correct}/${total} (${acc}%)</div>
+          <div class="session-xp">+${s.xp_earned || 0} XP</div>
         </div>
       </div>`;
   });
 }
 
-function buildHWHistory() {
+function buildHWHistory(rows) {
   const el = document.getElementById('hwHistory');
+  if (!rows.length) {
+    el.innerHTML = emptyState('No homework submissions yet');
+    return;
+  }
   el.innerHTML = '';
-  HW_HISTORY.forEach(h => {
-    const acc = Math.round((h.score / h.total) * 100);
+  rows.forEach(h => {
+    const acc = h.total_questions ? Math.round((h.score / h.total_questions) * 100) : 0;
     el.innerHTML += `
       <div class="session-row">
         <div class="session-dot" style="background:var(--green)"></div>
         <div class="session-info">
-          <div class="session-topic">${h.title}</div>
-          <div class="session-meta">${h.date} · ${h.status}</div>
+          <div class="session-topic">${escapeHtml(h.homework?.title || h.homework?.topic || 'Homework')}</div>
+          <div class="session-meta">${h.submitted_at ? new Date(h.submitted_at).toLocaleDateString('en-IN') : ''} · Graded</div>
         </div>
         <div style="text-align:right">
-          <div class="session-score" style="color:var(--green)">${h.score}/${h.total} (${acc}%)</div>
-          <div class="session-xp">+${h.xp} XP</div>
+          <div class="session-score" style="color:var(--green)">${h.score}/${h.total_questions} (${acc}%)</div>
+          <div class="session-xp">+${h.xp_awarded || 0} XP</div>
         </div>
       </div>`;
   });
 }
 
-// ── DOWNLOAD REPORT ────────────────────────────────────────
-function downloadReport() {
-  showToast('📄 Generating your monthly report — PDF download coming in Session 21!', '');
+function topicColor(acc) {
+  if (acc >= 80) return { color:'var(--green)', hClass:'hm-green' };
+  if (acc >= 60) return { color:'var(--blue)', hClass:'hm-blue' };
+  if (acc >= 40) return { color:'var(--orange)', hClass:'hm-orange' };
+  if (acc > 0) return { color:'var(--red)', hClass:'hm-red' };
+  return { color:'var(--border)', hClass:'hm-gray' };
 }
 
-// ── LOAD REAL DATA FROM SUPABASE ───────────────────────────
+function computeWeeklyAccuracy(sessions) {
+  if (!sessions.length) return [];
+  const weeks = [];
+  for (let i = 7; i >= 0; i--) {
+    const end = new Date();
+    end.setDate(end.getDate() - i * 7);
+    const start = new Date(end);
+    start.setDate(start.getDate() - 7);
+    const inWeek = sessions.filter(s => {
+      const d = new Date(s.created_at);
+      return d >= start && d < end;
+    });
+    if (!inWeek.length) {
+      weeks.push(0);
+      continue;
+    }
+    const c = inWeek.reduce((a, s) => a + (s.score || 0), 0);
+    const t = inWeek.reduce((a, s) => a + (s.total_questions || 0), 0);
+    weeks.push(t ? Math.round((c / t) * 100) : 0);
+  }
+  return weeks.some(v => v > 0) ? weeks : [];
+}
+
 async function loadRealData() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = '../../login.html';
+    return;
+  }
+
+  const studentId = session.user.id;
+
+  const { data: profile } = await sb
+    .from('users')
+    .select('*')
+    .eq('id', studentId)
+    .single();
+
+  if (!profile || profile.role !== 'student') {
+    window.location.href = '../../login.html';
+    return;
+  }
+
+  const name = profile.full_name || 'Student';
+  document.getElementById('userAv').textContent = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  document.getElementById('userName').textContent = name;
+
+  const xp = profile.xp_points ?? 0;
+  const streak = profile.streak_days ?? 0;
+  const belt = getBelt(xp);
+  const pct = belt.next ? Math.round(((xp - belt.minXP) / (belt.nextXP - belt.minXP)) * 100) : 100;
+  const programLabel = profile.program === 'vedic' ? 'Vedic Maths' : profile.program === 'abacus' ? 'Abacus' : 'Learning';
+  const level = profile.current_level ?? 1;
+
+  document.getElementById('xpTitle').textContent = `${programLabel} — Level ${level} · ${belt.name}`;
+  document.getElementById('xpSub').textContent = `${xp.toLocaleString()} XP total earned`;
+  document.getElementById('xpBadge').textContent = `${xp.toLocaleString()} XP`;
+  document.getElementById('streakBadge').textContent = `🔥 ${streak} days`;
+  document.getElementById('xpFill').style.width = Math.min(100, pct) + '%';
+  document.getElementById('xpCurrent').textContent = `${xp.toLocaleString()} / ${(belt.nextXP || xp).toLocaleString()} XP`;
+  document.getElementById('xpNext').textContent = belt.next
+    ? `${Math.max(0, belt.nextXP - xp).toLocaleString()} XP to ${belt.next}`
+    : 'Grand Master achieved!';
+  document.getElementById('beltName').textContent = belt.name;
+  document.getElementById('beltLevel').textContent = `Level ${level} of 10`;
+  document.getElementById('beltPct').textContent = Math.min(100, pct) + '%';
+  document.getElementById('beltProg').style.width = Math.min(100, pct) + '%';
+  document.getElementById('beltCircle').style.background = belt.color;
+  document.getElementById('statStreak').textContent = streak;
+  document.getElementById('badgeXpStat').textContent = xp.toLocaleString();
+
+  buildBeltJourney(xp);
+
+  const monthStart = new Date();
+  monthStart.setDate(1);
+
+  const [{ data: sessions }, { data: badges }, { data: weak }, { data: submissions }] = await Promise.all([
+    sb.from('practice_sessions').select('*').eq('student_id', studentId).order('created_at', { ascending: false }).limit(50),
+    sb.from('badges').select('*').eq('student_id', studentId).order('earned_at', { ascending: false }),
+    sb.from('student_weak_topics').select('*').eq('student_id', studentId).limit(20),
+    sb.from('submissions').select('*, homework(title, topic)').eq('student_id', studentId).order('submitted_at', { ascending: false }).limit(20),
+  ]);
+
+  const sessionList = sessions || [];
+  const monthSessions = sessionList.filter(s => new Date(s.created_at) >= monthStart);
+  document.getElementById('statSessions').textContent = monthSessions.length;
+
+  if (sessionList.length) {
+    const c = sessionList.reduce((a, s) => a + (s.score || 0), 0);
+    const t = sessionList.reduce((a, s) => a + (s.total_questions || 0), 0);
+    const acc = t ? Math.round((c / t) * 100) : 0;
+    document.getElementById('statAccuracy').textContent = `${acc}%`;
+    document.getElementById('statAccuracySub').textContent = 'all sessions';
+  }
+
+  const earnedBadges = badges || [];
+  document.getElementById('statBadges').textContent = earnedBadges.length;
+  document.getElementById('statBadgesSub').textContent =
+    `${Math.max(0, BADGE_CATALOG.length - earnedBadges.length)} more to unlock`;
+
+  const topics = (weak || []).map(t => {
+    const acc = Math.round(parseFloat(t.accuracy) || 0);
+    const style = topicColor(acc);
+    return {
+      name: t.topic,
+      acc,
+      sessions: t.attempt_count || t.sessions || 0,
+      color: style.color,
+      hClass: style.hClass,
+    };
+  });
+
+  buildTopics(topics);
+  buildBarChart(computeWeeklyAccuracy(sessionList));
+  buildBadgeGrid(earnedBadges);
+  buildSessionHistory(sessionList.slice(0, 10));
+  buildHWHistory(submissions || []);
+
+  // homework badge count for this student only
   try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) return;
-
-    const { data: profile } = await sb.from('users')
-      .select('*').eq('id', session.user.id).single();
-
-    if (profile) {
-      const name = profile.full_name;
-      document.getElementById('userAv').textContent   = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-      document.getElementById('userName').textContent = name;
-
-      const xp      = profile.xp_points || 1240;
-      const streak  = profile.streak_days || 7;
-      const belt    = getBelt(xp);
-      const pct     = belt.next ? Math.round((xp - belt.minXP) / (belt.nextXP - belt.minXP) * 100) : 100;
-
-      document.getElementById('xpTitle').textContent   = `Abacus — Level ${profile.current_level||3} · ${belt.name}`;
-      document.getElementById('xpBadge').textContent   = `${xp.toLocaleString()} XP`;
-      document.getElementById('streakBadge').textContent = `🔥 ${streak} days`;
-      document.getElementById('xpFill').style.width    = pct + '%';
-      document.getElementById('xpCurrent').textContent = `${xp.toLocaleString()} / ${belt.nextXP?.toLocaleString() || '∞'} XP`;
-      document.getElementById('xpNext').textContent    = belt.next ? `${(belt.nextXP-xp).toLocaleString()} XP to ${belt.next}` : 'Grand Master achieved!';
-      document.getElementById('beltName').textContent  = belt.name;
-      document.getElementById('beltLevel').textContent = `Level ${profile.current_level||3} of 10`;
-      document.getElementById('beltPct').textContent   = pct + '%';
-      document.getElementById('beltProg').style.width  = pct + '%';
-      document.getElementById('beltCircle').style.background = belt.color;
-
-      // Load weak topics
-      const { data: weak } = await sb.from('student_weak_topics')
-        .select('*').eq('student_id', session.user.id).limit(5);
-
-      if (weak && weak.length > 0) {
-        const el = document.getElementById('attentionList');
-        el.innerHTML = '';
-        weak.forEach(t => {
-          const acc   = parseFloat(t.accuracy)||0;
-          const color = acc >= 60 ? 'var(--blue)' : acc >= 40 ? 'var(--orange)' : 'var(--red)';
-          el.innerHTML += `
-            <div class="topic-row">
-              <span class="topic-name">⚠️ ${t.topic}</span>
-              <div class="topic-bar"><div class="topic-fill" style="background:${color};width:${acc}%"></div></div>
-              <span class="topic-pct" style="color:${color}">${Math.round(acc)}%</span>
-            </div>`;
-        });
+    const { data: batchLinks } = await sb.from('batch_students').select('batch_id').eq('student_id', studentId);
+    if (batchLinks?.length) {
+      const { data: hw } = await sb.from('homework').select('id, submissions(student_id)').in('batch_id', batchLinks.map(b => b.batch_id)).eq('is_active', true);
+      const pending = (hw || []).filter(h => !(h.submissions || []).some(s => s.student_id === studentId)).length;
+      const badge = document.getElementById('hwBadge');
+      if (pending > 0) {
+        badge.textContent = pending;
+        badge.style.display = 'inline-flex';
       }
     }
-  } catch { /* use demo data */ }
+  } catch { /* ignore */ }
 }
 
-const BELTS_DATA = [
-  { name:'White Belt',   minXP:0,     maxXP:499,   color:'#F5F5F5', next:'Yellow Belt',  nextXP:500   },
-  { name:'Yellow Belt',  minXP:500,   maxXP:1199,  color:'#FFF176', next:'Orange Belt',  nextXP:1200  },
-  { name:'Orange Belt',  minXP:1200,  maxXP:2499,  color:'#FFB74D', next:'Green Belt',   nextXP:2500  },
-  { name:'Green Belt',   minXP:2500,  maxXP:4499,  color:'#66BB6A', next:'Blue Belt',    nextXP:4500  },
-  { name:'Blue Belt',    minXP:4500,  maxXP:6999,  color:'#42A5F5', next:'Purple Belt',  nextXP:7000  },
-  { name:'Purple Belt',  minXP:7000,  maxXP:9999,  color:'#AB47BC', next:'Red Belt',     nextXP:10000 },
-  { name:'Red Belt',     minXP:10000, maxXP:13999, color:'#EF5350', next:'Brown Belt',   nextXP:14000 },
-  { name:'Brown Belt',   minXP:14000, maxXP:19999, color:'#8D6E63', next:'Black Belt',   nextXP:20000 },
-  { name:'Black Belt',   minXP:20000, maxXP:29999, color:'#212121', next:'Grand Master', nextXP:30000 },
-  { name:'Grand Master', minXP:30000, maxXP:Infinity, color:'#F9A825', next:'', nextXP:0 },
-];
-function getBelt(xp) { return BELTS_DATA.find(b => xp >= b.minXP && xp <= b.maxXP) || BELTS_DATA[0]; }
+function downloadReport() {
+  showToast('📄 Report download uses your own progress data only.', '');
+}
 
-// ── UTILS ──────────────────────────────────────────────────
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 function showToast(msg, type='') {
   const c = document.getElementById('toastContainer');
@@ -794,17 +877,19 @@ function showToast(msg, type='') {
 }
 async function logout() { await sb.auth.signOut(); window.location.href = '../../login.html'; }
 
-// ── INIT ───────────────────────────────────────────────────
-function init() {
-  buildBeltJourney();
-  buildBarChart();
-  buildAttentionList();
-  buildHeatmap();
-  buildAllTopics();
-  buildBadgeGrid();
-  buildSessionHistory();
-  buildHWHistory();
-  loadRealData();
+async function init() {
+  // Start every list empty — never bind demo history to a new user
+  document.getElementById('sessionHistory').innerHTML = emptyState('Loading your history...');
+  document.getElementById('hwHistory').innerHTML = emptyState('Loading your homework...');
+  document.getElementById('badgeGrid').innerHTML = emptyState('Loading badges...');
+  document.getElementById('attentionList').innerHTML = emptyState('Loading...');
+  document.getElementById('barChart').innerHTML = emptyState('Loading...');
+  try {
+    await loadRealData();
+  } catch (err) {
+    console.error(err);
+    window.location.href = '../../login.html';
+  }
 }
 
 init();

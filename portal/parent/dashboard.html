@@ -297,7 +297,7 @@
     <div class="sidebar-user">
       <div class="user-av">SR</div>
       <div>
-        <div class="user-name">Mrs. Sunita Rao</div>
+        <div class="user-name" id="userName">Loading...</div>
         <div class="user-role">Parent</div>
       </div>
       <button class="logout-btn" onclick="logout()">⇥</button>
@@ -318,78 +318,7 @@
 
       <!-- ══ OVERVIEW TAB ══ -->
       <div id="tab-overview">
-
-        <!-- Child card -->
-        <div class="child-card">
-          <div class="child-av">AR</div>
-          <div class="child-info">
-            <div class="child-name">Arjun Rao</div>
-            <div class="child-level">Abacus Program · Level 3 · Batch A · Ms. Priya</div>
-            <div class="child-tags">
-              <span class="tag tag-belt">🏅 Orange Belt</span>
-              <span class="tag tag-streak">🔥 7-day streak</span>
-              <span class="tag tag-online">✅ Online student</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- XP card -->
-        <div class="xp-card">
-          <div class="xp-top">
-            <div>
-              <div class="xp-title">Orange Belt — Level 3</div>
-              <div style="font-size:.75rem;opacity:.8;margin-top:2px">760 XP to unlock Green Belt</div>
-            </div>
-            <div class="xp-streak">🔥 7 days!</div>
-          </div>
-          <div class="xp-track"><div class="xp-fill" style="width:62%"></div></div>
-          <div class="xp-info">
-            <span>1,240 XP earned</span>
-            <span>2,000 XP for Green Belt 🟢</span>
-          </div>
-        </div>
-
-        <!-- Stats -->
-        <div class="stats-row">
-          <div class="stat-card"><div class="stat-n" style="color:var(--blue)">5</div><div class="stat-l">Sessions this week</div><div class="stat-s">↑ up from 3 last week</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--green)">71%</div><div class="stat-l">Overall accuracy</div><div class="stat-s">↑ +8% this month</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--orange)">9</div><div class="stat-l">Badges earned</div><div class="stat-s">6 more to unlock</div></div>
-        </div>
-
-        <!-- Quick notice -->
-        <div style="background:var(--orange-lt);border:2px solid #FFCC80;border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start">
-          <span style="font-size:1.1rem;flex-shrink:0">📢</span>
-          <div>
-            <div style="font-size:.875rem;font-weight:800;color:var(--orange-dk);margin-bottom:3px">Homework due tomorrow!</div>
-            <div style="font-size:.78rem;color:var(--orange-dk);font-weight:500">Arjun has "Addition with carrying" homework due tomorrow. Please remind him to complete it today.</div>
-          </div>
-        </div>
-
-        <!-- Topic snapshot -->
-        <div class="section-card">
-          <div class="section-title">
-            Arjun's topic progress
-            <span class="section-link" onclick="showTab('progress',document.querySelectorAll('.nav-item')[1])">Full details →</span>
-          </div>
-          <div style="font-size:.78rem;color:var(--text2);font-weight:600;margin-bottom:12px">
-            🟢 Doing well &nbsp;·&nbsp; 🔵 Good &nbsp;·&nbsp; 🟠 Needs practice &nbsp;·&nbsp; 🔴 Needs attention
-          </div>
-          <div class="topic-row"><span class="topic-name">Single digit addition</span><div class="topic-bar"><div class="topic-fill" style="background:var(--green);width:91%"></div></div><span class="topic-pct" style="color:var(--green-dk)">91%</span></div>
-          <div class="topic-row"><span class="topic-name">2-digit addition</span><div class="topic-bar"><div class="topic-fill" style="background:var(--blue);width:74%"></div></div><span class="topic-pct" style="color:var(--blue-dk)">74%</span></div>
-          <div class="topic-row"><span class="topic-name">3-digit subtraction</span><div class="topic-bar"><div class="topic-fill" style="background:var(--orange);width:58%"></div></div><span class="topic-pct" style="color:var(--orange-dk)">58%</span></div>
-          <div class="topic-row"><span class="topic-name">Addition with carrying</span><div class="topic-bar"><div class="topic-fill" style="background:var(--red);width:48%"></div></div><span class="topic-pct" style="color:var(--red-dk)">48%</span></div>
-        </div>
-
-        <!-- Fee reminder -->
-        <div style="background:var(--red-lt);border:2px solid #FFCDD2;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px">
-          <span style="font-size:1.3rem;flex-shrink:0">💳</span>
-          <div style="flex:1">
-            <div style="font-size:.875rem;font-weight:800;color:var(--red-dk)">June fee due — Rs. 800</div>
-            <div style="font-size:.75rem;color:var(--red-dk);font-weight:500">Due 1 June 2025 · Pay via UPI in seconds</div>
-          </div>
-          <button onclick="showTab('fees',document.querySelectorAll('.nav-item')[4])" style="background:var(--green);color:#fff;border:none;padding:9px 18px;border-radius:20px;font-family:'Nunito',sans-serif;font-size:.8rem;font-weight:800;cursor:pointer;white-space:nowrap">Pay now →</button>
-        </div>
-
+        <div id="overviewRoot" style="text-align:center;padding:40px;color:var(--text3);font-weight:600">Loading your parent portal...</div>
       </div>
 
       <!-- ══ PROGRESS TAB ══ -->
@@ -710,17 +639,195 @@ const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let selectedUPI = 'gpay';
+let linkedChildren = [];
+let activeChild = null;
+
+const BELTS = [
+  { name:'White Belt',   minXP:0,     maxXP:499,   next:'Yellow Belt',  nextXP:500   },
+  { name:'Yellow Belt',  minXP:500,   maxXP:1199,  next:'Orange Belt',  nextXP:1200  },
+  { name:'Orange Belt',  minXP:1200,  maxXP:2499,  next:'Green Belt',   nextXP:2500  },
+  { name:'Green Belt',   minXP:2500,  maxXP:4499,  next:'Blue Belt',    nextXP:4500  },
+  { name:'Blue Belt',    minXP:4500,  maxXP:6999,  next:'Purple Belt',  nextXP:7000  },
+  { name:'Purple Belt',  minXP:7000,  maxXP:9999,  next:'Red Belt',     nextXP:10000 },
+  { name:'Red Belt',     minXP:10000, maxXP:13999, next:'Brown Belt',   nextXP:14000 },
+  { name:'Brown Belt',   minXP:14000, maxXP:19999, next:'Black Belt',   nextXP:20000 },
+  { name:'Black Belt',   minXP:20000, maxXP:29999, next:'Grand Master', nextXP:30000 },
+  { name:'Grand Master', minXP:30000, maxXP:Infinity, next:'', nextXP:0 },
+];
+function getBelt(xp) { return BELTS.find(b => xp >= b.minXP && xp <= b.maxXP) || BELTS[0]; }
+
+function escapeHtml(str) {
+  return String(str || '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+}
 
 // ── TAB ────────────────────────────────────────────────────
 function showTab(name, el) {
   ['overview','progress','homework','attendance','fees','reports','message'].forEach(t => {
-    document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
+    const node = document.getElementById('tab-' + t);
+    if (node) node.style.display = t === name ? 'block' : 'none';
   });
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
   if (el) el.classList.add('active');
-  const titles = { overview:'Parent Portal', progress:'Arjun\'s Progress', homework:'Homework', attendance:'Attendance', fees:'Fees & Payment', reports:'Monthly Reports', message:'Message Teacher' };
+  const childName = activeChild?.full_name || 'your child';
+  const titles = {
+    overview:'Parent Portal',
+    progress:`${childName}'s Progress`,
+    homework:'Homework',
+    attendance:'Attendance',
+    fees:'Fees & Payment',
+    reports:'Monthly Reports',
+    message:'Message Teacher'
+  };
   document.getElementById('topbarTitle').textContent = titles[name] || 'Parent Portal';
   if (name === 'attendance') buildCalendar();
+  if (name !== 'overview' && !activeChild) {
+    const tab = document.getElementById('tab-' + name);
+    if (tab) {
+      tab.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text3);font-weight:600">No linked student yet. Ask admin to link your child to this parent account.</div>`;
+    }
+  }
+}
+
+async function renderOverview() {
+  const root = document.getElementById('overviewRoot');
+  if (!linkedChildren.length) {
+    root.innerHTML = `
+      <div style="text-align:left;background:#fff;border:2px solid var(--border);border-radius:16px;padding:24px">
+        <div style="font-size:1.1rem;font-weight:800;margin-bottom:8px">Welcome</div>
+        <div style="color:var(--text2);font-weight:600;line-height:1.6">
+          No students are linked to your account yet.<br>
+          Once admin links your child, their progress, homework and fees will appear here — only for your child.
+        </div>
+      </div>`;
+    return;
+  }
+
+  const child = activeChild || linkedChildren[0];
+  activeChild = child;
+  const xp = child.xp_points ?? 0;
+  const belt = getBelt(xp);
+  const initials = (child.full_name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const program = child.program === 'vedic' ? 'Vedic Maths' : child.program === 'abacus' ? 'Abacus' : 'Program';
+  const pct = belt.next ? Math.min(100, Math.round(((xp - belt.minXP) / (belt.nextXP - belt.minXP)) * 100)) : 100;
+
+  const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+  const [{ data: sessions }, { data: badges }, { data: weak }, { data: pendingHw }] = await Promise.all([
+    sb.from('practice_sessions').select('score, total_questions, created_at').eq('student_id', child.id).gte('created_at', weekAgo),
+    sb.from('badges').select('id').eq('student_id', child.id),
+    sb.from('student_weak_topics').select('*').eq('student_id', child.id).limit(4),
+    sb.from('batch_students').select('batch_id').eq('student_id', child.id),
+  ]);
+
+  let hwNotice = '';
+  if (pendingHw?.length) {
+    const { data: hw } = await sb
+      .from('homework')
+      .select('id, title, due_date, submissions(student_id)')
+      .in('batch_id', pendingHw.map(b => b.batch_id))
+      .eq('is_active', true)
+      .order('due_date', { ascending: true })
+      .limit(5);
+    const pending = (hw || []).filter(h => !(h.submissions || []).some(s => s.student_id === child.id));
+    if (pending.length) {
+      const first = pending[0];
+      hwNotice = `
+        <div style="background:var(--orange-lt);border:2px solid #FFCC80;border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start">
+          <span style="font-size:1.1rem;flex-shrink:0">📢</span>
+          <div>
+            <div style="font-size:.875rem;font-weight:800;color:var(--orange-dk);margin-bottom:3px">${pending.length} pending homework</div>
+            <div style="font-size:.78rem;color:var(--orange-dk);font-weight:500">${escapeHtml(child.full_name)} has "${escapeHtml(first.title || 'Homework')}"${first.due_date ? ` due ${first.due_date}` : ''}.</div>
+          </div>
+        </div>`;
+    }
+  }
+
+  const sess = sessions || [];
+  const totalC = sess.reduce((a, s) => a + (s.score || 0), 0);
+  const totalQ = sess.reduce((a, s) => a + (s.total_questions || 0), 0);
+  const acc = totalQ ? Math.round((totalC / totalQ) * 100) : null;
+
+  const topicRows = (weak || []).length
+    ? (weak || []).map(t => {
+        const a = Math.round(parseFloat(t.accuracy) || 0);
+        const color = a >= 75 ? 'var(--green)' : a >= 55 ? 'var(--blue)' : a >= 35 ? 'var(--orange)' : 'var(--red)';
+        return `<div class="topic-row"><span class="topic-name">${escapeHtml(t.topic)}</span><div class="topic-bar"><div class="topic-fill" style="background:${color};width:${a}%"></div></div><span class="topic-pct" style="color:${color}">${a}%</span></div>`;
+      }).join('')
+    : `<div style="padding:12px;color:var(--text3);font-weight:600">No topic data yet for ${escapeHtml(child.full_name)}</div>`;
+
+  const childPicker = linkedChildren.length > 1
+    ? `<div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap">${linkedChildren.map(c =>
+        `<button onclick="selectChild('${c.id}')" style="border:2px solid ${c.id===child.id?'var(--pink)':'var(--border)'};background:${c.id===child.id?'var(--pink-lt)':'#fff'};color:var(--text);padding:8px 14px;border-radius:20px;font-weight:800;cursor:pointer">${escapeHtml(c.full_name)}</button>`
+      ).join('')}</div>`
+    : '';
+
+  root.innerHTML = `
+    ${childPicker}
+    <div class="child-card">
+      <div class="child-av">${initials}</div>
+      <div class="child-info">
+        <div class="child-name">${escapeHtml(child.full_name)}</div>
+        <div class="child-level">${program} · Level ${child.current_level ?? 1}</div>
+        <div class="child-tags">
+          <span class="tag tag-belt">🏅 ${belt.name}</span>
+          <span class="tag tag-streak">🔥 ${child.streak_days ?? 0}-day streak</span>
+        </div>
+      </div>
+    </div>
+    <div class="xp-card">
+      <div class="xp-top">
+        <div>
+          <div class="xp-title">${belt.name} — Level ${child.current_level ?? 1}</div>
+          <div style="font-size:.75rem;opacity:.8;margin-top:2px">${belt.next ? `${Math.max(0, belt.nextXP - xp)} XP to unlock ${belt.next}` : 'Grand Master achieved'}</div>
+        </div>
+        <div class="xp-streak">🔥 ${child.streak_days ?? 0} days</div>
+      </div>
+      <div class="xp-track"><div class="xp-fill" style="width:${pct}%"></div></div>
+      <div class="xp-info">
+        <span>${xp.toLocaleString()} XP earned</span>
+        <span>${belt.next ? `${belt.nextXP.toLocaleString()} XP for ${belt.next}` : ''}</span>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-n" style="color:var(--blue)">${sess.length}</div><div class="stat-l">Sessions this week</div><div class="stat-s">for ${escapeHtml(child.full_name.split(' ')[0])}</div></div>
+      <div class="stat-card"><div class="stat-n" style="color:var(--green)">${acc === null ? '—' : acc + '%'}</div><div class="stat-l">Weekly accuracy</div><div class="stat-s">${acc === null ? 'No data yet' : 'this week'}</div></div>
+      <div class="stat-card"><div class="stat-n" style="color:var(--orange)">${(badges || []).length}</div><div class="stat-l">Badges earned</div><div class="stat-s">linked child only</div></div>
+    </div>
+    ${hwNotice}
+    <div class="section-card">
+      <div class="section-title">${escapeHtml(child.full_name.split(' ')[0])}'s topic progress</div>
+      ${topicRows}
+    </div>
+  `;
+}
+
+async function selectChild(id) {
+  activeChild = linkedChildren.find(c => c.id === id) || linkedChildren[0];
+  await renderOverview();
+}
+
+async function loadParentData() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = '../../login.html';
+    return;
+  }
+
+  const { data: profile } = await sb.from('users').select('*').eq('id', session.user.id).single();
+  if (!profile || profile.role !== 'parent') {
+    window.location.href = '../../login.html';
+    return;
+  }
+
+  document.getElementById('userName').textContent = profile.full_name || 'Parent';
+
+  const { data: links } = await sb
+    .from('parent_student')
+    .select('student_id, users!student_id(*)')
+    .eq('parent_id', session.user.id);
+
+  linkedChildren = (links || []).map(l => l.users).filter(Boolean);
+  activeChild = linkedChildren[0] || null;
+  await renderOverview();
 }
 
 // ── CALENDAR ───────────────────────────────────────────────
@@ -814,6 +921,7 @@ async function logout() { await sb.auth.signOut(); window.location.href = '../..
 
 function init() {
   document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+  loadParentData().catch(() => { window.location.href = '../../login.html'; });
 }
 init();
 </script>

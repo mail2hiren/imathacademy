@@ -176,13 +176,17 @@ export async function getStudentHomework(studentId) {
     .from('homework')
     .select(`
       *,
-      submissions(id, score, total_questions, submitted_at)
+      submissions(id, score, total_questions, submitted_at, student_id)
     `)
     .in('batch_id', batchIds)
     .eq('is_active', true)
     .order('due_date', { ascending: true });
 
-  return homework || [];
+  // Only this student's submissions — never other students' scores/history
+  return (homework || []).map(h => ({
+    ...h,
+    submissions: (h.submissions || []).filter(s => s.student_id === studentId),
+  }));
 }
 
 export async function submitHomework(studentId, homeworkId, answers, timeSecs) {

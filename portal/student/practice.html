@@ -461,7 +461,7 @@
     <div class="sidebar-user">
       <div class="user-av" id="userAv">AR</div>
       <div>
-        <div class="user-name" id="userName">Arjun Rao</div>
+        <div class="user-name" id="userName">Loading...</div>
         <div class="user-role">Student</div>
       </div>
       <button class="logout-btn" onclick="logout()" title="Sign out">⇥</button>
@@ -1145,16 +1145,22 @@ async function logout() {
 async function init() {
   try {
     const { data: { session } } = await sb.auth.getSession();
-    if (session) {
-      const { data: profile } = await sb.from('users').select('full_name').eq('id', session.user.id).single();
-      if (profile) {
-        const name = profile.full_name;
-        const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-        document.getElementById('userAv').textContent   = initials;
-        document.getElementById('userName').textContent = name;
-      }
+    if (!session) {
+      window.location.href = '../../login.html';
+      return;
     }
-  } catch { /* demo mode */ }
+    const { data: profile } = await sb.from('users').select('full_name, role').eq('id', session.user.id).single();
+    if (!profile || profile.role !== 'student') {
+      window.location.href = '../../login.html';
+      return;
+    }
+    const name = profile.full_name || 'Student';
+    const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('userAv').textContent   = initials;
+    document.getElementById('userName').textContent = name;
+  } catch {
+    window.location.href = '../../login.html';
+  }
 }
 
 init();

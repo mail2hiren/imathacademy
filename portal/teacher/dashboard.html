@@ -593,58 +593,117 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
-const SUPABASE_KEY = 'YOUR_ANON_KEY_HERE';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── DEMO DATA ──────────────────────────────────────────────
-const STUDENTS = {
-  A: [
-    { id:'ar', initials:'AR', name:'Arjun Rao',    meta:'L3 · 1,240 XP · 🔥7',  acc:71, hw:85,  att:92,  lastSeen:'Today',      streak:7,  mode:'online',  avClass:'av-g', risk:false,
-      topics:[{n:'Single digit addition',acc:91,c:var_g},{n:'2-digit addition',acc:74,c:var_b},{n:'Addition with carrying',acc:48,c:var_r},{n:'3-digit subtraction',acc:58,c:var_o}] },
-    { id:'ps', initials:'PS', name:'Priya Sharma',  meta:'L3 · 1,560 XP · 🔥12', acc:84, hw:96,  att:96,  lastSeen:'Yesterday',  streak:12, mode:'online',  avClass:'av-b', risk:false,
-      topics:[{n:'Single digit addition',acc:95,c:var_g},{n:'2-digit addition',acc:88,c:var_g},{n:'Addition with carrying',acc:76,c:var_b},{n:'3-digit subtraction',acc:79,c:var_b}] },
-    { id:'rs', initials:'RS', name:'Rahul Shah',    meta:'L2 · 640 XP · No streak',acc:43, hw:60,  att:75,  lastSeen:'4 days ago', streak:0,  mode:'online',  avClass:'av-o', risk:true,
-      topics:[{n:'Single digit addition',acc:72,c:var_b},{n:'2-digit addition',acc:45,c:var_o},{n:'Addition with carrying',acc:22,c:var_r},{n:'3-digit subtraction',acc:33,c:var_r}] },
-    { id:'nk', initials:'NK', name:'Neha Kulkarni', meta:'L3 · 980 XP · 🔥3',    acc:68, hw:78,  att:88,  lastSeen:'Today',      streak:3,  mode:'offline', avClass:'av-p', risk:false,
-      topics:[{n:'Single digit addition',acc:88,c:var_g},{n:'2-digit addition',acc:71,c:var_b},{n:'Addition with carrying',acc:52,c:var_o},{n:'3-digit subtraction',acc:61,c:var_y}] },
-    { id:'sv', initials:'SV', name:'Sai Varma',     meta:'L3 · 1,100 XP · 🔥5',  acc:77, hw:90,  att:90,  lastSeen:'Yesterday',  streak:5,  mode:'online',  avClass:'av-g', risk:false,
-      topics:[{n:'Single digit addition',acc:91,c:var_g},{n:'2-digit addition',acc:80,c:var_g},{n:'Addition with carrying',acc:65,c:var_y},{n:'3-digit subtraction',acc:72,c:var_b}] },
-  ],
-  B: [
-    { id:'rm', initials:'RM', name:'Riya Mehta',    meta:'M2 · 820 XP · 🔥4',   acc:79, hw:88, att:92, lastSeen:'Today',     streak:4, mode:'online',  avClass:'av-b', risk:false, topics:[] },
-    { id:'ak', initials:'AK', name:'Aditya Kumar',  meta:'M2 · 650 XP · 🔥2',   acc:61, hw:70, att:80, lastSeen:'2 days ago',streak:2, mode:'online',  avClass:'av-g', risk:false, topics:[] },
-    { id:'dp', initials:'DP', name:'Diya Patel',    meta:'M1 · 380 XP · No streak',acc:38, hw:50, att:70, lastSeen:'5 days ago',streak:0, mode:'online', avClass:'av-o', risk:true, topics:[] },
-  ],
-  C: [
-    { id:'ar2',initials:'AR', name:'Arnav Rao',     meta:'L1 · 120 XP · 🔥2',   acc:82, hw:90, att:95, lastSeen:'Today',     streak:2, mode:'online',  avClass:'av-g', risk:false, topics:[] },
-    { id:'ms', initials:'MS', name:'Mia Shah',      meta:'L1 · 80 XP · 🔥1',    acc:75, hw:80, att:88, lastSeen:'Yesterday', streak:1, mode:'offline', avClass:'av-b', risk:false, topics:[] },
-  ]
-};
+// ── STUDENT DATA (scoped to logged-in teacher's batches only) ─
+let STUDENTS = {};
+let SUBMISSIONS_HW1 = [];
+let ATT_DATA = {};
+let teacherId = null;
 
-// colour helpers
-function var_g(){ return 'var(--green)'; } function var_b(){ return 'var(--blue)'; }
-function var_o(){ return 'var(--orange)';} function var_r(){ return 'var(--red)';  }
-function var_y(){ return 'var(--yellow)';}
-const var_g='var(--green)', var_b='var(--blue)', var_o='var(--orange)', var_r='var(--red)', var_y='var(--yellow)';
+async function loadTeacherData(userId) {
+  teacherId = userId;
+  STUDENTS = {};
+  ATT_DATA = {};
+  SUBMISSIONS_HW1 = [];
 
-const SUBMISSIONS_HW1 = [
-  { name:'Arjun Rao',   initials:'AR', avClass:'av-g', score:8,  total:10, time:'12 min', submitted:true  },
-  { name:'Priya Sharma',initials:'PS', avClass:'av-b', score:10, total:10, time:'8 min',  submitted:true  },
-  { name:'Neha Kulkarni',initials:'NK',avClass:'av-p', score:7,  total:10, time:'15 min', submitted:true  },
-  { name:'Sai Varma',   initials:'SV', avClass:'av-g', score:9,  total:10, time:'10 min', submitted:true  },
-  { name:'Rahul Shah',  initials:'RS', avClass:'av-o', score:null,total:10,time:'—',      submitted:false },
-];
+  const { data: batches } = await sb
+    .from('batches')
+    .select('id, name')
+    .eq('teacher_id', userId)
+    .eq('is_active', true);
 
-const ATT_DATA = {
-  A: [
-    { id:'ar', name:'Arjun Rao',    initials:'AR', avClass:'av-g', present:true  },
-    { id:'ps', name:'Priya Sharma', initials:'PS', avClass:'av-b', present:true  },
-    { id:'rs', name:'Rahul Shah',   initials:'RS', avClass:'av-o', present:false },
-    { id:'nk', name:'Neha Kulkarni',initials:'NK', avClass:'av-p', present:true  },
-    { id:'sv', name:'Sai Varma',    initials:'SV', avClass:'av-g', present:true  },
-  ]
-};
+  if (!batches?.length) return;
+
+  for (const batch of batches) {
+    const key = batch.id;
+    const { data: links } = await sb
+      .from('batch_students')
+      .select('student_id, users!student_id(*)')
+      .eq('batch_id', batch.id);
+
+    const students = [];
+    for (const link of (links || [])) {
+      const u = link.users;
+      if (!u) continue;
+
+      const [{ data: sessions }, { data: weak }] = await Promise.all([
+        sb.from('practice_sessions').select('score, total_questions').eq('student_id', u.id).limit(50),
+        sb.from('student_weak_topics').select('*').eq('student_id', u.id).limit(4),
+      ]);
+
+      const sess = sessions || [];
+      const totalC = sess.reduce((a, s) => a + (s.score || 0), 0);
+      const totalQ = sess.reduce((a, s) => a + (s.total_questions || 0), 0);
+      const acc = totalQ ? Math.round((totalC / totalQ) * 100) : 0;
+      const initials = (u.full_name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+      const xp = u.xp_points ?? 0;
+
+      students.push({
+        id: u.id,
+        initials,
+        name: u.full_name || 'Student',
+        meta: `L${u.current_level ?? 1} · ${xp.toLocaleString()} XP · 🔥${u.streak_days ?? 0}`,
+        acc,
+        hw: 0,
+        att: 0,
+        lastSeen: u.last_active || '—',
+        streak: u.streak_days ?? 0,
+        mode: u.mode || 'online',
+        avClass: 'av-g',
+        risk: acc > 0 && acc < 50,
+        topics: (weak || []).map(t => {
+          const a = Math.round(parseFloat(t.accuracy) || 0);
+          const c = a >= 75 ? 'var(--green)' : a >= 55 ? 'var(--blue)' : a >= 35 ? 'var(--orange)' : 'var(--red)';
+          return { n: t.topic, acc: a, c };
+        }),
+        batchId: batch.id,
+        batchName: batch.name,
+      });
+    }
+
+    STUDENTS[key] = students;
+    ATT_DATA[key] = students.map(s => ({
+      id: s.id,
+      name: s.name,
+      initials: s.initials,
+      avClass: s.avClass,
+      present: true,
+    }));
+  }
+
+  // Sync batch dropdowns to this teacher's batches only
+  const options = Object.entries(STUDENTS).map(([id, students]) => {
+    const label = students[0]?.batchName || 'Batch';
+    return `<option value="${id}">${label} (${students.length})</option>`;
+  }).join('') || '<option value="">No batches</option>';
+
+  ['attBatch', 'aBatch'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel) sel.innerHTML = options;
+  });
+
+  const batchBtns = document.getElementById('batchBtnRow') || document.querySelector('#tab-classes .btn-row, #tab-classes .batch-btns');
+  // Prefer explicit container if present; otherwise update known buttons
+  const keys = Object.keys(STUDENTS);
+  const btnA = document.getElementById('batchBtnA');
+  if (btnA) {
+    if (keys[0]) {
+      const s = STUDENTS[keys[0]] || [];
+      btnA.textContent = `${s[0]?.batchName || 'Batch'} (${s.length})`;
+      btnA.onclick = function() { selectBatch(keys[0], this); };
+    } else {
+      btnA.textContent = 'No batches';
+      btnA.onclick = null;
+    }
+  }
+}
+
+function firstBatchKey() {
+  return Object.keys(STUDENTS)[0] || null;
+}
 
 // ── TAB SWITCHING ──────────────────────────────────────────
 function showTab(name, el) {
@@ -659,20 +718,27 @@ function showTab(name, el) {
     students:'Student Progress', attendance:'Attendance'
   }[name] || 'Teacher Dashboard';
 
-  if (name === 'classes')    { selectBatch('A', document.getElementById('batchBtnA')); }
+  const key = firstBatchKey();
+  if (name === 'classes') {
+    if (key) selectBatch(key, null);
+    else {
+      document.getElementById('rosterTitle').textContent = 'No batches assigned';
+      document.getElementById('rosterList').innerHTML = '<div style="padding:20px;color:var(--text3);font-weight:600">No students in your batches yet</div>';
+    }
+  }
   if (name === 'review')     { loadSubmissions(); }
   if (name === 'students')   { renderAllStudents(Object.values(STUDENTS).flat()); }
   if (name === 'attendance') { loadAttendance(); setDefaultDate(); }
 }
 
 // ── CLASSES ────────────────────────────────────────────────
-let currentBatch = 'A';
+let currentBatch = null;
 function selectBatch(batch, btn) {
   currentBatch = batch;
   document.querySelectorAll('[id^="batchBtn"]').forEach(b => b.className = 'btn btn-ghost');
   if (btn) btn.className = 'btn btn-blue';
   const s = STUDENTS[batch] || [];
-  document.getElementById('rosterTitle').textContent = `Batch ${batch} · ${s.length} students`;
+  document.getElementById('rosterTitle').textContent = `${s[0]?.batchName || 'Batch'} · ${s.length} students`;
   renderRoster(s);
   document.getElementById('studentProfile').classList.remove('show');
 }
@@ -773,11 +839,15 @@ function assignHomework() {
 // ── REVIEW SUBMISSIONS ─────────────────────────────────────
 function loadSubmissions() {
   const el  = document.getElementById('submList');
-  const sel = document.getElementById('hwSelect').value;
-  const data = sel === 'hw1' ? SUBMISSIONS_HW1 : [];
+  const data = SUBMISSIONS_HW1;
+  if (!data.length) {
+    document.getElementById('submTitle').textContent = 'No homework submissions yet for your batches';
+    el.innerHTML = '<div style="padding:20px;color:var(--text3);font-weight:600">Assign homework to start seeing student submissions here</div>';
+    return;
+  }
   const submitted = data.filter(s => s.submitted);
   const avgScore  = submitted.length ? Math.round(submitted.reduce((a,s) => a + (s.score/s.total*100), 0) / submitted.length) : 0;
-  document.getElementById('submTitle').textContent = `${sel==='hw1'?'Addition with carrying':'Single digit addition'} · ${submitted.length} of ${data.length} submitted · Avg ${avgScore}%`;
+  document.getElementById('submTitle').textContent = `${submitted.length} of ${data.length} submitted · Avg ${avgScore}%`;
   el.innerHTML = '';
   data.forEach(s => {
     const acc = s.submitted ? Math.round(s.score / s.total * 100) : 0;
@@ -847,13 +917,20 @@ function setDefaultDate() {
 }
 
 function loadAttendance() {
-  const batch = document.getElementById('attBatch').value;
-  const data  = ATT_DATA[batch] || ATT_DATA['A'];
+  const batchSel = document.getElementById('attBatch');
+  const batch = batchSel?.value || currentBatch || firstBatchKey();
+  if (batchSel && batch && !batchSel.value) batchSel.value = batch;
+
+  const data  = ATT_DATA[batch] || [];
   attState = {};
   data.forEach(s => { attState[s.id] = s.present; });
-  document.getElementById('attTitle').textContent = `Batch ${batch} — Mark attendance`;
+  const title = document.getElementById('attTitle');
+  if (title) title.textContent = data.length ? `Mark attendance · ${data.length} students` : 'No students in batch';
   const el = document.getElementById('attList');
   el.innerHTML = '';
+  if (!data.length) {
+    el.innerHTML = '<div style="padding:16px;color:var(--text3);font-weight:600">No students in this batch yet</div>';
+  }
   data.forEach(s => {
     const div = document.createElement('div');
     div.className = 'att-row';
@@ -868,17 +945,19 @@ function loadAttendance() {
     el.appendChild(div);
   });
 
-  // Summary
   const sumEl = document.getElementById('attSummary');
   sumEl.innerHTML = '';
-  const allBatch = Object.values(STUDENTS).flat().filter(s => s);
-  const sample = STUDENTS['A'] || [];
+  const sample = Object.values(STUDENTS).flat();
+  if (!sample.length) {
+    sumEl.innerHTML = '<div style="padding:12px;color:var(--text3);font-weight:600">No students yet</div>';
+    return;
+  }
   sample.forEach(s => {
     sumEl.innerHTML += `
       <div class="topic-row">
         <span class="topic-name">${s.name}</span>
-        <div class="topic-bar"><div class="topic-fill" style="background:${s.att>=80?'var(--green)':'var(--orange)'};width:${s.att}%"></div></div>
-        <span class="topic-pct" style="color:${s.att>=80?'var(--green-dk)':'var(--orange-dk)'}">${s.att}%</span>
+        <div class="topic-bar"><div class="topic-fill" style="background:${s.att>=80?'var(--green)':'var(--orange)'};width:${Math.max(s.att||0,4)}%"></div></div>
+        <span class="topic-pct" style="color:${s.att>=80?'var(--green-dk)':'var(--orange-dk)'}">${s.att||0}%</span>
       </div>`;
   });
 }
@@ -939,15 +1018,30 @@ async function init() {
   document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
   try {
     const { data: { session } } = await sb.auth.getSession();
-    if (session) {
-      const { data: profile } = await sb.from('users').select('full_name, role').eq('id', session.user.id).single();
-      if (profile && profile.role === 'teacher') {
-        const name = profile.full_name;
-        document.getElementById('userAv').textContent   = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-        document.getElementById('userName').textContent = name;
-      }
+    if (!session) {
+      window.location.href = '../../login.html';
+      return;
     }
-  } catch { /* demo mode */ }
+    const { data: profile } = await sb.from('users').select('full_name, role').eq('id', session.user.id).single();
+    if (!profile || profile.role !== 'teacher') {
+      window.location.href = '../../login.html';
+      return;
+    }
+    const name = profile.full_name || 'Teacher';
+    document.getElementById('userAv').textContent   = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('userName').textContent = name;
+    await loadTeacherData(session.user.id);
+
+    // Clear demo dashboard numbers when empty roster
+    const all = Object.values(STUDENTS).flat();
+    if (!all.length) {
+      const riskBox = document.getElementById('atRiskList');
+      if (riskBox) riskBox.innerHTML = '<div style="padding:12px;color:var(--text3);font-weight:600">No students in your batches yet</div>';
+    }
+  } catch (err) {
+    console.error(err);
+    window.location.href = '../../login.html';
+  }
 }
 
 init();

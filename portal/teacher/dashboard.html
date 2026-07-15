@@ -223,6 +223,35 @@
     .toast-success { background:var(--green-dk); }
     @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
 
+    /* ── VIRTUAL CLASSES ── */
+    .vc-card { background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:20px; margin-bottom:14px; display:flex; align-items:center; gap:16px; transition:all .15s; }
+    .vc-card.live { border-color:var(--green); background:var(--green-lt); }
+    .vc-card.upcoming { border-color:var(--blue); background:var(--blue-lt); }
+    .vc-dot { width:14px; height:14px; border-radius:50%; flex-shrink:0; }
+    .vc-dot.live { background:var(--green); animation:pulse 1.2s infinite; }
+    .vc-dot.upcoming { background:var(--blue); }
+    .vc-dot.past { background:var(--text3); }
+    .vc-info { flex:1; }
+    .vc-title { font-size:.95rem; font-weight:800; margin-bottom:3px; }
+    .vc-meta  { font-size:.75rem; color:var(--text2); font-weight:600; }
+    .vc-btn { padding:9px 20px; border-radius:20px; font-family:'Nunito',sans-serif; font-size:.82rem; font-weight:800; border:none; cursor:pointer; white-space:nowrap; transition:all .15s; }
+    .vc-btn:hover { opacity:.88; transform:translateY(-1px); }
+    .vc-btn-green  { background:var(--green); color:#fff; }
+    .vc-btn-blue   { background:var(--blue);  color:#fff; }
+    .vc-btn-ghost  { background:var(--bg2);   color:var(--text2); border:2px solid var(--border); }
+    .vc-btn-red    { background:var(--red);   color:#fff; }
+    .schedule-form { background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:22px; margin-bottom:16px; }
+    .sf-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; margin-bottom:4px; }
+    .sf-sub   { font-size:.82rem; color:var(--text2); margin-bottom:18px; }
+    .sf-row   { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:flex-end; }
+    .sf-label { font-size:.75rem; font-weight:800; color:var(--text2); margin-bottom:5px; text-transform:uppercase; letter-spacing:.4px; }
+    .sf-field { display:flex; flex-direction:column; flex:1; min-width:140px; }
+    .in-class-panel { position:fixed; bottom:0; left:0; right:0; background:var(--green-dk); color:#fff; padding:14px 24px; display:flex; align-items:center; gap:14px; z-index:200; transform:translateY(100%); transition:transform .3s; }
+    .in-class-panel.show { transform:translateY(0); }
+    .icp-dot { width:12px; height:12px; border-radius:50%; background:#4eff91; animation:pulse 1.2s infinite; flex-shrink:0; }
+    .icp-text { flex:1; font-weight:700; font-size:.9rem; }
+    .icp-btn { padding:8px 18px; border-radius:20px; font-family:'Nunito',sans-serif; font-size:.82rem; font-weight:800; border:none; cursor:pointer; }
+
     /* ── RESPONSIVE ── */
     @media (max-width:768px) {
       .sidebar { transform:translateX(-100%); }
@@ -251,6 +280,8 @@
       <div class="nav-section">Homework</div>
       <a class="nav-item" href="#" onclick="showTab('assign',this)"><span class="nav-icon">✏️</span> Assign<span class="nav-badge" id="pendingBadge" style="display:none">0</span></a>
       <a class="nav-item" href="#" onclick="showTab('review',this)"><span class="nav-icon">📝</span> Review submissions</a>
+      <div class="nav-section">Classes</div>
+      <a class="nav-item" href="#" onclick="showTab('virtualclass',this)"><span class="nav-icon">📹</span> Virtual Classes<span class="nav-badge" id="liveClassBadge" style="display:none;background:var(--green)">LIVE</span></a>
       <div class="nav-section">Students</div>
       <a class="nav-item" href="#" onclick="showTab('students',this)"><span class="nav-icon">📊</span> Student progress</a>
       <a class="nav-item" href="#" onclick="showTab('attendance',this)"><span class="nav-icon">✅</span> Attendance</a>
@@ -509,6 +540,72 @@
 
       </div>
 
+      <!-- ══ VIRTUAL CLASSES TAB ══ -->
+      <div id="tab-virtualclass" style="display:none">
+
+        <!-- Schedule new class form -->
+        <div class="schedule-form">
+          <div class="sf-title">📹 Schedule a virtual class</div>
+          <div class="sf-sub">Set the details and share the Google Meet link directly with your students</div>
+
+          <div class="sf-row">
+            <div class="sf-field">
+              <div class="sf-label">Batch</div>
+              <select class="form-sel" id="vcBatch">
+                <option value="">Select batch</option>
+              </select>
+            </div>
+            <div class="sf-field">
+              <div class="sf-label">Topic</div>
+              <input type="text" class="form-inp" id="vcTopic" placeholder="e.g. Big Friends Addition" style="flex:1">
+            </div>
+          </div>
+
+          <div class="sf-row">
+            <div class="sf-field">
+              <div class="sf-label">Date</div>
+              <input type="date" class="form-inp" id="vcDate">
+            </div>
+            <div class="sf-field">
+              <div class="sf-label">Start time</div>
+              <input type="time" class="form-inp" id="vcStart">
+            </div>
+            <div class="sf-field">
+              <div class="sf-label">Duration</div>
+              <select class="form-sel" id="vcDuration">
+                <option value="30">30 minutes</option>
+                <option value="45">45 minutes</option>
+                <option value="60" selected>1 hour</option>
+                <option value="90">1.5 hours</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="sf-row" style="margin-bottom:0">
+            <div class="sf-field" style="flex:3">
+              <div class="sf-label">Google Meet link <span style="font-weight:500;text-transform:none;letter-spacing:0">(paste your Meet link or generate one)</span></div>
+              <input type="url" class="form-inp" id="vcMeetLink" placeholder="https://meet.google.com/xxx-xxxx-xxx">
+            </div>
+            <div style="padding-top:22px">
+              <button class="btn btn-ghost" onclick="generateMeetLink()" style="white-space:nowrap">🔗 Generate link</button>
+            </div>
+          </div>
+
+          <div style="margin-top:16px;display:flex;gap:10px">
+            <button class="btn btn-blue" onclick="scheduleClass()" style="flex:1;padding:13px">Schedule class &amp; notify students 🚀</button>
+          </div>
+        </div>
+
+        <!-- Upcoming & past classes -->
+        <div class="section-card">
+          <div class="section-title">Your scheduled classes</div>
+          <div id="vcList">
+            <div style="padding:20px;text-align:center;color:var(--text3);font-weight:600">No classes scheduled yet</div>
+          </div>
+        </div>
+
+      </div>
+
       <!-- ══ ATTENDANCE TAB ══ -->
       <div id="tab-attendance" style="display:none">
 
@@ -665,7 +762,7 @@ function firstBatchKey() {
 
 // ── TAB SWITCHING ──────────────────────────────────────────
 function showTab(name, el) {
-  ['dashboard','classes','assign','review','students','attendance'].forEach(t => {
+  ['dashboard','classes','assign','review','students','attendance','virtualclass'].forEach(t => {
     document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
   });
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -673,7 +770,8 @@ function showTab(name, el) {
   document.getElementById('topbarTitle').textContent = {
     dashboard:'Teacher Dashboard', classes:'My Classes',
     assign:'Assign Homework', review:'Review Submissions',
-    students:'Student Progress', attendance:'Attendance'
+    students:'Student Progress', attendance:'Attendance',
+    virtualclass:'Virtual Classes 📹'
   }[name] || 'Teacher Dashboard';
 
   const key = firstBatchKey();
@@ -684,7 +782,8 @@ function showTab(name, el) {
       document.getElementById('rosterList').innerHTML = '<div style="padding:20px;color:var(--text3);font-weight:600">No students in your batches yet</div>';
     }
   }
-  if (name === 'review')     { loadSubmissions(); }
+  if (name === 'review')       { loadSubmissions(); }
+  if (name === 'virtualclass') { populateVcBatch(); renderVcList(); }
   if (name === 'students')   { renderAllStudents(Object.values(STUDENTS).flat()); }
   if (name === 'attendance') { loadAttendance(); setDefaultDate(); }
 }
@@ -972,6 +1071,206 @@ function showToast(msg, type='') {
 async function logout() { await sb.auth.signOut(); window.location.href = '../../login.html'; }
 
 // ── INIT ───────────────────────────────────────────────────
+// ── VIRTUAL CLASSES ───────────────────────────────────────
+let scheduledClasses = [];
+let activeClassId    = null;
+
+function generateMeetLink() {
+  // Generate a Google Meet-style link opener
+  // Opens Google Meet new meeting page
+  const url = 'https://meet.google.com/new';
+  const win = window.open(url, '_blank');
+  showToast('Copy the Meet link from the new tab and paste it here!', '');
+  // Listen for manual paste
+  document.getElementById('vcMeetLink').placeholder = 'Paste your Meet link here after creating it';
+  document.getElementById('vcMeetLink').focus();
+}
+
+function populateVcBatch() {
+  const sel = document.getElementById('vcBatch');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Select batch</option>';
+  Object.entries(STUDENTS).forEach(([id, students]) => {
+    const name = students[0]?.batchName || 'Batch';
+    const opt  = document.createElement('option');
+    opt.value       = id;
+    opt.textContent = `${name} (${students.length} students)`;
+    sel.appendChild(opt);
+  });
+}
+
+async function scheduleClass() {
+  const batchId  = document.getElementById('vcBatch').value;
+  const topic    = document.getElementById('vcTopic').value.trim();
+  const date     = document.getElementById('vcDate').value;
+  const start    = document.getElementById('vcStart').value;
+  const duration = document.getElementById('vcDuration').value;
+  const meetLink = document.getElementById('vcMeetLink').value.trim();
+
+  if (!batchId || !topic || !date || !start || !meetLink) {
+    showToast('Please fill all fields including the Meet link!', ''); return;
+  }
+  if (!meetLink.includes('meet.google.com')) {
+    showToast('Please enter a valid Google Meet link!', ''); return;
+  }
+
+  const startDT  = new Date(`${date}T${start}`);
+  const endDT    = new Date(startDT.getTime() + duration*60000);
+  const batchStudents = STUDENTS[batchId] || [];
+
+  // Save to Supabase — store in batches.meet_link and schedule_json
+  try {
+    const { data:{ session } } = await sb.auth.getSession();
+    if (!session) return;
+
+    // Save class record to notifications for students
+    const classRecord = {
+      batch_id:   batchId,
+      batch_name: batchStudents[0]?.batchName || 'Batch',
+      topic,
+      date,
+      start_time: start,
+      duration:   parseInt(duration),
+      meet_link:  meetLink,
+      teacher_id: session.user.id,
+      scheduled_at: new Date().toISOString(),
+      id: Date.now().toString(),
+    };
+
+    // Update batch with latest meet link
+    await sb.from('batches').update({
+      meet_link:     meetLink,
+      schedule_json: { text: `${topic} · ${formatClassTime(startDT)}`, next_class: date }
+    }).eq('id', batchId);
+
+    // Notify all students in batch
+    const notifs = batchStudents.map(s => ({
+      user_id: s.id,
+      type:    'class_scheduled',
+      title:   `📹 Virtual class scheduled: ${topic}`,
+      message: `Your teacher has scheduled a class on "${topic}" on ${new Date(date).toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'})} at ${formatTime(start)} for ${duration} minutes. Join via Google Meet.`,
+      data:    JSON.stringify(classRecord),
+    }));
+    if (notifs.length) await sb.from('notifications').insert(notifs);
+
+    scheduledClasses.unshift(classRecord);
+    renderVcList();
+
+    // Clear form
+    ['vcTopic','vcDate','vcStart','vcMeetLink'].forEach(id => { document.getElementById(id).value=''; });
+    document.getElementById('vcBatch').value = '';
+
+    showToast(`Class scheduled! ${batchStudents.length} students notified 🚀`, 'success');
+
+  } catch(e) {
+    console.error(e);
+    showToast('Error saving class — please try again', '');
+  }
+}
+
+function renderVcList() {
+  const el = document.getElementById('vcList');
+  if (!scheduledClasses.length) {
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-weight:600">No classes scheduled yet</div>';
+    return;
+  }
+  el.innerHTML = '';
+  const now = new Date();
+  scheduledClasses.forEach(cls => {
+    const startDT = new Date(`${cls.date}T${cls.start_time}`);
+    const endDT   = new Date(startDT.getTime() + cls.duration*60000);
+    const isLive  = now >= startDT && now <= endDT;
+    const isPast  = now > endDT;
+    const status  = isLive ? 'live' : isPast ? 'past' : 'upcoming';
+
+    const card = document.createElement('div');
+    card.className = `vc-card ${status === 'live' ? 'live' : status === 'upcoming' ? 'upcoming' : ''}`;
+    card.innerHTML = `
+      <div class="vc-dot ${status}"></div>
+      <div class="vc-info">
+        <div class="vc-title">${cls.batch_name} — ${cls.topic}</div>
+        <div class="vc-meta">
+          ${new Date(cls.date).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})} · 
+          ${formatTime(cls.start_time)} · ${cls.duration} min
+          ${isLive ? ' · <strong style="color:var(--green-dk)">LIVE NOW</strong>' : ''}
+        </div>
+      </div>
+      ${isLive ? `
+        <button class="vc-btn vc-btn-green" onclick="startLiveClass('${cls.id}','${cls.meet_link}','${cls.topic}')">Start class →</button>
+      ` : isPast ? `
+        <span style="font-size:.75rem;color:var(--text3);font-weight:600">Completed</span>
+      ` : `
+        <button class="vc-btn vc-btn-blue"  onclick="window.open('${cls.meet_link}','_blank')">Open Meet</button>
+        <button class="vc-btn vc-btn-ghost" onclick="cancelClass('${cls.id}')" style="margin-left:6px">Cancel</button>
+      `}
+    `;
+    el.appendChild(card);
+  });
+
+  // Show live badge in nav if any live class
+  const hasLive = scheduledClasses.some(cls => {
+    const s = new Date(`${cls.date}T${cls.start_time}`);
+    const e = new Date(s.getTime() + cls.duration*60000);
+    return new Date() >= s && new Date() <= e;
+  });
+  const badge = document.getElementById('liveClassBadge');
+  if (badge) badge.style.display = hasLive ? '' : 'none';
+}
+
+function startLiveClass(id, meetLink, topic) {
+  activeClassId = id;
+  document.getElementById('icpText').textContent  = `Live: ${topic}`;
+  document.getElementById('icpJoinBtn').onclick   = () => joinCurrentClass();
+  document.getElementById('inClassPanel').classList.add('show');
+  window.open(meetLink, '_blank');
+  showToast('Class started! Students can now join from their dashboard 🟢', 'success');
+}
+
+function joinCurrentClass() {
+  const cls = scheduledClasses.find(c => c.id === activeClassId);
+  if (cls) window.open(cls.meet_link, '_blank');
+}
+
+function endClass() {
+  activeClassId = null;
+  document.getElementById('inClassPanel').classList.remove('show');
+  showToast('Class ended', '');
+}
+
+function cancelClass(id) {
+  scheduledClasses = scheduledClasses.filter(c => c.id !== id);
+  renderVcList();
+  showToast('Class cancelled', '');
+}
+
+function formatClassTime(dt) {
+  return dt.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'}) + ' at ' + dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+}
+function formatTime(timeStr) {
+  if (!timeStr) return '';
+  const [h,m] = timeStr.split(':');
+  const d = new Date(); d.setHours(h,m);
+  return d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+}
+
+// Load scheduled classes from notifications on init
+async function loadScheduledClasses(userId) {
+  try {
+    const { data } = await sb.from('notifications')
+      .select('data,created_at')
+      .eq('user_id', userId)
+      .eq('type', 'class_scheduled')
+      .order('created_at', { ascending:false })
+      .limit(20);
+    // Teacher sees classes they scheduled (stored in batch student notifications)
+    // Load from batches meet_link instead
+    const batchKeys = Object.keys(STUDENTS);
+    scheduledClasses = [];
+    // Will be populated from batch data if schedule_json exists
+    renderVcList();
+  } catch(e) { console.error(e); }
+}
+
 async function init() {
   document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
   try {
@@ -987,6 +1286,8 @@ async function init() {
     document.getElementById('userName').textContent = name;
 
     await loadTeacherData(session.user.id);
+    populateVcBatch();
+    await loadScheduledClasses(session.user.id);
 
     // ── Populate real stats ──
     const all = Object.values(STUDENTS).flat();
@@ -1077,6 +1378,13 @@ async function init() {
 
 init();
 </script>
+<!-- IN-CLASS FLOATING BAR -->
+<div class="in-class-panel" id="inClassPanel">
+  <div class="icp-dot"></div>
+  <div class="icp-text" id="icpText">Class in progress</div>
+  <button class="icp-btn" style="background:#4eff91;color:#1B5E20" id="icpJoinBtn" onclick="joinCurrentClass()">Join Meet →</button>
+  <button class="icp-btn" style="background:rgba(255,255,255,.2);color:#fff;margin-left:8px" onclick="endClass()">End class</button>
+</div>
 </body>
 </html>
 

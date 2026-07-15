@@ -618,19 +618,19 @@
         <div id="liveClassSection" style="display:none;margin-bottom:20px">
 
           <!-- LIVE NOW banner -->
-          <div id="liveNowBanner" style="display:none;background:linear-gradient(135deg,var(--green-dk),var(--green-md));border-radius:16px;padding:16px 20px;color:#fff;display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap">
+          <div id="liveNowBanner" style="display:none;border-radius:16px;padding:16px 20px;color:#fff;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap;background:linear-gradient(135deg,var(--green-dk),var(--green-md))">
             <div style="width:12px;height:12px;border-radius:50%;background:#4eff91;animation:pulse 1.2s infinite;flex-shrink:0"></div>
             <div style="flex:1">
               <div style="font-weight:800;font-size:.95rem;margin-bottom:2px" id="liveClassTitle">Class in progress</div>
               <div style="font-size:.78rem;opacity:.9" id="liveClassMeta">Your teacher is waiting!</div>
             </div>
-            <button id="joinClassBtn" style="background:#fff;color:var(--green-dk);border:none;border-radius:20px;padding:10px 22px;font-family:'Nunito',sans-serif;font-size:.875rem;font-weight:800;cursor:pointer;white-space:nowrap">
+            <button id="joinClassBtn" onclick="joinLiveClass()" style="background:#fff;color:var(--green-dk);border:none;border-radius:20px;padding:10px 22px;font-family:'Nunito',sans-serif;font-size:.875rem;font-weight:800;cursor:pointer;white-space:nowrap">
               📹 Join class now
             </button>
           </div>
 
           <!-- UPCOMING class banner -->
-          <div id="upcomingBanner" style="display:none;background:var(--blue-lt);border:2px solid #90CAF9;border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div id="upcomingBanner" style="display:none;background:var(--blue-lt);border:2px solid #90CAF9;border-radius:16px;padding:14px 18px;align-items:center;gap:12px;flex-wrap:wrap">
             <div style="font-size:1.4rem">📅</div>
             <div style="flex:1">
               <div style="font-weight:800;font-size:.875rem;color:var(--blue-dk);margin-bottom:2px" id="upcomingClassTitle">Upcoming class</div>
@@ -1075,10 +1075,7 @@ async function loadLiveClass(studentId) {
         document.getElementById('upcomingBanner').style.display = 'none';
         document.getElementById('liveClassTitle').textContent   = `${cd.batch_name || batch.name} — ${cd.topic}`;
         document.getElementById('liveClassMeta').textContent    = `${teacher} is live now!`;
-        document.getElementById('joinClassBtn').onclick = () => {
-          window.open(cd.meet_link, '_blank');
-          showToast('Joining class now! 📹', 'success');
-        };
+        _liveMeetLink = cd.meet_link;
         foundClass = true;
         break;
       } else if (now < cs) {
@@ -1110,10 +1107,7 @@ async function loadLiveClass(studentId) {
       document.getElementById('upcomingBanner').style.display = 'none';
       document.getElementById('liveClassTitle').textContent   = `${batch.name} — ${schedule.text || 'Class available'}`;
       document.getElementById('liveClassMeta').textContent    = `${teacher}`;
-      document.getElementById('joinClassBtn').onclick = () => {
-        window.open(meetLink, '_blank');
-        showToast('Opening Google Meet! 📹', 'success');
-      };
+      _liveMeetLink = meetLink;
     } else if (!foundClass) {
       section.style.display = 'none';
     }
@@ -1124,6 +1118,18 @@ async function loadLiveClass(studentId) {
   }
 }
 
+
+// ── LIVE CLASS JOIN ───────────────────────────────────────
+let _liveMeetLink = null;
+
+function joinLiveClass() {
+  if (_liveMeetLink) {
+    window.open(_liveMeetLink, '_blank');
+    showToast('Opening Google Meet — join your class! 📹', 'success');
+  } else {
+    showToast('No class link available yet', '');
+  }
+}
 
 // ── UI HELPERS ────────────────────────────────────────────
 function toggleSidebar() {

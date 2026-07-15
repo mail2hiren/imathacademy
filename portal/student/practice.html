@@ -1019,7 +1019,13 @@ function toggleHint() {
   }
 }
 
+// ── DEBOUNCE GUARD — prevents tap skipping ──────────────────
+let _nextLocked = false;
+
 function nextQuestion() {
+  if (_nextLocked) return;          // ignore rapid taps
+  _nextLocked = true;
+  setTimeout(() => { _nextLocked = false; }, 1000); // 1 second cooldown
   currentIdx++;
   document.getElementById('hintBtn').style.display = 'inline-block';
   if (currentIdx >= questions.length) { showComplete(); return; }
@@ -1167,3 +1173,4 @@ init();
 </script>
 </body>
 </html>
+

@@ -1142,7 +1142,12 @@ async function uploadLesson(publish) {
   if (!url || !getYouTubeId(url)) { showToast('Please enter a valid YouTube URL', ''); return; }
 
   try {
-    const result = await adminCall('manage_lesson', { subAction: publish ? 'publish' : 'draft', title, video_url: url, level, topic, duration: duration||null, order_index: order, description: desc||null, published: publish });
+    const { error: insErr } = await sb.from('lessons').insert({
+      title, video_url: url, level, topic,
+      duration: duration||null, order_index: order,
+      description: desc||null, published: publish,
+    });
+    if (insErr) throw insErr;
     showToast(publish ? `✅ "${title}" published to students!` : `💾 "${title}" saved as draft`, 'success');
     ['lessonTitle','lessonUrl','lessonDuration','lessonDesc'].forEach(id => { document.getElementById(id).value=''; });
     document.getElementById('lessonPreview').style.display = 'none';
@@ -1155,7 +1160,8 @@ async function uploadLesson(publish) {
 
 async function togglePublish(id, current) {
   try {
-    await adminCall('manage_lesson', { subAction: 'update', id, published: !current });
+    const { error: updErr } = await sb.from('lessons').update({ published: !current }).eq('id', id);
+    if (updErr) throw updErr;
     showToast(!current ? '✅ Lesson published!' : '📝 Moved to drafts', 'success');
     loadLessonsAdmin();
   } catch(err) { showToast('❌ '+err.message, 'error'); }
@@ -1164,7 +1170,8 @@ async function togglePublish(id, current) {
 async function deleteLesson(id, title) {
   if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
   try {
-    await adminCall('manage_lesson', { subAction: 'delete', id });
+    const { error: delErr } = await sb.from('lessons').delete().eq('id', id);
+    if (delErr) throw delErr;
     showToast('Lesson deleted', '');
     loadLessonsAdmin();
   } catch(err) { showToast('❌ '+err.message, 'error'); }
@@ -1174,8 +1181,8 @@ async function loadLessonsAdmin() {
   const el = document.getElementById('lessonsList');
   if (!el) return;
   try {
-    const result = await adminCall('manage_lesson', { subAction: 'list' });
-    const lessons = result.lessons || [];
+    const { data: lessons, error } = await sb.from('lessons').select('*').order('level').order('order_index');
+    if (error) throw error;
     allLessonsAdmin = lessons;
     if (!lessons.length) {
       el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-weight:600">No lessons yet — upload one above!</div>';

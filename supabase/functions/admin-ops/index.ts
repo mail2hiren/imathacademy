@@ -110,6 +110,43 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // ── MANAGE LESSONS ────────────────────────────────────
+    if (action === 'manage_lesson') {
+      const subAction = body.action;
+
+      if (subAction === 'list') {
+        const { data, error } = await adminSb.from('lessons').select('*').order('level').order('order_index');
+        if (error) throw error;
+        return new Response(JSON.stringify({ success:true, lessons: data }), { status:200, headers:{ 'Content-Type':'application/json', ...CORS_HEADERS } });
+      }
+
+      if (subAction === 'publish' || subAction === 'draft') {
+        const { title, video_url, level, topic, duration, order_index, description, published } = body;
+        const { data, error } = await adminSb.from('lessons').insert({
+          title, video_url, level: level||1, topic: topic||null,
+          duration: duration||null, order_index: order_index||1,
+          description: description||null, published: published||false,
+          created_at: new Date().toISOString(),
+        }).select().single();
+        if (error) throw error;
+        return new Response(JSON.stringify({ success:true, lesson: data }), { status:200, headers:{ 'Content-Type':'application/json', ...CORS_HEADERS } });
+      }
+
+      if (subAction === 'update') {
+        const { id, ...updates } = body;
+        delete updates.action;
+        const { error } = await adminSb.from('lessons').update(updates).eq('id', id);
+        if (error) throw error;
+        return new Response(JSON.stringify({ success:true }), { status:200, headers:{ 'Content-Type':'application/json', ...CORS_HEADERS } });
+      }
+
+      if (subAction === 'delete') {
+        const { error } = await adminSb.from('lessons').delete().eq('id', body.id);
+        if (error) throw error;
+        return new Response(JSON.stringify({ success:true }), { status:200, headers:{ 'Content-Type':'application/json', ...CORS_HEADERS } });
+      }
+    }
+
     return new Response(JSON.stringify({ error: 'Unknown action: ' + action }), { status: 400, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } });
 
   } catch (err) {

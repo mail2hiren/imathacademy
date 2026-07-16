@@ -485,18 +485,18 @@
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
             <div>
-              <div style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Lesson title *</div>
+              <label for="lessonTitle" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Lesson title *</label>
               <input type="text" class="form-input" id="lessonTitle" placeholder="e.g. Simple Addition — Basics">
             </div>
             <div>
-              <div style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">YouTube video URL *</div>
+              <label for="lessonUrl" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">YouTube video URL *</label>
               <input type="url" class="form-input" id="lessonUrl" placeholder="https://www.youtube.com/watch?v=...">
             </div>
           </div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px">
             <div>
-              <div style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Level</div>
+              <label for="lessonLevel" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Level</label>
               <select class="form-select" id="lessonLevel">
                 <option value="1">Level 1</option>
                 <option value="2">Level 2</option>
@@ -507,7 +507,7 @@
               </select>
             </div>
             <div>
-              <div style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Topic</div>
+              <label for="lessonTopic" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Topic</label>
               <select class="form-select" id="lessonTopic">
                 <option value="addition">Addition</option>
                 <option value="subtraction">Subtraction</option>
@@ -518,17 +518,17 @@
               </select>
             </div>
             <div>
-              <div style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Duration</div>
+              <label for="lessonDuration" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Duration</label>
               <input type="text" class="form-input" id="lessonDuration" placeholder="e.g. 8:30">
             </div>
             <div>
-              <div style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Order</div>
+              <label for="lessonOrder" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Order</label>
               <input type="number" class="form-input" id="lessonOrder" placeholder="1" value="1" min="1">
             </div>
           </div>
 
           <div style="margin-bottom:14px">
-            <div style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Description (optional)</div>
+            <label for="lessonDesc" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Description (optional)</label>
             <textarea class="form-input" id="lessonDesc" rows="2" placeholder="What will students learn in this lesson?" style="resize:vertical"></textarea>
           </div>
 

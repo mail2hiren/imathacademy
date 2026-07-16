@@ -222,6 +222,7 @@ Deno.serve(async (req) => {
       }
     }
 
+    console.log('Inserting notification for user:', userId);
     const { error: notificationError } = await supabase.from("notifications").insert({
       user_id: userId,
       type: "welcome",
@@ -229,6 +230,7 @@ Deno.serve(async (req) => {
       message: `Welcome ${full_name}! Your ${role} account is ready.`,
     });
     if (notificationError) {
+      console.error('notification error:', notificationError.message, notificationError.details);
       throw notificationError;
     }
 
@@ -253,8 +255,11 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     await supabase.auth.admin.deleteUser(userId);
+    const msg = error instanceof Error ? error.message : String(error);
+    const detail = (error as any)?.details || (error as any)?.hint || '';
+    console.error('create-user error:', msg, detail);
     return jsonResponse(
-      { error: error instanceof Error ? error.message : "Unable to create user" },
+      { error: msg, detail },
       400,
     );
   }

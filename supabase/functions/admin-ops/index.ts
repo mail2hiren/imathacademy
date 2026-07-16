@@ -14,17 +14,17 @@ Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405, headers: CORS_HEADERS });
 
   try {
-    // Verify the caller is an admin
+    // Verify the caller using service role key
     const authHeader = req.headers.get('Authorization') || '';
     const userToken  = authHeader.replace('Bearer ', '');
-    
-    const anonSb = createClient(SUPABASE_URL, Deno.env.get('ANON_KEY') || '');
-    const { data: { user }, error: authErr } = await anonSb.auth.getUser(userToken);
-    if (authErr || !user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } });
 
     const adminSb = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
+
+    // Verify token and get user
+    const { data: { user }, error: authErr } = await adminSb.auth.getUser(userToken);
+    if (authErr || !user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } });
 
     // Check user is admin
     const { data: profile } = await adminSb.from('users').select('role').eq('id', user.id).single();

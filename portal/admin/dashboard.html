@@ -424,16 +424,6 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-const SUPABASE_URL='https://bhullfoajenhkxlkiubs.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
-const{createClient}=supabase;
-const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
-
-// ── ADMIN OPS — uses Edge Function with service role ──────
-const ADMIN_FN_URL = 'https://bhullfoajenhkxlkiubs.supabase.co/functions/v1/admin-ops';
-
       <div id="tab-fees" style="display:none">
         <div class="stats-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
           <div class="stat-box hc-green"><div class="stat-n" id="feesCollected">—</div><div class="stat-l">Collected this month</div></div>
@@ -570,6 +560,17 @@ const ADMIN_FN_URL = 'https://bhullfoajenhkxlkiubs.supabase.co/functions/v1/admi
     </div>
 
 
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+const{createClient}=supabase;
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+// ── ADMIN OPS — uses Edge Function with service role ──────
+const ADMIN_FN_URL = 'https://bhullfoajenhkxlkiubs.supabase.co/functions/v1/admin-ops';
 
 async function adminCall(action, params = {}) {
   const { data: { session } } = await sb.auth.getSession();

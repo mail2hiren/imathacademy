@@ -112,7 +112,7 @@ Deno.serve(async (req: Request) => {
 
     // ── MANAGE LESSONS ────────────────────────────────────
     if (action === 'manage_lesson') {
-      const subAction = body.action;
+      const subAction = body.subAction || body.sub;
 
       if (subAction === 'list') {
         const { data, error } = await adminSb.from('lessons').select('*').order('level').order('order_index');

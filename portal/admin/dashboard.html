@@ -340,6 +340,100 @@
       </div>
 
       <!-- FEES -->
+      <!-- ══ LESSONS TAB ══ -->
+      <div id="tab-lessons" style="display:none">
+
+        <!-- Upload new lesson -->
+        <div style="background:var(--bg);border:2px solid var(--border);border-radius:18px;padding:22px;margin-bottom:20px">
+          <div style="font-family:'Baloo 2',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:4px">▶️ Upload new lesson</div>
+          <div style="font-size:.82rem;color:var(--text2);margin-bottom:18px">Paste a YouTube unlisted video link. Students can only watch — not download or share.</div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div>
+              <label for="lessonTitle" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Lesson title *</label>
+              <input type="text" class="form-input" id="lessonTitle" placeholder="e.g. Simple Addition — Basics">
+            </div>
+            <div>
+              <label for="lessonUrl" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">YouTube video URL *</label>
+              <input type="url" class="form-input" id="lessonUrl" placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+            <div>
+              <label for="lessonLevel" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Level</label>
+              <select class="form-select" id="lessonLevel">
+                <option value="1">Level 1</option>
+                <option value="2">Level 2</option>
+                <option value="3">Level 3</option>
+                <option value="4">Level 4</option>
+                <option value="5">Level 5</option>
+                <option value="6">Level 6</option>
+              </select>
+            </div>
+            <div>
+              <label for="lessonTopic" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Topic</label>
+              <select class="form-select" id="lessonTopic">
+                <option value="addition">Addition</option>
+                <option value="subtraction">Subtraction</option>
+                <option value="multiplication">Multiplication</option>
+                <option value="division">Division</option>
+                <option value="vedic">Vedic Maths</option>
+                <option value="revision">Revision</option>
+              </select>
+            </div>
+            <div>
+              <label for="lessonDuration" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Duration</label>
+              <input type="text" class="form-input" id="lessonDuration" placeholder="e.g. 8:30">
+            </div>
+            <div>
+              <label for="lessonOrder" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Order</label>
+              <input type="number" class="form-input" id="lessonOrder" placeholder="1" value="1" min="1">
+            </div>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <label for="lessonDesc" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Description (optional)</label>
+            <textarea class="form-input" id="lessonDesc" rows="2" placeholder="What will students learn in this lesson?" style="resize:vertical"></textarea>
+          </div>
+
+          <!-- Video preview -->
+          <div id="lessonPreview" style="display:none;margin-bottom:14px;border-radius:12px;overflow:hidden;max-width:400px;aspect-ratio:16/9;background:#000">
+            <iframe id="previewIframe" style="width:100%;height:100%;border:none" allowfullscreen></iframe>
+          </div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-ghost" onclick="previewLesson()" style="padding:10px 20px">👁 Preview video</button>
+            <button class="btn btn-blue" onclick="uploadLesson(false)" style="padding:10px 24px">💾 Save as draft</button>
+            <button class="btn btn-green" onclick="uploadLesson(true)" style="padding:10px 24px">✅ Publish to students</button>
+          </div>
+        </div>
+
+        <!-- Lessons list -->
+        <div style="background:var(--bg);border:2px solid var(--border);border-radius:18px;padding:22px">
+          <div style="font-family:'Baloo 2',sans-serif;font-size:1.05rem;font-weight:800;margin-bottom:14px">All lessons</div>
+          <div id="lessonsList">
+            <div style="padding:20px;text-align:center;color:var(--text3);font-weight:600">Loading lessons...</div>
+          </div>
+        </div>
+
+      </div>
+
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+const{createClient}=supabase;
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+
+// ── ADMIN OPS — uses Edge Function with service role ──────
+const ADMIN_FN_URL = 'https://bhullfoajenhkxlkiubs.supabase.co/functions/v1/admin-ops';
+
       <div id="tab-fees" style="display:none">
         <div class="stats-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
           <div class="stat-box hc-green"><div class="stat-n" id="feesCollected">—</div><div class="stat-l">Collected this month</div></div>
@@ -475,99 +569,7 @@
       <button class="btn btn-red" id="confirmOkBtn">Confirm</button>
     </div>
 
-      <!-- ══ LESSONS TAB ══ -->
-      <div id="tab-lessons" style="display:none">
 
-        <!-- Upload new lesson -->
-        <div style="background:var(--bg);border:2px solid var(--border);border-radius:18px;padding:22px;margin-bottom:20px">
-          <div style="font-family:'Baloo 2',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:4px">▶️ Upload new lesson</div>
-          <div style="font-size:.82rem;color:var(--text2);margin-bottom:18px">Paste a YouTube unlisted video link. Students can only watch — not download or share.</div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-            <div>
-              <label for="lessonTitle" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Lesson title *</label>
-              <input type="text" class="form-input" id="lessonTitle" placeholder="e.g. Simple Addition — Basics">
-            </div>
-            <div>
-              <label for="lessonUrl" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">YouTube video URL *</label>
-              <input type="url" class="form-input" id="lessonUrl" placeholder="https://www.youtube.com/watch?v=...">
-            </div>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px">
-            <div>
-              <label for="lessonLevel" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Level</label>
-              <select class="form-select" id="lessonLevel">
-                <option value="1">Level 1</option>
-                <option value="2">Level 2</option>
-                <option value="3">Level 3</option>
-                <option value="4">Level 4</option>
-                <option value="5">Level 5</option>
-                <option value="6">Level 6</option>
-              </select>
-            </div>
-            <div>
-              <label for="lessonTopic" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Topic</label>
-              <select class="form-select" id="lessonTopic">
-                <option value="addition">Addition</option>
-                <option value="subtraction">Subtraction</option>
-                <option value="multiplication">Multiplication</option>
-                <option value="division">Division</option>
-                <option value="vedic">Vedic Maths</option>
-                <option value="revision">Revision</option>
-              </select>
-            </div>
-            <div>
-              <label for="lessonDuration" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Duration</label>
-              <input type="text" class="form-input" id="lessonDuration" placeholder="e.g. 8:30">
-            </div>
-            <div>
-              <label for="lessonOrder" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Order</label>
-              <input type="number" class="form-input" id="lessonOrder" placeholder="1" value="1" min="1">
-            </div>
-          </div>
-
-          <div style="margin-bottom:14px">
-            <label for="lessonDesc" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Description (optional)</label>
-            <textarea class="form-input" id="lessonDesc" rows="2" placeholder="What will students learn in this lesson?" style="resize:vertical"></textarea>
-          </div>
-
-          <!-- Video preview -->
-          <div id="lessonPreview" style="display:none;margin-bottom:14px;border-radius:12px;overflow:hidden;max-width:400px;aspect-ratio:16/9;background:#000">
-            <iframe id="previewIframe" style="width:100%;height:100%;border:none" allowfullscreen></iframe>
-          </div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn btn-ghost" onclick="previewLesson()" style="padding:10px 20px">👁 Preview video</button>
-            <button class="btn btn-blue" onclick="uploadLesson(false)" style="padding:10px 24px">💾 Save as draft</button>
-            <button class="btn btn-green" onclick="uploadLesson(true)" style="padding:10px 24px">✅ Publish to students</button>
-          </div>
-        </div>
-
-        <!-- Lessons list -->
-        <div style="background:var(--bg);border:2px solid var(--border);border-radius:18px;padding:22px">
-          <div style="font-family:'Baloo 2',sans-serif;font-size:1.05rem;font-weight:800;margin-bottom:14px">All lessons</div>
-          <div id="lessonsList">
-            <div style="padding:20px;text-align:center;color:var(--text3);font-weight:600">Loading lessons...</div>
-          </div>
-        </div>
-
-      </div>
-
-  </div>
-</div>
-
-<div class="toast-container" id="toastContainer"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-const SUPABASE_URL='https://bhullfoajenhkxlkiubs.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
-const{createClient}=supabase;
-const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
-
-// ── ADMIN OPS — uses Edge Function with service role ──────
-const ADMIN_FN_URL = 'https://bhullfoajenhkxlkiubs.supabase.co/functions/v1/admin-ops';
 
 async function adminCall(action, params = {}) {
   const { data: { session } } = await sb.auth.getSession();

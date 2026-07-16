@@ -1055,12 +1055,12 @@ function renderConnStatus(){
 }
 
 function showTab(name,el){
-  ['overview','students','teachers','parents','associations','batches','fees','automation','settings'].forEach(t=>{
+  ['overview','students','teachers','parents','associations','batches','lessons','fees','automation','settings'].forEach(t=>{
     const p=document.getElementById('tab-'+t);if(p)p.style.display=t===name?'block':'none';
   });
   document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
   if(el)el.classList.add('active');
-  const titles={overview:'Academy Overview',students:'Students',teachers:'Teachers',parents:'Parents',associations:'Associations',batches:'Batches',fees:'Fees',automation:'Automation',settings:'Settings'};
+  const titles={overview:'Academy Overview',students:'Students',teachers:'Teachers',parents:'Parents',associations:'Associations',batches:'Batches',fees:'Fees',automation:'Automation',lessons:'Lessons',settings:'Settings'};
   document.getElementById('topbarTitle').textContent=titles[name]||'Admin';
   renderTabData(name);
 }

@@ -148,6 +148,8 @@
       <a class="nav-item" href="#" onclick="showTab('batches',this)"><span class="nav-icon">🏫</span> Batches</a>
       <div class="nav-section">Finance</div>
       <a class="nav-item" href="#" onclick="showTab('fees',this)"><span class="nav-icon">💰</span> Fees<span class="nav-badge" id="feesBadge" style="display:none">!</span></a>
+      <div class="nav-section">Content</div>
+      <a class="nav-item" href="#" onclick="showTab('lessons',this)"><span class="nav-icon">▶️</span> Lessons</a>
       <div class="nav-section">Settings</div>
       <a class="nav-item" href="#" onclick="showTab('automation',this)"><span class="nav-icon">🤖</span> Automation</a>
       <a class="nav-item" href="#" onclick="showTab('settings',this)"><span class="nav-icon">⚙️</span> Settings</a>
@@ -467,6 +469,86 @@
       <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
       <button class="btn btn-red" id="confirmOkBtn">Confirm</button>
     </div>
+
+      <!-- ══ LESSONS TAB ══ -->
+      <div id="tab-lessons" style="display:none">
+
+        <!-- Upload new lesson -->
+        <div style="background:var(--bg);border:2px solid var(--border);border-radius:18px;padding:22px;margin-bottom:20px">
+          <div style="font-family:'Baloo 2',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:4px">▶️ Upload new lesson</div>
+          <div style="font-size:.82rem;color:var(--text2);margin-bottom:18px">Paste a YouTube unlisted video link. Students can only watch — not download or share.</div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div>
+              <div style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Lesson title *</div>
+              <input type="text" class="form-input" id="lessonTitle" placeholder="e.g. Simple Addition — Basics">
+            </div>
+            <div>
+              <div style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">YouTube video URL *</div>
+              <input type="url" class="form-input" id="lessonUrl" placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+            <div>
+              <div style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Level</div>
+              <select class="form-select" id="lessonLevel">
+                <option value="1">Level 1</option>
+                <option value="2">Level 2</option>
+                <option value="3">Level 3</option>
+                <option value="4">Level 4</option>
+                <option value="5">Level 5</option>
+                <option value="6">Level 6</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Topic</div>
+              <select class="form-select" id="lessonTopic">
+                <option value="addition">Addition</option>
+                <option value="subtraction">Subtraction</option>
+                <option value="multiplication">Multiplication</option>
+                <option value="division">Division</option>
+                <option value="vedic">Vedic Maths</option>
+                <option value="revision">Revision</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Duration</div>
+              <input type="text" class="form-input" id="lessonDuration" placeholder="e.g. 8:30">
+            </div>
+            <div>
+              <div style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Order</div>
+              <input type="number" class="form-input" id="lessonOrder" placeholder="1" value="1" min="1">
+            </div>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <div style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px">Description (optional)</div>
+            <textarea class="form-input" id="lessonDesc" rows="2" placeholder="What will students learn in this lesson?" style="resize:vertical"></textarea>
+          </div>
+
+          <!-- Video preview -->
+          <div id="lessonPreview" style="display:none;margin-bottom:14px;border-radius:12px;overflow:hidden;max-width:400px;aspect-ratio:16/9;background:#000">
+            <iframe id="previewIframe" style="width:100%;height:100%;border:none" allowfullscreen></iframe>
+          </div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-ghost" onclick="previewLesson()" style="padding:10px 20px">👁 Preview video</button>
+            <button class="btn btn-blue" onclick="uploadLesson(false)" style="padding:10px 24px">💾 Save as draft</button>
+            <button class="btn btn-green" onclick="uploadLesson(true)" style="padding:10px 24px">✅ Publish to students</button>
+          </div>
+        </div>
+
+        <!-- Lessons list -->
+        <div style="background:var(--bg);border:2px solid var(--border);border-radius:18px;padding:22px">
+          <div style="font-family:'Baloo 2',sans-serif;font-size:1.05rem;font-weight:800;margin-bottom:14px">All lessons</div>
+          <div id="lessonsList">
+            <div style="padding:20px;text-align:center;color:var(--text3);font-weight:600">Loading lessons...</div>
+          </div>
+        </div>
+
+      </div>
+
   </div>
 </div>
 
@@ -984,6 +1066,7 @@ function renderTabData(name){
   if(name==='parents')renderParents(allParents);
   if(name==='associations'){renderAssoc();populateDropdowns();}
   if(name==='batches'){renderBatches();populateDropdowns();}
+  if(name==='lessons'){loadLessonsAdmin();}
   if(name==='fees')renderFees();
 }
 
@@ -1026,6 +1109,107 @@ function showToast(msg,type=''){
   const t=document.createElement('div');
   t.className=`toast${type?' toast-'+type:''}`;t.textContent=msg;
   c.appendChild(t);setTimeout(()=>t.remove(),4000);
+}
+
+// ── LESSONS ─────────────────────────────────────────────
+let allLessonsAdmin = [];
+
+function getYouTubeId(url) {
+  const patterns = [/youtu\.be\/([^?&]+)/,/youtube\.com\/watch\?v=([^&]+)/,/youtube\.com\/embed\/([^?&]+)/];
+  for (const p of patterns) { const m = (url||'').match(p); if (m) return m[1]; }
+  return null;
+}
+
+function previewLesson() {
+  const url = document.getElementById('lessonUrl').value.trim();
+  const vid = getYouTubeId(url);
+  if (!vid) { showToast('Please enter a valid YouTube URL first', ''); return; }
+  document.getElementById('previewIframe').src = `https://www.youtube-nocookie.com/embed/${vid}?rel=0&modestbranding=1`;
+  document.getElementById('lessonPreview').style.display = 'block';
+}
+
+async function uploadLesson(publish) {
+  const title    = document.getElementById('lessonTitle').value.trim();
+  const url      = document.getElementById('lessonUrl').value.trim();
+  const level    = parseInt(document.getElementById('lessonLevel').value);
+  const topic    = document.getElementById('lessonTopic').value;
+  const duration = document.getElementById('lessonDuration').value.trim();
+  const order    = parseInt(document.getElementById('lessonOrder').value) || 1;
+  const desc     = document.getElementById('lessonDesc').value.trim();
+
+  if (!title) { showToast('Please enter a lesson title', ''); return; }
+  if (!url || !getYouTubeId(url)) { showToast('Please enter a valid YouTube URL', ''); return; }
+
+  try {
+    const result = await adminCall('manage_lesson', { action: publish ? 'publish' : 'draft', title, video_url: url, level, topic, duration: duration||null, order_index: order, description: desc||null, published: publish });
+    showToast(publish ? `✅ "${title}" published to students!` : `💾 "${title}" saved as draft`, 'success');
+    ['lessonTitle','lessonUrl','lessonDuration','lessonDesc'].forEach(id => { document.getElementById(id).value=''; });
+    document.getElementById('lessonPreview').style.display = 'none';
+    document.getElementById('previewIframe').src = '';
+    loadLessonsAdmin();
+  } catch(err) {
+    showToast('❌ '+err.message, 'error');
+  }
+}
+
+async function togglePublish(id, current) {
+  try {
+    await adminCall('manage_lesson', { action: 'update', id, published: !current });
+    showToast(!current ? '✅ Lesson published!' : '📝 Moved to drafts', 'success');
+    loadLessonsAdmin();
+  } catch(err) { showToast('❌ '+err.message, 'error'); }
+}
+
+async function deleteLesson(id, title) {
+  if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
+  try {
+    await adminCall('manage_lesson', { action: 'delete', id });
+    showToast('Lesson deleted', '');
+    loadLessonsAdmin();
+  } catch(err) { showToast('❌ '+err.message, 'error'); }
+}
+
+async function loadLessonsAdmin() {
+  const el = document.getElementById('lessonsList');
+  if (!el) return;
+  try {
+    const result = await adminCall('manage_lesson', { action: 'list' });
+    const lessons = result.lessons || [];
+    allLessonsAdmin = lessons;
+    if (!lessons.length) {
+      el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-weight:600">No lessons yet — upload one above!</div>';
+      return;
+    }
+    el.innerHTML = `<table style="width:100%;border-collapse:collapse">
+      <thead><tr style="font-size:.72rem;font-weight:800;text-transform:uppercase;color:var(--text3);border-bottom:2px solid var(--border)">
+        <th style="padding:8px 12px;text-align:left">Title</th>
+        <th style="padding:8px 12px;text-align:left">Level</th>
+        <th style="padding:8px 12px;text-align:left">Topic</th>
+        <th style="padding:8px 12px;text-align:left">Duration</th>
+        <th style="padding:8px 12px;text-align:left">Status</th>
+        <th style="padding:8px 12px;text-align:left">Actions</th>
+      </tr></thead>
+      <tbody>${lessons.map(l => `<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:10px 12px;font-weight:800;font-size:.875rem">${l.title}</td>
+        <td style="padding:10px 12px"><span style="background:var(--blue-lt);color:var(--blue-dk);padding:2px 10px;border-radius:20px;font-size:.72rem;font-weight:800">L${l.level}</span></td>
+        <td style="padding:10px 12px;font-size:.82rem;color:var(--text2);font-weight:600">${l.topic||'—'}</td>
+        <td style="padding:10px 12px;font-size:.82rem;color:var(--text2)">${l.duration||'—'}</td>
+        <td style="padding:10px 12px">
+          <span style="padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:800;background:${l.published?'var(--green-lt)':'var(--orange-lt)'};color:${l.published?'var(--green-dk)':'var(--orange-dk)'}">
+            ${l.published?'Published':'Draft'}
+          </span>
+        </td>
+        <td style="padding:10px 12px;display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="togglePublish('${l.id}',${l.published})" style="font-size:.75rem;padding:5px 12px">
+            ${l.published?'Unpublish':'Publish'}
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="deleteLesson('${l.id}','${l.title}')" style="font-size:.75rem;padding:5px 12px;color:var(--red)">Delete</button>
+        </td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+  } catch(err) {
+    el.innerHTML = '<div style="padding:20px;color:var(--red);font-weight:600">Could not load lessons: '+err.message+'</div>';
+  }
 }
 
 async function logout(){await sb.auth.signOut();window.location.href='../../login.html';}

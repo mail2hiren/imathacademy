@@ -1141,7 +1141,7 @@ async function uploadLesson(publish) {
   if (!url || !getYouTubeId(url)) { showToast('Please enter a valid YouTube URL', ''); return; }
 
   try {
-    const result = await adminCall('manage_lesson', { action: publish ? 'publish' : 'draft', title, video_url: url, level, topic, duration: duration||null, order_index: order, description: desc||null, published: publish });
+    const result = await adminCall('manage_lesson', { subAction: publish ? 'publish' : 'draft', title, video_url: url, level, topic, duration: duration||null, order_index: order, description: desc||null, published: publish });
     showToast(publish ? `✅ "${title}" published to students!` : `💾 "${title}" saved as draft`, 'success');
     ['lessonTitle','lessonUrl','lessonDuration','lessonDesc'].forEach(id => { document.getElementById(id).value=''; });
     document.getElementById('lessonPreview').style.display = 'none';
@@ -1154,7 +1154,7 @@ async function uploadLesson(publish) {
 
 async function togglePublish(id, current) {
   try {
-    await adminCall('manage_lesson', { action: 'update', id, published: !current });
+    await adminCall('manage_lesson', { subAction: 'update', id, published: !current });
     showToast(!current ? '✅ Lesson published!' : '📝 Moved to drafts', 'success');
     loadLessonsAdmin();
   } catch(err) { showToast('❌ '+err.message, 'error'); }
@@ -1163,7 +1163,7 @@ async function togglePublish(id, current) {
 async function deleteLesson(id, title) {
   if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
   try {
-    await adminCall('manage_lesson', { action: 'delete', id });
+    await adminCall('manage_lesson', { subAction: 'delete', id });
     showToast('Lesson deleted', '');
     loadLessonsAdmin();
   } catch(err) { showToast('❌ '+err.message, 'error'); }
@@ -1173,7 +1173,7 @@ async function loadLessonsAdmin() {
   const el = document.getElementById('lessonsList');
   if (!el) return;
   try {
-    const result = await adminCall('manage_lesson', { action: 'list' });
+    const result = await adminCall('manage_lesson', { subAction: 'list' });
     const lessons = result.lessons || [];
     allLessonsAdmin = lessons;
     if (!lessons.length) {

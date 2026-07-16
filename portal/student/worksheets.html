@@ -238,32 +238,74 @@ function generateQuestions(level, wsType, count) {
   for (let i = 0; i < count; i++) {
     let q, a;
     const l = level;
+
     if (wsType === 'skipcounting') {
-      const skip = [2,3,5,10][Math.floor(Math.random()*4)];
-      const start = Math.floor(Math.random()*5)*skip;
-      const pos   = Math.floor(Math.random()*3)+1;
-      q = `${start}, ${start+skip}, ___, ${start+3*skip}  (skip by ${skip})`;
-      a = start + pos*skip;
+      // Skip counting: show 4 numbers with one blank, always in position 3 (index 2)
+      const skipOptions = [2, 3, 5, 10];
+      const skip  = skipOptions[Math.floor(Math.random() * skipOptions.length)];
+      const start = Math.floor(Math.random() * 6) * skip;
+      // Pattern: start, start+skip, ___, start+3*skip
+      // Blank is always the 3rd item → answer is start + 2*skip
+      q = `${start}, ${start + skip}, ___, ${start + 3*skip}  (skip by ${skip})`;
+      a = start + 2 * skip;
+
     } else if (l <= 2) {
-      const a1 = Math.floor(Math.random()*9)+1;
-      const a2 = Math.floor(Math.random()*9)+1;
-      q = `${a1} + ${a2}`; a = a1+a2;
+      // Level 1-2: simple single digit addition
+      const a1 = Math.floor(Math.random() * 9) + 1;
+      const a2 = Math.floor(Math.random() * 9) + 1;
+      q = `${a1} + ${a2}`;
+      a = a1 + a2;
+
     } else if (l === 3) {
-      const a1 = Math.floor(Math.random()*9)+2;
-      const a2 = Math.floor(Math.random()*(a1-1))+1;
-      q = `${a1} − ${a2}`; a = a1-a2;
+      // Level 3: single digit subtraction (ensure positive result)
+      const a1 = Math.floor(Math.random() * 8) + 2;
+      const a2 = Math.floor(Math.random() * (a1 - 1)) + 1;
+      q = `${a1} - ${a2}`;
+      a = a1 - a2;
+
     } else if (l === 4) {
-      const a1 = Math.floor(Math.random()*50)+10;
-      const a2 = Math.floor(Math.random()*20)+5;
-      q = Math.random()>.5 ? `${a1} + ${a2}` : `${a1} − ${Math.min(a2,a1-1)}`;
-      a = q.includes('+') ? a1+a2 : a1-Math.min(a2,a1-1);
+      // Level 4: combination add/subtract with larger numbers
+      const a1   = Math.floor(Math.random() * 50) + 10;
+      const a2   = Math.floor(Math.random() * 20) + 5;
+      const isAdd = Math.random() > 0.5;
+      if (isAdd) {
+        q = `${a1} + ${a2}`;
+        a = a1 + a2;
+      } else {
+        const sub = Math.min(a2, a1 - 1);
+        q = `${a1} - ${sub}`;
+        a = a1 - sub;
+      }
+
     } else if (l === 5) {
-      if (Math.random()>.5) { const m=Math.floor(Math.random()*9)+2,n=Math.floor(Math.random()*9)+1; q=`${m} × ${n}`; a=m*n; }
-      else { const d=Math.floor(Math.random()*9)+2,r=Math.floor(Math.random()*9)+1; q=`${d*r} ÷ ${d}`; a=r; }
+      // Level 5: multiplication 2x1 and division 2÷1
+      if (Math.random() > 0.5) {
+        const m = Math.floor(Math.random() * 9) + 2;
+        const n = Math.floor(Math.random() * 9) + 1;
+        q = `${m} × ${n}`;
+        a = m * n;
+      } else {
+        const d = Math.floor(Math.random() * 9) + 2;
+        const r = Math.floor(Math.random() * 9) + 1;
+        q = `${d * r} ÷ ${d}`;
+        a = r;
+      }
+
     } else {
-      if (Math.random()>.5) { const m=Math.floor(Math.random()*9)+2,n=Math.floor(Math.random()*99)+10; q=`${m} × ${n}`; a=m*n; }
-      else { const d=Math.floor(Math.random()*9)+2,r=Math.floor(Math.random()*99)+10; q=`${d*r} ÷ ${d}`; a=r; }
+      // Level 6: multiplication 3x1 and division 3÷1
+      if (Math.random() > 0.5) {
+        const m = Math.floor(Math.random() * 9) + 2;
+        const n = Math.floor(Math.random() * 90) + 10;
+        q = `${m} × ${n}`;
+        a = m * n;
+      } else {
+        const d = Math.floor(Math.random() * 9) + 2;
+        const r = Math.floor(Math.random() * 90) + 10;
+        q = `${d * r} ÷ ${d}`;
+        a = r;
+      }
     }
+
     qs.push({ q, a });
   }
   return qs;

@@ -866,7 +866,16 @@ async function createUser(){
     await loadAll();
     renderTabData(getCurrentTab());
   }catch(err){
-    showToast('❌ Failed: '+err.message,'error');
+    let msg = err.message || 'Unknown error';
+    if(msg.toLowerCase().includes('already been registered') || msg.toLowerCase().includes('already registered')){
+      msg = 'This email is already registered. Go to the relevant tab (Students / Teachers / Parents) to find and manage this account.';
+    } else if(msg.toLowerCase().includes('invalid email')){
+      msg = 'Please enter a valid email address.';
+    } else if(msg.toLowerCase().includes('password')){
+      msg = 'Password must be at least 6 characters.';
+    }
+    showToast('❌ ' + msg, 'error');
+    alert('❌ ' + msg);
   }finally{
     btn.innerHTML=orig;btn.disabled=false;
   }

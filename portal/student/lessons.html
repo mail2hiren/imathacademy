@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lessons — iMathAcademy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Nunito',sans-serif; background:#F7F8FF; color:#1A1A2E; min-height:100vh; }
+    :root {
+      --green:#43A047; --green-dk:#1B5E20; --green-lt:#E8F5E9;
+      --orange:#FB8C00; --orange-dk:#E65100; --orange-lt:#FFF3E0;
+      --blue:#1E88E5; --blue-dk:#0D47A1; --blue-lt:#E3F2FD;
+      --purple:#8E24AA; --purple-lt:#F3E5F5; --purple-dk:#4A148C;
+      --red:#E53935; --red-lt:#FFEBEE; --red-dk:#B71C1C;
+      --yellow:#F9A825; --yellow-lt:#FFFDE7; --yellow-dk:#F57F17;
+      --teal:#00897B; --teal-lt:#E0F2F1; --teal-dk:#004D40;
+      --bg:#FFFFFF; --bg2:#F7F8FF; --border:#E8EAF6;
+      --text:#1A1A2E; --text2:#4A4A6A; --text3:#9090B0;
+    }
+
+    /* ── LAYOUT ── */
+    .portal { display:flex; min-height:100vh; }
+    .sidebar { width:220px; flex-shrink:0; background:var(--bg); border-right:2px solid var(--border); display:flex; flex-direction:column; position:fixed; top:0; left:0; height:100vh; overflow-y:auto; z-index:100; }
+    .sidebar-logo { padding:20px 16px; border-bottom:2px solid var(--border); font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800; color:var(--green-dk); display:flex; align-items:center; gap:10px; }
+    .sidebar-logo span { color:var(--orange-dk); }
+    .logo-icon { width:34px; height:34px; background:var(--green); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+    .sidebar-nav { flex:1; padding:12px 0; }
+    .nav-section { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--text3); padding:8px 16px 3px; margin-top:6px; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 16px; font-size:.875rem; font-weight:700; color:var(--text2); cursor:pointer; border-left:3px solid transparent; transition:all .12s; text-decoration:none; }
+    .nav-item:hover { background:var(--bg2); }
+    .nav-item.active { color:var(--blue-dk); background:var(--blue-lt); border-left-color:var(--blue); }
+    .nav-icon { width:20px; text-align:center; font-size:1rem; }
+    .sidebar-user { padding:14px 16px; border-top:2px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .user-av { width:36px; height:36px; border-radius:50%; background:var(--green-lt); border:2px solid var(--green); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; color:var(--green-dk); }
+    .user-name { font-size:.82rem; font-weight:800; }
+    .user-role { font-size:.7rem; color:var(--text3); font-weight:600; }
+    .logout-btn { margin-left:auto; background:none; border:none; font-size:.85rem; cursor:pointer; color:var(--text3); }
+    .main { flex:1; margin-left:220px; display:flex; flex-direction:column; }
+    .topbar { height:62px; background:var(--bg); border-bottom:2px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 24px; position:sticky; top:0; z-index:50; box-shadow:0 2px 8px rgba(0,0,0,.05); }
+    .topbar-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; }
+    .body { padding:24px; }
+
+    /* ── TOPIC PILLS ── */
+    .topic-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
+    .topic-tab { padding:8px 18px; border-radius:20px; font-size:.82rem; font-weight:800; border:2px solid var(--border); background:var(--bg); color:var(--text2); cursor:pointer; transition:all .15s; font-family:'Nunito',sans-serif; }
+    .topic-tab:hover { border-color:var(--blue); color:var(--blue-dk); }
+    .topic-tab.active { background:var(--blue); color:#fff; border-color:var(--blue); }
+
+    /* ── VIDEO GRID ── */
+    .video-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px; }
+    .video-card { background:var(--bg); border:2px solid var(--border); border-radius:18px; overflow:hidden; cursor:pointer; transition:all .15s; }
+    .video-card:hover { transform:translateY(-3px); box-shadow:0 6px 24px rgba(0,0,0,.1); border-color:var(--blue); }
+    .video-thumb { position:relative; width:100%; aspect-ratio:16/9; background:#000; overflow:hidden; }
+    .video-thumb img { width:100%; height:100%; object-fit:cover; }
+    .play-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.3); transition:background .15s; }
+    .video-card:hover .play-overlay { background:rgba(0,0,0,.5); }
+    .play-btn { width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,.95); display:flex; align-items:center; justify-content:center; font-size:1.4rem; transition:transform .15s; }
+    .video-card:hover .play-btn { transform:scale(1.1); }
+    .video-duration { position:absolute; bottom:8px; right:8px; background:rgba(0,0,0,.75); color:#fff; font-size:.7rem; font-weight:800; padding:2px 7px; border-radius:6px; }
+    .video-info { padding:14px 16px; }
+    .video-title { font-size:.92rem; font-weight:800; margin-bottom:4px; line-height:1.4; }
+    .video-meta { font-size:.75rem; color:var(--text3); font-weight:600; display:flex; gap:10px; align-items:center; }
+    .level-badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:.68rem; font-weight:800; background:var(--blue-lt); color:var(--blue-dk); }
+
+    /* ── VIDEO PLAYER MODAL ── */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:1000; display:none; align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay.show { display:flex; }
+    .modal-box { background:var(--bg); border-radius:20px; width:100%; max-width:860px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.4); }
+    .modal-header { padding:16px 20px; display:flex; align-items:center; gap:12px; border-bottom:2px solid var(--border); }
+    .modal-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; flex:1; }
+    .modal-close { background:var(--bg2); border:2px solid var(--border); border-radius:10px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1.1rem; transition:all .15s; }
+    .modal-close:hover { background:var(--red-lt); border-color:var(--red); }
+
+    /* ── VIDEO PLAYER — no download, no external link ── */
+    .player-wrap {
+      position:relative; width:100%; aspect-ratio:16/9; background:#000;
+      /* Disable right-click and drag */
+      -webkit-user-select:none; user-select:none;
+    }
+    .player-wrap iframe {
+      width:100%; height:100%; border:none; display:block;
+      pointer-events:auto;
+    }
+    /* Transparent overlay blocks right-click on video */
+    .player-guard {
+      position:absolute; inset:0; z-index:1;
+      background:transparent;
+    }
+    .modal-desc { padding:16px 20px; }
+    .modal-desc-text { font-size:.875rem; color:var(--text2); line-height:1.6; font-weight:600; }
+    .modal-tags { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .modal-tag { padding:3px 12px; border-radius:20px; font-size:.72rem; font-weight:800; background:var(--bg2); color:var(--text2); border:1.5px solid var(--border); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { text-align:center; padding:60px 20px; }
+    .empty-emoji { font-size:3.5rem; margin-bottom:16px; }
+    .empty-title { font-family:'Baloo 2',sans-serif; font-size:1.3rem; font-weight:800; margin-bottom:8px; }
+    .empty-sub { color:var(--text2); font-size:.9rem; font-weight:600; }
+
+    /* ── LOADING ── */
+    .loading { text-align:center; padding:60px 20px; color:var(--text3); font-weight:700; font-size:.95rem; }
+    .spinner { width:40px; height:40px; border:4px solid var(--border); border-top-color:var(--blue); border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 16px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+    @media(max-width:768px) {
+      .sidebar { display:none; }
+      .main { margin-left:0; }
+      .video-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body oncontextmenu="return false">
+<div class="portal">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo"><div class="logo-icon">🧮</div>iMath<span>Academy</span></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Overview</div>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <div class="nav-section">Learning</div>
+      <a class="nav-item active" href="lessons.html"><span class="nav-icon">▶️</span> Lessons</a>
+      <a class="nav-item" href="practice.html"><span class="nav-icon">⚡</span> Practice</a>
+      <a class="nav-item" href="worksheets.html"><span class="nav-icon">📋</span> Worksheets</a>
+      <a class="nav-item" href="weekly-quiz.html"><span class="nav-icon">⭐</span> Weekly Quiz</a>
+      <div class="nav-section">Progress</div>
+      <a class="nav-item" href="progress.html"><span class="nav-icon">📊</span> My progress</a>
+      <a class="nav-item" href="homework.html"><span class="nav-icon">📚</span> Homework</a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-av" id="userAv">—</div>
+      <div><div class="user-name" id="userName">Loading...</div><div class="user-role">Student</div></div>
+      <button class="logout-btn" onclick="logout()">⇥</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">▶️ Lessons</div>
+      <div style="font-size:.8rem;font-weight:600;color:var(--text3)" id="topbarDate"></div>
+    </div>
+
+    <div class="body">
+
+      <!-- Topic filter tabs -->
+      <div class="topic-tabs" id="topicTabs">
+        <button class="topic-tab active" onclick="filterTopic('all',this)">All lessons</button>
+        <button class="topic-tab" onclick="filterTopic('addition',this)">Addition</button>
+        <button class="topic-tab" onclick="filterTopic('subtraction',this)">Subtraction</button>
+        <button class="topic-tab" onclick="filterTopic('multiplication',this)">Multiplication</button>
+        <button class="topic-tab" onclick="filterTopic('division',this)">Division</button>
+        <button class="topic-tab" onclick="filterTopic('vedic',this)">Vedic Maths</button>
+      </div>
+
+      <!-- Loading state -->
+      <div id="loadingState" class="loading">
+        <div class="spinner"></div>
+        Loading lessons...
+      </div>
+
+      <!-- Video grid -->
+      <div class="video-grid" id="videoGrid" style="display:none"></div>
+
+      <!-- Empty state -->
+      <div id="emptyState" class="empty-state" style="display:none">
+        <div class="empty-emoji">🎬</div>
+        <div class="empty-title">No lessons yet</div>
+        <div class="empty-sub">Your teacher will upload lessons soon.<br>Check back shortly!</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- VIDEO PLAYER MODAL -->
+<div class="modal-overlay" id="playerModal" onclick="closePlayer(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="playerTitle">Lesson</div>
+      <div class="modal-close" onclick="closePlayer()">✕</div>
+    </div>
+    <div class="player-wrap" id="playerWrap">
+      <iframe id="playerIframe" allowfullscreen
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        src=""></iframe>
+      <!-- blocks right-click/download on the video area -->
+      <div class="player-guard" oncontextmenu="return false"></div>
+    </div>
+    <div class="modal-desc">
+      <div class="modal-desc-text" id="playerDesc"></div>
+      <div class="modal-tags" id="playerTags"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let allLessons = [];
+let currentTopic = 'all';
+
+// ── YOUTUBE URL HELPERS ──────────────────────────────────
+function getYouTubeId(url) {
+  // Handles: youtu.be/ID, youtube.com/watch?v=ID, youtube.com/embed/ID
+  const patterns = [
+    /youtu\.be\/([^?&]+)/,
+    /youtube\.com\/watch\?v=([^&]+)/,
+    /youtube\.com\/embed\/([^?&]+)/,
+    /youtube\.com\/v\/([^?&]+)/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+function getEmbedUrl(videoId) {
+  // Key params:
+  // rel=0          — no related videos at end
+  // modestbranding=1 — minimal YouTube logo
+  // disablekb=0    — allow keyboard controls
+  // fs=1           — allow fullscreen
+  // iv_load_policy=3 — no annotations
+  return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&fs=1&iv_load_policy=3&disablekb=0&color=white`;
+}
+
+function getThumbnailUrl(videoId) {
+  return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+}
+
+// ── RENDER ────────────────────────────────────────────────
+function renderVideos(lessons) {
+  const grid = document.getElementById('videoGrid');
+  const empty = document.getElementById('emptyState');
+
+  if (!lessons || lessons.length === 0) {
+    grid.style.display  = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+
+  empty.style.display = 'none';
+  grid.style.display  = 'grid';
+
+  grid.innerHTML = lessons.map(lesson => {
+    const videoId = getYouTubeId(lesson.video_url || '');
+    const thumb   = videoId ? getThumbnailUrl(videoId) : '';
+    return `
+    <div class="video-card" onclick="openPlayer('${lesson.id}')">
+      <div class="video-thumb">
+        ${thumb
+          ? `<img src="${thumb}" alt="${lesson.title}" loading="lazy" draggable="false">`
+          : `<div style="width:100%;height:100%;background:linear-gradient(135deg,var(--blue-lt),var(--purple-lt));display:flex;align-items:center;justify-content:center;font-size:2.5rem">▶️</div>`
+        }
+        <div class="play-overlay">
+          <div class="play-btn">▶</div>
+        </div>
+        ${lesson.duration ? `<div class="video-duration">${lesson.duration}</div>` : ''}
+      </div>
+      <div class="video-info">
+        <div class="video-title">${lesson.title}</div>
+        <div class="video-meta">
+          <span class="level-badge">Level ${lesson.level || 1}</span>
+          <span>${lesson.topic || ''}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterTopic(topic, btn) {
+  currentTopic = topic;
+  document.querySelectorAll('.topic-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = topic === 'all'
+    ? allLessons
+    : allLessons.filter(l => (l.topic || '').toLowerCase().includes(topic));
+  renderVideos(filtered);
+}
+
+// ── PLAYER ────────────────────────────────────────────────
+function openPlayer(lessonId) {
+  const lesson  = allLessons.find(l => l.id === lessonId);
+  if (!lesson) return;
+  const videoId = getYouTubeId(lesson.video_url || '');
+  if (!videoId) { alert('Video not available yet.'); return; }
+
+  document.getElementById('playerTitle').textContent = lesson.title;
+  document.getElementById('playerDesc').textContent  = lesson.description || '';
+  document.getElementById('playerIframe').src = getEmbedUrl(videoId);
+
+  const tagsEl = document.getElementById('playerTags');
+  const tags   = [
+    lesson.level   ? `Level ${lesson.level}`   : null,
+    lesson.topic   ? lesson.topic              : null,
+    lesson.duration? lesson.duration           : null,
+  ].filter(Boolean);
+  tagsEl.innerHTML = tags.map(t => `<span class="modal-tag">${t}</span>`).join('');
+
+  document.getElementById('playerModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+
+  // Log view in Supabase
+  logView(lessonId);
+}
+
+function closePlayer(e) {
+  if (e && e.target !== document.getElementById('playerModal')) return;
+  document.getElementById('playerIframe').src = ''; // stop video
+  document.getElementById('playerModal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+async function logView(lessonId) {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    await sb.from('lesson_views').insert({
+      lesson_id:  lessonId,
+      student_id: session.user.id,
+      viewed_at:  new Date().toISOString(),
+    });
+  } catch(e) { /* non-critical */ }
+}
+
+// ── INIT ──────────────────────────────────────────────────
+async function logout() { await sb.auth.signOut(); window.location.href='../../login.html'; }
+
+async function init() {
+  document.getElementById('topbarDate').textContent =
+    new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href='../../login.html'; return; }
+
+    const { data: profile } = await sb.from('users')
+      .select('full_name, current_level')
+      .eq('id', session.user.id).single();
+
+    const name = profile?.full_name || 'Student';
+    document.getElementById('userAv').textContent   = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('userName').textContent = name;
+
+    // Load published lessons only
+    const { data: lessons, error } = await sb.from('lessons')
+      .select('*')
+      .eq('published', true)
+      .order('level', { ascending: true })
+      .order('order_index', { ascending: true });
+
+    document.getElementById('loadingState').style.display = 'none';
+
+    if (error) { console.error('Lessons error:', error); }
+    allLessons = lessons || [];
+    renderVideos(allLessons);
+
+  } catch(err) {
+    console.error('Lessons init error:', err);
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('emptyState').style.display  = 'block';
+  }
+}
+
+// Block keyboard shortcuts for saving video
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && ['s','u'].includes(e.key.toLowerCase())) {
+    e.preventDefault();
+  }
+});
+
+init();
+</script>
+</body>
+</html>

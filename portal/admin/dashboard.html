@@ -726,7 +726,7 @@ function renderTeachers(data){
   }).join('');
 }
 
-function renderParents(data){
+async function renderParents(data){
   const tbody=document.getElementById('parentsTbody');
   if(!data||data.length===0){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3)">No parents found</td></tr>';return;}
   tbody.innerHTML=data.map(p=>`<tr>
@@ -766,7 +766,7 @@ async function renderAssoc(){
   }catch(err){showToast('Error loading associations: '+err.message,'error');}
 }
 
-function renderBatches(){
+async function renderBatches(){
   const tbody=document.getElementById('batchesTbody');
   if(!allBatches||allBatches.length===0){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">No batches yet. Create one above.</td></tr>';return;}
   tbody.innerHTML=allBatches.map(b=>`<tr>
@@ -815,7 +815,7 @@ function filterStudents(){
     return true;
   }));
 }
-function filterParents(){
+async function filterParents(){
   const s=document.getElementById('parentSearch').value.toLowerCase();
   renderParents(allParents.filter(p=>!s||p.full_name?.toLowerCase().includes(s)||p.email?.toLowerCase().includes(s)));
 }
@@ -960,7 +960,7 @@ async function createMonthlyFees(){
   }catch(err){showToast('❌ '+err.message,'error');}
 }
 
-function sendAllFeeReminders(){showToast('Reminders sent to all overdue parents!','success');}
+async function sendAllFeeReminders(){showToast('Reminders sent to all overdue parents!','success');}
 
 async function toggleMode(uid,mode,btn){
   const grp=btn.parentElement;

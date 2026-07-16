@@ -624,14 +624,23 @@ async function init(){
 
 async function loadAll(){
   try{
-    // Direct queries — RLS policies allow authenticated users
-    const [{data:users},{data:batches},{data:fees},{data:notifs}] = await Promise.all([
+    // Run queries independently so one failure doesn't break everything
+    const [uRes, bRes, fRes, nRes] = await Promise.all([
       sb.from('users').select('*').order('created_at',{ascending:false}),
       sb.from('batches').select('*,users!teacher_id(full_name),batch_students(student_id)'),
       sb.from('fees').select('status,amount'),
       sb.from('notifications').select('title,created_at').order('created_at',{ascending:false}).limit(5),
     ]);
-    console.log('loadAll — batches:', batches?.length, batches);
+
+    const users  = uRes.data  || [];
+    const batches= bRes.data  || [];
+    const fees   = fRes.data  || [];
+    const notifs = nRes.data  || [];
+
+    if(uRes.error)  console.error('users error:',  uRes.error.message);
+    if(bRes.error)  console.error('batches error:', bRes.error.message);
+    if(fRes.error)  console.error('fees error:',   fRes.error.message);
+    if(nRes.error)  console.error('notifs error:',  nRes.error.message);
 
     allStudents = users.filter(u=>u.role==='student');
     allTeachers = users.filter(u=>u.role==='teacher');

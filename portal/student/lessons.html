@@ -226,13 +226,9 @@ function getYouTubeId(url) {
 }
 
 function getEmbedUrl(videoId) {
-  // Key params:
-  // rel=0          — no related videos at end
-  // modestbranding=1 — minimal YouTube logo
-  // disablekb=0    — allow keyboard controls
-  // fs=1           — allow fullscreen
-  // iv_load_policy=3 — no annotations
-  return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&fs=1&iv_load_policy=3&disablekb=0&color=white`;
+  // Always use standard embed URL — works for both regular videos AND Shorts
+  // youtube-nocookie.com prevents tracking cookies
+  return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&fs=1&iv_load_policy=3&color=white&playsinline=1`;
 }
 
 function getThumbnailUrl(videoId) {

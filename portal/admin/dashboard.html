@@ -799,7 +799,10 @@ function filterTable(tbodyId, q) {
 // ── HELPERS ─────────────────────────────────────────────────
 function initials(name) { return (name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2); }
 function fmt(date) { return date ? new Date(date).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) : '—'; }
-function statusPill(active) { return `<span class="pill ${active!==false?'pill-g':'pill-r'}">${active!==false?'Active':'Inactive'}</span>`; }
+function statusPill(active) {
+  const isActive = active !== false && active !== 'false';
+  return `<span class="pill ${isActive?'pill-g':'pill-r'}">${isActive?'Active':'Inactive'}</span>`;
+}
 
 // ── LOAD ALL DATA ───────────────────────────────────────────
 async function loadAll() {
@@ -953,7 +956,7 @@ function renderStudents() {
         <div style="display:flex;gap:4px;flex-wrap:wrap">
           <button class="btn btn-blue btn-sm" onclick="openEdit('${s.id}')">✏️ Edit</button>
           <button class="btn btn-ghost btn-sm" onclick="resetPwd('${s.email}')">Reset pwd</button>
-          <button class="btn btn-ghost btn-sm" style="color:${s.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${s.id}','${s.full_name}',${s.is_active!==false})">${s.is_active===false?'Reactivate':'Deactivate'}</button>
+          <button class="btn btn-ghost btn-sm" style="color:${s.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${s.id}','${s.full_name}',${s.is_active===true||s.is_active===null||s.is_active===undefined})">${s.is_active===false?'Reactivate':'Deactivate'}</button>
         </div>
       </td>
     </tr>`;
@@ -981,7 +984,7 @@ function renderTeachers() {
         <div style="display:flex;gap:4px;flex-wrap:wrap">
           <button class="btn btn-blue btn-sm" onclick="openEdit('${t.id}')">✏️ Edit</button>
           <button class="btn btn-ghost btn-sm" onclick="resetPwd('${t.email}')">Reset pwd</button>
-          <button class="btn btn-ghost btn-sm" style="color:${t.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${t.id}','${t.full_name}',${t.is_active!==false})">${t.is_active===false?'Reactivate':'Deactivate'}</button>
+          <button class="btn btn-ghost btn-sm" style="color:${t.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${t.id}','${t.full_name}',${t.is_active===true||t.is_active===null||t.is_active===undefined})">${t.is_active===false?'Reactivate':'Deactivate'}</button>
         </div>
       </td>
     </tr>`;
@@ -1007,7 +1010,7 @@ function renderParents() {
       <div style="display:flex;gap:4px;flex-wrap:wrap">
         <button class="btn btn-blue btn-sm" onclick="openEdit('${p.id}')">✏️ Edit</button>
         <button class="btn btn-ghost btn-sm" onclick="resetPwd('${p.email}')">Reset pwd</button>
-        <button class="btn btn-ghost btn-sm" style="color:${p.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${p.id}','${p.full_name}',${p.is_active!==false})">${p.is_active===false?'Reactivate':'Deactivate'}</button>
+        <button class="btn btn-ghost btn-sm" style="color:${p.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${p.id}','${p.full_name}',${p.is_active===true||p.is_active===null||p.is_active===undefined})">${p.is_active===false?'Reactivate':'Deactivate'}</button>
       </div>
     </td>
   </tr>`).join('');
@@ -1143,6 +1146,9 @@ async function saveEdit() {
 
 // ── TOGGLE ACTIVE ───────────────────────────────────────────
 function toggleActive(id, name, currentlyActive) {
+  // Force boolean — onclick passes strings sometimes
+  const isActive = currentlyActive === true || currentlyActive === 'true';
+  currentlyActive = isActive;
   const action = currentlyActive ? 'Deactivate' : 'Reactivate';
   confirm(
     `${action} ${name}?`,

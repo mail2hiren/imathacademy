@@ -1264,8 +1264,20 @@ async function unlinkAssoc(id) {
 
 // ── LESSONS ─────────────────────────────────────────────────
 function getVideoId(url) {
-  const m = (url||'').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([^?&\s]+)/);
-  return m ? m[1] : null;
+  if (!url) return null;
+  // Handles: youtube.com/watch?v=, youtu.be/, youtube.com/embed/, youtube.com/shorts/
+  const patterns = [
+    /youtube\.com\/watch\?v=([^&\s]+)/,
+    /youtu\.be\/([^?&\s]+)/,
+    /youtube\.com\/embed\/([^?&\s]+)/,
+    /youtube\.com\/shorts\/([^?&\s]+)/,
+    /youtube\.com\/v\/([^?&\s]+)/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
 }
 
 function previewLesson() {

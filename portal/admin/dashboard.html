@@ -1283,7 +1283,7 @@ function getVideoId(url) {
 function previewLesson() {
   const vid = getVideoId(document.getElementById('l-url').value);
   if (!vid) { toast('Enter a valid YouTube URL first', 'error'); return; }
-  document.getElementById('l-iframe').src = `https://www.youtube-nocookie.com/embed/${vid}?rel=0&modestbranding=1`;
+  document.getElementById('l-iframe').src = `https://www.youtube-nocookie.com/embed/${vid}?rel=0&modestbranding=1&fs=1&playsinline=1`;
   document.getElementById('l-preview').style.display = 'block';
 }
 

@@ -962,7 +962,7 @@ function renderStudents() {
         <div style="display:flex;gap:4px;flex-wrap:wrap">
           <button class="btn btn-blue btn-sm" onclick="openEdit('${s.id}')">✏️ Edit</button>
           <button class="btn btn-ghost btn-sm" onclick="resetPwd('${s.email}')">Reset pwd</button>
-          <button class="btn btn-ghost btn-sm" style="color:${s.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${s.id}','${s.full_name}',${s.is_active===true||s.is_active===null||s.is_active===undefined})">${s.is_active===false?'Reactivate':'Deactivate'}</button>
+          <button class="btn btn-ghost btn-sm" style="color:${s.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${s.id}','${s.full_name}',${s.is_active===false?0:1})">${s.is_active===false?'Reactivate':'Deactivate'}</button>
         </div>
       </td>
     </tr>`;
@@ -990,7 +990,7 @@ function renderTeachers() {
         <div style="display:flex;gap:4px;flex-wrap:wrap">
           <button class="btn btn-blue btn-sm" onclick="openEdit('${t.id}')">✏️ Edit</button>
           <button class="btn btn-ghost btn-sm" onclick="resetPwd('${t.email}')">Reset pwd</button>
-          <button class="btn btn-ghost btn-sm" style="color:${t.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${t.id}','${t.full_name}',${t.is_active===true||t.is_active===null||t.is_active===undefined})">${t.is_active===false?'Reactivate':'Deactivate'}</button>
+          <button class="btn btn-ghost btn-sm" style="color:${t.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${t.id}','${t.full_name}',${t.is_active===false?0:1})">${t.is_active===false?'Reactivate':'Deactivate'}</button>
         </div>
       </td>
     </tr>`;
@@ -1016,7 +1016,7 @@ function renderParents() {
       <div style="display:flex;gap:4px;flex-wrap:wrap">
         <button class="btn btn-blue btn-sm" onclick="openEdit('${p.id}')">✏️ Edit</button>
         <button class="btn btn-ghost btn-sm" onclick="resetPwd('${p.email}')">Reset pwd</button>
-        <button class="btn btn-ghost btn-sm" style="color:${p.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${p.id}','${p.full_name}',${p.is_active===true||p.is_active===null||p.is_active===undefined})">${p.is_active===false?'Reactivate':'Deactivate'}</button>
+        <button class="btn btn-ghost btn-sm" style="color:${p.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${p.id}','${p.full_name}',${p.is_active===false?0:1})">${p.is_active===false?'Reactivate':'Deactivate'}</button>
       </div>
     </td>
   </tr>`).join('');
@@ -1151,21 +1151,21 @@ async function saveEdit() {
 }
 
 // ── TOGGLE ACTIVE ───────────────────────────────────────────
-function toggleActive(id, name, currentlyActive) {
-  // Force boolean — onclick passes strings sometimes
-  const isActive = currentlyActive === true || currentlyActive === 'true';
-  currentlyActive = isActive;
-  const action = currentlyActive ? 'Deactivate' : 'Reactivate';
+function toggleActive(id, name, currentState) {
+  // currentState: 1 = currently active, 0 = currently inactive
+  const isActive = parseInt(currentState) === 1;
+  const action   = isActive ? 'Deactivate' : 'Reactivate';
+  const newState = !isActive;
   confirm(
     `${action} ${name}?`,
-    currentlyActive
+    isActive
       ? `${name} will not be able to login until reactivated. All data is preserved.`
       : `${name} will be able to login again.`,
     async () => {
       try {
-        const { error } = await sb.from('users').update({ is_active: !currentlyActive }).eq('id', id);
+        const { error } = await sb.from('users').update({ is_active: newState }).eq('id', id);
         if (error) throw error;
-        toast(`✅ ${name} ${currentlyActive ? 'deactivated' : 'reactivated'}!`, 'success');
+        toast(`✅ ${name} ${isActive ? 'deactivated' : 'reactivated'}!`, 'success');
         await loadAll();
         if (currentTab === 'students') renderStudents();
         if (currentTab === 'teachers') renderTeachers();

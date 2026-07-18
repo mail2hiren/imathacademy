@@ -764,7 +764,7 @@ document.addEventListener('click', e => {
 });
 
 // ── CONFIRM DIALOG ──────────────────────────────────────────
-function confirm(title, msg, onOk, okLabel = 'Confirm', danger = true) {
+function showConfirm(title, msg, onOk, okLabel = 'Confirm', danger = true) {
   document.getElementById('confirmTitle').textContent = title;
   document.getElementById('confirmMsg').textContent   = msg;
   const btn = document.getElementById('confirmOkBtn');
@@ -1158,7 +1158,7 @@ function toggleActive(id, name, currentState) {
   const action   = isActive ? 'Deactivate' : 'Reactivate';
   const newState = !isActive;
   console.log('isActive:', isActive, '→ will set is_active to:', newState);
-  confirm(
+  showConfirm(
     `${action} ${name}?`,
     isActive
       ? `${name} will not be able to login until reactivated. All data is preserved.`
@@ -1181,7 +1181,7 @@ function toggleActive(id, name, currentState) {
 
 // ── RESET PASSWORD ──────────────────────────────────────────
 function resetPwd(email) {
-  confirm('Reset password?', `Send a password reset email to ${email}?`, async () => {
+  showConfirm('Reset password?', `Send a password reset email to ${email}?`, async () => {
     try {
       const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://imathacademy.net/login.html' });
       if (error) throw error;
@@ -1221,7 +1221,7 @@ async function createBatch() {
 }
 
 async function deleteBatch(id, name) {
-  confirm(`Delete batch "${name}"?`, 'This will remove all student assignments from this batch.', async () => {
+  showConfirm(`Delete batch "${name}"?`, 'This will remove all student assignments from this batch.', async () => {
     try {
       await sb.from('batch_students').delete().eq('batch_id', id);
       const { error } = await sb.from('batches').delete().eq('id', id);
@@ -1261,7 +1261,7 @@ async function linkParentStudent() {
 }
 
 async function unlinkAssoc(id) {
-  confirm('Unlink parent and student?', 'This removes the parent-student connection.', async () => {
+  showConfirm('Unlink parent and student?', 'This removes the parent-student connection.', async () => {
     try {
       const { error } = await sb.from('parent_student').delete().eq('id', id);
       if (error) throw error;
@@ -1318,7 +1318,7 @@ async function togglePublish(id, current) {
 }
 
 async function deleteLesson(id, title) {
-  confirm(`Delete "${title}"?`, 'This cannot be undone.', async () => {
+  showConfirm(`Delete "${title}"?`, 'This cannot be undone.', async () => {
     try {
       const { error } = await sb.from('lessons').delete().eq('id', id);
       if (error) throw error;
@@ -1403,7 +1403,7 @@ async function renderStudentBatches() {
 }
 
 async function removeStudentFromBatch(sid, bid, sname, bname) {
-  confirm(`Remove ${sname} from ${bname}?`, 'Student will no longer be in this batch.', async () => {
+  showConfirm(`Remove ${sname} from ${bname}?`, 'Student will no longer be in this batch.', async () => {
     try {
       const { error } = await sb.from('batch_students').delete().eq('student_id', sid).eq('batch_id', bid);
       if (error) throw error;
@@ -1455,7 +1455,7 @@ function renderTeacherBatches() {
 }
 
 async function removeTeacherFromBatch(bid, bname) {
-  confirm(`Remove teacher from ${bname}?`, 'Batch will have no assigned teacher.', async () => {
+  showConfirm(`Remove teacher from ${bname}?`, 'Batch will have no assigned teacher.', async () => {
     try {
       const { error } = await sb.from('batches').update({ teacher_id: null }).eq('id', bid);
       if (error) throw error;

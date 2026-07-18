@@ -2,367 +2,256 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- build:20260716121213 -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <link rel="icon" type="image/png" href="/assets/favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel — iMathAcademy</title>
-  <link rel="icon" type="image/png" href="../../assets/favicon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <title>Admin — iMathAcademy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
   <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Nunito',sans-serif;background:#F7F8FF;color:#1A1A2E;min-height:100vh}
-    :root{
-      --green:#43A047;--green-dk:#1B5E20;--green-lt:#E8F5E9;--green-md:#2E7D32;
-      --orange:#FB8C00;--orange-dk:#E65100;--orange-lt:#FFF3E0;
-      --blue:#1E88E5;--blue-dk:#0D47A1;--blue-lt:#E3F2FD;
-      --purple:#8E24AA;--purple-dk:#4A148C;--purple-lt:#F3E5F5;
-      --red:#E53935;--red-dk:#B71C1C;--red-lt:#FFEBEE;
-      --yellow:#F9A825;--yellow-lt:#FFFDE7;--yellow-dk:#F57F17;
-      --teal:#00897B;--teal-lt:#E0F2F1;--teal-dk:#004D40;
-      --bg:#FFFFFF;--bg2:#F7F8FF;--border:#E8EAF6;
-      --text2:#4A4A6A;--text3:#9090B0;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; min-height: 100vh; }
+    :root {
+      --green: #43A047; --green-dk: #1B5E20; --green-lt: #E8F5E9;
+      --orange: #FB8C00; --orange-dk: #E65100; --orange-lt: #FFF3E0;
+      --blue: #1E88E5; --blue-dk: #0D47A1; --blue-lt: #E3F2FD;
+      --purple: #8E24AA; --purple-lt: #F3E5F5; --purple-dk: #4A148C;
+      --red: #E53935; --red-lt: #FFEBEE; --red-dk: #B71C1C;
+      --yellow: #F9A825; --yellow-lt: #FFFDE7; --yellow-dk: #F57F17;
+      --teal: #00897B; --teal-lt: #E0F2F1; --teal-dk: #004D40;
+      --bg: #FFFFFF; --bg2: #F7F8FF; --border: #E8EAF6;
+      --text: #1A1A2E; --text2: #4A4A6A; --text3: #9090B0;
     }
-    .portal{display:flex;min-height:100vh}
-    .sidebar{width:230px;flex-shrink:0;background:var(--bg);border-right:2px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;transition:transform .3s}
-    .sidebar-logo{padding:14px 16px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:10px}
-    .sidebar-logo img{height:36px;width:auto}
-    .sidebar-logo-text{font-family:'Baloo 2',sans-serif;font-size:1.1rem;font-weight:800;color:var(--orange-dk)}
-    .sidebar-logo-text span{color:var(--green-dk)}
-    .sidebar-nav{flex:1;padding:10px 0}
-    .nav-section{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);padding:8px 16px 3px;margin-top:4px}
-    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:.85rem;font-weight:700;color:var(--text2);cursor:pointer;border-left:3px solid transparent;transition:all .12s;text-decoration:none}
-    .nav-item:hover{color:var(--text);background:var(--bg2)}
-    .nav-item.active{color:var(--orange-dk);background:var(--orange-lt);border-left-color:var(--orange)}
-    .nav-icon{width:20px;text-align:center;font-size:.95rem}
-    .nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:.62rem;font-weight:800;padding:2px 6px;border-radius:20px}
-    .sidebar-user{padding:12px 16px;border-top:2px solid var(--border);display:flex;align-items:center;gap:10px}
-    .user-av{width:34px;height:34px;border-radius:50%;background:var(--orange-lt);border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;color:var(--orange-dk);flex-shrink:0}
-    .user-name{font-size:.8rem;font-weight:800;color:var(--text)}
-    .user-role{font-size:.68rem;color:var(--text3);font-weight:600}
-    .logout-btn{margin-left:auto;background:none;border:none;font-size:.85rem;cursor:pointer;color:var(--text3)}
-    .logout-btn:hover{color:var(--red)}
-    .main{flex:1;margin-left:230px;display:flex;flex-direction:column}
-    .topbar{height:60px;background:var(--bg);border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.05)}
-    .topbar-left{display:flex;align-items:center;gap:12px}
-    .hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;background:none;border:none}
-    .hamburger span{width:20px;height:2px;background:var(--text);border-radius:2px;display:block}
-    .topbar-title{font-family:'Baloo 2',sans-serif;font-size:1.1rem;font-weight:800}
-    .body{padding:18px}
-    .card{background:var(--bg);border:2px solid var(--border);border-radius:16px;padding:18px 20px;margin-bottom:14px}
-    .card-title{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;margin-bottom:4px}
-    .card-sub{font-size:.78rem;color:var(--text3);font-weight:600;margin-bottom:14px}
-    .stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
-    .stat-box{border-radius:14px;padding:14px;text-align:center;border:2px solid transparent}
-    .stat-n{font-family:'Baloo 2',sans-serif;font-size:1.8rem;font-weight:800;line-height:1.1;margin-bottom:3px}
-    .stat-l{font-size:.72rem;font-weight:700}
-    .hc-green{background:var(--green-lt);border-color:#A5D6A7;color:var(--green-dk)}
-    .hc-blue{background:var(--blue-lt);border-color:#90CAF9;color:var(--blue-dk)}
-    .hc-orange{background:var(--orange-lt);border-color:#FFCC80;color:var(--orange-dk)}
-    .hc-red{background:var(--red-lt);border-color:#FFCDD2;color:var(--red-dk)}
-    .hc-purple{background:var(--purple-lt);border-color:#CE93D8;color:var(--purple-dk)}
-    .tbl-wrap{overflow-x:auto;border-radius:12px;border:2px solid var(--border)}
-    table{width:100%;border-collapse:collapse;background:var(--bg)}
-    thead{background:var(--bg2)}
-    th{padding:9px 14px;text-align:left;font-size:.68rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;border-bottom:2px solid var(--border);white-space:nowrap}
-    td{padding:10px 14px;font-size:.82rem;color:var(--text);border-bottom:1px solid var(--border);vertical-align:middle}
-    tr:last-child td{border-bottom:none}
-    tr:hover td{background:var(--bg2)}
-    .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}
-    .form-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:12px}
-    .form-group{display:flex;flex-direction:column;gap:5px}
-    .form-label{font-size:.78rem;font-weight:800;color:var(--text)}
-    .form-input,.form-select{padding:9px 12px;border:2px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:.875rem;font-weight:600;color:var(--text);background:var(--bg);outline:none;transition:border-color .15s}
-    .form-input:focus,.form-select:focus{border-color:var(--orange)}
-    .form-hint{font-size:.68rem;color:var(--text3);font-weight:600}
-    .pill{font-size:.68rem;font-weight:800;padding:3px 9px;border-radius:20px;white-space:nowrap;display:inline-block}
-    .pill-g{background:var(--green-lt);color:var(--green-dk);border:1.5px solid #A5D6A7}
-    .pill-b{background:var(--blue-lt);color:var(--blue-dk);border:1.5px solid #90CAF9}
-    .pill-o{background:var(--orange-lt);color:var(--orange-dk);border:1.5px solid #FFCC80}
-    .pill-r{background:var(--red-lt);color:var(--red-dk);border:1.5px solid #FFCDD2}
-    .pill-p{background:var(--purple-lt);color:var(--purple-dk);border:1.5px solid #CE93D8}
-    .pill-gray{background:var(--bg2);color:var(--text3);border:1.5px solid var(--border)}
-    .btn{padding:9px 18px;border-radius:30px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;border:none;cursor:pointer;transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
-    .btn:active{transform:scale(.96)}
-    .btn-orange{background:var(--orange);color:#fff}
-    .btn-green{background:var(--green);color:#fff}
-    .btn-blue{background:var(--blue);color:#fff}
-    .btn-red{background:var(--red);color:#fff}
-    .btn-ghost{background:var(--bg2);color:var(--text2);border:2px solid var(--border)}
-    .btn-sm{padding:5px 12px;font-size:.72rem}
-    .btn:hover{opacity:.88;transform:translateY(-1px)}
-    .av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex-shrink:0}
-    .av-g{background:var(--green-lt);color:var(--green-dk)}
-    .av-b{background:var(--blue-lt);color:var(--blue-dk)}
-    .av-o{background:var(--orange-lt);color:var(--orange-dk)}
-    .av-p{background:var(--purple-lt);color:var(--purple-dk)}
-    .av-t{background:var(--teal-lt);color:var(--teal-dk)}
-    .mode-toggle{display:inline-flex;border:2px solid var(--border);border-radius:20px;overflow:hidden}
-    .mt{padding:3px 9px;font-size:.65rem;font-weight:800;cursor:pointer;color:var(--text2);background:transparent;border:none;font-family:'Nunito',sans-serif}
-    .mt.on-online{background:var(--green);color:#fff}
-    .mt.on-offline{background:var(--orange);color:#fff}
-    .toggle{width:42px;height:22px;background:var(--green);border-radius:11px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
-    .toggle.off{background:var(--border)}
-    .toggle-knob{width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:3px;left:23px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-    .toggle.off .toggle-knob{left:3px}
-    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
-    .modal-overlay.open{display:flex}
-    .modal{background:var(--bg);border-radius:20px;padding:24px;width:100%;max-width:520px;box-shadow:0 16px 48px rgba(0,0,0,.2);animation:fadeUp .3s ease;margin:auto}
-    @keyframes fadeUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
-    .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-    .modal-title{font-family:'Baloo 2',sans-serif;font-size:1.2rem;font-weight:800}
-    .modal-close{background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text3)}
-    .spinner{width:20px;height:20px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
-    .toast{background:var(--text);color:#fff;padding:10px 18px;border-radius:12px;font-size:.875rem;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.2);animation:slideIn .3s ease;max-width:340px}
-    .toast-success{background:var(--green-dk)}
-    .toast-error{background:var(--red-dk)}
-    @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-    @media(max-width:768px){
-      .sidebar{transform:translateX(-100%)}
-      .sidebar.open{transform:translateX(0)}
-      .main{margin-left:0}
-      .hamburger{display:flex}
-      .body{padding:14px}
-      .stats-grid{grid-template-columns:repeat(2,1fr)}
-      .form-grid,.form-grid-3{grid-template-columns:1fr}
+
+    /* ── LAYOUT ── */
+    .portal { display: flex; min-height: 100vh; }
+    .sidebar { width: 220px; flex-shrink: 0; background: var(--bg); border-right: 2px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 100; }
+    .logo { padding: 18px 16px; border-bottom: 2px solid var(--border); font-family: 'Baloo 2', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--green-dk); display: flex; align-items: center; gap: 10px; }
+    .logo-icon { width: 34px; height: 34px; background: var(--green); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .logo span { color: var(--orange-dk); }
+    nav { flex: 1; padding: 10px 0; }
+    .nav-sec { font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--text3); padding: 8px 16px 2px; margin-top: 4px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: .85rem; font-weight: 700; color: var(--text2); cursor: pointer; border-left: 3px solid transparent; transition: all .12s; text-decoration: none; border: none; background: none; width: 100%; text-align: left; font-family: 'Nunito', sans-serif; }
+    .nav-item:hover { background: var(--bg2); color: var(--text); }
+    .nav-item.active { color: var(--green-dk); background: var(--green-lt); border-left-color: var(--green); }
+    .nav-icon { width: 20px; text-align: center; }
+    .sidebar-user { padding: 12px 16px; border-top: 2px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .av { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .78rem; font-weight: 800; flex-shrink: 0; }
+    .av-admin { background: var(--purple-lt); color: var(--purple-dk); border: 2px solid var(--purple); }
+    .user-info .name { font-size: .82rem; font-weight: 800; }
+    .user-info .role { font-size: .68rem; color: var(--text3); font-weight: 600; }
+    .logout-btn { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--text3); font-size: .9rem; padding: 4px; }
+
+    .main { flex: 1; margin-left: 220px; }
+    .topbar { height: 60px; background: var(--bg); border-bottom: 2px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+    .topbar-title { font-family: 'Baloo 2', sans-serif; font-size: 1.1rem; font-weight: 800; }
+    .topbar-date { font-size: .78rem; font-weight: 600; color: var(--text3); }
+    .content { padding: 24px; }
+
+    /* ── TABS ── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── CARDS ── */
+    .card { background: var(--bg); border: 2px solid var(--border); border-radius: 18px; padding: 20px; margin-bottom: 18px; }
+    .card-title { font-family: 'Baloo 2', sans-serif; font-size: 1.05rem; font-weight: 800; margin-bottom: 4px; }
+    .card-sub { font-size: .8rem; color: var(--text2); margin-bottom: 16px; }
+
+    /* ── STATS GRID ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+    .stat-card { background: var(--bg); border: 2px solid var(--border); border-radius: 16px; padding: 16px; }
+    .stat-n { font-family: 'Baloo 2', sans-serif; font-size: 2rem; font-weight: 800; }
+    .stat-l { font-size: .78rem; font-weight: 700; color: var(--text2); }
+
+    /* ── TABLE ── */
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    th { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: var(--text3); padding: 8px 12px; text-align: left; border-bottom: 2px solid var(--border); white-space: nowrap; }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr.inactive { opacity: .5; }
+
+    /* ── FORM ── */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-label { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; color: var(--text2); }
+    .form-input, .form-select, .form-textarea { padding: 9px 12px; border: 2px solid var(--border); border-radius: 10px; font-family: 'Nunito', sans-serif; font-size: .875rem; font-weight: 600; color: var(--text); background: var(--bg); outline: none; transition: border-color .15s; width: 100%; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--blue); }
+    .form-textarea { resize: vertical; }
+
+    /* ── BUTTONS ── */
+    .btn { padding: 9px 18px; border-radius: 20px; font-family: 'Nunito', sans-serif; font-size: .82rem; font-weight: 800; border: none; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; gap: 6px; }
+    .btn:hover { opacity: .88; transform: translateY(-1px); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-green  { background: var(--green);  color: #fff; }
+    .btn-blue   { background: var(--blue);   color: #fff; }
+    .btn-red    { background: var(--red);    color: #fff; }
+    .btn-orange { background: var(--orange); color: #fff; }
+    .btn-ghost  { background: var(--bg2); color: var(--text2); border: 2px solid var(--border); }
+    .btn-sm     { padding: 5px 12px; font-size: .75rem; border-radius: 16px; }
+
+    /* ── PILLS ── */
+    .pill { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: .7rem; font-weight: 800; }
+    .pill-g { background: var(--green-lt);  color: var(--green-dk); }
+    .pill-r { background: var(--red-lt);    color: var(--red-dk); }
+    .pill-b { background: var(--blue-lt);   color: var(--blue-dk); }
+    .pill-o { background: var(--orange-lt); color: var(--orange-dk); }
+    .pill-p { background: var(--purple-lt); color: var(--purple-dk); }
+    .pill-y { background: var(--yellow-lt); color: var(--yellow-dk); }
+
+    /* ── AVATAR ── */
+    .av-g { background: var(--green-lt);  color: var(--green-dk);  border: 2px solid var(--green); }
+    .av-t { background: var(--blue-lt);   color: var(--blue-dk);   border: 2px solid var(--blue); }
+    .av-o { background: var(--orange-lt); color: var(--orange-dk); border: 2px solid var(--orange); }
+
+    /* ── MODAL ── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: var(--bg); border-radius: 20px; width: 100%; max-width: 520px; box-shadow: 0 20px 60px rgba(0,0,0,.3); overflow: hidden; }
+    .modal-header { padding: 16px 20px; border-bottom: 2px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .modal-title { font-family: 'Baloo 2', sans-serif; font-size: 1.05rem; font-weight: 800; }
+    .modal-close { background: var(--bg2); border: 2px solid var(--border); border-radius: 8px; width: 32px; height: 32px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+    .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+    .modal-footer { padding: 14px 20px; border-top: 2px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* ── CONFIRM DIALOG ── */
+    .confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 2000; align-items: center; justify-content: center; }
+    .confirm-overlay.open { display: flex; }
+    .confirm-box { background: var(--bg); border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,.2); }
+    .confirm-title { font-family: 'Baloo 2', sans-serif; font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; }
+    .confirm-msg { font-size: .875rem; color: var(--text2); margin-bottom: 20px; line-height: 1.6; }
+    .confirm-btns { display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* ── TOAST ── */
+    .toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+    .toast { padding: 10px 18px; border-radius: 12px; font-size: .875rem; font-weight: 700; box-shadow: 0 4px 16px rgba(0,0,0,.15); animation: slideIn .3s ease; color: #fff; }
+    .toast-success { background: var(--green-dk); }
+    .toast-error   { background: var(--red-dk); }
+    .toast-info    { background: var(--blue-dk); }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* ── EMPTY STATE ── */
+    .empty { text-align: center; padding: 40px 20px; color: var(--text3); font-weight: 600; font-size: .9rem; }
+
+    /* ── SEARCH ── */
+    .search-row { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; }
+    .search-inp { flex: 1; padding: 9px 14px; border: 2px solid var(--border); border-radius: 20px; font-family: 'Nunito', sans-serif; font-size: .875rem; font-weight: 600; outline: none; }
+    .search-inp:focus { border-color: var(--blue); }
+
+    /* ── VIDEO PREVIEW ── */
+    .video-preview { border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; background: #000; display: none; margin-top: 10px; }
+    .video-preview iframe { width: 100%; height: 100%; border: none; }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 <div class="portal">
 
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <img src="../../assets/logo.png" alt="iMathAcademy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-      <div class="sidebar-logo-text" style="display:none">iMath<span>Academy</span></div>
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">🧮</div>
+      iMath<span>Academy</span>
     </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section">Overview</div>
-      <a class="nav-item active" href="#" onclick="showTab('overview',this)"><span class="nav-icon">🎯</span> Overview</a>
-      <div class="nav-section">People</div>
-      <a class="nav-item" href="#" onclick="showTab('students',this)"><span class="nav-icon">👨‍🎓</span> Students<span class="nav-badge" id="studentCountBadge">0</span></a>
-      <a class="nav-item" href="#" onclick="showTab('teachers',this)"><span class="nav-icon">👨‍🏫</span> Teachers</a>
-      <a class="nav-item" href="#" onclick="showTab('parents',this)"><span class="nav-icon">👨‍👩‍👧</span> Parents</a>
-      <a class="nav-item" href="#" onclick="showTab('associations',this)"><span class="nav-icon">🔗</span> Associations</a>
-      <div class="nav-section">Classes</div>
-      <a class="nav-item" href="#" onclick="showTab('batches',this)"><span class="nav-icon">🏫</span> Batches</a>
-      <div class="nav-section">Finance</div>
-      <a class="nav-item" href="#" onclick="showTab('fees',this)"><span class="nav-icon">💰</span> Fees<span class="nav-badge" id="feesBadge" style="display:none">!</span></a>
-      <div class="nav-section">Content</div>
-      <a class="nav-item" href="#" onclick="showTab('lessons',this)"><span class="nav-icon">▶️</span> Lessons</a>
-      <div class="nav-section">Settings</div>
-      <a class="nav-item" href="#" onclick="showTab('automation',this)"><span class="nav-icon">🤖</span> Automation</a>
-      <a class="nav-item" href="#" onclick="showTab('settings',this)"><span class="nav-icon">⚙️</span> Settings</a>
+    <nav>
+      <div class="nav-sec">Overview</div>
+      <button class="nav-item active" onclick="showTab('overview',this)"><span class="nav-icon">📊</span> Dashboard</button>
+      <div class="nav-sec">People</div>
+      <button class="nav-item" onclick="showTab('students',this)"><span class="nav-icon">🎓</span> Students</button>
+      <button class="nav-item" onclick="showTab('teachers',this)"><span class="nav-icon">👩‍🏫</span> Teachers</button>
+      <button class="nav-item" onclick="showTab('parents',this)"><span class="nav-icon">👨‍👩‍👧</span> Parents</button>
+      <div class="nav-sec">Classes</div>
+      <button class="nav-item" onclick="showTab('batches',this)"><span class="nav-icon">📚</span> Batches</button>
+      <button class="nav-item" onclick="showTab('associations',this)"><span class="nav-icon">🔗</span> Associations</button>
+      <div class="nav-sec">Content</div>
+      <button class="nav-item" onclick="showTab('lessons',this)"><span class="nav-icon">▶️</span> Lessons</button>
+      <div class="nav-sec">Finance</div>
+      <button class="nav-item" onclick="showTab('fees',this)"><span class="nav-icon">💰</span> Fees</button>
     </nav>
     <div class="sidebar-user">
-      <div class="user-av" id="userAv">AD</div>
-      <div><div class="user-name" id="userName">Admin</div><div class="user-role">Administrator</div></div>
-      <button class="logout-btn" onclick="logout()">⇥</button>
+      <div class="av av-admin" id="adminAv">A</div>
+      <div class="user-info">
+        <div class="name" id="adminName">Admin</div>
+        <div class="role">Administrator</div>
+      </div>
+      <button class="logout-btn" onclick="logout()" title="Logout">⇥</button>
     </div>
   </aside>
 
+  <!-- ── MAIN ── -->
   <div class="main">
     <div class="topbar">
-      <div class="topbar-left">
-        <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
-        <div class="topbar-title" id="topbarTitle">Academy Overview</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="font-size:.78rem;font-weight:600;color:var(--text3)" id="topbarDate"></div>
-        <button class="btn btn-orange btn-sm" onclick="openModal('student')">+ Add student</button>
-      </div>
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-date" id="topbarDate"></div>
     </div>
+    <div class="content">
 
-    <div class="body">
-
-      <!-- OVERVIEW -->
-      <div id="tab-overview">
+      <!-- ══ OVERVIEW ══ -->
+      <div id="tab-overview" class="tab-panel active">
         <div class="stats-grid">
-          <div class="stat-box hc-green"><div class="stat-n" id="ov-students">—</div><div class="stat-l">Students</div></div>
-          <div class="stat-box hc-blue"><div class="stat-n" id="ov-teachers">—</div><div class="stat-l">Teachers</div></div>
-          <div class="stat-box hc-orange"><div class="stat-n" id="ov-parents">—</div><div class="stat-l">Parents</div></div>
-          <div class="stat-box hc-red"><div class="stat-n" id="ov-overdue">—</div><div class="stat-l">Overdue fees</div></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Quick actions</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-            <button class="btn btn-orange" onclick="openModal('student')">+ Add student</button>
-            <button class="btn btn-blue"   onclick="openModal('teacher')">+ Add teacher</button>
-            <button class="btn btn-green"  onclick="openModal('parent')">+ Add parent</button>
-            <button class="btn btn-ghost"  onclick="showTab('associations',null)">🔗 Link parent ↔ student</button>
-            <button class="btn btn-ghost"  onclick="showTab('batches',null)">🏫 Manage batches</button>
-            <button class="btn btn-ghost"  onclick="showTab('fees',null)">💰 Manage fees</button>
+          <div class="stat-card">
+            <div class="stat-n" style="color:var(--green)" id="ov-students">—</div>
+            <div class="stat-l">Students</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-n" style="color:var(--blue)" id="ov-teachers">—</div>
+            <div class="stat-l">Teachers</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-n" style="color:var(--orange)" id="ov-parents">—</div>
+            <div class="stat-l">Parents</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-n" style="color:var(--red)" id="ov-overdue">—</div>
+            <div class="stat-l">Overdue fees</div>
           </div>
         </div>
         <div class="card">
-          <div class="card-title">Recent notifications</div>
-          <div id="recentActivity" style="font-size:.82rem;color:var(--text3);margin-top:8px">Loading...</div>
+          <div class="card-title">Recent activity</div>
+          <div id="recentActivity" class="empty">Loading...</div>
         </div>
       </div>
 
-      <!-- STUDENTS -->
-      <div id="tab-students" style="display:none">
-        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-          <input type="text" class="form-input" placeholder="Search name or email..." id="studentSearch" oninput="filterStudents()" style="flex:1;max-width:260px">
-          <select class="form-select" id="filterProgram" onchange="filterStudents()" style="max-width:160px">
-            <option value="">All programs</option>
-            <option value="abacus">Abacus</option>
-            <option value="vedic">Vedic Maths</option>
-          </select>
-          <select class="form-select" id="filterMode" onchange="filterStudents()" style="max-width:140px">
-            <option value="">All modes</option>
-            <option value="online">Online</option>
-            <option value="offline">Offline</option>
-          </select>
-          <button class="btn btn-orange" onclick="openModal('student')">+ Add student</button>
-          <button class="btn btn-ghost btn-sm" onclick="exportCSV('students')">⬇ Export CSV</button>
-        </div>
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr><th>Student</th><th>Program</th><th>Level</th><th>Mode</th><th>Batch</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody id="studentsTbody"><tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text3)">Loading...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- TEACHERS -->
-      <div id="tab-teachers" style="display:none">
-        <div style="display:flex;justify-content:flex-end;margin-bottom:14px;gap:10px">
-          <button class="btn btn-blue" onclick="openModal('teacher')">+ Add teacher</button>
-          <button class="btn btn-ghost btn-sm" onclick="exportCSV('teachers')">⬇ Export CSV</button>
-        </div>
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr><th>Teacher</th><th>Email</th><th>Batches</th><th>Students</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody id="teachersTbody"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">Loading...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- PARENTS -->
-      <div id="tab-parents" style="display:none">
-        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-          <input type="text" class="form-input" placeholder="Search name or email..." id="parentSearch" oninput="filterParents()" style="flex:1;max-width:260px">
-          <button class="btn btn-green" onclick="openModal('parent')">+ Add parent</button>
-          <button class="btn btn-ghost btn-sm" onclick="exportCSV('parents')">⬇ Export CSV</button>
-        </div>
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr><th>Parent</th><th>Email</th><th>Linked students</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody id="parentsTbody"><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3)">Loading...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- ASSOCIATIONS -->
-      <div id="tab-associations" style="display:none">
+      <!-- ══ STUDENTS ══ -->
+      <div id="tab-students" class="tab-panel">
+        <!-- Create student -->
         <div class="card">
-          <div class="card-title">🔗 Link parent to student</div>
-          <div class="card-sub">Connect a parent account to their child's student account so parents can view progress</div>
-          <div class="form-grid">
+          <div class="card-title">➕ Add new student</div>
+          <div class="card-sub">Creates login credentials and sends welcome email</div>
+          <div class="form-grid-3" style="margin-bottom:12px">
             <div class="form-group">
-              <label class="form-label">Select parent</label>
-              <select class="form-select" id="assocParent"><option value="">Loading...</option></select>
+              <label class="form-label" for="s-name">Full name *</label>
+              <input class="form-input" id="s-name" placeholder="Student full name">
             </div>
             <div class="form-group">
-              <label class="form-label">Select student (their child)</label>
-              <select class="form-select" id="assocStudent"><option value="">Loading...</option></select>
+              <label class="form-label" for="s-email">Email *</label>
+              <input class="form-input" id="s-email" type="email" placeholder="student@email.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="s-phone">Phone</label>
+              <input class="form-input" id="s-phone" placeholder="Mobile number">
             </div>
           </div>
-          <button class="btn btn-green" onclick="linkParentStudent()">✓ Link parent to student</button>
-        </div>
-        <div class="card">
-          <div class="card-title">🏫 Add student to batch</div>
-          <div class="card-sub">Assign a student to a class batch</div>
-          <div class="form-grid">
+          <div class="form-grid-3" style="margin-bottom:14px">
             <div class="form-group">
-              <label class="form-label">Select student</label>
-              <select class="form-select" id="batchStudentSel"><option value="">Loading...</option></select>
+              <label class="form-label" for="s-pwd">Password *</label>
+              <input class="form-input" id="s-pwd" type="password" placeholder="Min 6 characters">
             </div>
             <div class="form-group">
-              <label class="form-label">Select batch</label>
-              <select class="form-select" id="batchSel"><option value="">Loading...</option></select>
-            </div>
-          </div>
-          <button class="btn btn-blue" onclick="addStudentToBatch()">✓ Add to batch</button>
-        </div>
-        <div class="card">
-          <div class="card-title">Current parent ↔ student links</div>
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Parent</th><th>Student</th><th>Program</th><th>Action</th></tr></thead>
-              <tbody id="assocTbody"><tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text3)">Loading...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- BATCHES -->
-      <div id="tab-batches" style="display:none">
-        <div class="card">
-          <div class="card-title">Create new batch</div>
-          <div class="form-grid-3">
-            <div class="form-group"><label class="form-label">Batch name</label><input type="text" class="form-input" id="newBatchName" placeholder="e.g. Batch D — Abacus L2"></div>
-            <div class="form-group"><label class="form-label">Program</label>
-              <select class="form-select" id="newBatchProgram">
+              <label class="form-label" for="s-program">Program</label>
+              <select class="form-select" id="s-program">
                 <option value="abacus">Abacus</option>
                 <option value="vedic">Vedic Maths</option>
               </select>
             </div>
-            <div class="form-group"><label class="form-label">Assign teacher</label>
-              <select class="form-select" id="newBatchTeacher"><option value="">Select teacher</option></select>
-            </div>
-          </div>
-          <div class="form-grid">
-            <div class="form-group"><label class="form-label">Schedule</label><input type="text" class="form-input" id="newBatchSchedule" placeholder="Mon/Wed/Fri 4:30–5:30 PM"></div>
             <div class="form-group">
-              <label class="form-label">Google Meet link <span style="font-weight:500;color:var(--text3);font-size:.78rem">(optional)</span></label>
-              <input type="url" class="form-input" id="newBatchMeet" placeholder="Leave blank — teachers add Meet links per class">
-              <div style="font-size:.72rem;color:var(--text3);margin-top:4px">💡 Teachers can schedule virtual classes with Meet links from their dashboard</div>
-            </div>
-          </div>
-          <button class="btn btn-orange" onclick="createBatch()">Create batch →</button>
-        </div>
-        <div class="card">
-          <div class="card-title">All batches</div>
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Batch name</th><th>Program</th><th>Teacher</th><th>Students</th><th>Schedule</th><th>Meet</th><th>Actions</th></tr></thead>
-              <tbody id="batchesTbody"><tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">Loading...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- FEES -->
-      <!-- ══ LESSONS TAB ══ -->
-      <div id="tab-lessons" style="display:none">
-
-        <!-- Upload new lesson -->
-        <div style="background:var(--bg);border:2px solid var(--border);border-radius:18px;padding:22px;margin-bottom:20px">
-          <div style="font-family:'Baloo 2',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:4px">▶️ Upload new lesson</div>
-          <div style="font-size:.82rem;color:var(--text2);margin-bottom:18px">Paste a YouTube unlisted video link. Students can only watch — not download or share.</div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-            <div>
-              <label for="lessonTitle" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Lesson title *</label>
-              <input type="text" class="form-input" id="lessonTitle" placeholder="e.g. Simple Addition — Basics">
-            </div>
-            <div>
-              <label for="lessonUrl" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">YouTube video URL *</label>
-              <input type="url" class="form-input" id="lessonUrl" placeholder="https://www.youtube.com/watch?v=...">
-            </div>
-          </div>
-
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px">
-            <div>
-              <label for="lessonLevel" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Level</label>
-              <select class="form-select" id="lessonLevel">
+              <label class="form-label" for="s-level">Level</label>
+              <select class="form-select" id="s-level">
                 <option value="1">Level 1</option>
                 <option value="2">Level 2</option>
                 <option value="3">Level 3</option>
@@ -371,9 +260,221 @@
                 <option value="6">Level 6</option>
               </select>
             </div>
-            <div>
-              <label for="lessonTopic" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Topic</label>
-              <select class="form-select" id="lessonTopic">
+          </div>
+          <button class="btn btn-green" id="createStudentBtn" onclick="createUser('student')">➕ Create student</button>
+        </div>
+        <!-- Students list -->
+        <div class="card">
+          <div class="search-row">
+            <input class="search-inp" id="s-search" placeholder="🔍 Search students..." oninput="filterTable('studentsTbody', this.value)">
+            <span id="s-count" style="font-size:.8rem;font-weight:700;color:var(--text3)"></span>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th>Name</th><th>Program</th><th>Level</th><th>Batch</th><th>Status</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="studentsTbody"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TEACHERS ══ -->
+      <div id="tab-teachers" class="tab-panel">
+        <div class="card">
+          <div class="card-title">➕ Add new teacher</div>
+          <div class="form-grid" style="margin-bottom:12px">
+            <div class="form-group">
+              <label class="form-label" for="t-name">Full name *</label>
+              <input class="form-input" id="t-name" placeholder="Teacher full name">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="t-email">Email *</label>
+              <input class="form-input" id="t-email" type="email" placeholder="teacher@email.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="t-phone">Phone</label>
+              <input class="form-input" id="t-phone" placeholder="Mobile number">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="t-pwd">Password *</label>
+              <input class="form-input" id="t-pwd" type="password" placeholder="Min 6 characters">
+            </div>
+          </div>
+          <button class="btn btn-blue" id="createTeacherBtn" onclick="createUser('teacher')">➕ Create teacher</button>
+        </div>
+        <div class="card">
+          <div class="search-row">
+            <input class="search-inp" id="t-search" placeholder="🔍 Search teachers..." oninput="filterTable('teachersTbody', this.value)">
+            <span id="t-count" style="font-size:.8rem;font-weight:700;color:var(--text3)"></span>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th>Name</th><th>Email</th><th>Batches</th><th>Status</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="teachersTbody"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PARENTS ══ -->
+      <div id="tab-parents" class="tab-panel">
+        <div class="card">
+          <div class="card-title">➕ Add new parent</div>
+          <div class="form-grid" style="margin-bottom:12px">
+            <div class="form-group">
+              <label class="form-label" for="p-name">Full name *</label>
+              <input class="form-input" id="p-name" placeholder="Parent full name">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-email">Email *</label>
+              <input class="form-input" id="p-email" type="email" placeholder="parent@email.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-phone">Phone</label>
+              <input class="form-input" id="p-phone" placeholder="Mobile number">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-pwd">Password *</label>
+              <input class="form-input" id="p-pwd" type="password" placeholder="Min 6 characters">
+            </div>
+          </div>
+          <button class="btn btn-orange" id="createParentBtn" onclick="createUser('parent')">➕ Create parent</button>
+        </div>
+        <div class="card">
+          <div class="search-row">
+            <input class="search-inp" id="p-search" placeholder="🔍 Search parents..." oninput="filterTable('parentsTbody', this.value)">
+            <span id="p-count" style="font-size:.8rem;font-weight:700;color:var(--text3)"></span>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="parentsTbody"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ BATCHES ══ -->
+      <div id="tab-batches" class="tab-panel">
+        <div class="card">
+          <div class="card-title">➕ Create new batch</div>
+          <div class="form-grid-3" style="margin-bottom:12px">
+            <div class="form-group">
+              <label class="form-label" for="b-name">Batch name *</label>
+              <input class="form-input" id="b-name" placeholder="e.g. Batch A — Abacus L1">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="b-program">Program</label>
+              <select class="form-select" id="b-program">
+                <option value="abacus">Abacus</option>
+                <option value="vedic">Vedic Maths</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="b-teacher">Assign teacher</label>
+              <select class="form-select" id="b-teacher">
+                <option value="">— Select teacher —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="b-schedule">Schedule</label>
+              <input class="form-input" id="b-schedule" placeholder="e.g. Mon/Wed 4:30 PM">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="b-meet">Google Meet link <span style="font-weight:500;text-transform:none">(optional)</span></label>
+              <input class="form-input" id="b-meet" placeholder="https://meet.google.com/...">
+            </div>
+          </div>
+          <button class="btn btn-green" id="createBatchBtn" onclick="createBatch()">➕ Create batch</button>
+        </div>
+        <div class="card">
+          <div class="card-title">All batches</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th>Batch</th><th>Program</th><th>Teacher</th><th>Students</th><th>Schedule</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="batchesTbody"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <!-- Add student to batch -->
+        <div class="card">
+          <div class="card-title">Add student to batch</div>
+          <div class="form-grid" style="margin-bottom:12px">
+            <div class="form-group">
+              <label class="form-label" for="abs-student">Student</label>
+              <select class="form-select" id="abs-student"><option value="">— Select student —</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="abs-batch">Batch</label>
+              <select class="form-select" id="abs-batch"><option value="">— Select batch —</option></select>
+            </div>
+          </div>
+          <button class="btn btn-blue" onclick="addStudentToBatch()">Add to batch</button>
+        </div>
+      </div>
+
+      <!-- ══ ASSOCIATIONS ══ -->
+      <div id="tab-associations" class="tab-panel">
+        <div class="card">
+          <div class="card-title">🔗 Link parent to student</div>
+          <div class="form-grid" style="margin-bottom:12px">
+            <div class="form-group">
+              <label class="form-label" for="assoc-parent">Parent</label>
+              <select class="form-select" id="assoc-parent"><option value="">— Select parent —</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="assoc-student">Student</label>
+              <select class="form-select" id="assoc-student"><option value="">— Select student —</option></select>
+            </div>
+          </div>
+          <button class="btn btn-green" onclick="linkParentStudent()">🔗 Link accounts</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Existing associations</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Parent</th><th>Student</th><th>Actions</th></tr></thead>
+              <tbody id="assocTbody"><tr><td colspan="3" class="empty">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ LESSONS ══ -->
+      <div id="tab-lessons" class="tab-panel">
+        <div class="card">
+          <div class="card-title">▶️ Upload new lesson</div>
+          <div class="card-sub">Paste a YouTube unlisted video URL — students can watch but not download</div>
+          <div class="form-grid" style="margin-bottom:12px">
+            <div class="form-group">
+              <label class="form-label" for="l-title">Lesson title *</label>
+              <input class="form-input" id="l-title" placeholder="e.g. Big Friends Addition">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="l-url">YouTube video URL *</label>
+              <input class="form-input" id="l-url" placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+          </div>
+          <div class="form-grid-3" style="margin-bottom:12px">
+            <div class="form-group">
+              <label class="form-label" for="l-level">Level</label>
+              <select class="form-select" id="l-level">
+                <option value="1">Level 1</option><option value="2">Level 2</option>
+                <option value="3">Level 3</option><option value="4">Level 4</option>
+                <option value="5">Level 5</option><option value="6">Level 6</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="l-topic">Topic</label>
+              <select class="form-select" id="l-topic">
                 <option value="addition">Addition</option>
                 <option value="subtraction">Subtraction</option>
                 <option value="multiplication">Multiplication</option>
@@ -382,1021 +483,740 @@
                 <option value="revision">Revision</option>
               </select>
             </div>
-            <div>
-              <label for="lessonDuration" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Duration</label>
-              <input type="text" class="form-input" id="lessonDuration" placeholder="e.g. 8:30">
-            </div>
-            <div>
-              <label for="lessonOrder" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Order</label>
-              <input type="number" class="form-input" id="lessonOrder" placeholder="1" value="1" min="1">
+            <div class="form-group">
+              <label class="form-label" for="l-duration">Duration</label>
+              <input class="form-input" id="l-duration" placeholder="e.g. 8:30">
             </div>
           </div>
-
-          <div style="margin-bottom:14px">
-            <label for="lessonDesc" style="font-size:.75rem;font-weight:800;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;display:block">Description (optional)</label>
-            <textarea class="form-input" id="lessonDesc" rows="2" placeholder="What will students learn in this lesson?" style="resize:vertical"></textarea>
+          <div class="form-group" style="margin-bottom:12px">
+            <label class="form-label" for="l-desc">Description (optional)</label>
+            <textarea class="form-textarea" id="l-desc" rows="2" placeholder="What students will learn"></textarea>
           </div>
-
-          <!-- Video preview -->
-          <div id="lessonPreview" style="display:none;margin-bottom:14px;border-radius:12px;overflow:hidden;max-width:400px;aspect-ratio:16/9;background:#000">
-            <iframe id="previewIframe" style="width:100%;height:100%;border:none" allowfullscreen></iframe>
+          <div id="l-preview" class="video-preview"><iframe id="l-iframe" allowfullscreen></iframe></div>
+          <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+            <button class="btn btn-ghost" onclick="previewLesson()">👁 Preview</button>
+            <button class="btn btn-ghost" onclick="saveLesson(false)">💾 Save as draft</button>
+            <button class="btn btn-green" onclick="saveLesson(true)">✅ Publish to students</button>
           </div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn btn-ghost" onclick="previewLesson()" style="padding:10px 20px">👁 Preview video</button>
-            <button class="btn btn-blue" onclick="uploadLesson(false)" style="padding:10px 24px">💾 Save as draft</button>
-            <button class="btn btn-green" onclick="uploadLesson(true)" style="padding:10px 24px">✅ Publish to students</button>
-          </div>
-        </div>
-
-        <!-- Lessons list -->
-        <div style="background:var(--bg);border:2px solid var(--border);border-radius:18px;padding:22px">
-          <div style="font-family:'Baloo 2',sans-serif;font-size:1.05rem;font-weight:800;margin-bottom:14px">All lessons</div>
-          <div id="lessonsList">
-            <div style="padding:20px;text-align:center;color:var(--text3);font-weight:600">Loading lessons...</div>
-          </div>
-        </div>
-
-      </div>
-
-  </div>
-</div>
-
-<div class="toast-container" id="toastContainer"></div>
-
-      <div id="tab-fees" style="display:none">
-        <div class="stats-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
-          <div class="stat-box hc-green"><div class="stat-n" id="feesCollected">—</div><div class="stat-l">Collected this month</div></div>
-          <div class="stat-box hc-red"><div class="stat-n" id="feesOverdue">—</div><div class="stat-l">Overdue</div></div>
-          <div class="stat-box hc-orange"><div class="stat-n" id="feesPending">—</div><div class="stat-l">Pending</div></div>
-        </div>
-        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-          <button class="btn btn-orange" onclick="createMonthlyFees()">Generate monthly fees for all students</button>
-          <button class="btn btn-ghost btn-sm" onclick="sendAllFeeReminders()">Send all reminders</button>
-          <button class="btn btn-ghost btn-sm" onclick="exportCSV('fees')">⬇ Export CSV</button>
-        </div>
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr><th>Student</th><th>Amount</th><th>Due date</th><th>Status</th><th>Method</th><th>Actions</th></tr></thead>
-            <tbody id="feesTbody"><tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">Loading...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- AUTOMATION -->
-      <div id="tab-automation" style="display:none">
-        <div style="background:var(--blue-lt);border:2px solid #90CAF9;border-radius:12px;padding:12px 16px;margin-bottom:14px;font-size:.82rem;color:var(--blue-dk);font-weight:500">
-          All automation runs via Supabase Edge Functions + Brevo email (free). Runs daily at 8:00 AM IST.
-        </div>
-        <div class="card" id="autoCard">
-          <div class="card-title">Automation toggles</div>
-          <div id="autoList"></div>
-        </div>
-      </div>
-
-      <!-- SETTINGS -->
-      <div id="tab-settings" style="display:none">
-        <div class="card">
-          <div class="card-title">Portal settings</div>
-          <div id="settingsList"></div>
-          <button class="btn btn-orange" style="margin-top:14px" onclick="saveSettings()">Save settings</button>
         </div>
         <div class="card">
-          <div class="card-title">Connection status</div>
-          <div id="connStatus"></div>
+          <div class="card-title">All lessons</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Title</th><th>Level</th><th>Topic</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="lessonsTbody"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
+      <!-- ══ FEES ══ -->
+      <div id="tab-fees" class="tab-panel">
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat-card">
+            <div class="stat-n" style="color:var(--green)" id="fees-collected">—</div>
+            <div class="stat-l">Collected (₹)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-n" style="color:var(--orange)" id="fees-pending">—</div>
+            <div class="stat-l">Pending</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-n" style="color:var(--red)" id="fees-overdue">—</div>
+            <div class="stat-l">Overdue</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Fee records</div>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th>Student</th><th>Amount</th><th>Due date</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="feesTbody"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /portal -->
+
+<!-- ══ EDIT USER MODAL ══ -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="editModalTitle">Edit user</div>
+      <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-id">
+      <input type="hidden" id="edit-role">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="edit-name">Full name *</label>
+          <input class="form-input" id="edit-name">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="edit-email">Email *</label>
+          <input class="form-input" id="edit-email" type="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="edit-phone">Phone</label>
+          <input class="form-input" id="edit-phone">
+        </div>
+      </div>
+      <div id="edit-student-fields" style="display:none">
+        <div class="form-grid" style="margin-top:0">
+          <div class="form-group">
+            <label class="form-label" for="edit-program">Program</label>
+            <select class="form-select" id="edit-program">
+              <option value="abacus">Abacus</option>
+              <option value="vedic">Vedic Maths</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-level">Level</label>
+            <select class="form-select" id="edit-level">
+              <option value="1">Level 1</option><option value="2">Level 2</option>
+              <option value="3">Level 3</option><option value="4">Level 4</option>
+              <option value="5">Level 5</option><option value="6">Level 6</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-mode">Mode</label>
+            <select class="form-select" id="edit-mode">
+              <option value="online">Online</option>
+              <option value="offline">Offline</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn btn-blue" onclick="saveEdit()" id="saveEditBtn">Save changes</button>
     </div>
   </div>
 </div>
 
-<!-- ADD USER MODAL -->
-<div class="modal-overlay" id="addModal" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="modalTitle">Add new student</div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="form-grid">
-      <div class="form-group"><label class="form-label">Full name *</label><input type="text" class="form-input" id="newName" placeholder="e.g. Arjun Sharma"></div>
-      <div class="form-group"><label class="form-label">Email address *</label><input type="email" class="form-input" id="newEmail" placeholder="arjun@gmail.com"></div>
-    </div>
-    <div class="form-grid">
-      <div class="form-group"><label class="form-label">Phone number</label><input type="tel" class="form-input" id="newPhone" placeholder="+91 98765 43210"></div>
-      <div class="form-group">
-        <label class="form-label">Password (default: imath2025)</label>
-        <input type="text" class="form-input" id="newPassword" value="imath2025">
-        <div class="form-hint">Student logs in with this password first time</div>
-      </div>
-    </div>
-    <!-- Student fields -->
-    <div id="studentFields">
-      <div class="form-grid">
-        <div class="form-group"><label class="form-label">Program</label>
-          <select class="form-select" id="newProgram">
-            <option value="abacus">Abacus (Ages 4–12)</option>
-            <option value="vedic">Vedic Maths (Ages 9–15)</option>
-            <option value="both">Both programs</option>
-          </select>
-        </div>
-        <div class="form-group"><label class="form-label">Starting level</label>
-          <select class="form-select" id="newLevel">
-            <option value="1">Level 1 — White Belt</option>
-            <option value="2">Level 2 — Yellow Belt</option>
-            <option value="3">Level 3 — Orange Belt</option>
-            <option value="4">Level 4 — Green Belt</option>
-            <option value="5">Level 5 — Blue Belt</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-group"><label class="form-label">Mode</label>
-          <select class="form-select" id="newMode">
-            <option value="online">Online (uses portal)</option>
-            <option value="offline">Offline (physical class only)</option>
-          </select>
-        </div>
-        <div class="form-group"><label class="form-label">Assign to batch (optional)</label>
-          <select class="form-select" id="newBatch"><option value="">No batch yet</option></select>
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-group"><label class="form-label">Monthly fee (Rs.)</label>
-          <input type="number" class="form-input" id="newFee" value="800">
-        </div>
-        <div class="form-group"><label class="form-label">Link to parent (optional)</label>
-          <select class="form-select" id="newParentLink"><option value="">No parent yet</option></select>
-        </div>
-      </div>
-    </div>
-    <!-- Teacher fields -->
-    <div id="teacherFields" style="display:none">
-      <div class="form-group" style="margin-bottom:12px">
-        <label class="form-label">Assign to batch (optional)</label>
-        <select class="form-select" id="newTeacherBatch"><option value="">No batch yet</option></select>
-      </div>
-    </div>
-    <div style="background:var(--green-lt);border:1.5px solid #A5D6A7;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:.75rem;color:var(--green-dk);font-weight:600" id="modalNote">
-      ✅ Account created instantly. Welcome email sent automatically.
-    </div>
-    <button class="btn btn-orange" onclick="createUser()" id="createBtn" style="width:100%;padding:12px;font-size:.95rem;justify-content:center">
-      Create account & send welcome email 🚀
-    </button>
-  </div>
-</div>
-
-<!-- CONFIRM MODAL -->
-<div class="modal-overlay" id="confirmModal" onclick="if(event.target===this)closeConfirm()">
-  <div class="modal" style="max-width:400px">
-    <div class="modal-header">
-      <div class="modal-title" id="confirmTitle">Confirm</div>
-      <button class="modal-close" onclick="closeConfirm()">✕</button>
-    </div>
-    <div style="font-size:.875rem;color:var(--text2);margin-bottom:20px;line-height:1.6" id="confirmMsg"></div>
-    <div style="display:flex;gap:10px">
+<!-- ══ CONFIRM DIALOG ══ -->
+<div class="confirm-overlay" id="confirmDialog">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+    <div class="confirm-msg"   id="confirmMsg"></div>
+    <div class="confirm-btns">
       <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
-      <button class="btn btn-red" id="confirmOkBtn">Confirm</button>
+      <button class="btn btn-red"   onclick="doConfirm()" id="confirmOkBtn">Confirm</button>
     </div>
+  </div>
+</div>
 
-
-
+<!-- ══ TOAST ══ -->
+<div class="toast-wrap" id="toastWrap"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL='https://bhullfoajenhkxlkiubs.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
-const{createClient}=supabase;
-const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+// ── CONFIG ──────────────────────────────────────────────────
+const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+const CREATE_USER_FN = 'https://bhullfoajenhkxlkiubs.supabase.co/functions/v1/create-user';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── ADMIN OPS — uses Edge Function with service role ──────
-const ADMIN_FN_URL = 'https://bhullfoajenhkxlkiubs.supabase.co/functions/v1/admin-ops';
+// ── STATE ───────────────────────────────────────────────────
+let allStudents = [], allTeachers = [], allParents = [], allBatches = [], allFees = [];
+let confirmCallback = null;
+let currentTab = 'overview';
 
-async function adminCall(action, params = {}) {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) throw new Error('Not logged in');
-  const resp = await fetch(ADMIN_FN_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'Authorization': `Bearer ${session.access_token}`,
-      'apikey':        SUPABASE_KEY,
-    },
-    body: JSON.stringify({ action, ...params }),
-  });
-  const data = await resp.json();
-  if (!resp.ok || data.error) throw new Error(data.error || 'Admin operation failed');
-  return data;
+// ── TOAST ───────────────────────────────────────────────────
+function toast(msg, type = 'success') {
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
 }
 
-let allStudents=[],allTeachers=[],allParents=[],allBatches=[];
-let currentModal='student';
+// ── MODAL ───────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-const AUTO_SETTINGS=[
-  {id:'hw_reminder',   title:'Homework due reminders',       desc:'Email student + parent 24h before due date',         on:true},
-  {id:'auto_assign',   title:'Auto-assign revision homework',desc:'When accuracy drops below 55% on any topic',         on:true},
-  {id:'inactivity',    title:'Inactivity re-engagement',     desc:'Email student if not logged in for 3+ days',         on:true},
-  {id:'level_up',      title:'Level-up certificate email',   desc:'Email certificate when student earns a new belt',    on:true},
-  {id:'welcome',       title:'Welcome email on signup',      desc:'Send login details and getting started guide',       on:true},
-  {id:'fee_reminder',  title:'Fee due date reminders',       desc:'Email parent 3 days before and on due date',        on:true},
-  {id:'fee_overdue',   title:'Overdue fee reminders',        desc:'Email parent every 3 days while fee unpaid',        on:true},
-  {id:'fee_receipt',   title:'Auto payment receipts',        desc:'Email receipt immediately after payment confirmed', on:true},
-  {id:'monthly_report',title:'Monthly progress reports',     desc:'Email PDF report to parent at end of each month',  on:true},
-  {id:'badge_notify',  title:'Badge earned notifications',   desc:'Notify student + parent when badge is earned',      on:true},
-  {id:'streak',        title:'Streak milestone alerts',      desc:'Notify at 7, 14, 30-day streak milestones',        on:true},
-];
+// Close modal on overlay click
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-overlay')) closeModal(e.target.id);
+});
 
-async function init(){
-  document.getElementById('topbarDate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
-  try{
-    const{data:{session}}=await sb.auth.getSession();
-    if(!session){window.location.href='../../login.html';return;}
-    const{data:profile}=await sb.from('users').select('full_name,role').eq('id',session.user.id).single();
-    if(!profile||profile.role!=='admin'){window.location.href='../../login.html';return;}
-    const name=profile.full_name;
-    document.getElementById('userAv').textContent=name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-    document.getElementById('userName').textContent=name;
-  }catch{/* demo */}
-  await loadAll();
-  renderAutomation();
-  renderSettings();
-  renderConnStatus();
+// ── CONFIRM DIALOG ──────────────────────────────────────────
+function confirm(title, msg, onOk, okLabel = 'Confirm', danger = true) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent   = msg;
+  const btn = document.getElementById('confirmOkBtn');
+  btn.textContent = okLabel;
+  btn.className   = `btn ${danger ? 'btn-red' : 'btn-green'}`;
+  confirmCallback = onOk;
+  openModal('confirmDialog');
+}
+function closeConfirm() { closeModal('confirmDialog'); confirmCallback = null; }
+function doConfirm()    { closeConfirm(); if (confirmCallback) confirmCallback(); }
+
+// ── TAB NAVIGATION ──────────────────────────────────────────
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById(`tab-${name}`).classList.add('active');
+  if (btn) btn.classList.add('active');
+  currentTab = name;
+  const titles = { overview:'Dashboard', students:'Students', teachers:'Teachers', parents:'Parents', batches:'Batches', associations:'Associations', lessons:'Lessons', fees:'Fees' };
+  document.getElementById('topbarTitle').textContent = titles[name] || 'Admin';
+  // Load data for the tab
+  if (name === 'students')     renderStudents();
+  if (name === 'teachers')     renderTeachers();
+  if (name === 'parents')      renderParents();
+  if (name === 'batches')      renderBatches();
+  if (name === 'associations') renderAssociations();
+  if (name === 'lessons')      renderLessons();
+  if (name === 'fees')         renderFees();
 }
 
-async function loadAll(){
-  try{
-    // Run queries independently so one failure doesn't break everything
-    const [uRes, bRes, fRes, nRes] = await Promise.all([
-      sb.from('users').select('*').order('created_at',{ascending:false}),
-      sb.from('batches').select('*,users!teacher_id(full_name),batch_students(student_id)'),
-      sb.from('fees').select('status,amount'),
-      sb.from('notifications').select('title,created_at').order('created_at',{ascending:false}).limit(5),
-    ]);
+// ── SEARCH / FILTER ─────────────────────────────────────────
+function filterTable(tbodyId, q) {
+  const rows = document.getElementById(tbodyId).querySelectorAll('tr');
+  const s = q.toLowerCase();
+  rows.forEach(r => { r.style.display = r.textContent.toLowerCase().includes(s) ? '' : 'none'; });
+}
 
-    const users  = uRes.data  || [];
-    const batches= bRes.data  || [];
-    const fees   = fRes.data  || [];
-    const notifs = nRes.data  || [];
+// ── HELPERS ─────────────────────────────────────────────────
+function initials(name) { return (name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2); }
+function fmt(date) { return date ? new Date(date).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) : '—'; }
+function statusPill(active) { return `<span class="pill ${active!==false?'pill-g':'pill-r'}">${active!==false?'Active':'Inactive'}</span>`; }
 
-    if(uRes.error)  console.error('users error:',  uRes.error.message);
-    if(bRes.error)  console.error('batches error:', bRes.error.message);
-    if(fRes.error)  console.error('fees error:',   fRes.error.message);
-    if(nRes.error)  console.error('notifs error:',  nRes.error.message);
+// ── LOAD ALL DATA ───────────────────────────────────────────
+async function loadAll() {
+  const [uRes, bRes, fRes] = await Promise.all([
+    sb.from('users').select('*').order('created_at', { ascending: false }),
+    sb.from('batches').select('*, users!teacher_id(full_name), batch_students(student_id)'),
+    sb.from('fees').select('*, users!student_id(full_name, email)').order('due_date', { ascending: false }),
+  ]);
+  allStudents = (uRes.data || []).filter(u => u.role === 'student');
+  allTeachers = (uRes.data || []).filter(u => u.role === 'teacher');
+  allParents  = (uRes.data || []).filter(u => u.role === 'parent');
+  allBatches  = bRes.data || [];
+  allFees     = fRes.data || [];
 
-    allStudents = users.filter(u=>u.role==='student');
-    allTeachers = users.filter(u=>u.role==='teacher');
-    allParents  = users.filter(u=>u.role==='parent');
-    allBatches  = batches;
+  // Overview stats
+  document.getElementById('ov-students').textContent = allStudents.length;
+  document.getElementById('ov-teachers').textContent = allTeachers.length;
+  document.getElementById('ov-parents').textContent  = allParents.length;
+  const overdue = allFees.filter(f => f.status === 'overdue').length;
+  document.getElementById('ov-overdue').textContent  = overdue;
 
-    document.getElementById('ov-students').textContent = allStudents.length;
-    document.getElementById('ov-teachers').textContent = allTeachers.length;
-    document.getElementById('ov-parents').textContent  = allParents.length;
-    document.getElementById('studentCountBadge').textContent = allStudents.length;
+  // Populate dropdowns
+  populateDropdowns();
 
-    const overdue   = fees.filter(f=>f.status==='overdue').length;
-    const pending   = fees.filter(f=>f.status==='pending').length;
-    const collected = fees.filter(f=>f.status==='paid').reduce((s,f)=>s+f.amount,0);
-    document.getElementById('ov-overdue').textContent  = overdue;
-    document.getElementById('feesCollected').textContent = 'Rs.'+collected.toLocaleString();
-    document.getElementById('feesOverdue').textContent  = overdue;
-    document.getElementById('feesPending').textContent  = pending;
-    if(overdue>0){
-      document.getElementById('feesBadge').style.display='inline';
-      document.getElementById('feesBadge').textContent=overdue;
-    }
-
-    const actEl = document.getElementById('recentActivity');
-    if(notifs && notifs.length>0){
-      actEl.innerHTML = notifs.map(n=>`<div style="padding:7px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:12px"><span style="font-weight:700">${n.title}</span><span style="color:var(--text3);font-size:.72rem;white-space:nowrap">${new Date(n.created_at).toLocaleDateString('en-IN')}</span></div>`).join('');
-    } else {
-      actEl.innerHTML='<span style="color:var(--text3)">No recent activity</span>';
-    }
-
-    populateDropdowns();
-  }catch(err){
-    console.error('loadAll error:', err);
-    showToast('Could not load data: '+err.message,'error');
+  // Recent activity
+  const { data: notifs } = await sb.from('notifications').select('title,created_at').order('created_at', { ascending: false }).limit(8);
+  const actEl = document.getElementById('recentActivity');
+  if (notifs && notifs.length) {
+    actEl.innerHTML = notifs.map(n => `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+        <span style="font-weight:700;font-size:.875rem">${n.title}</span>
+        <span style="font-size:.72rem;color:var(--text3)">${fmt(n.created_at)}</span>
+      </div>`).join('');
+  } else {
+    actEl.innerHTML = '<div class="empty">No recent activity</div>';
   }
 }
 
+function populateDropdowns() {
+  // Teacher dropdown for batch
+  const bTeacher = document.getElementById('b-teacher');
+  bTeacher.innerHTML = '<option value="">— Select teacher —</option>' +
+    allTeachers.map(t => `<option value="${t.id}">${t.full_name}</option>`).join('');
 
-function populateDropdowns(){
-  const opts=(arr,label)=>`<option value="">Select ${label}</option>`+arr.map(u=>`<option value="${u.id}">${u.full_name} (${u.email})</option>`).join('');
-  const batchOpts='<option value="">No batch yet</option>'+allBatches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
-  document.getElementById('assocParent').innerHTML=opts(allParents,'parent');
-  document.getElementById('assocStudent').innerHTML=opts(allStudents,'student');
-  document.getElementById('batchStudentSel').innerHTML=opts(allStudents,'student');
-  document.getElementById('batchSel').innerHTML='<option value="">Select batch</option>'+allBatches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
-  document.getElementById('newBatch').innerHTML=batchOpts;
-  document.getElementById('newTeacherBatch').innerHTML=batchOpts;
-  document.getElementById('newBatchTeacher').innerHTML='<option value="">Select teacher</option>'+allTeachers.map(t=>`<option value="${t.id}">${t.full_name}</option>`).join('');
-  document.getElementById('newParentLink').innerHTML='<option value="">No parent yet</option>'+allParents.map(p=>`<option value="${p.id}">${p.full_name} (${p.email})</option>`).join('');
+  // Student/batch dropdowns for batch assignment
+  const absStudent = document.getElementById('abs-student');
+  absStudent.innerHTML = '<option value="">— Select student —</option>' +
+    allStudents.map(s => `<option value="${s.id}">${s.full_name}</option>`).join('');
+  const absBatch = document.getElementById('abs-batch');
+  absBatch.innerHTML = '<option value="">— Select batch —</option>' +
+    allBatches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+
+  // Association dropdowns
+  const aParent = document.getElementById('assoc-parent');
+  aParent.innerHTML = '<option value="">— Select parent —</option>' +
+    allParents.map(p => `<option value="${p.id}">${p.full_name}</option>`).join('');
+  const aStudent = document.getElementById('assoc-student');
+  aStudent.innerHTML = '<option value="">— Select student —</option>' +
+    allStudents.map(s => `<option value="${s.id}">${s.full_name}</option>`).join('');
 }
 
-function initials(name){return(name||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
-function avColor(role){return role==='teacher'?'av-t':role==='parent'?'av-o':role==='admin'?'av-p':'av-g';}
+// ── CREATE USER ─────────────────────────────────────────────
+async function createUser(role) {
+  const prefix = role === 'student' ? 's' : role === 'teacher' ? 't' : 'p';
+  const name  = document.getElementById(`${prefix}-name`).value.trim();
+  const email = document.getElementById(`${prefix}-email`).value.trim();
+  const phone = document.getElementById(`${prefix}-phone`)?.value.trim() || '';
+  const pwd   = document.getElementById(`${prefix}-pwd`).value;
+  if (!name || !email || !pwd) { toast('Please fill all required fields', 'error'); return; }
+  if (pwd.length < 6)          { toast('Password must be at least 6 characters', 'error'); return; }
 
-async function renderStudents(data){
-  const tbody=document.getElementById('studentsTbody');
-  if(!data||data.length===0){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text3)">No students found</td></tr>';return;}
-  tbody.innerHTML=data.map(s=>{
-    const batch=allBatches.find(b=>b.batch_students?.some(bs=>bs.student_id===s.id));
-    return`<tr style="opacity:${s.is_active===false?'0.5':'1'}">
-      <td><div style="display:flex;align-items:center;gap:8px"><div class="av av-g">${initials(s.full_name)}</div><div><div style="font-weight:800">${s.full_name}</div><div style="font-size:.7rem;color:var(--text3)">${s.email}</div></div></div></td>
-      <td><span class="pill ${s.program==='vedic'?'pill-p':'pill-b'}">${s.program||'—'}</span></td>
-      <td style="font-weight:800">L${s.current_level||1}</td>
-      <td><div class="mode-toggle"><button class="mt ${s.mode==='online'?'on-online':''}" onclick="toggleMode('${s.id}','online',this)">On</button><button class="mt ${s.mode==='offline'?'on-offline':''}" onclick="toggleMode('${s.id}','offline',this)">Off</button></div></td>
-      <td style="font-size:.78rem;color:var(--text2)">${batch?batch.name:'—'}</td>
-      <td><span class="pill ${s.is_active?'pill-g':'pill-r'}">${s.is_active?'Active':'Inactive'}</span></td>
-      <td><div style="display:flex;gap:4px">
-        <button class="btn btn-ghost btn-sm" onclick="resetPwd('${s.email}')">Reset pwd</button>
-        <button class="btn btn-blue btn-sm" onclick="openEditModal('${s.id}','${s.full_name}','${s.email}','${s.phone||''}','student','${s.program||'abacus'}',${s.current_level||1},'${s.mode||'online'}')">✏️ Edit</button>
-        <button class="btn btn-ghost btn-sm" style="color:${s.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${s.id}','${s.full_name}',${s.is_active!==false})">${s.is_active===false?'Reactivate':'Deactivate'}</button>
-      </div></td>
-    </tr>`;
-  }).join('');
-}
-
-async function renderTeachers(data){
-  const tbody=document.getElementById('teachersTbody');
-  if(!data||data.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">No teachers found</td></tr>';return;}
-  tbody.innerHTML=data.map(t=>{
-    const tBatches=allBatches.filter(b=>b.teacher_id===t.id);
-    const tStudents=tBatches.reduce((s,b)=>s+(b.batch_students?.length||0),0);
-    return`<tr>
-      <td><div style="display:flex;align-items:center;gap:8px"><div class="av av-t">${initials(t.full_name)}</div><div style="font-weight:800">${t.full_name}</div></div></td>
-      <td style="font-size:.78rem;color:var(--text2)">${t.email}</td>
-      <td><b>${tBatches.length}</b> batches</td>
-      <td><b>${tStudents}</b> students</td>
-      <td><span class="pill ${t.is_active?'pill-g':'pill-r'}">${t.is_active?'Active':'Inactive'}</span></td>
-      <td><div style="display:flex;gap:4px">
-        <button class="btn btn-ghost btn-sm" onclick="resetPwd('${t.email}')">Reset pwd</button>
-        <button class="btn btn-blue btn-sm" onclick="openEditModal('${t.id}','${t.full_name}','${t.email}','${t.phone||''}','teacher')">✏️ Edit</button>
-        <button class="btn btn-ghost btn-sm" style="color:${t.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${t.id}','${t.full_name}',${t.is_active!==false})">${t.is_active===false?'Reactivate':'Deactivate'}</button>
-      </div></td>
-    </tr>`;
-  }).join('');
-}
-
-async function renderParents(data){
-  const tbody=document.getElementById('parentsTbody');
-  if(!data||data.length===0){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3)">No parents found</td></tr>';return;}
-  tbody.innerHTML=data.map(p=>`<tr>
-    <td><div style="display:flex;align-items:center;gap:8px"><div class="av av-o">${initials(p.full_name)}</div><div style="font-weight:800">${p.full_name}</div></div></td>
-    <td style="font-size:.78rem;color:var(--text2)">${p.email}</td>
-    <td id="linked-${p.id}"><span style="color:var(--text3);font-size:.75rem">Loading...</span></td>
-    <td><span class="pill ${p.is_active?'pill-g':'pill-r'}">${p.is_active?'Active':'Inactive'}</span></td>
-    <td><div style="display:flex;gap:4px">
-      <button class="btn btn-ghost btn-sm" onclick="resetPwd('${p.email}')">Reset pwd</button>
-      <button class="btn btn-blue btn-sm" onclick="openEditModal('${p.id}','${p.full_name}','${p.email}','${p.phone||''}','parent')">✏️ Edit</button>
-      <button class="btn btn-ghost btn-sm" style="color:${p.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${p.id}','${p.full_name}',${p.is_active!==false})">${p.is_active===false?'Reactivate':'Deactivate'}</button>
-    </div></td>
-  </tr>`).join('');
-  data.forEach(p=>loadLinked(p.id));
-}
-
-async function loadLinked(pid){
-  try{
-    const{data}=await sb.from('parent_student').select('users!student_id(full_name)').eq('parent_id',pid);
-    const el=document.getElementById('linked-'+pid);
-    if(!el)return;
-    if(data&&data.length>0){el.innerHTML=data.map(d=>`<span class="pill pill-g" style="margin:2px">${d.users.full_name}</span>`).join('');}
-    else{el.innerHTML='<span style="color:var(--text3);font-size:.75rem">No students linked yet</span>';}
-  }catch{/*silent*/}
-}
-
-async function renderAssoc(){
-  try{
-    const{data}=await sb.from('parent_student').select('parent_id,student_id,parent:users!parent_id(full_name,email),student:users!student_id(full_name,program,current_level)');
-    const tbody=document.getElementById('assocTbody');
-    if(!data||data.length===0){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text3)">No associations yet. Use the form above to link parents to students.</td></tr>';return;}
-    tbody.innerHTML=data.map(a=>`<tr>
-      <td><b>${a.parent?.full_name||'?'}</b><div style="font-size:.7rem;color:var(--text3)">${a.parent?.email||''}</div></td>
-      <td style="font-weight:800">${a.student?.full_name||'?'}</td>
-      <td><span class="pill pill-b">${a.student?.program||'—'} L${a.student?.current_level||1}</span></td>
-      <td><button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="unlinkPS('${a.parent_id}','${a.student_id}')">Unlink</button></td>
-    </tr>`).join('');
-  }catch(err){showToast('Error loading associations: '+err.message,'error');}
-}
-
-async function renderBatches(){
-  const tbody=document.getElementById('batchesTbody');
-  if(!allBatches||allBatches.length===0){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">No batches yet. Create one above.</td></tr>';return;}
-  tbody.innerHTML=allBatches.map(b=>`<tr>
-    <td style="font-weight:800">${b.name}</td>
-    <td><span class="pill pill-b">${b.program_id?'Abacus':'—'}</span></td>
-    <td>${b.users?.full_name||'—'}</td>
-    <td><b>${b.batch_students?.length||0}</b></td>
-    <td style="font-size:.75rem;color:var(--text2)">${b.schedule_json?.text||'—'}</td>
-    <td>${b.meet_link?`<a href="${b.meet_link}" target="_blank" style="font-size:.75rem;font-weight:700;color:var(--blue)">Join →</a>`:'<span style="color:var(--text3);font-size:.75rem">Not set</span>'}</td>
-    <td><button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteBatch('${b.id}','${b.name}')">Delete</button></td>
-  </tr>`).join('');
-}
-
-async function renderFees(){
-  try{
-    const{data}=await sb.from('fees').select('*,users!student_id(full_name)').order('due_date',{ascending:false});
-    const tbody=document.getElementById('feesTbody');
-    if(!data||data.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">No fee records. Click "Generate monthly fees" to create them.</td></tr>';return;}
-    tbody.innerHTML=data.map(f=>{
-      const sp=f.status==='paid'?'pill-g':f.status==='overdue'?'pill-r':'pill-o';
-      return`<tr>
-        <td style="font-weight:800">${f.users?.full_name||'—'}</td>
-        <td style="font-weight:800">Rs. ${f.amount}</td>
-        <td style="font-size:.78rem">${f.due_date}</td>
-        <td><span class="pill ${sp}">${f.status}</span></td>
-        <td style="font-size:.75rem;color:var(--text2)">${f.payment_method||'—'}</td>
-        <td><div style="display:flex;gap:4px">
-          ${f.status!=='paid'
-            ?`<button class="btn btn-ghost btn-sm" onclick="markPaid('${f.id}')">Mark paid</button>
-              <button class="btn btn-ghost btn-sm" onclick="showToast('Reminder sent!','success')">Remind</button>`
-            :`<button class="btn btn-ghost btn-sm" onclick="showToast('Receipt feature coming soon!','')">Receipt</button>`}
-        </div></td>
-      </tr>`;
-    }).join('');
-  }catch(err){showToast('Error loading fees: '+err.message,'error');}
-}
-
-function filterStudents(){
-  const s=document.getElementById('studentSearch').value.toLowerCase();
-  const p=document.getElementById('filterProgram').value;
-  const m=document.getElementById('filterMode').value;
-  renderStudents(allStudents.filter(u=>{
-    if(s&&!u.full_name?.toLowerCase().includes(s)&&!u.email?.toLowerCase().includes(s))return false;
-    if(p&&u.program!==p)return false;
-    if(m&&u.mode!==m)return false;
-    return true;
-  }));
-}
-async function filterParents(){
-  const s=document.getElementById('parentSearch').value.toLowerCase();
-  renderParents(allParents.filter(p=>!s||p.full_name?.toLowerCase().includes(s)||p.email?.toLowerCase().includes(s)));
-}
-
-async function createUser(){
-  const name    =document.getElementById('newName').value.trim();
-  const email   =document.getElementById('newEmail').value.trim();
-  const password=document.getElementById('newPassword').value.trim()||'imath2025';
-  const phone   =document.getElementById('newPhone').value.trim();
-  const program =document.getElementById('newProgram')?.value;
-  const level   =parseInt(document.getElementById('newLevel')?.value||'1');
-  const mode    =document.getElementById('newMode')?.value||'online';
-  const batchId =currentModal==='student'?document.getElementById('newBatch')?.value:document.getElementById('newTeacherBatch')?.value;
-  const fee     =parseInt(document.getElementById('newFee')?.value||'800');
-  const parentId=document.getElementById('newParentLink')?.value;
-  if(!name){showToast('Please enter full name!','');return;}
-  if(!email){showToast('Please enter email address!','');return;}
-  const btn=document.getElementById('createBtn');
-  const orig=btn.innerHTML;
-  btn.innerHTML='<div class="spinner"></div> Creating...';
-  btn.disabled=true;
-  try{
-    const{data,error}=await sb.functions.invoke('create-user',{
-      body:{email,password,full_name:name,role:currentModal,
-        program:currentModal==='student'?program:null,
-        current_level:currentModal==='student'?level:1,
-        mode:currentModal==='student'?mode:'online',
-        phone:phone||null,batch_id:batchId||null,
-        fee_amount:currentModal==='student'?fee:null}
-    });
-    if(error)throw new Error(error.message);
-    if(data?.error)throw new Error(data.error);
-    if(currentModal==='student'&&parentId){
-      await sb.from('parent_student').insert({parent_id:parentId,student_id:data.user.id});
+  const btn = document.getElementById(`create${role.charAt(0).toUpperCase()+role.slice(1)}Btn`);
+  btn.disabled = true; btn.textContent = 'Creating...';
+  try {
+    const payload = { email, password: pwd, full_name: name, role, phone: phone || null };
+    if (role === 'student') {
+      payload.program       = document.getElementById('s-program').value;
+      payload.current_level = parseInt(document.getElementById('s-level').value);
     }
-    closeModal();
-    showToast(`✅ ${name} created! Login: ${email} / ${password}`,'success');
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch(CREATE_USER_FN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}`, 'apikey': SUPABASE_KEY },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      const msg = data.error || 'Failed to create user';
+      if (msg.toLowerCase().includes('already')) throw new Error('This email is already registered. Check existing users.');
+      throw new Error(msg);
+    }
+    toast(`✅ ${name} created successfully!`, 'success');
+    [`${prefix}-name`,`${prefix}-email`,`${prefix}-phone`,`${prefix}-pwd`].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
     await loadAll();
-    renderTabData(getCurrentTab());
-  }catch(err){
-    let msg = err.message || 'Unknown error';
-    if(msg.toLowerCase().includes('already been registered') || msg.toLowerCase().includes('already registered')){
-      msg = 'This email is already registered. Go to the relevant tab (Students / Teachers / Parents) to find and manage this account.';
-    } else if(msg.toLowerCase().includes('invalid email')){
-      msg = 'Please enter a valid email address.';
-    } else if(msg.toLowerCase().includes('password')){
-      msg = 'Password must be at least 6 characters.';
-    }
-    showToast('❌ ' + msg, 'error');
-    alert('❌ ' + msg);
-  }finally{
-    btn.innerHTML=orig;btn.disabled=false;
+    if (role === 'student') renderStudents();
+    if (role === 'teacher') renderTeachers();
+    if (role === 'parent')  renderParents();
+  } catch(err) {
+    toast('❌ ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = `➕ Create ${role}`;
   }
 }
 
-async function linkParentStudent(){
-  const pid=document.getElementById('assocParent').value;
-  const sid=document.getElementById('assocStudent').value;
-  if(!pid||!sid){showToast('Please select both parent and student!','');return;}
-  try{
-    const{error}=await sb.from('parent_student').insert({parent_id:pid,student_id:sid});
-    if(error)throw error;
-    showToast('✅ Parent linked to student!','success');
-    renderAssoc();await loadAll();
-  }catch(err){showToast('❌ '+err.message,'error');}
+// ── RENDER STUDENTS ─────────────────────────────────────────
+function renderStudents() {
+  const tbody = document.getElementById('studentsTbody');
+  document.getElementById('s-count').textContent = `${allStudents.length} students`;
+  if (!allStudents.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">No students yet</td></tr>'; return; }
+  tbody.innerHTML = allStudents.map(s => {
+    const batch = allBatches.find(b => b.batch_students?.some(bs => bs.student_id === s.id));
+    return `<tr class="${s.is_active === false ? 'inactive' : ''}">
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="av av-g">${initials(s.full_name)}</div>
+          <div>
+            <div style="font-weight:800">${s.full_name}</div>
+            <div style="font-size:.7rem;color:var(--text3)">${s.email}</div>
+          </div>
+        </div>
+      </td>
+      <td><span class="pill ${s.program==='vedic'?'pill-p':'pill-b'}">${s.program||'—'}</span></td>
+      <td><span style="font-weight:800">L${s.current_level||1}</span></td>
+      <td style="font-size:.82rem;color:var(--text2)">${batch ? batch.name : '—'}</td>
+      <td>${statusPill(s.is_active)}</td>
+      <td>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <button class="btn btn-blue btn-sm" onclick="openEdit('${s.id}')">✏️ Edit</button>
+          <button class="btn btn-ghost btn-sm" onclick="resetPwd('${s.email}')">Reset pwd</button>
+          <button class="btn btn-ghost btn-sm" style="color:${s.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${s.id}','${s.full_name}',${s.is_active!==false})">${s.is_active===false?'Reactivate':'Deactivate'}</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
 }
 
-async function unlinkPS(pid,sid){
-  try{
-    await sb.from('parent_student').delete().eq('parent_id',pid).eq('student_id',sid);
-    showToast('Parent unlinked.','');renderAssoc();
-  }catch(err){showToast('❌ '+err.message,'error');}
+// ── RENDER TEACHERS ─────────────────────────────────────────
+function renderTeachers() {
+  const tbody = document.getElementById('teachersTbody');
+  document.getElementById('t-count').textContent = `${allTeachers.length} teachers`;
+  if (!allTeachers.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No teachers yet</td></tr>'; return; }
+  tbody.innerHTML = allTeachers.map(t => {
+    const tBatches = allBatches.filter(b => b.teacher_id === t.id);
+    return `<tr class="${t.is_active === false ? 'inactive' : ''}">
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="av av-t">${initials(t.full_name)}</div>
+          <div style="font-weight:800">${t.full_name}</div>
+        </div>
+      </td>
+      <td style="font-size:.82rem;color:var(--text2)">${t.email}</td>
+      <td><span style="font-weight:800">${tBatches.length}</span> <span style="color:var(--text3);font-size:.78rem">batch${tBatches.length!==1?'es':''}</span></td>
+      <td>${statusPill(t.is_active)}</td>
+      <td>
+        <div style="display:flex;gap:4px;flex-wrap:wrap">
+          <button class="btn btn-blue btn-sm" onclick="openEdit('${t.id}')">✏️ Edit</button>
+          <button class="btn btn-ghost btn-sm" onclick="resetPwd('${t.email}')">Reset pwd</button>
+          <button class="btn btn-ghost btn-sm" style="color:${t.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${t.id}','${t.full_name}',${t.is_active!==false})">${t.is_active===false?'Reactivate':'Deactivate'}</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
 }
 
-async function addStudentToBatch(){
-  const sid=document.getElementById('batchStudentSel').value;
-  const bid=document.getElementById('batchSel').value;
-  if(!sid||!bid){showToast('Please select both student and batch!','');return;}
-  try{
-    const{error}=await sb.from('batch_students').insert({batch_id:bid,student_id:sid});
-    if(error)throw error;
-    showToast('✅ Student added to batch!','success');
-    await loadAll();renderBatches();
-  }catch(err){
-    if(err.message.includes('duplicate'))showToast('Student already in this batch!','');
-    else showToast('❌ '+err.message,'error');
-  }
-}
-
-async function createBatch(){
-  const name    =(document.getElementById('newBatchName')?.value||'').trim();
-  const program =document.getElementById('newBatchProgram')?.value||'';
-  const teacher =document.getElementById('newBatchTeacher')?.value||'';
-  const schedule=(document.getElementById('newBatchSchedule')?.value||'').trim();
-  const meet    =(document.getElementById('newBatchMeet')?.value||'').trim();
-  console.log('createBatch called:', {name, program, teacher, schedule});
-  if(!name){showToast('Please enter a batch name first!','');return;}
-  const btn = document.querySelector('[onclick="createBatch()"]');
-  if(btn){btn.textContent='Creating...';btn.disabled=true;}
-  try{
-    console.log('Calling adminCall...');
-    const result = await adminCall('create_batch',{
-      name,
-      program:       program||null,
-      teacher_id:    teacher||null,
-      schedule_json: schedule?{text:schedule}:null,
-      meet_link:     meet||null,
-    });
-    console.log('adminCall result:', result);
-    showToast(`✅ Batch "${name}" created!`,'success');
-    ['newBatchName','newBatchSchedule','newBatchMeet'].forEach(id=>{
-      const el=document.getElementById(id); if(el) el.value='';
-    });
-    await loadAll();renderBatches();
-  }catch(err){
-    console.error('createBatch error:', err);
-    showToast('❌ '+(err.message||'Unknown error'),'error');
-    alert('Batch creation failed: '+(err.message||'Unknown error'));
-  }finally{
-    if(btn){btn.textContent='Create batch →';btn.disabled=false;}
-  }
-}
-
-async function deleteBatch(id,name){
-  if(!confirm(`Delete batch "${name}"?`))return;
-  try{
-    await sb.from('batch_students').delete().eq('batch_id',id);
-    await sb.from('batches').delete().eq('id',id);
-    showToast(`Batch "${name}" deleted.`,'');
-    await loadAll();renderBatches();
-  }catch(err){showToast('❌ '+err.message,'error');}
-}
-
-async function markPaid(feeId){
-  try{
-    await sb.from('fees').update({status:'paid',paid_at:new Date().toISOString(),payment_method:'cash'}).eq('id',feeId);
-    showToast('Fee marked as paid!','success');
-    renderFees();await loadAll();
-  }catch(err){showToast('❌ '+err.message,'error');}
-}
-
-async function createMonthlyFees(){
-  if(!confirm(`Create fee records for all ${allStudents.length} students?`))return;
-  try{
-    const due=new Date();due.setDate(1);due.setMonth(due.getMonth()+1);
-    const fees=allStudents.map(s=>({student_id:s.id,amount:800,currency:'INR',due_date:due.toISOString().split('T')[0],status:'pending'}));
-    const{error}=await sb.from('fees').insert(fees);
-    if(error)throw error;
-    showToast(`✅ Fee records created for ${fees.length} students!`,'success');
-    renderFees();await loadAll();
-  }catch(err){showToast('❌ '+err.message,'error');}
-}
-
-async function sendAllFeeReminders(){showToast('Reminders sent to all overdue parents!','success');}
-
-async function toggleMode(uid,mode,btn){
-  const grp=btn.parentElement;
-  grp.querySelectorAll('.mt').forEach(b=>b.className='mt');
-  btn.classList.add(mode==='online'?'on-online':'on-offline');
-  try{await sb.from('users').update({mode}).eq('id',uid);showToast('Mode updated!','success');}
-  catch{/*silent*/}
-}
-
-async function resetPwd(email){
-  showConfirm('Reset password?',`Send password reset email to ${email}?`,async()=>{
-    try{
-      await sb.auth.resetPasswordForEmail(email,{redirectTo:'https://imathacademy.net/login.html'});
-      showToast('Password reset email sent!','success');
-    }catch(err){showToast('❌ '+err.message,'error');}
-  });
-}
-
-async function deactivate(uid,name){
-  showConfirm('Deactivate account?',`Deactivate ${name}'s account? Data is preserved, they cannot login.`,async()=>{
-    try{
-      await sb.from('users').update({is_active:false}).eq('id',uid);
-      showToast(`${name} deactivated.`,'');
-      await loadAll();renderTabData(getCurrentTab());
-    }catch(err){showToast('❌ '+err.message,'error');}
-  });
-}
-
-function exportCSV(type){
-  let h=[],d=[];
-  if(type==='students'){h=['Name','Email','Program','Level','Mode','Active'];d=allStudents.map(s=>[s.full_name,s.email,s.program,s.current_level,s.mode,s.is_active]);}
-  else if(type==='teachers'){h=['Name','Email','Active'];d=allTeachers.map(t=>[t.full_name,t.email,t.is_active]);}
-  else if(type==='parents'){h=['Name','Email','Active'];d=allParents.map(p=>[p.full_name,p.email,p.is_active]);}
-  const csv=[h,...d].map(r=>r.join(',')).join('\n');
-  const a=document.createElement('a');a.href='data:text/csv,'+encodeURIComponent(csv);
-  a.download=`imathacademy_${type}_${new Date().toISOString().split('T')[0]}.csv`;a.click();
-  showToast(`${type} exported!`,'success');
-}
-
-function renderAutomation(){
-  document.getElementById('autoList').innerHTML=AUTO_SETTINGS.map(item=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1.5px solid var(--border);gap:12px;flex-wrap:wrap">
-      <div style="flex:1"><div style="font-size:.875rem;font-weight:700">${item.title}</div><div style="font-size:.72rem;color:var(--text3);margin-top:1px">${item.desc}</div></div>
-      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-        <div class="toggle ${item.on?'':'off'}" id="tog-${item.id}" onclick="toggleAuto('${item.id}',this)"><div class="toggle-knob"></div></div>
-        <div style="font-size:.75rem;font-weight:800;color:${item.on?'var(--green-dk)':'var(--text3)'};min-width:24px" id="togl-${item.id}">${item.on?'ON':'OFF'}</div>
+// ── RENDER PARENTS ──────────────────────────────────────────
+function renderParents() {
+  const tbody = document.getElementById('parentsTbody');
+  document.getElementById('p-count').textContent = `${allParents.length} parents`;
+  if (!allParents.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No parents yet</td></tr>'; return; }
+  tbody.innerHTML = allParents.map(p => `<tr class="${p.is_active === false ? 'inactive' : ''}">
+    <td>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="av av-o">${initials(p.full_name)}</div>
+        <div style="font-weight:800">${p.full_name}</div>
       </div>
-    </div>`).join('');
+    </td>
+    <td style="font-size:.82rem;color:var(--text2)">${p.email}</td>
+    <td style="font-size:.82rem;color:var(--text2)">${p.phone||'—'}</td>
+    <td>${statusPill(p.is_active)}</td>
+    <td>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn btn-blue btn-sm" onclick="openEdit('${p.id}')">✏️ Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetPwd('${p.email}')">Reset pwd</button>
+        <button class="btn btn-ghost btn-sm" style="color:${p.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${p.id}','${p.full_name}',${p.is_active!==false})">${p.is_active===false?'Reactivate':'Deactivate'}</button>
+      </div>
+    </td>
+  </tr>`).join('');
 }
 
-function toggleAuto(id,el){
-  el.classList.toggle('off');const isOn=!el.classList.contains('off');
-  const lbl=document.getElementById('togl-'+id);
-  if(lbl){lbl.textContent=isOn?'ON':'OFF';lbl.style.color=isOn?'var(--green-dk)':'var(--text3)';}
-  showToast(id.replace(/_/g,' ')+' '+(isOn?'enabled':'disabled'),'success');
+// ── RENDER BATCHES ──────────────────────────────────────────
+function renderBatches() {
+  const tbody = document.getElementById('batchesTbody');
+  if (!allBatches.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">No batches yet</td></tr>'; return; }
+  tbody.innerHTML = allBatches.map(b => `<tr>
+    <td style="font-weight:800">${b.name}</td>
+    <td><span class="pill ${b.program==='vedic'?'pill-p':'pill-b'}">${b.program||'—'}</span></td>
+    <td style="font-size:.82rem">${b.users?.full_name || '—'}</td>
+    <td><span style="font-weight:800">${b.batch_students?.length||0}</span> students</td>
+    <td style="font-size:.82rem;color:var(--text2)">${b.schedule_json?.text||'—'}</td>
+    <td>
+      <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteBatch('${b.id}','${b.name}')">Delete</button>
+    </td>
+  </tr>`).join('');
 }
 
-function renderSettings(){
-  const s=[
-    {label:'Academy name',      id:'s-name',  value:'iMathAcademy',             type:'text'},
-    {label:'Contact email',     id:'s-email', value:'hello@imathacademy.net',    type:'email'},
-    {label:'Contact phone',     id:'s-phone', value:'+91 99999 99999',           type:'tel'},
-    {label:'Website URL',       id:'s-url',   value:'https://imathacademy.net',  type:'url'},
-    {label:'Default monthly fee (Rs.)',id:'s-fee',value:'800',type:'number'},
-    {label:'UPI ID',            id:'s-upi',   value:'imathacademy@razorpay',     type:'text'},
-  ];
-  document.getElementById('settingsList').innerHTML=s.map(x=>`
-    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap">
-      <label style="font-size:.875rem;font-weight:700;min-width:180px">${x.label}</label>
-      <input type="${x.type}" class="form-input" id="${x.id}" value="${x.value}" style="flex:1;max-width:280px">
-    </div>`).join('');
+// ── RENDER ASSOCIATIONS ─────────────────────────────────────
+async function renderAssociations() {
+  const tbody = document.getElementById('assocTbody');
+  const { data, error } = await sb.from('parent_student')
+    .select('id, users!parent_id(full_name), students:users!student_id(full_name)');
+  if (error || !data?.length) {
+    tbody.innerHTML = '<tr><td colspan="3" class="empty">No associations yet</td></tr>'; return;
+  }
+  tbody.innerHTML = data.map(a => `<tr>
+    <td style="font-weight:800">${a.users?.full_name||'—'}</td>
+    <td style="font-weight:800">${a.students?.full_name||'—'}</td>
+    <td><button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="unlinkAssoc('${a.id}')">Unlink</button></td>
+  </tr>`).join('');
 }
 
-function saveSettings(){showToast('Settings saved!','success');}
-
-function renderConnStatus(){
-  document.getElementById('connStatus').innerHTML=`
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-      <div style="width:10px;height:10px;border-radius:50%;background:var(--green)"></div>
-      <div style="font-size:.875rem;font-weight:700">Supabase database</div>
-      <span class="pill pill-g" style="margin-left:auto">Connected</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
-      <div style="width:10px;height:10px;border-radius:50%;background:var(--green)"></div>
-      <div style="font-size:.875rem;font-weight:700">Brevo email</div>
-      <span class="pill pill-g" style="margin-left:auto">Connected</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 0">
-      <div style="width:10px;height:10px;border-radius:50%;background:var(--orange)"></div>
-      <div style="font-size:.875rem;font-weight:700">Razorpay payments</div>
-      <span class="pill pill-o" style="margin-left:auto">Demo mode</span>
-      <button class="btn btn-orange btn-sm" onclick="showToast('Complete KYC at razorpay.com first!','')">Setup →</button>
-    </div>`;
+// ── RENDER LESSONS ──────────────────────────────────────────
+async function renderLessons() {
+  const tbody = document.getElementById('lessonsTbody');
+  const { data, error } = await sb.from('lessons').select('*').order('level').order('order_index');
+  if (error) { tbody.innerHTML = `<tr><td colspan="6" class="empty">${error.message}</td></tr>`; return; }
+  if (!data?.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">No lessons yet — upload one above</td></tr>'; return; }
+  tbody.innerHTML = data.map(l => `<tr>
+    <td style="font-weight:800">${l.title}</td>
+    <td><span class="pill pill-b">L${l.level}</span></td>
+    <td style="font-size:.82rem;color:var(--text2)">${l.topic||'—'}</td>
+    <td style="font-size:.82rem;color:var(--text2)">${l.duration||'—'}</td>
+    <td><span class="pill ${l.published?'pill-g':'pill-y'}">${l.published?'Published':'Draft'}</span></td>
+    <td>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" onclick="togglePublish('${l.id}',${l.published})">${l.published?'Unpublish':'Publish'}</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteLesson('${l.id}','${l.title}')">Delete</button>
+      </div>
+    </td>
+  </tr>`).join('');
 }
 
-function showTab(name,el){
-  ['overview','students','teachers','parents','associations','batches','lessons','fees','automation','settings'].forEach(t=>{
-    const p=document.getElementById('tab-'+t);if(p)p.style.display=t===name?'block':'none';
+// ── RENDER FEES ─────────────────────────────────────────────
+function renderFees() {
+  const paid    = allFees.filter(f => f.status === 'paid').reduce((s,f) => s+f.amount, 0);
+  const pending = allFees.filter(f => f.status === 'pending').length;
+  const overdue = allFees.filter(f => f.status === 'overdue').length;
+  document.getElementById('fees-collected').textContent = `₹${paid.toLocaleString('en-IN')}`;
+  document.getElementById('fees-pending').textContent   = pending;
+  document.getElementById('fees-overdue').textContent   = overdue;
+
+  const tbody = document.getElementById('feesTbody');
+  if (!allFees.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No fee records</td></tr>'; return; }
+  tbody.innerHTML = allFees.map(f => `<tr>
+    <td style="font-weight:800">${f.users?.full_name||'—'}</td>
+    <td>₹${f.amount?.toLocaleString('en-IN')||'—'}</td>
+    <td style="font-size:.82rem">${fmt(f.due_date)}</td>
+    <td><span class="pill ${f.status==='paid'?'pill-g':f.status==='overdue'?'pill-r':'pill-y'}">${f.status||'—'}</span></td>
+    <td>
+      ${f.status !== 'paid'
+        ? `<button class="btn btn-green btn-sm" onclick="markPaid('${f.id}')">Mark paid</button>`
+        : '<span style="color:var(--text3);font-size:.78rem">Paid</span>'
+      }
+    </td>
+  </tr>`).join('');
+}
+
+// ── EDIT USER ───────────────────────────────────────────────
+function openEdit(id) {
+  const user = [...allStudents, ...allTeachers, ...allParents].find(u => u.id === id);
+  if (!user) return;
+  document.getElementById('edit-id').value    = user.id;
+  document.getElementById('edit-role').value  = user.role;
+  document.getElementById('edit-name').value  = user.full_name || '';
+  document.getElementById('edit-email').value = user.email || '';
+  document.getElementById('edit-phone').value = user.phone || '';
+  document.getElementById('editModalTitle').textContent = `Edit ${user.role}`;
+  const isStudent = user.role === 'student';
+  document.getElementById('edit-student-fields').style.display = isStudent ? 'block' : 'none';
+  if (isStudent) {
+    document.getElementById('edit-program').value = user.program || 'abacus';
+    document.getElementById('edit-level').value   = user.current_level || 1;
+    document.getElementById('edit-mode').value    = user.mode || 'online';
+  }
+  openModal('editModal');
+}
+
+async function saveEdit() {
+  const id    = document.getElementById('edit-id').value;
+  const role  = document.getElementById('edit-role').value;
+  const name  = document.getElementById('edit-name').value.trim();
+  const email = document.getElementById('edit-email').value.trim();
+  const phone = document.getElementById('edit-phone').value.trim();
+  if (!name || !email) { toast('Name and email are required', 'error'); return; }
+  const btn = document.getElementById('saveEditBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    const updates = { full_name: name, email, phone: phone || null };
+    if (role === 'student') {
+      updates.program       = document.getElementById('edit-program').value;
+      updates.current_level = parseInt(document.getElementById('edit-level').value);
+      updates.mode          = document.getElementById('edit-mode').value;
+    }
+    const { error } = await sb.from('users').update(updates).eq('id', id);
+    if (error) throw error;
+    toast('✅ User updated!', 'success');
+    closeModal('editModal');
+    await loadAll();
+    if (role === 'student') renderStudents();
+    if (role === 'teacher') renderTeachers();
+    if (role === 'parent')  renderParents();
+  } catch(err) {
+    toast('❌ ' + err.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save changes';
+  }
+}
+
+// ── TOGGLE ACTIVE ───────────────────────────────────────────
+function toggleActive(id, name, currentlyActive) {
+  const action = currentlyActive ? 'Deactivate' : 'Reactivate';
+  confirm(
+    `${action} ${name}?`,
+    currentlyActive
+      ? `${name} will not be able to login until reactivated. All data is preserved.`
+      : `${name} will be able to login again.`,
+    async () => {
+      try {
+        const { error } = await sb.from('users').update({ is_active: !currentlyActive }).eq('id', id);
+        if (error) throw error;
+        toast(`✅ ${name} ${currentlyActive ? 'deactivated' : 'reactivated'}!`, 'success');
+        await loadAll();
+        if (currentTab === 'students') renderStudents();
+        if (currentTab === 'teachers') renderTeachers();
+        if (currentTab === 'parents')  renderParents();
+      } catch(err) { toast('❌ ' + err.message, 'error'); }
+    }
+  );
+}
+
+// ── RESET PASSWORD ──────────────────────────────────────────
+function resetPwd(email) {
+  confirm('Reset password?', `Send a password reset email to ${email}?`, async () => {
+    try {
+      const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: 'https://imathacademy.net/login.html' });
+      if (error) throw error;
+      toast(`✅ Reset email sent to ${email}`, 'success');
+    } catch(err) { toast('❌ ' + err.message, 'error'); }
+  }, 'Send email', false);
+}
+
+// ── BATCH OPERATIONS ────────────────────────────────────────
+async function createBatch() {
+  const name     = document.getElementById('b-name').value.trim();
+  const program  = document.getElementById('b-program').value;
+  const teacher  = document.getElementById('b-teacher').value;
+  const schedule = document.getElementById('b-schedule').value.trim();
+  const meet     = document.getElementById('b-meet').value.trim();
+  if (!name) { toast('Batch name is required', 'error'); return; }
+  const btn = document.getElementById('createBatchBtn');
+  btn.disabled = true; btn.textContent = 'Creating...';
+  try {
+    const { error } = await sb.from('batches').insert({
+      name, program: program || null,
+      teacher_id:    teacher  || null,
+      schedule_json: schedule ? { text: schedule } : null,
+      meet_link:     meet     || null,
+      is_active:     true,
+    });
+    if (error) throw error;
+    toast(`✅ Batch "${name}" created!`, 'success');
+    ['b-name','b-schedule','b-meet'].forEach(id => { document.getElementById(id).value = ''; });
+    await loadAll();
+    renderBatches();
+  } catch(err) {
+    toast('❌ ' + err.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '➕ Create batch';
+  }
+}
+
+async function deleteBatch(id, name) {
+  confirm(`Delete batch "${name}"?`, 'This will remove all student assignments from this batch.', async () => {
+    try {
+      await sb.from('batch_students').delete().eq('batch_id', id);
+      const { error } = await sb.from('batches').delete().eq('id', id);
+      if (error) throw error;
+      toast(`✅ Batch deleted`, 'success');
+      await loadAll(); renderBatches();
+    } catch(err) { toast('❌ ' + err.message, 'error'); }
   });
-  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
-  if(el)el.classList.add('active');
-  const titles={overview:'Academy Overview',students:'Students',teachers:'Teachers',parents:'Parents',associations:'Associations',batches:'Batches',fees:'Fees',automation:'Automation',lessons:'Lessons',settings:'Settings'};
-  document.getElementById('topbarTitle').textContent=titles[name]||'Admin';
-  renderTabData(name);
 }
 
-function renderTabData(name){
-  if(name==='students')renderStudents(allStudents);
-  if(name==='teachers')renderTeachers(allTeachers);
-  if(name==='parents')renderParents(allParents);
-  if(name==='associations'){renderAssoc();populateDropdowns();}
-  if(name==='batches'){renderBatches();populateDropdowns();}
-  if(name==='lessons'){loadLessonsAdmin();}
-  if(name==='fees')renderFees();
+async function addStudentToBatch() {
+  const sid = document.getElementById('abs-student').value;
+  const bid = document.getElementById('abs-batch').value;
+  if (!sid || !bid) { toast('Please select both student and batch', 'error'); return; }
+  try {
+    const { error } = await sb.from('batch_students').insert({ batch_id: bid, student_id: sid });
+    if (error) {
+      if (error.message.includes('duplicate')) throw new Error('Student is already in this batch');
+      throw error;
+    }
+    toast('✅ Student added to batch!', 'success');
+    await loadAll(); renderBatches();
+  } catch(err) { toast('❌ ' + err.message, 'error'); }
 }
 
-function getCurrentTab(){
-  const a=document.querySelector('.nav-item.active');
-  return a?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1]||'overview';
+// ── ASSOCIATIONS ────────────────────────────────────────────
+async function linkParentStudent() {
+  const pid = document.getElementById('assoc-parent').value;
+  const sid = document.getElementById('assoc-student').value;
+  if (!pid || !sid) { toast('Please select both parent and student', 'error'); return; }
+  try {
+    const { error } = await sb.from('parent_student').insert({ parent_id: pid, student_id: sid });
+    if (error) throw error;
+    toast('✅ Parent linked to student!', 'success');
+    renderAssociations();
+  } catch(err) { toast('❌ ' + err.message, 'error'); }
 }
 
-function openModal(type){
-  currentModal=type;
-  const titles={student:'Add new student',teacher:'Add new teacher',parent:'Add new parent'};
-  const notes={
-    student:'✅ Account created instantly. Welcome email sent to student.',
-    teacher:'✅ Teacher account created. Login details emailed.',
-    parent:'✅ Parent account created. Link them to a student in Associations tab.',
-  };
-  document.getElementById('modalTitle').textContent=titles[type]||'Add user';
-  document.getElementById('modalNote').textContent=notes[type]||'';
-  document.getElementById('studentFields').style.display=type==='student'?'block':'none';
-  document.getElementById('teacherFields').style.display=type==='teacher'?'block':'none';
-  ['newName','newEmail','newPhone'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('newPassword').value='imath2025';
-  document.getElementById('addModal').classList.add('open');
+async function unlinkAssoc(id) {
+  confirm('Unlink parent and student?', 'This removes the parent-student connection.', async () => {
+    try {
+      const { error } = await sb.from('parent_student').delete().eq('id', id);
+      if (error) throw error;
+      toast('✅ Unlinked', 'success');
+      renderAssociations();
+    } catch(err) { toast('❌ ' + err.message, 'error'); }
+  });
 }
 
-function closeModal(){document.getElementById('addModal').classList.remove('open');}
-
-function showConfirm(title,msg,onOk){
-  document.getElementById('confirmTitle').textContent=title;
-  document.getElementById('confirmMsg').textContent=msg;
-  document.getElementById('confirmOkBtn').onclick=()=>{closeConfirm();onOk();};
-  document.getElementById('confirmModal').classList.add('open');
-}
-function closeConfirm(){document.getElementById('confirmModal').classList.remove('open');}
-
-function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
-
-function showToast(msg,type=''){
-  const c=document.getElementById('toastContainer');
-  const t=document.createElement('div');
-  t.className=`toast${type?' toast-'+type:''}`;t.textContent=msg;
-  c.appendChild(t);setTimeout(()=>t.remove(),4000);
-}
-
-// ── LESSONS ─────────────────────────────────────────────
-let allLessonsAdmin = [];
-
-function getYouTubeId(url) {
-  const patterns = [/youtu\.be\/([^?&]+)/,/youtube\.com\/watch\?v=([^&]+)/,/youtube\.com\/embed\/([^?&]+)/];
-  for (const p of patterns) { const m = (url||'').match(p); if (m) return m[1]; }
-  return null;
+// ── LESSONS ─────────────────────────────────────────────────
+function getVideoId(url) {
+  const m = (url||'').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([^?&\s]+)/);
+  return m ? m[1] : null;
 }
 
 function previewLesson() {
-  const url = document.getElementById('lessonUrl').value.trim();
-  const vid = getYouTubeId(url);
-  if (!vid) { showToast('Please enter a valid YouTube URL first', ''); return; }
-  document.getElementById('previewIframe').src = `https://www.youtube-nocookie.com/embed/${vid}?rel=0&modestbranding=1`;
-  document.getElementById('lessonPreview').style.display = 'block';
+  const vid = getVideoId(document.getElementById('l-url').value);
+  if (!vid) { toast('Enter a valid YouTube URL first', 'error'); return; }
+  document.getElementById('l-iframe').src = `https://www.youtube-nocookie.com/embed/${vid}?rel=0&modestbranding=1`;
+  document.getElementById('l-preview').style.display = 'block';
 }
 
-async function uploadLesson(publish) {
-  const title    = document.getElementById('lessonTitle').value.trim();
-  const url      = document.getElementById('lessonUrl').value.trim();
-  const level    = parseInt(document.getElementById('lessonLevel').value);
-  const topic    = document.getElementById('lessonTopic').value;
-  const duration = document.getElementById('lessonDuration').value.trim();
-  const order    = parseInt(document.getElementById('lessonOrder').value) || 1;
-  const desc     = document.getElementById('lessonDesc').value.trim();
-
-  if (!title) { showToast('Please enter a lesson title', ''); return; }
-  if (!url || !getYouTubeId(url)) { showToast('Please enter a valid YouTube URL', ''); return; }
-
+async function saveLesson(publish) {
+  const title    = document.getElementById('l-title').value.trim();
+  const url      = document.getElementById('l-url').value.trim();
+  const level    = parseInt(document.getElementById('l-level').value);
+  const topic    = document.getElementById('l-topic').value;
+  const duration = document.getElementById('l-duration').value.trim();
+  const desc     = document.getElementById('l-desc').value.trim();
+  if (!title) { toast('Lesson title is required', 'error'); return; }
+  if (!url || !getVideoId(url)) { toast('Please enter a valid YouTube URL', 'error'); return; }
   try {
-    const { error: insErr } = await sb.from('lessons').insert({
+    const { error } = await sb.from('lessons').insert({
       title, video_url: url, level, topic,
-      duration: duration||null, order_index: order,
-      description: desc||null, published: publish,
+      duration: duration || null, order_index: 1,
+      description: desc || null, published: publish,
     });
-    if (insErr) throw insErr;
-    showToast(publish ? `✅ "${title}" published to students!` : `💾 "${title}" saved as draft`, 'success');
-    ['lessonTitle','lessonUrl','lessonDuration','lessonDesc'].forEach(id => { document.getElementById(id).value=''; });
-    document.getElementById('lessonPreview').style.display = 'none';
-    document.getElementById('previewIframe').src = '';
-    loadLessonsAdmin();
-  } catch(err) {
-    showToast('❌ '+err.message, 'error');
-  }
+    if (error) throw error;
+    toast(publish ? `✅ "${title}" published!` : `💾 "${title}" saved as draft`, 'success');
+    ['l-title','l-url','l-duration','l-desc'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('l-preview').style.display = 'none';
+    document.getElementById('l-iframe').src = '';
+    renderLessons();
+  } catch(err) { toast('❌ ' + err.message, 'error'); }
 }
 
 async function togglePublish(id, current) {
   try {
-    const { error: updErr } = await sb.from('lessons').update({ published: !current }).eq('id', id);
-    if (updErr) throw updErr;
-    showToast(!current ? '✅ Lesson published!' : '📝 Moved to drafts', 'success');
-    loadLessonsAdmin();
-  } catch(err) { showToast('❌ '+err.message, 'error'); }
+    const { error } = await sb.from('lessons').update({ published: !current }).eq('id', id);
+    if (error) throw error;
+    toast(current ? '📝 Moved to drafts' : '✅ Published!', 'success');
+    renderLessons();
+  } catch(err) { toast('❌ ' + err.message, 'error'); }
 }
 
 async function deleteLesson(id, title) {
-  if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
-  try {
-    const { error: delErr } = await sb.from('lessons').delete().eq('id', id);
-    if (delErr) throw delErr;
-    showToast('Lesson deleted', '');
-    loadLessonsAdmin();
-  } catch(err) { showToast('❌ '+err.message, 'error'); }
-}
-
-async function loadLessonsAdmin() {
-  const el = document.getElementById('lessonsList');
-  if (!el) return;
-  try {
-    const { data: lessons, error } = await sb.from('lessons').select('*').order('level').order('order_index');
-    if (error) throw error;
-    allLessonsAdmin = lessons;
-    if (!lessons.length) {
-      el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-weight:600">No lessons yet — upload one above!</div>';
-      return;
-    }
-    el.innerHTML = `<table style="width:100%;border-collapse:collapse">
-      <thead><tr style="font-size:.72rem;font-weight:800;text-transform:uppercase;color:var(--text3);border-bottom:2px solid var(--border)">
-        <th style="padding:8px 12px;text-align:left">Title</th>
-        <th style="padding:8px 12px;text-align:left">Level</th>
-        <th style="padding:8px 12px;text-align:left">Topic</th>
-        <th style="padding:8px 12px;text-align:left">Duration</th>
-        <th style="padding:8px 12px;text-align:left">Status</th>
-        <th style="padding:8px 12px;text-align:left">Actions</th>
-      </tr></thead>
-      <tbody>${lessons.map(l => `<tr style="border-bottom:1px solid var(--border)">
-        <td style="padding:10px 12px;font-weight:800;font-size:.875rem">${l.title}</td>
-        <td style="padding:10px 12px"><span style="background:var(--blue-lt);color:var(--blue-dk);padding:2px 10px;border-radius:20px;font-size:.72rem;font-weight:800">L${l.level}</span></td>
-        <td style="padding:10px 12px;font-size:.82rem;color:var(--text2);font-weight:600">${l.topic||'—'}</td>
-        <td style="padding:10px 12px;font-size:.82rem;color:var(--text2)">${l.duration||'—'}</td>
-        <td style="padding:10px 12px">
-          <span style="padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:800;background:${l.published?'var(--green-lt)':'var(--orange-lt)'};color:${l.published?'var(--green-dk)':'var(--orange-dk)'}">
-            ${l.published?'Published':'Draft'}
-          </span>
-        </td>
-        <td style="padding:10px 12px;display:flex;gap:6px">
-          <button class="btn btn-ghost btn-sm" onclick="togglePublish('${l.id}',${l.published})" style="font-size:.75rem;padding:5px 12px">
-            ${l.published?'Unpublish':'Publish'}
-          </button>
-          <button class="btn btn-ghost btn-sm" onclick="deleteLesson('${l.id}','${l.title}')" style="font-size:.75rem;padding:5px 12px;color:var(--red)">Delete</button>
-        </td>
-      </tr>`).join('')}</tbody>
-    </table>`;
-  } catch(err) {
-    el.innerHTML = '<div style="padding:20px;color:var(--red);font-weight:600">Could not load lessons: '+err.message+'</div>';
-  }
-}
-
-// ── EDIT USER ────────────────────────────────────────────
-let _editRole = '';
-
-function openEditModal(id, name, email, phone, role, program, level, mode) {
-  _editRole = (role||'').trim();
-  document.getElementById('editUserId').value    = id;
-  document.getElementById('editFullName').value  = name;
-  document.getElementById('editEmail').value     = email;
-  document.getElementById('editPhone').value     = phone || '';
-  document.getElementById('editModalTitle').textContent = `Edit ${_editRole.charAt(0).toUpperCase()+_editRole.slice(1)}`;
-
-  // Show student-only fields
-  const isStudent = _editRole === 'student';
-  document.getElementById('editStudentFields').style.display = isStudent ? 'grid' : 'none';
-  document.getElementById('editModeField').style.display     = isStudent ? 'block' : 'none';
-  if (isStudent) {
-    document.getElementById('editProgram').value = program || 'abacus';
-    document.getElementById('editLevel').value   = level   || 1;
-    document.getElementById('editMode').value    = mode    || 'online';
-  }
-
-  const modal = document.getElementById('editUserModal');
-  modal.style.display = 'flex';
-}
-
-function closeEditModal() {
-  document.getElementById('editUserModal').style.display = 'none';
-}
-
-async function saveEditUser() {
-  const id       = document.getElementById('editUserId').value;
-  const fullName = document.getElementById('editFullName').value.trim();
-  const email    = document.getElementById('editEmail').value.trim();
-  const phone    = document.getElementById('editPhone').value.trim();
-  const btn      = document.getElementById('saveEditBtn');
-
-  if (!fullName) { showToast('Name is required', ''); return; }
-  if (!email)    { showToast('Email is required', ''); return; }
-
-  btn.textContent = 'Saving...'; btn.disabled = true;
-  try {
-    const updates = { full_name: fullName, email, phone: phone || null };
-    if (_editRole === 'student') {
-      updates.program       = document.getElementById('editProgram').value;
-      updates.current_level = parseInt(document.getElementById('editLevel').value);
-      updates.mode          = document.getElementById('editMode').value;
-    }
-    const { error } = await sb.from('users').update(updates).eq('id', id);
-    if (error) throw error;
-    showToast(`✅ ${fullName} updated successfully!`, 'success');
-    closeEditModal();
-    await loadAll();
-    renderTabData(currentTab);
-  } catch(err) {
-    showToast('❌ ' + err.message, 'error');
-  } finally {
-    btn.textContent = 'Save changes'; btn.disabled = false;
-  }
-}
-
-async function toggleActive(id, name, currentlyActive) {
-  const action = currentlyActive ? 'Deactivate' : 'Reactivate';
-  const msg    = currentlyActive
-    ? `Deactivate ${name}? They will not be able to login until reactivated.`
-    : `Reactivate ${name}? They will be able to login again.`;
-
-  showConfirm(`${action} user?`, msg, async () => {
+  confirm(`Delete "${title}"?`, 'This cannot be undone.', async () => {
     try {
-      const { error } = await sb.from('users').update({ is_active: !currentlyActive }).eq('id', id);
+      const { error } = await sb.from('lessons').delete().eq('id', id);
       if (error) throw error;
-      showToast(`✅ ${name} ${currentlyActive ? 'deactivated' : 'reactivated'}!`, 'success');
-      await loadAll();
-      renderTabData(currentTab);
-    } catch(err) {
-      showToast('❌ ' + err.message, 'error');
-    }
+      toast('Lesson deleted', 'info');
+      renderLessons();
+    } catch(err) { toast('❌ ' + err.message, 'error'); }
   });
 }
 
-// Track current tab for refresh after edit
-let currentTab = 'overview';
+// ── FEES ────────────────────────────────────────────────────
+async function markPaid(id) {
+  try {
+    const { error } = await sb.from('fees').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', id);
+    if (error) throw error;
+    toast('✅ Marked as paid!', 'success');
+    await loadAll(); renderFees();
+  } catch(err) { toast('❌ ' + err.message, 'error'); }
+}
 
-async function logout(){await sb.auth.signOut();window.location.href='../../login.html';}
+// ── AUTH ────────────────────────────────────────────────────
+async function logout() {
+  await sb.auth.signOut();
+  window.location.href = '../../login.html';
+}
 
-// Close edit modal on outside click — wait for DOM
-window.addEventListener('DOMContentLoaded', function(){
-  const m = document.getElementById('editUserModal');
-  if(m) m.addEventListener('click', function(e){ if(e.target===this) closeEditModal(); });
-});
+// ── INIT ────────────────────────────────────────────────────
+async function init() {
+  document.getElementById('topbarDate').textContent =
+    new Date().toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = '../../login.html'; return; }
+    const { data: profile } = await sb.from('users').select('full_name, role').eq('id', session.user.id).single();
+    if (!profile || profile.role !== 'admin') { window.location.href = '../../login.html'; return; }
+    const name = profile.full_name || 'Admin';
+    document.getElementById('adminAv').textContent   = initials(name);
+    document.getElementById('adminName').textContent = name;
+    await loadAll();
+  } catch(err) {
+    console.error('Init error:', err);
+    if (err?.message?.includes('not authenticated')) window.location.href = '../../login.html';
+  }
+}
 
 init();
 </script>
-<!-- ══ EDIT USER MODAL ══ -->
-<div id="editUserModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center;padding:20px">
-  <div style="background:var(--bg);border-radius:20px;width:100%;max-width:520px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)">
-    <div style="padding:18px 22px;border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-      <div style="font-family:'Baloo 2',sans-serif;font-size:1.1rem;font-weight:800" id="editModalTitle">Edit User</div>
-      <div onclick="closeEditModal()" style="cursor:pointer;width:32px;height:32px;border-radius:8px;background:var(--bg2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem">✕</div>
-    </div>
-    <div style="padding:22px;display:flex;flex-direction:column;gap:14px">
-      <input type="hidden" id="editUserId">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div>
-          <label for="editFullName" style="font-size:.75rem;font-weight:800;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Full name</label>
-          <input type="text" id="editFullName" class="form-input" placeholder="Full name">
-        </div>
-        <div>
-          <label for="editPhone" style="font-size:.75rem;font-weight:800;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Phone</label>
-          <input type="text" id="editPhone" class="form-input" placeholder="Phone number">
-        </div>
-      </div>
-      <div>
-        <label for="editEmail" style="font-size:.75rem;font-weight:800;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Email</label>
-        <input type="email" id="editEmail" class="form-input" placeholder="Email address">
-      </div>
-      <div id="editStudentFields" style="display:none;display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div>
-          <label for="editProgram" style="font-size:.75rem;font-weight:800;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Program</label>
-          <select id="editProgram" class="form-select">
-            <option value="abacus">Abacus</option>
-            <option value="vedic">Vedic Maths</option>
-          </select>
-        </div>
-        <div>
-          <label for="editLevel" style="font-size:.75rem;font-weight:800;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Level</label>
-          <select id="editLevel" class="form-select">
-            <option value="1">Level 1</option>
-            <option value="2">Level 2</option>
-            <option value="3">Level 3</option>
-            <option value="4">Level 4</option>
-            <option value="5">Level 5</option>
-            <option value="6">Level 6</option>
-          </select>
-        </div>
-      </div>
-      <div id="editModeField" style="display:none">
-        <label for="editMode" style="font-size:.75rem;font-weight:800;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Mode</label>
-        <select id="editMode" class="form-select">
-          <option value="online">Online</option>
-          <option value="offline">Offline</option>
-        </select>
-      </div>
-    </div>
-    <div style="padding:16px 22px;border-top:2px solid var(--border);display:flex;gap:10px;justify-content:flex-end">
-      <button onclick="closeEditModal()" class="btn btn-ghost" style="padding:10px 20px">Cancel</button>
-      <button onclick="saveEditUser()" class="btn btn-blue" style="padding:10px 24px" id="saveEditBtn">Save changes</button>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>

@@ -414,9 +414,6 @@
               <div class="step-inputs">
                 <select class="form-sel" id="aBatch" onchange="updatePreview()">
                   <option value="">Select batch</option>
-                  <option value="A">Batch A — Abacus Level 3 (12 students)</option>
-                  <option value="B">Batch B — Vedic Maths Module 2 (9 students)</option>
-                  <option value="C">Batch C — Abacus Level 1 (7 students)</option>
                 </select>
                 <select class="form-sel" id="aTopic" onchange="updatePreview()">
                   <option value="">Select topic</option>
@@ -660,6 +657,21 @@ let ATT_DATA = {};
 let teacherId = null;
 
 async function loadTeacherData(userId) {
+  // Populate real batch dropdown for homework assignment
+  const { data: teacherBatches } = await sb
+    .from('batches')
+    .select('id, name, batch_students(student_id)')
+    .eq('teacher_id', userId);
+
+  const batchSel = document.getElementById('aBatch');
+  if (batchSel && teacherBatches?.length) {
+    batchSel.innerHTML = '<option value="">Select batch</option>' +
+      teacherBatches.map(b =>
+        `<option value="${b.id}">${b.name} (${b.batch_students?.length || 0} students)</option>`
+      ).join('');
+  }
+
+  
   teacherId = userId;
   STUDENTS = {};
   ATT_DATA = {};
@@ -882,16 +894,71 @@ function updatePreview() {
   }
 }
 
-function assignHomework() {
-  const batch = document.getElementById('aBatch').value;
-  const topic = document.getElementById('aTopic').value;
-  const due   = document.getElementById('aDue').value;
-  if (!batch || !topic || !due) { showToast('Please fill all fields first!', ''); return; }
-  showToast(`Homework assigned to Batch ${batch}! Students notified by email. 🚀`, 'success');
-  document.getElementById('aBatch').value = '';
-  document.getElementById('aTopic').value = '';
-  document.getElementById('aDue').value   = '';
-  document.getElementById('assignPreview').classList.remove('show');
+async function assignHomework() {
+  const batchId     = document.getElementById('aBatch').value;
+  const topic       = document.getElementById('aTopic').value;
+  const due         = document.getElementById('aDue').value;
+  const description = document.getElementById('aDesc')?.value?.trim() || '';
+  const questions   = parseInt(document.getElementById('aQuestions')?.value || '10');
+
+  if (!batchId)  { showToast('Please select a batch', ''); return; }
+  if (!topic)    { showToast('Please select a topic', ''); return; }
+  if (!due)      { showToast('Please set a due date', ''); return; }
+
+  const btn = document.querySelector('[onclick="assignHomework()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Assigning...'; }
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) throw new Error('Not logged in');
+
+    // Insert homework record into Supabase
+    const { data: hw, error } = await sb.from('homework').insert({
+      batch_id:    batchId,
+      teacher_id:  session.user.id,
+      title:       topic,
+      description: description || null,
+      due_date:    due,
+      questions:   questions,
+      is_active:   true,
+      created_at:  new Date().toISOString(),
+    }).select().single();
+
+    if (error) throw error;
+
+    // Notify all students in the batch
+    const { data: batchStudents } = await sb
+      .from('batch_students')
+      .select('student_id')
+      .eq('batch_id', batchId);
+
+    if (batchStudents?.length) {
+      const notifs = batchStudents.map(bs => ({
+        user_id: bs.student_id,
+        type:    'homework',
+        title:   `📚 New homework: ${topic}`,
+        message: `Your teacher has assigned new homework on "${topic}". Due: ${new Date(due).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})}`,
+      }));
+      await sb.from('notifications').insert(notifs);
+    }
+
+    // Get batch name for toast
+    const batch = Object.values(STUDENTS).flat()[0];
+    const batchName = batchId;
+    showToast(`✅ Homework assigned! ${batchStudents?.length || 0} students notified.`, 'success');
+
+    // Clear form
+    document.getElementById('aBatch').value = '';
+    document.getElementById('aTopic').value = '';
+    document.getElementById('aDue').value   = '';
+    if (document.getElementById('aDesc')) document.getElementById('aDesc').value = '';
+    document.getElementById('assignPreview')?.classList.remove('show');
+
+  } catch(err) {
+    showToast('❌ ' + err.message, '');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Assign to students — notify by email 🚀'; }
+  }
 }
 
 // ── REVIEW SUBMISSIONS ─────────────────────────────────────

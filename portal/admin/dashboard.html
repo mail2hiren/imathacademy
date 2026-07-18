@@ -710,7 +710,8 @@ async function renderStudents(data){
       <td><span class="pill ${s.is_active?'pill-g':'pill-r'}">${s.is_active?'Active':'Inactive'}</span></td>
       <td><div style="display:flex;gap:4px">
         <button class="btn btn-ghost btn-sm" onclick="resetPwd('${s.email}')">Reset pwd</button>
-        <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deactivate('${s.id}','${s.full_name}')">✕</button>
+        <button class="btn btn-blue btn-sm" onclick="openEditModal('${s.id}','${s.full_name}','${s.email}','${s.phone||''}','student','${s.program||'abacus'}',${s.current_level||1},'${s.mode||'online'}')">✏️ Edit</button>
+        <button class="btn btn-ghost btn-sm" style="color:${s.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${s.id}','${s.full_name}',${s.is_active!==false})">${s.is_active===false?'Reactivate':'Deactivate'}</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -730,7 +731,8 @@ async function renderTeachers(data){
       <td><span class="pill ${t.is_active?'pill-g':'pill-r'}">${t.is_active?'Active':'Inactive'}</span></td>
       <td><div style="display:flex;gap:4px">
         <button class="btn btn-ghost btn-sm" onclick="resetPwd('${t.email}')">Reset pwd</button>
-        <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deactivate('${t.id}','${t.full_name}')">✕</button>
+        <button class="btn btn-blue btn-sm" onclick="openEditModal('${t.id}','${t.full_name}','${t.email}','${t.phone||''}','teacher')">✏️ Edit</button>
+        <button class="btn btn-ghost btn-sm" style="color:${t.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${t.id}','${t.full_name}',${t.is_active!==false})">${t.is_active===false?'Reactivate':'Deactivate'}</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -746,7 +748,8 @@ async function renderParents(data){
     <td><span class="pill ${p.is_active?'pill-g':'pill-r'}">${p.is_active?'Active':'Inactive'}</span></td>
     <td><div style="display:flex;gap:4px">
       <button class="btn btn-ghost btn-sm" onclick="resetPwd('${p.email}')">Reset pwd</button>
-      <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deactivate('${p.id}','${p.full_name}')">✕</button>
+      <button class="btn btn-blue btn-sm" onclick="openEditModal('${p.id}','${p.full_name}','${p.email}','${p.phone||''}','parent')">✏️ Edit</button>
+      <button class="btn btn-ghost btn-sm" style="color:${p.is_active===false?'var(--green)':'var(--red)'}" onclick="toggleActive('${p.id}','${p.full_name}',${p.is_active!==false})">${p.is_active===false?'Reactivate':'Deactivate'}</button>
     </div></td>
   </tr>`).join('');
   data.forEach(p=>loadLinked(p.id));

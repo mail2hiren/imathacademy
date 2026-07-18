@@ -1151,32 +1151,23 @@ async function saveEdit() {
 }
 
 // ── TOGGLE ACTIVE ───────────────────────────────────────────
-function toggleActive(id, name, currentState) {
-  // currentState: 1 = currently active, 0 = currently inactive
-  console.log('toggleActive called:', {id, name, currentState, parsed: parseInt(currentState)});
+async function toggleActive(id, name, currentState) {
   const isActive = parseInt(currentState) === 1;
-  const action   = isActive ? 'Deactivate' : 'Reactivate';
   const newState = !isActive;
-  console.log('isActive:', isActive, '→ will set is_active to:', newState);
-  showConfirm(
-    `${action} ${name}?`,
-    isActive
-      ? `${name} will not be able to login until reactivated. All data is preserved.`
-      : `${name} will be able to login again.`,
-    async () => {
-      try {
-        console.log('Updating user', id, 'is_active →', newState);
-        const { data: updateData, error } = await sb.from('users').update({ is_active: newState }).eq('id', id).select();
-        console.log('Update result:', updateData, 'error:', error);
-        if (error) throw error;
-        toast(`✅ ${name} ${isActive ? 'deactivated' : 'reactivated'}!`, 'success');
-        await loadAll();
-        if (currentTab === 'students') renderStudents();
-        if (currentTab === 'teachers') renderTeachers();
-        if (currentTab === 'parents')  renderParents();
-      } catch(err) { toast('❌ ' + err.message, 'error'); }
-    }
-  );
+  const action   = isActive ? 'Deactivate' : 'Reactivate';
+  // Use browser native confirm — no custom dialog issues
+  if (!window.confirm(`${action} ${name}?
+
+${isActive ? 'They will not be able to login until reactivated.' : 'They will be able to login again.'}`)) return;
+  try {
+    const { error } = await sb.from('users').update({ is_active: newState }).eq('id', id);
+    if (error) throw error;
+    toast(`✅ ${name} ${isActive ? 'deactivated' : 'reactivated'}!`, 'success');
+    await loadAll();
+    if (currentTab === 'students') renderStudents();
+    if (currentTab === 'teachers') renderTeachers();
+    if (currentTab === 'parents')  renderParents();
+  } catch(err) { toast('❌ ' + err.message, 'error'); }
 }
 
 // ── RESET PASSWORD ──────────────────────────────────────────

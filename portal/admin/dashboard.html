@@ -1332,9 +1332,10 @@ let currentTab = 'overview';
 
 async function logout(){await sb.auth.signOut();window.location.href='../../login.html';}
 
-// Close edit modal on outside click
-document.getElementById('editUserModal').addEventListener('click', function(e){
-  if(e.target === this) closeEditModal();
+// Close edit modal on outside click — wait for DOM
+window.addEventListener('DOMContentLoaded', function(){
+  const m = document.getElementById('editUserModal');
+  if(m) m.addEventListener('click', function(e){ if(e.target===this) closeEditModal(); });
 });
 
 init();

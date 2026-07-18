@@ -696,7 +696,7 @@ function populateDropdowns(){
 function initials(name){return(name||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);}
 function avColor(role){return role==='teacher'?'av-t':role==='parent'?'av-o':role==='admin'?'av-p':'av-g';}
 
-function renderStudents(data){
+async function renderStudents(data){
   const tbody=document.getElementById('studentsTbody');
   if(!data||data.length===0){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text3)">No students found</td></tr>';return;}
   tbody.innerHTML=data.map(s=>{
@@ -716,7 +716,7 @@ function renderStudents(data){
   }).join('');
 }
 
-function renderTeachers(data){
+async function renderTeachers(data){
   const tbody=document.getElementById('teachersTbody');
   if(!data||data.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">No teachers found</td></tr>';return;}
   tbody.innerHTML=data.map(t=>{

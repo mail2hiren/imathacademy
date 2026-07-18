@@ -423,29 +423,139 @@
 
       <!-- ══ ASSOCIATIONS ══ -->
       <div id="tab-associations" class="tab-panel">
-        <div class="card">
-          <div class="card-title">🔗 Link parent to student</div>
-          <div class="form-grid" style="margin-bottom:12px">
-            <div class="form-group">
-              <label class="form-label" for="assoc-parent">Parent</label>
-              <select class="form-select" id="assoc-parent"><option value="">— Select parent —</option></select>
+
+        <!-- Association type tabs -->
+        <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+          <button class="btn btn-green"  id="assoc-tab-btn-parent"  onclick="switchAssocTab('parent')" >👨‍👩‍👧 Parent ↔ Student</button>
+          <button class="btn btn-ghost"  id="assoc-tab-btn-student" onclick="switchAssocTab('student')">🎓 Student ↔ Batch</button>
+          <button class="btn btn-ghost"  id="assoc-tab-btn-teacher" onclick="switchAssocTab('teacher')">👩‍🏫 Teacher ↔ Batch</button>
+          <button class="btn btn-ghost"  id="assoc-tab-btn-program" onclick="switchAssocTab('program')">📚 Student ↔ Program</button>
+        </div>
+
+        <!-- Parent ↔ Student -->
+        <div id="assoc-parent-section">
+          <div class="card">
+            <div class="card-title">👨‍👩‍👧 Link parent to student</div>
+            <div class="card-sub">One parent can be linked to multiple children</div>
+            <div class="form-grid" style="margin-bottom:12px">
+              <div class="form-group">
+                <label class="form-label" for="assoc-parent">Parent</label>
+                <select class="form-select" id="assoc-parent"><option value="">— Select parent —</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="assoc-student">Student</label>
+                <select class="form-select" id="assoc-student"><option value="">— Select student —</option></select>
+              </div>
             </div>
-            <div class="form-group">
-              <label class="form-label" for="assoc-student">Student</label>
-              <select class="form-select" id="assoc-student"><option value="">— Select student —</option></select>
+            <button class="btn btn-green" onclick="linkParentStudent()">🔗 Link parent to student</button>
+          </div>
+          <div class="card">
+            <div class="card-title">Existing parent ↔ student links</div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Parent</th><th>Student</th><th>Actions</th></tr></thead>
+                <tbody id="assocTbody"><tr><td colspan="3" class="empty">Loading...</td></tr></tbody>
+              </table>
             </div>
           </div>
-          <button class="btn btn-green" onclick="linkParentStudent()">🔗 Link accounts</button>
         </div>
-        <div class="card">
-          <div class="card-title">Existing associations</div>
-          <div class="tbl-wrap">
-            <table>
-              <thead><tr><th>Parent</th><th>Student</th><th>Actions</th></tr></thead>
-              <tbody id="assocTbody"><tr><td colspan="3" class="empty">Loading...</td></tr></tbody>
-            </table>
+
+        <!-- Student ↔ Batch -->
+        <div id="assoc-student-section" style="display:none">
+          <div class="card">
+            <div class="card-title">🎓 Assign student to batch</div>
+            <div class="card-sub">A student can be in one batch at a time</div>
+            <div class="form-grid" style="margin-bottom:12px">
+              <div class="form-group">
+                <label class="form-label" for="sb-student">Student</label>
+                <select class="form-select" id="sb-student"><option value="">— Select student —</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="sb-batch">Batch</label>
+                <select class="form-select" id="sb-batch"><option value="">— Select batch —</option></select>
+              </div>
+            </div>
+            <button class="btn btn-green" onclick="assignStudentBatch()">🔗 Assign to batch</button>
+          </div>
+          <div class="card">
+            <div class="card-title">Student batch assignments</div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Student</th><th>Batch</th><th>Program</th><th>Actions</th></tr></thead>
+                <tbody id="studentBatchTbody"><tr><td colspan="4" class="empty">Loading...</td></tr></tbody>
+              </table>
+            </div>
           </div>
         </div>
+
+        <!-- Teacher ↔ Batch -->
+        <div id="assoc-teacher-section" style="display:none">
+          <div class="card">
+            <div class="card-title">👩‍🏫 Assign teacher to batch</div>
+            <div class="card-sub">Each batch can have one assigned teacher</div>
+            <div class="form-grid" style="margin-bottom:12px">
+              <div class="form-group">
+                <label class="form-label" for="tb-teacher">Teacher</label>
+                <select class="form-select" id="tb-teacher"><option value="">— Select teacher —</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="tb-batch">Batch</label>
+                <select class="form-select" id="tb-batch"><option value="">— Select batch —</option></select>
+              </div>
+            </div>
+            <button class="btn btn-green" onclick="assignTeacherBatch()">🔗 Assign teacher to batch</button>
+          </div>
+          <div class="card">
+            <div class="card-title">Teacher batch assignments</div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Teacher</th><th>Batch</th><th>Students</th><th>Actions</th></tr></thead>
+                <tbody id="teacherBatchTbody"><tr><td colspan="4" class="empty">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Student ↔ Program -->
+        <div id="assoc-program-section" style="display:none">
+          <div class="card">
+            <div class="card-title">📚 Assign program to student</div>
+            <div class="card-sub">Change which program a student is enrolled in</div>
+            <div class="form-grid" style="margin-bottom:12px">
+              <div class="form-group">
+                <label class="form-label" for="sp-student">Student</label>
+                <select class="form-select" id="sp-student"><option value="">— Select student —</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="sp-program">Program</label>
+                <select class="form-select" id="sp-program">
+                  <option value="abacus">Abacus</option>
+                  <option value="vedic">Vedic Maths</option>
+                  <option value="both">Both programs</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="sp-level">Level</label>
+                <select class="form-select" id="sp-level">
+                  <option value="1">Level 1</option><option value="2">Level 2</option>
+                  <option value="3">Level 3</option><option value="4">Level 4</option>
+                  <option value="5">Level 5</option><option value="6">Level 6</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-green" onclick="assignProgram()">📚 Update program</button>
+          </div>
+          <div class="card">
+            <div class="card-title">Current student program assignments</div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Student</th><th>Program</th><th>Level</th><th>Actions</th></tr></thead>
+                <tbody id="programTbody"><tr><td colspan="4" class="empty">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- ══ LESSONS ══ -->
@@ -674,7 +784,7 @@ function showTab(name, btn) {
   if (name === 'teachers')     renderTeachers();
   if (name === 'parents')      renderParents();
   if (name === 'batches')      renderBatches();
-  if (name === 'associations') renderAssociations();
+  if (name === 'associations') { renderAssociations(); renderStudentBatches(); renderTeacherBatches(); renderPrograms(); }
   if (name === 'lessons')      renderLessons();
   if (name === 'fees')         renderFees();
 }
@@ -742,13 +852,34 @@ function populateDropdowns() {
   absBatch.innerHTML = '<option value="">— Select batch —</option>' +
     allBatches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
 
-  // Association dropdowns
+  // Association dropdowns — parent↔student
   const aParent = document.getElementById('assoc-parent');
   aParent.innerHTML = '<option value="">— Select parent —</option>' +
     allParents.map(p => `<option value="${p.id}">${p.full_name}</option>`).join('');
   const aStudent = document.getElementById('assoc-student');
   aStudent.innerHTML = '<option value="">— Select student —</option>' +
     allStudents.map(s => `<option value="${s.id}">${s.full_name}</option>`).join('');
+
+  // Student ↔ Batch dropdowns
+  const sbStudent = document.getElementById('sb-student');
+  if (sbStudent) sbStudent.innerHTML = '<option value="">— Select student —</option>' +
+    allStudents.map(s => `<option value="${s.id}">${s.full_name}</option>`).join('');
+  const sbBatch = document.getElementById('sb-batch');
+  if (sbBatch) sbBatch.innerHTML = '<option value="">— Select batch —</option>' +
+    allBatches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+
+  // Teacher ↔ Batch dropdowns
+  const tbTeacher = document.getElementById('tb-teacher');
+  if (tbTeacher) tbTeacher.innerHTML = '<option value="">— Select teacher —</option>' +
+    allTeachers.map(t => `<option value="${t.id}">${t.full_name}</option>`).join('');
+  const tbBatch = document.getElementById('tb-batch');
+  if (tbBatch) tbBatch.innerHTML = '<option value="">— Select batch —</option>' +
+    allBatches.map(b => `<option value="${b.id}">${b.name} (${b.users?.full_name||'No teacher'})</option>`).join('');
+
+  // Student ↔ Program dropdown
+  const spStudent = document.getElementById('sp-student');
+  if (spStudent) spStudent.innerHTML = '<option value="">— Select student —</option>' +
+    allStudents.map(s => `<option value="${s.id}">${s.full_name} (${s.program||'—'} L${s.current_level||1})</option>`).join('');
 }
 
 // ── CREATE USER ─────────────────────────────────────────────
@@ -1189,6 +1320,180 @@ async function markPaid(id) {
     toast('✅ Marked as paid!', 'success');
     await loadAll(); renderFees();
   } catch(err) { toast('❌ ' + err.message, 'error'); }
+}
+
+// ── ASSOCIATION TAB SWITCHER ────────────────────────────────
+function switchAssocTab(type) {
+  ['parent','student','teacher','program'].forEach(t => {
+    document.getElementById(`assoc-${t}-section`).style.display = t === type ? 'block' : 'none';
+    const btn = document.getElementById(`assoc-tab-btn-${t}`);
+    btn.className = t === type ? 'btn btn-green' : 'btn btn-ghost';
+  });
+  if (type === 'parent')  renderAssociations();
+  if (type === 'student') renderStudentBatches();
+  if (type === 'teacher') renderTeacherBatches();
+  if (type === 'program') renderPrograms();
+}
+
+// ── STUDENT ↔ BATCH ─────────────────────────────────────────
+async function assignStudentBatch() {
+  const sid = document.getElementById('sb-student').value;
+  const bid = document.getElementById('sb-batch').value;
+  if (!sid || !bid) { toast('Please select both student and batch', 'error'); return; }
+  try {
+    // Remove from existing batch first
+    await sb.from('batch_students').delete().eq('student_id', sid);
+    const { error } = await sb.from('batch_students').insert({ batch_id: bid, student_id: sid });
+    if (error) throw error;
+    toast('✅ Student assigned to batch!', 'success');
+    await loadAll();
+    renderStudentBatches();
+  } catch(err) { toast('❌ ' + err.message, 'error'); }
+}
+
+async function renderStudentBatches() {
+  const tbody = document.getElementById('studentBatchTbody');
+  // Build from allBatches + allStudents
+  const rows = [];
+  allBatches.forEach(b => {
+    (b.batch_students || []).forEach(bs => {
+      const student = allStudents.find(s => s.id === bs.student_id);
+      if (student) rows.push({ student, batch: b });
+    });
+  });
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">No student-batch assignments yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `<tr>
+    <td>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="av av-g" style="width:28px;height:28px;font-size:.7rem">${initials(r.student.full_name)}</div>
+        <div>
+          <div style="font-weight:800">${r.student.full_name}</div>
+          <div style="font-size:.7rem;color:var(--text3)">${r.student.email}</div>
+        </div>
+      </div>
+    </td>
+    <td style="font-weight:800">${r.batch.name}</td>
+    <td><span class="pill ${r.batch.program==='vedic'?'pill-p':'pill-b'}">${r.batch.program||'—'}</span></td>
+    <td>
+      <button class="btn btn-ghost btn-sm" style="color:var(--red)"
+        onclick="removeStudentFromBatch('${r.student.id}','${r.batch.id}','${r.student.full_name}','${r.batch.name}')">
+        Remove
+      </button>
+    </td>
+  </tr>`).join('');
+}
+
+async function removeStudentFromBatch(sid, bid, sname, bname) {
+  confirm(`Remove ${sname} from ${bname}?`, 'Student will no longer be in this batch.', async () => {
+    try {
+      const { error } = await sb.from('batch_students').delete().eq('student_id', sid).eq('batch_id', bid);
+      if (error) throw error;
+      toast('✅ Removed from batch', 'success');
+      await loadAll(); renderStudentBatches();
+    } catch(err) { toast('❌ ' + err.message, 'error'); }
+  });
+}
+
+// ── TEACHER ↔ BATCH ─────────────────────────────────────────
+async function assignTeacherBatch() {
+  const tid = document.getElementById('tb-teacher').value;
+  const bid = document.getElementById('tb-batch').value;
+  if (!tid || !bid) { toast('Please select both teacher and batch', 'error'); return; }
+  try {
+    const { error } = await sb.from('batches').update({ teacher_id: tid }).eq('id', bid);
+    if (error) throw error;
+    toast('✅ Teacher assigned to batch!', 'success');
+    await loadAll(); renderTeacherBatches();
+  } catch(err) { toast('❌ ' + err.message, 'error'); }
+}
+
+function renderTeacherBatches() {
+  const tbody = document.getElementById('teacherBatchTbody');
+  const assigned = allBatches.filter(b => b.teacher_id);
+  if (!assigned.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">No teacher-batch assignments yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = assigned.map(b => {
+    const teacher = allTeachers.find(t => t.id === b.teacher_id);
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="av av-t" style="width:28px;height:28px;font-size:.7rem">${initials(teacher?.full_name||'?')}</div>
+          <div style="font-weight:800">${teacher?.full_name||'Unknown'}</div>
+        </div>
+      </td>
+      <td style="font-weight:800">${b.name}</td>
+      <td><span style="font-weight:800">${b.batch_students?.length||0}</span> students</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" style="color:var(--red)"
+          onclick="removeTeacherFromBatch('${b.id}','${b.name}')">
+          Remove
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function removeTeacherFromBatch(bid, bname) {
+  confirm(`Remove teacher from ${bname}?`, 'Batch will have no assigned teacher.', async () => {
+    try {
+      const { error } = await sb.from('batches').update({ teacher_id: null }).eq('id', bid);
+      if (error) throw error;
+      toast('✅ Teacher removed from batch', 'success');
+      await loadAll(); renderTeacherBatches();
+    } catch(err) { toast('❌ ' + err.message, 'error'); }
+  });
+}
+
+// ── STUDENT ↔ PROGRAM ────────────────────────────────────────
+async function assignProgram() {
+  const sid     = document.getElementById('sp-student').value;
+  const program = document.getElementById('sp-program').value;
+  const level   = parseInt(document.getElementById('sp-level').value);
+  if (!sid) { toast('Please select a student', 'error'); return; }
+  try {
+    const { error } = await sb.from('users').update({ program, current_level: level }).eq('id', sid);
+    if (error) throw error;
+    toast('✅ Program updated!', 'success');
+    await loadAll(); renderPrograms();
+  } catch(err) { toast('❌ ' + err.message, 'error'); }
+}
+
+function renderPrograms() {
+  const tbody = document.getElementById('programTbody');
+  if (!allStudents.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">No students yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allStudents.map(s => `<tr>
+    <td>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="av av-g" style="width:28px;height:28px;font-size:.7rem">${initials(s.full_name)}</div>
+        <div>
+          <div style="font-weight:800">${s.full_name}</div>
+          <div style="font-size:.7rem;color:var(--text3)">${s.email}</div>
+        </div>
+      </div>
+    </td>
+    <td><span class="pill ${s.program==='vedic'?'pill-p':'pill-b'}">${s.program||'—'}</span></td>
+    <td><span style="font-weight:800">L${s.current_level||1}</span></td>
+    <td>
+      <button class="btn btn-blue btn-sm" onclick="quickChangeProgram('${s.id}','${s.full_name}','${s.program||'abacus'}',${s.current_level||1})">
+        ✏️ Change
+      </button>
+    </td>
+  </tr>`).join('');
+}
+
+function quickChangeProgram(id, name, currentProgram, currentLevel) {
+  document.getElementById('sp-student').value = id;
+  document.getElementById('sp-program').value = currentProgram;
+  document.getElementById('sp-level').value   = currentLevel;
+  toast(`Selected ${name} — update program above`, 'info');
 }
 
 // ── AUTH ────────────────────────────────────────────────────

@@ -210,12 +210,13 @@ let currentTopic = 'all';
 
 // ── YOUTUBE URL HELPERS ──────────────────────────────────
 function getYouTubeId(url) {
-  // Handles: youtu.be/ID, youtube.com/watch?v=ID, youtube.com/embed/ID
+  if (!url) return null;
   const patterns = [
-    /youtu\.be\/([^?&]+)/,
-    /youtube\.com\/watch\?v=([^&]+)/,
-    /youtube\.com\/embed\/([^?&]+)/,
-    /youtube\.com\/v\/([^?&]+)/,
+    /youtube\.com\/watch\?v=([^&\s]+)/,
+    /youtu\.be\/([^?&\s]+)/,
+    /youtube\.com\/embed\/([^?&\s]+)/,
+    /youtube\.com\/shorts\/([^?&\s]+)/,
+    /youtube\.com\/v\/([^?&\s]+)/,
   ];
   for (const p of patterns) {
     const m = url.match(p);

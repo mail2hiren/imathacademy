@@ -223,6 +223,7 @@
         <div class="card">
           <div class="card-title">➕ Add new student</div>
           <div class="card-sub">Creates login credentials and sends welcome email</div>
+          <form autocomplete="off" onsubmit="event.preventDefault(); createUser('student')">
           <div class="form-grid-3" style="margin-bottom:12px">
             <div class="form-group">
               <label class="form-label" for="s-name">Full name *</label>
@@ -261,7 +262,8 @@
               </select>
             </div>
           </div>
-          <button class="btn btn-green" id="createStudentBtn" onclick="createUser('student')">➕ Create student</button>
+          <button class="btn btn-green" id="createStudentBtn" type="submit">➕ Create student</button>
+          </form>
         </div>
         <!-- Students list -->
         <div class="card">
@@ -284,6 +286,7 @@
       <div id="tab-teachers" class="tab-panel">
         <div class="card">
           <div class="card-title">➕ Add new teacher</div>
+          <form autocomplete="off" onsubmit="event.preventDefault(); createUser('teacher')">
           <div class="form-grid" style="margin-bottom:12px">
             <div class="form-group">
               <label class="form-label" for="t-name">Full name *</label>
@@ -302,7 +305,8 @@
               <input class="form-input" id="t-pwd" type="password" placeholder="Min 6 characters">
             </div>
           </div>
-          <button class="btn btn-blue" id="createTeacherBtn" onclick="createUser('teacher')">➕ Create teacher</button>
+          <button class="btn btn-blue" id="createTeacherBtn" type="submit">➕ Create teacher</button>
+          </form>
         </div>
         <div class="card">
           <div class="search-row">
@@ -324,6 +328,7 @@
       <div id="tab-parents" class="tab-panel">
         <div class="card">
           <div class="card-title">➕ Add new parent</div>
+          <form autocomplete="off" onsubmit="event.preventDefault(); createUser('parent')">
           <div class="form-grid" style="margin-bottom:12px">
             <div class="form-group">
               <label class="form-label" for="p-name">Full name *</label>
@@ -342,7 +347,8 @@
               <input class="form-input" id="p-pwd" type="password" placeholder="Min 6 characters">
             </div>
           </div>
-          <button class="btn btn-orange" id="createParentBtn" onclick="createUser('parent')">➕ Create parent</button>
+          <button class="btn btn-orange" id="createParentBtn" type="submit">➕ Create parent</button>
+          </form>
         </div>
         <div class="card">
           <div class="search-row">

@@ -701,7 +701,7 @@ function renderStudents(data){
   if(!data||data.length===0){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text3)">No students found</td></tr>';return;}
   tbody.innerHTML=data.map(s=>{
     const batch=allBatches.find(b=>b.batch_students?.some(bs=>bs.student_id===s.id));
-    return`<tr>
+    return`<tr style="opacity:${s.is_active===false?'0.5':'1'}">
       <td><div style="display:flex;align-items:center;gap:8px"><div class="av av-g">${initials(s.full_name)}</div><div><div style="font-weight:800">${s.full_name}</div><div style="font-size:.7rem;color:var(--text3)">${s.email}</div></div></div></td>
       <td><span class="pill ${s.program==='vedic'?'pill-p':'pill-b'}">${s.program||'—'}</span></td>
       <td style="font-weight:800">L${s.current_level||1}</td>
@@ -1245,9 +1245,154 @@ async function loadLessonsAdmin() {
   }
 }
 
+// ── EDIT USER ────────────────────────────────────────────
+let _editRole = '';
+
+function openEditModal(id, name, email, phone, role, program, level, mode) {
+  _editRole = (role||'').trim();
+  document.getElementById('editUserId').value    = id;
+  document.getElementById('editFullName').value  = name;
+  document.getElementById('editEmail').value     = email;
+  document.getElementById('editPhone').value     = phone || '';
+  document.getElementById('editModalTitle').textContent = `Edit ${_editRole.charAt(0).toUpperCase()+_editRole.slice(1)}`;
+
+  // Show student-only fields
+  const isStudent = _editRole === 'student';
+  document.getElementById('editStudentFields').style.display = isStudent ? 'grid' : 'none';
+  document.getElementById('editModeField').style.display     = isStudent ? 'block' : 'none';
+  if (isStudent) {
+    document.getElementById('editProgram').value = program || 'abacus';
+    document.getElementById('editLevel').value   = level   || 1;
+    document.getElementById('editMode').value    = mode    || 'online';
+  }
+
+  const modal = document.getElementById('editUserModal');
+  modal.style.display = 'flex';
+}
+
+function closeEditModal() {
+  document.getElementById('editUserModal').style.display = 'none';
+}
+
+async function saveEditUser() {
+  const id       = document.getElementById('editUserId').value;
+  const fullName = document.getElementById('editFullName').value.trim();
+  const email    = document.getElementById('editEmail').value.trim();
+  const phone    = document.getElementById('editPhone').value.trim();
+  const btn      = document.getElementById('saveEditBtn');
+
+  if (!fullName) { showToast('Name is required', ''); return; }
+  if (!email)    { showToast('Email is required', ''); return; }
+
+  btn.textContent = 'Saving...'; btn.disabled = true;
+  try {
+    const updates = { full_name: fullName, email, phone: phone || null };
+    if (_editRole === 'student') {
+      updates.program       = document.getElementById('editProgram').value;
+      updates.current_level = parseInt(document.getElementById('editLevel').value);
+      updates.mode          = document.getElementById('editMode').value;
+    }
+    const { error } = await sb.from('users').update(updates).eq('id', id);
+    if (error) throw error;
+    showToast(`✅ ${fullName} updated successfully!`, 'success');
+    closeEditModal();
+    await loadAll();
+    renderTabData(currentTab);
+  } catch(err) {
+    showToast('❌ ' + err.message, 'error');
+  } finally {
+    btn.textContent = 'Save changes'; btn.disabled = false;
+  }
+}
+
+async function toggleActive(id, name, currentlyActive) {
+  const action = currentlyActive ? 'Deactivate' : 'Reactivate';
+  const msg    = currentlyActive
+    ? `Deactivate ${name}? They will not be able to login until reactivated.`
+    : `Reactivate ${name}? They will be able to login again.`;
+
+  showConfirm(`${action} user?`, msg, async () => {
+    try {
+      const { error } = await sb.from('users').update({ is_active: !currentlyActive }).eq('id', id);
+      if (error) throw error;
+      showToast(`✅ ${name} ${currentlyActive ? 'deactivated' : 'reactivated'}!`, 'success');
+      await loadAll();
+      renderTabData(currentTab);
+    } catch(err) {
+      showToast('❌ ' + err.message, 'error');
+    }
+  });
+}
+
+// Track current tab for refresh after edit
+let currentTab = 'overview';
+
 async function logout(){await sb.auth.signOut();window.location.href='../../login.html';}
+
+// Close edit modal on outside click
+document.getElementById('editUserModal').addEventListener('click', function(e){
+  if(e.target === this) closeEditModal();
+});
 
 init();
 </script>
+<!-- ══ EDIT USER MODAL ══ -->
+<div id="editUserModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--bg);border-radius:20px;width:100%;max-width:520px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div style="padding:18px 22px;border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:'Baloo 2',sans-serif;font-size:1.1rem;font-weight:800" id="editModalTitle">Edit User</div>
+      <div onclick="closeEditModal()" style="cursor:pointer;width:32px;height:32px;border-radius:8px;background:var(--bg2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1rem">✕</div>
+    </div>
+    <div style="padding:22px;display:flex;flex-direction:column;gap:14px">
+      <input type="hidden" id="editUserId">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label for="editFullName" style="font-size:.75rem;font-weight:800;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Full name</label>
+          <input type="text" id="editFullName" class="form-input" placeholder="Full name">
+        </div>
+        <div>
+          <label for="editPhone" style="font-size:.75rem;font-weight:800;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Phone</label>
+          <input type="text" id="editPhone" class="form-input" placeholder="Phone number">
+        </div>
+      </div>
+      <div>
+        <label for="editEmail" style="font-size:.75rem;font-weight:800;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Email</label>
+        <input type="email" id="editEmail" class="form-input" placeholder="Email address">
+      </div>
+      <div id="editStudentFields" style="display:none;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label for="editProgram" style="font-size:.75rem;font-weight:800;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Program</label>
+          <select id="editProgram" class="form-select">
+            <option value="abacus">Abacus</option>
+            <option value="vedic">Vedic Maths</option>
+          </select>
+        </div>
+        <div>
+          <label for="editLevel" style="font-size:.75rem;font-weight:800;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Level</label>
+          <select id="editLevel" class="form-select">
+            <option value="1">Level 1</option>
+            <option value="2">Level 2</option>
+            <option value="3">Level 3</option>
+            <option value="4">Level 4</option>
+            <option value="5">Level 5</option>
+            <option value="6">Level 6</option>
+          </select>
+        </div>
+      </div>
+      <div id="editModeField" style="display:none">
+        <label for="editMode" style="font-size:.75rem;font-weight:800;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Mode</label>
+        <select id="editMode" class="form-select">
+          <option value="online">Online</option>
+          <option value="offline">Offline</option>
+        </select>
+      </div>
+    </div>
+    <div style="padding:16px 22px;border-top:2px solid var(--border);display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="closeEditModal()" class="btn btn-ghost" style="padding:10px 20px">Cancel</button>
+      <button onclick="saveEditUser()" class="btn btn-blue" style="padding:10px 24px" id="saveEditBtn">Save changes</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

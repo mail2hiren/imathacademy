@@ -139,7 +139,7 @@ Deno.serve(async (req) => {
   }
 
   const payload = (await req.json()) as CreateUserPayload;
-  const { email, password, full_name, role, phone, program, current_level, mode, batch_id, fee_amount } = payload;
+  const { email, password, full_name, role, phone, program, current_level, mode, batch_id, fee_amount, date_of_birth, age_group } = payload;
 
   if (!email || !password || !full_name || !role) {
     return jsonResponse({ error: "email, password, full_name and role are required" }, 400);

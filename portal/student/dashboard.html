@@ -2,1172 +2,750 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache">
   <link rel="icon" type="image/png" href="/assets/favicon.png">
-  <!-- v20260715111614 -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Dashboard — iMathAcademy</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <title>Dashboard — iMathAcademy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { height: 100%; }
-    body {
-      font-family: 'Nunito', sans-serif;
-      background: #F7F8FF;
-      color: #1A1A2E;
-      min-height: 100vh;
-    }
-
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; min-height: 100vh; overflow-x: hidden; }
     :root {
-      --green:    #43A047; --green-dk: #1B5E20;
-      --green-lt: #E8F5E9; --green-md: #2E7D32;
-      --orange:   #FB8C00; --orange-dk: #E65100;
-      --orange-lt:#FFF3E0;
-      --blue:     #1E88E5; --blue-dk: #0D47A1;
-      --blue-lt:  #E3F2FD;
-      --purple:   #8E24AA; --purple-dk: #4A148C;
-      --purple-lt:#F3E5F5;
-      --red:      #E53935; --red-dk: #B71C1C;
-      --red-lt:   #FFEBEE;
-      --yellow:   #F9A825; --yellow-lt: #FFFDE7;
-      --yellow-dk:#F57F17;
-      --teal:     #00897B; --teal-lt: #E0F2F1;
-      --teal-dk:  #004D40;
-      --bg:       #FFFFFF; --bg2: #F7F8FF;
-      --border:   #E8EAF6;
-      --text2:    #4A4A6A; --text3: #9090B0;
+      --green: #43A047; --green-dk: #1B5E20; --green-lt: #E8F5E9;
+      --blue: #1E88E5; --blue-dk: #0D47A1; --blue-lt: #E3F2FD;
+      --orange: #FB8C00; --orange-dk: #E65100; --orange-lt: #FFF3E0;
+      --purple: #8E24AA; --purple-lt: #F3E5F5; --purple-dk: #4A148C;
+      --red: #E53935; --red-lt: #FFEBEE; --red-dk: #B71C1C;
+      --yellow: #F9A825; --yellow-lt: #FFFDE7; --yellow-dk: #F57F17;
+      --pink: #E91E8C; --pink-lt: #FCE4EC; --pink-dk: #880E4F;
+      --bg: #fff; --bg2: #F7F8FF; --border: #E8EAF6;
+      --text: #1A1A2E; --text2: #4A4A6A; --text3: #9090B0;
+      --bottom-nav-h: 64px;
     }
 
     /* ── LAYOUT ── */
     .portal { display: flex; min-height: 100vh; }
 
-    /* ── SIDEBAR ── */
-    .sidebar {
-      width: 220px; flex-shrink: 0;
-      background: var(--bg);
-      border-right: 2px solid var(--border);
-      display: flex; flex-direction: column;
-      position: fixed; top: 0; left: 0;
-      height: 100vh; overflow-y: auto;
-      z-index: 100; transition: transform .3s ease;
-    }
-
-    .sidebar-logo {
-      padding: 20px 16px;
-      border-bottom: 2px solid var(--border);
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 1.2rem; font-weight: 800;
-      color: var(--green-dk);
-      display: flex; align-items: center; gap: 10px;
-    }
-    .sidebar-logo span { color: var(--orange-dk); }
-    .logo-icon {
-      width: 34px; height: 34px;
-      background: var(--green);
-      border-radius: 10px;
-      display: flex; align-items: center;
-      justify-content: center;
-      font-size: 1.1rem; flex-shrink: 0;
-    }
-
-    .sidebar-nav { flex: 1; padding: 12px 0; }
-
-    .nav-section {
-      font-size: .68rem; font-weight: 800;
-      text-transform: uppercase; letter-spacing: .8px;
-      color: var(--text3); padding: 8px 16px 3px;
-      margin-top: 6px;
-    }
-
-    .nav-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 16px;
-      font-size: .875rem; font-weight: 700;
-      color: var(--text2); cursor: pointer;
-      border-left: 3px solid transparent;
-      transition: all .12s; text-decoration: none;
-    }
-    .nav-item:hover { color: var(--text); background: var(--bg2); }
-    .nav-item.active {
-      color: var(--green-dk); background: var(--green-lt);
-      border-left-color: var(--green);
-    }
-    .nav-icon { width: 20px; text-align: center; font-size: 1rem; flex-shrink: 0; }
-    .nav-badge {
-      margin-left: auto; background: var(--red);
-      color: #fff; font-size: .62rem; font-weight: 800;
-      padding: 2px 6px; border-radius: 20px;
-      min-width: 18px; text-align: center;
-    }
-
-    .sidebar-user {
-      padding: 14px 16px;
-      border-top: 2px solid var(--border);
-      display: flex; align-items: center; gap: 10px;
-    }
-    .user-av {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: var(--green-lt); border: 2px solid var(--green);
-      display: flex; align-items: center; justify-content: center;
-      font-size: .8rem; font-weight: 800; color: var(--green-dk);
-      flex-shrink: 0;
-    }
-    .user-name { font-size: .82rem; font-weight: 800; color: var(--text); line-height: 1.2; }
+    /* Desktop sidebar */
+    .sidebar { width: 220px; flex-shrink: 0; background: var(--bg); border-right: 2px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 100; }
+    .logo { padding: 18px 16px; border-bottom: 2px solid var(--border); font-family: 'Baloo 2', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--green-dk); display: flex; align-items: center; gap: 10px; }
+    .logo-icon { width: 34px; height: 34px; background: var(--green); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .logo span { color: var(--orange-dk); }
+    nav { flex: 1; padding: 10px 0; }
+    .nav-sec { font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--text3); padding: 8px 16px 2px; margin-top: 4px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: .875rem; font-weight: 700; color: var(--text2); cursor: pointer; border-left: 3px solid transparent; transition: all .12s; text-decoration: none; }
+    .nav-item:hover { background: var(--bg2); }
+    .nav-item.active { color: var(--blue-dk); background: var(--blue-lt); border-left-color: var(--blue); }
+    .nav-icon { width: 22px; text-align: center; font-size: 1.1rem; }
+    .sidebar-user { padding: 12px 16px; border-top: 2px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .av { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 800; flex-shrink: 0; }
+    .av-g { background: var(--green-lt); color: var(--green-dk); border: 2px solid var(--green); }
+    .user-name { font-size: .82rem; font-weight: 800; }
     .user-role { font-size: .7rem; color: var(--text3); font-weight: 600; }
-    .logout-btn {
-      margin-left: auto; background: none; border: none;
-      font-size: .85rem; cursor: pointer; color: var(--text3);
-      transition: color .12s;
-    }
-    .logout-btn:hover { color: var(--red); }
+    .logout-btn { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--text3); font-size: .9rem; padding: 4px 8px; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
 
-    /* ── MAIN ── */
-    .main { flex: 1; margin-left: 220px; display: flex; flex-direction: column; }
-
-    /* ── TOPBAR ── */
-    .topbar {
-      height: 62px; background: var(--bg);
-      border-bottom: 2px solid var(--border);
-      display: flex; align-items: center;
-      justify-content: space-between;
-      padding: 0 24px; position: sticky; top: 0; z-index: 50;
-      box-shadow: 0 2px 8px rgba(0,0,0,.05);
-    }
-    .topbar-left { display: flex; align-items: center; gap: 12px; }
-    .hamburger {
-      display: none; flex-direction: column;
-      gap: 4px; cursor: pointer; background: none; border: none;
-    }
-    .hamburger span { width: 20px; height: 2px; background: var(--text); border-radius: 2px; display: block; }
-    .topbar-title { font-family: 'Baloo 2', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--text); }
+    /* Main content */
+    .main { flex: 1; margin-left: 220px; padding-bottom: 0; }
+    .topbar { height: 56px; background: var(--bg); border-bottom: 2px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+    .topbar-title { font-family: 'Baloo 2', sans-serif; font-size: 1rem; font-weight: 800; }
     .topbar-right { display: flex; align-items: center; gap: 10px; }
-    .topbar-date { font-size: .8rem; font-weight: 600; color: var(--text3); }
-    .notif-btn {
-      position: relative; width: 38px; height: 38px;
-      border-radius: 50%; background: var(--bg2);
-      border: 2px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 1rem; transition: all .12s;
-    }
-    .notif-btn:hover { background: var(--bg); }
-    .notif-dot {
-      position: absolute; top: -2px; right: -2px;
-      width: 14px; height: 14px; background: var(--red);
-      border-radius: 50%; border: 2px solid var(--bg);
-      font-size: .55rem; font-weight: 800; color: #fff;
-      display: flex; align-items: center; justify-content: center;
-    }
+    .notif-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; position: relative; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+    .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; border: 2px solid var(--bg); }
+    .content { padding: 16px; }
 
-    /* ── BODY ── */
-    .body { padding: 24px; }
+    /* ── BOTTOM NAV (mobile only) ── */
+    .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; height: var(--bottom-nav-h); background: var(--bg); border-top: 2px solid var(--border); z-index: 200; box-shadow: 0 -4px 16px rgba(0,0,0,.08); }
+    .bottom-nav-inner { display: flex; height: 100%; }
+    .bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; text-decoration: none; border: none; background: none; padding: 4px 0; min-height: 44px; transition: all .12s; }
+    .bnav-icon { font-size: 1.3rem; line-height: 1; }
+    .bnav-label { font-size: .62rem; font-weight: 700; color: var(--text3); font-family: 'Nunito', sans-serif; }
+    .bnav-item.active .bnav-label { color: var(--blue-dk); }
+    .bnav-item.active .bnav-icon { transform: scale(1.15); }
+    .bnav-badge { position: absolute; top: -2px; right: -4px; background: var(--red); color: #fff; font-size: .55rem; font-weight: 800; width: 14px; height: 14px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .bnav-icon-wrap { position: relative; display: inline-flex; }
 
-    /* ── GREETING ── */
-    .greeting-row {
-      display: flex; align-items: flex-start;
-      justify-content: space-between; margin-bottom: 20px;
-      flex-wrap: wrap; gap: 12px;
-    }
-    .greeting-text h1 {
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 1.6rem; font-weight: 800;
-      color: var(--text); margin-bottom: 3px;
-    }
-    .greeting-text p { font-size: .875rem; color: var(--text2); font-weight: 600; }
-    .greeting-badge {
-      display: flex; align-items: center; gap: 8px;
-      background: var(--bg); border: 2px solid var(--border);
-      border-radius: 30px; padding: 8px 16px;
-    }
-    .belt-circle {
-      width: 28px; height: 28px; border-radius: 50%;
-      border: 2.5px solid rgba(0,0,0,.15);
-    }
-    .belt-text { font-size: .82rem; font-weight: 800; color: var(--text); }
+    /* ── HERO CARD ── */
+    .hero { background: linear-gradient(135deg, #1565C0, #6A1B9A); border-radius: 20px; padding: 20px; margin-bottom: 14px; color: #fff; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: -30px; right: -30px; width: 140px; height: 140px; border-radius: 50%; background: rgba(255,255,255,.06); }
+    .hero::after  { content: ''; position: absolute; bottom: -40px; right: 60px; width: 90px; height: 90px; border-radius: 50%; background: rgba(255,255,255,.04); }
+    .hero-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; gap: 10px; }
+    .hero-greeting { font-size: .82rem; opacity: .75; margin-bottom: 3px; }
+    .hero-name { font-size: 1.2rem; font-weight: 800; margin-bottom: 3px; }
+    .hero-sub { font-size: .75rem; opacity: .7; }
+    .streak-box { background: rgba(255,255,255,.15); border-radius: 12px; padding: 8px 12px; text-align: center; border: 1px solid rgba(255,255,255,.2); flex-shrink: 0; }
+    .streak-icon { font-size: 1.3rem; }
+    .streak-num { font-size: 1.1rem; font-weight: 800; line-height: 1.1; }
+    .streak-label { font-size: .65rem; opacity: .8; }
+    /* XP bar */
+    .xp-wrap { }
+    .xp-labels { display: flex; justify-content: space-between; font-size: .72rem; opacity: .8; margin-bottom: 5px; }
+    .xp-bar { height: 10px; background: rgba(255,255,255,.2); border-radius: 20px; overflow: hidden; }
+    .xp-fill { height: 100%; background: linear-gradient(90deg, #FFD600, #FF6F00); border-radius: 20px; transition: width .5s ease; }
+    .xp-hint { font-size: .7rem; opacity: .7; margin-top: 4px; text-align: right; }
 
-    /* ── XP CARD ── */
-    .xp-card {
-      background: linear-gradient(135deg, var(--green-dk) 0%, var(--green-md) 100%);
-      border-radius: 20px; padding: 20px 24px;
-      margin-bottom: 20px; color: #fff;
-      box-shadow: 0 4px 16px rgba(27,94,32,.3);
-    }
-    .xp-top {
-      display: flex; align-items: center;
-      justify-content: space-between; margin-bottom: 12px;
-    }
-    .xp-left h3 { font-size: .95rem; font-weight: 800; opacity: .9; margin-bottom: 2px; }
-    .xp-left p { font-size: .8rem; opacity: .75; font-weight: 600; }
-    .xp-badges { display: flex; gap: 8px; }
-    .xp-badge {
-      padding: 5px 12px; border-radius: 20px;
-      font-size: .78rem; font-weight: 800;
-    }
-    .xp-badge-xp  { background: rgba(255,255,255,.2); color: #fff; }
-    .xp-badge-streak { background: var(--orange); color: #fff; }
-    .xp-bar-track {
-      height: 12px; background: rgba(255,255,255,.25);
-      border-radius: 6px; overflow: hidden; margin-bottom: 8px;
-    }
-    .xp-bar-fill {
-      height: 100%; background: var(--yellow);
-      border-radius: 6px; transition: width .8s ease;
-    }
-    .xp-bar-info {
-      display: flex; justify-content: space-between;
-      font-size: .78rem; opacity: .85; font-weight: 600;
-    }
+    /* ── DAILY MISSION ── */
+    .section-title { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; color: var(--text3); margin-bottom: 10px; }
+    .mission-card { background: var(--bg); border: 2px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 14px; }
+    .mission-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .mission-title { font-size: .95rem; font-weight: 800; }
+    .mission-timer { font-size: .72rem; color: var(--text3); font-weight: 600; }
+    .mission-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .mission-item:last-child { border-bottom: none; }
+    .mission-icon { font-size: 1.2rem; width: 28px; text-align: center; flex-shrink: 0; }
+    .mission-info { flex: 1; }
+    .mission-name { font-size: .875rem; font-weight: 700; }
+    .mission-desc { font-size: .75rem; color: var(--text2); margin-top: 2px; }
+    .mission-xp { font-size: .82rem; font-weight: 800; color: var(--orange-dk); white-space: nowrap; }
+    .mission-done { color: var(--green-dk); }
 
-    /* ── STATS ROW ── */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0,1fr));
-      gap: 12px; margin-bottom: 20px;
-    }
-    .stat-card {
-      background: var(--bg); border: 2px solid var(--border);
-      border-radius: 16px; padding: 14px 16px;
-      text-align: center; transition: all .2s;
-    }
-    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
-    .stat-n {
-      font-family: 'Baloo 2', sans-serif;
-      font-size: 1.7rem; font-weight: 800;
-      line-height: 1.1; margin-bottom: 3px;
-    }
-    .stat-l { font-size: .75rem; font-weight: 700; color: var(--text2); }
-    .stat-s { font-size: .68rem; color: var(--text3); margin-top: 2px; }
+    /* ── ACTION BUTTONS ── */
+    .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .action-btn { border: none; border-radius: 16px; padding: 16px 14px; cursor: pointer; text-align: left; position: relative; overflow: hidden; min-height: 90px; display: flex; flex-direction: column; justify-content: flex-end; transition: transform .15s, box-shadow .15s; -webkit-user-select: none; }
+    .action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.15); }
+    .action-btn:active { transform: scale(.97); }
+    .action-emoji { font-size: 1.8rem; margin-bottom: 6px; }
+    .action-name { font-size: .875rem; font-weight: 800; color: #fff; }
+    .action-sub  { font-size: .72rem; color: rgba(255,255,255,.8); margin-top: 2px; }
+    .action-badge { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,.25); color: #fff; font-size: .65rem; font-weight: 800; padding: 2px 8px; border-radius: 20px; }
+    .action-lock { position: absolute; top: 10px; right: 10px; font-size: 1rem; }
 
-    /* ── CARD GRID ── */
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0,1fr));
-      gap: 16px; margin-bottom: 20px;
-    }
-
-    .action-card {
-      background: var(--bg); border: 2px solid var(--border);
-      border-radius: 18px; padding: 20px;
-      display: flex; flex-direction: column; gap: 8px;
-      transition: all .2s; cursor: pointer; text-decoration: none;
-    }
-    .action-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
-    .action-card.urgent { border-color: var(--red); }
-
-    .ac-icon {
-      width: 44px; height: 44px; border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.3rem; margin-bottom: 4px;
-    }
-    .ac-title { font-size: .95rem; font-weight: 800; color: var(--text); }
-    .ac-body  { font-size: .8rem; color: var(--text2); font-weight: 500; line-height: 1.5; flex: 1; }
-    .ac-cta   {
-      display: inline-flex; align-items: center; justify-content: center;
-      padding: 8px 16px; border-radius: 20px;
-      font-size: .8rem; font-weight: 800;
-      border: none; cursor: pointer; transition: all .15s;
-      margin-top: auto; width: fit-content;
-    }
-
-    /* ── TWO COL ── */
-    .two-col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px; margin-bottom: 20px;
-    }
-
-    .panel {
-      background: var(--bg); border: 2px solid var(--border);
-      border-radius: 18px; padding: 20px;
-    }
-
-    .panel-title {
-      font-size: .75rem; font-weight: 800;
-      text-transform: uppercase; letter-spacing: .5px;
-      color: var(--text2); margin-bottom: 14px;
-      display: flex; align-items: center;
-      justify-content: space-between;
-    }
-    .panel-link {
-      font-size: .72rem; font-weight: 700;
-      color: var(--green); cursor: pointer;
-      text-transform: none; letter-spacing: 0;
-    }
-
-    /* ── TOPIC BARS ── */
-    .topic-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px 0; border-bottom: 1px solid var(--border);
-    }
-    .topic-row:last-child { border-bottom: none; }
-    .topic-name { flex: 1; font-size: .82rem; font-weight: 600; color: var(--text); }
-    .topic-bar  { width: 90px; height: 8px; background: var(--bg2); border-radius: 4px; overflow: hidden; }
-    .topic-fill { height: 100%; border-radius: 4px; }
-    .topic-pct  { font-size: .78rem; font-weight: 800; width: 34px; text-align: right; }
-
-    /* ── HOMEWORK LIST ── */
-    .hw-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px; background: var(--bg2);
-      border: 2px solid var(--border); border-radius: 12px;
-      margin-bottom: 8px; transition: all .12s;
-    }
-    .hw-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,.06); }
-    .hw-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .hw-info { flex: 1; }
-    .hw-name { font-size: .82rem; font-weight: 800; color: var(--text); margin-bottom: 2px; }
-    .hw-meta { font-size: .72rem; color: var(--text3); font-weight: 600; }
-    .hw-pill {
-      font-size: .7rem; font-weight: 800; padding: 3px 10px;
-      border-radius: 20px; white-space: nowrap;
-    }
-    .hw-btn {
-      font-size: .72rem; font-weight: 800; padding: 5px 12px;
-      border-radius: 20px; border: none; cursor: pointer;
-      transition: all .12s; white-space: nowrap;
-    }
+    /* ── PROGRESS ── */
+    .progress-card { background: var(--bg); border: 2px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 14px; }
+    .progress-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .progress-item:last-child { margin-bottom: 0; }
+    .progress-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+    .progress-label { font-size: .82rem; font-weight: 700; flex: 1; }
+    .progress-bar-wrap { flex: 2; height: 6px; background: var(--border); border-radius: 20px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; border-radius: 20px; transition: width .5s ease; }
+    .progress-pct { font-size: .75rem; font-weight: 800; width: 32px; text-align: right; }
 
     /* ── BADGES ── */
-    .badge-strip {
-      display: flex; gap: 8px; flex-wrap: wrap;
-    }
-    .badge-item {
-      display: flex; flex-direction: column;
-      align-items: center; gap: 4px;
-      padding: 10px 8px; background: var(--yellow-lt);
-      border: 1.5px solid #FFE082; border-radius: 12px;
-      min-width: 64px; position: relative;
-      transition: transform .15s;
-    }
-    .badge-item:hover { transform: scale(1.06); }
-    .badge-item.locked { opacity: .35; filter: grayscale(1); background: var(--bg2); border-color: var(--border); }
-    .badge-icon { font-size: 1.4rem; }
-    .badge-label { font-size: .62rem; font-weight: 800; color: var(--text2); text-align: center; line-height: 1.3; }
-    .badge-new {
-      position: absolute; top: -5px; right: -5px;
-      background: var(--red); color: #fff;
-      font-size: .55rem; font-weight: 800;
-      padding: 2px 4px; border-radius: 10px;
-    }
+    .badges-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; scrollbar-width: none; -ms-overflow-style: none; }
+    .badges-row::-webkit-scrollbar { display: none; }
+    .badge-item { flex-shrink: 0; text-align: center; padding: 10px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg); min-width: 70px; }
+    .badge-item.earned { border-color: var(--yellow); background: var(--yellow-lt); }
+    .badge-item.locked { opacity: .4; }
+    .badge-emoji { font-size: 1.5rem; }
+    .badge-name { font-size: .65rem; font-weight: 700; margin-top: 4px; color: var(--text2); }
+    .badge-hint { background: var(--blue-lt); border: 1.5px solid var(--blue); border-radius: 10px; padding: 8px 12px; font-size: .78rem; color: var(--blue-dk); font-weight: 700; margin-bottom: 14px; }
 
-    /* ── LIVE CLASS CARD ── */
-    .live-class {
-      display: flex; align-items: center; gap: 12px;
-      background: var(--green-lt); border: 2px solid #A5D6A7;
-      border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
-    }
-    .live-dot {
-      width: 12px; height: 12px; background: var(--green);
-      border-radius: 50%; flex-shrink: 0;
-      animation: pulse 1.2s infinite;
-    }
-    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
-    .live-info { flex: 1; }
-    .live-title { font-size: .875rem; font-weight: 800; color: var(--green-dk); }
-    .live-meta  { font-size: .75rem; color: var(--green-md); font-weight: 600; }
+    /* ── JR STICKER BOOK ── */
+    .sticker-card { background: linear-gradient(135deg, #FFF9C4, #E8F5E9); border: 2px solid #4CAF50; border-radius: 16px; padding: 14px; margin-bottom: 14px; }
+    .sticker-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .sticker-title { font-size: .95rem; font-weight: 800; color: var(--green-dk); }
+    .sticker-count { font-size: .78rem; font-weight: 700; color: var(--green); }
+    .stickers-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+    .sticker-em { font-size: 1.8rem; }
+    .sticker-locked { font-size: 1.8rem; opacity: .2; }
+    .sticker-hint { font-size: .78rem; color: var(--green-dk); font-weight: 600; }
 
-    /* ── NOTIFICATION PANEL ── */
-    .notif-item {
-      display: flex; gap: 10px; padding: 10px 0;
-      border-bottom: 1px solid var(--border);
-    }
+    /* ── MASCOT ── */
+    .mascot-card { background: linear-gradient(135deg, var(--pink-lt), var(--purple-lt)); border: 2px solid #CE93D8; border-radius: 16px; padding: 14px; display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; }
+    .mascot-em { font-size: 2.5rem; flex-shrink: 0; }
+    .mascot-name { font-size: .78rem; font-weight: 800; color: var(--purple-dk); margin-bottom: 4px; }
+    .mascot-msg { font-size: .82rem; color: var(--purple-dk); line-height: 1.6; font-style: italic; }
+
+    /* ── SR LEADERBOARD ── */
+    .lb-card { background: var(--bg); border: 2px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 14px; }
+    .lb-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .lb-item:last-child { border-bottom: none; }
+    .lb-rank { font-size: 1rem; width: 24px; text-align: center; flex-shrink: 0; }
+    .lb-name { flex: 1; font-size: .875rem; font-weight: 700; }
+    .lb-xp { font-size: .82rem; font-weight: 800; color: var(--orange-dk); }
+    .lb-you { background: var(--blue-lt); border-radius: 8px; padding: 8px 10px; border: 1.5px solid var(--blue); }
+    .lb-you .lb-name { color: var(--blue-dk); }
+    .lb-hint { margin-top: 8px; font-size: .75rem; color: var(--blue-dk); font-weight: 700; background: var(--blue-lt); border-radius: 8px; padding: 6px 10px; }
+
+    /* ── SR TITLE ── */
+    .title-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--blue-dk); color: #fff; padding: 5px 14px; border-radius: 20px; font-size: .8rem; font-weight: 800; margin-bottom: 14px; }
+
+    /* ── NOTIFICATIONS ── */
+    .notif-panel { display: none; position: fixed; top: 56px; right: 0; width: min(360px, 100vw); background: var(--bg); border-left: 2px solid var(--border); border-bottom: 2px solid var(--border); border-radius: 0 0 0 16px; box-shadow: -4px 4px 20px rgba(0,0,0,.1); z-index: 300; max-height: calc(100vh - 56px); overflow-y: auto; }
+    .notif-panel.open { display: block; }
+    .notif-header { padding: 14px 16px; font-weight: 800; border-bottom: 1px solid var(--border); font-size: .95rem; }
+    .notif-item { padding: 12px 16px; border-bottom: 1px solid var(--border); }
     .notif-item:last-child { border-bottom: none; }
-    .notif-ico { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
-    .notif-text { font-size: .8rem; font-weight: 600; color: var(--text2); line-height: 1.5; }
-    .notif-time { font-size: .68rem; color: var(--text3); margin-top: 2px; }
-
-    /* ── LOADING ── */
-    .loading-screen {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      min-height: 300px; gap: 16px;
-    }
-    .spinner {
-      width: 36px; height: 36px;
-      border: 3px solid var(--border);
-      border-top-color: var(--green);
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .notif-item-title { font-size: .82rem; font-weight: 700; margin-bottom: 2px; }
+    .notif-item-sub   { font-size: .75rem; color: var(--text2); }
+    .notif-empty { padding: 24px; text-align: center; color: var(--text3); font-size: .875rem; }
 
     /* ── TOAST ── */
-    .toast-container {
-      position: fixed; bottom: 24px; right: 24px;
-      z-index: 9999; display: flex; flex-direction: column; gap: 8px;
-    }
-    .toast {
-      background: var(--text); color: #fff;
-      padding: 10px 18px; border-radius: 12px;
-      font-size: .875rem; font-weight: 700;
-      box-shadow: 0 4px 16px rgba(0,0,0,.2);
-      animation: slideIn .3s ease;
-    }
+    .toast-wrap { position: fixed; bottom: calc(var(--bottom-nav-h) + 16px); right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 6px; }
+    .toast { padding: 10px 16px; border-radius: 12px; font-size: .82rem; font-weight: 700; box-shadow: 0 4px 16px rgba(0,0,0,.15); animation: slideUp .3s ease; color: #fff; }
     .toast-success { background: var(--green-dk); }
-    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+    .toast-error   { background: var(--red-dk); }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.open { transform: translateX(0); }
-      .main { margin-left: 0; }
-      .hamburger { display: flex; }
-      .stats-row { grid-template-columns: repeat(2, 1fr); }
-      .card-grid  { grid-template-columns: 1fr; }
-      .two-col    { grid-template-columns: 1fr; }
-      .body       { padding: 16px; }
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding-bottom: var(--bottom-nav-h); }
+      .topbar { height: 52px; padding: 0 14px; }
+      .content { padding: 12px; }
+      .bottom-nav { display: block; }
+      .notif-panel { width: 100vw; border-left: none; border-radius: 0; }
+      .hero { border-radius: 16px; padding: 16px; }
+      .hero-name { font-size: 1.1rem; }
+      .actions-grid { gap: 8px; }
+      .action-btn { min-height: 82px; padding: 12px 12px; }
     }
-    @media (max-width: 480px) {
-      .stats-row { grid-template-columns: repeat(2, 1fr); }
-      .greeting-row { flex-direction: column; }
+
+    @media (min-width: 769px) {
+      .toast-wrap { bottom: 24px; }
     }
   </style>
 </head>
 <body>
 <div class="portal">
 
-  <!-- ── SIDEBAR ── -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon">🧮</div>
-      iMath<span>Academy</span>
-    </div>
-
-    <nav class="sidebar-nav">
-      <div class="nav-section">Learning</div>
-      <a class="nav-item active" href="dashboard.html">
-        <span class="nav-icon">🏠</span> Dashboard
-      </a>
-      <a class="nav-item" href="lessons.html">
-        <span class="nav-icon">▶️</span> Lessons
-      </a>
-      <a class="nav-item" href="practice.html">
-        <span class="nav-icon">⚡</span> Practice
-      </a>
-      <a class="nav-item" href="worksheets.html">
-        <span class="nav-icon">📋</span> Worksheets
-      </a>
-      <a class="nav-item" href="weekly-quiz.html" id="weeklyQuizNav">
-        <span class="nav-icon">⭐</span> Weekly Quiz
-        <span class="nav-badge" id="quizBadge" style="display:none">New</span>
-      </a>
-      <a class="nav-item" href="homework.html">
-        <span class="nav-icon">📋</span> Homework
-        <span class="nav-badge" id="hwBadge" style="display:none">0</span>
-      </a>
-
-      <div class="nav-section">Progress</div>
-      <a class="nav-item" href="progress.html">
-        <span class="nav-icon">📊</span> My progress
-      </a>
-      <a class="nav-item" href="#" onclick="showBadges()">
-        <span class="nav-icon">🏅</span> Badges & XP
-      </a>
-
-      <div class="nav-section">Classes</div>
-      <a class="nav-item" href="#" id="liveClassLink">
-        <span class="nav-icon">📹</span> Live classes
-      </a>
+  <!-- ── DESKTOP SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="logo"><div class="logo-icon">🧮</div>iMath<span>Academy</span></div>
+    <nav>
+      <div class="nav-sec">Overview</div>
+      <a class="nav-item active" href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <div class="nav-sec">Learning</div>
+      <a class="nav-item" href="lessons.html"><span class="nav-icon">▶️</span> Lessons</a>
+      <a class="nav-item" href="practice.html"><span class="nav-icon">⚡</span> Practice</a>
+      <a class="nav-item" href="worksheets.html"><span class="nav-icon">📋</span> Worksheets</a>
+      <a class="nav-item" href="weekly-quiz.html"><span class="nav-icon">⭐</span> Weekly Quiz</a>
+      <div class="nav-sec">My stuff</div>
+      <a class="nav-item" href="progress.html"><span class="nav-icon">📊</span> Progress</a>
+      <a class="nav-item" href="homework.html"><span class="nav-icon">📚</span> Homework</a>
     </nav>
-
     <div class="sidebar-user">
-      <div class="user-av" id="userAv">AR</div>
-      <div>
-        <div class="user-name" id="userName">Loading...</div>
-        <div class="user-role">Student</div>
-      </div>
-      <button class="logout-btn" onclick="logout()" title="Sign out">⇥</button>
+      <div class="av av-g" id="desktopAv">S</div>
+      <div><div class="user-name" id="desktopName">Student</div><div class="user-role" id="desktopGroup">—</div></div>
+      <button class="logout-btn" onclick="logout()">⇥</button>
     </div>
   </aside>
 
   <!-- ── MAIN ── -->
   <div class="main">
 
-    <!-- TOPBAR -->
+    <!-- Top bar -->
     <div class="topbar">
-      <div class="topbar-left">
-        <button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
-          <span></span><span></span><span></span>
-        </button>
-        <div class="topbar-title">My Dashboard</div>
-      </div>
+      <div class="topbar-title" id="topbarGreeting">Good morning! 👋</div>
       <div class="topbar-right">
-        <div class="topbar-date" id="topbarDate"></div>
-        <div class="notif-btn" onclick="toggleNotifs()">
-          🔔 <div class="notif-dot" id="notifDot" style="display:none">0</div>
-        </div>
+        <button class="notif-btn" onclick="toggleNotif()" id="notifBtn">
+          🔔
+          <div class="notif-dot" id="notifDot" style="display:none"></div>
+        </button>
+        <button class="logout-btn" onclick="logout()" style="display:none" id="mobileLogout">⇥</button>
       </div>
     </div>
 
-    <!-- BODY -->
-    <div class="body" id="dashBody">
+    <!-- Notification panel -->
+    <div class="notif-panel" id="notifPanel">
+      <div class="notif-header">🔔 Notifications</div>
+      <div id="notifList"><div class="notif-empty">Loading...</div></div>
+    </div>
 
-      <!-- Loading state -->
-      <div class="loading-screen" id="loadingScreen">
-        <div class="spinner"></div>
-        <div style="font-size:.9rem;font-weight:700;color:var(--text3)">Loading your dashboard...</div>
-      </div>
-
-      <!-- Dashboard content (hidden until loaded) -->
-      <div id="dashContent" style="display:none">
-
-        <!-- Greeting -->
-        <div class="greeting-row">
-          <div class="greeting-text">
-            <h1 id="greetingText">Welcome! 👋</h1>
-            <p id="greetingSub">Loading your profile...</p>
-          </div>
-          <div class="greeting-badge">
-            <div class="belt-circle" id="beltCircle" style="background:#F5F5F5"></div>
-            <div class="belt-text" id="beltText">White Belt</div>
-          </div>
-        </div>
-
-        <!-- XP Card -->
-        <div class="xp-card">
-          <div class="xp-top">
-            <div class="xp-left">
-              <h3 id="xpLevelName">Getting started</h3>
-              <p id="xpNextBelt">Complete practice to earn XP</p>
-            </div>
-            <div class="xp-badges">
-              <div class="xp-badge xp-badge-xp" id="xpTotal">0 XP</div>
-              <div class="xp-badge xp-badge-streak" id="streakBadge">🔥 0 days</div>
-            </div>
-          </div>
-          <div class="xp-bar-track">
-            <div class="xp-bar-fill" id="xpBar" style="width:0%"></div>
-          </div>
-          <div class="xp-bar-info">
-            <span id="xpCurrent">0 XP</span>
-            <span id="xpNeeded">500 XP for Yellow Belt</span>
-          </div>
-        </div>
-
-        <!-- Stats -->
-        <div class="stats-row">
-          <div class="stat-card">
-            <div class="stat-n" style="color:var(--blue)" id="statSessions">0</div>
-            <div class="stat-l">Sessions</div>
-            <div class="stat-s">this month</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-n" style="color:var(--green)" id="statAccuracy">—</div>
-            <div class="stat-l">Accuracy</div>
-            <div class="stat-s" id="statAccuracyChange">No data yet</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-n" style="color:var(--orange)" id="statStreak">0</div>
-            <div class="stat-l">Day streak</div>
-            <div class="stat-s">start practising!</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-n" style="color:var(--purple)" id="statBadges">0</div>
-            <div class="stat-l">Badges</div>
-            <div class="stat-s">earned total</div>
-          </div>
-        </div>
-
-        <!-- Action cards -->
-        <div class="card-grid">
-          <!-- Continue lesson -->
-          <div class="action-card" onclick="window.location.href='lessons.html'">
-            <div class="ac-icon" style="background:var(--green-lt)">▶️</div>
-            <div class="ac-title">Continue lesson</div>
-            <div class="ac-body" id="lessonCard">
-              Start your first lesson<br>
-              <span style="color:var(--text3);font-size:.75rem">Welcome to iMathAcademy</span>
-            </div>
-            <button class="ac-cta" style="background:var(--green);color:#fff">Start →</button>
-          </div>
-
-          <!-- Homework -->
-          <div class="action-card" id="homeworkActionCard" onclick="window.location.href='homework.html'">
-            <div class="ac-icon" style="background:var(--orange-lt)">📋</div>
-            <div class="ac-title">Homework</div>
-            <div class="ac-body" id="homeworkCard">
-              No homework assigned yet<br>
-              <span style="color:var(--text3);font-size:.75rem">Your teacher will assign work soon</span>
-            </div>
-            <button class="ac-cta" style="background:var(--orange);color:#fff">View homework →</button>
-          </div>
-
-          <!-- Worksheets card -->
-          <div class="action-card" onclick="window.location.href='worksheets.html'" style="border-color:var(--teal)">
-            <div class="ac-icon" style="background:var(--teal-lt)">📋</div>
-            <div class="ac-title">Worksheets</div>
-            <div class="ac-body">
-              Complete daily worksheets<br>
-              <span style="font-size:.78rem;color:var(--teal-dk);font-weight:700">5-day streak unlocks Weekly Quiz! ⭐</span>
-            </div>
-            <button class="ac-cta" style="background:var(--teal);color:#fff">Open worksheets →</button>
-          </div>
-
-          <!-- Daily practice -->
-          <div class="action-card" onclick="window.location.href='practice.html'">
-            <div class="ac-icon" style="background:var(--purple-lt)">⚡</div>
-            <div class="ac-title">Daily practice</div>
-            <div class="ac-body" id="practiceCard">
-              Start your first practice session<br>
-              <span style="color:var(--text3);font-size:.75rem">Build streaks and earn XP</span>
-            </div>
-            <button class="ac-cta" style="background:var(--purple);color:#fff">Start practice →</button>
-          </div>
-        </div>
-
-        <!-- Live class (shown only when student is in a batch) -->
-        <!-- Virtual Class Banner — shown when a class is scheduled or live -->
-        <div id="liveClassSection" style="display:none;margin-bottom:20px">
-
-          <!-- LIVE NOW banner -->
-          <div id="liveNowBanner" style="display:none;border-radius:16px;padding:16px 20px;color:#fff;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap;background:linear-gradient(135deg,var(--green-dk),var(--green-md))">
-            <div style="width:12px;height:12px;border-radius:50%;background:#4eff91;animation:pulse 1.2s infinite;flex-shrink:0"></div>
-            <div style="flex:1">
-              <div style="font-weight:800;font-size:.95rem;margin-bottom:2px" id="liveClassTitle">Class in progress</div>
-              <div style="font-size:.78rem;opacity:.9" id="liveClassMeta">Your teacher is waiting!</div>
-            </div>
-            <button id="joinClassBtn" onclick="joinLiveClass()" style="background:#fff;color:var(--green-dk);border:none;border-radius:20px;padding:10px 22px;font-family:'Nunito',sans-serif;font-size:.875rem;font-weight:800;cursor:pointer;white-space:nowrap">
-              📹 Join class now
-            </button>
-          </div>
-
-          <!-- UPCOMING class banner -->
-          <div id="upcomingBanner" style="display:none;background:var(--blue-lt);border:2px solid #90CAF9;border-radius:16px;padding:14px 18px;align-items:center;gap:12px;flex-wrap:wrap">
-            <div style="font-size:1.4rem">📅</div>
-            <div style="flex:1">
-              <div style="font-weight:800;font-size:.875rem;color:var(--blue-dk);margin-bottom:2px" id="upcomingClassTitle">Upcoming class</div>
-              <div style="font-size:.75rem;color:var(--blue-dk);opacity:.8" id="upcomingClassMeta">Check back at class time to join</div>
-            </div>
-            <button id="upcomingJoinBtn" style="background:var(--blue);color:#fff;border:none;border-radius:20px;padding:8px 18px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;opacity:.6;cursor:not-allowed">
-              🔒 Not started yet
-            </button>
-          </div>
-        </div>
-
-        <!-- Two column: topics + homework list -->
-        <div class="two-col">
-
-          <!-- Weak topics -->
-          <div class="panel">
-            <div class="panel-title">
-              Topics needing attention
-              <a class="panel-link" href="progress.html">See all →</a>
-            </div>
-            <div id="topicList">
-              <div style="text-align:center;padding:18px;color:var(--text3);font-weight:600;font-size:.85rem">No practice data yet — start a session to see topic insights</div>
-            </div>
-          </div>
-
-          <!-- Homework list -->
-          <div class="panel">
-            <div class="panel-title">
-              Homework
-              <a class="panel-link" href="homework.html">View all →</a>
-            </div>
-            <div id="hwList">
-              <div style="text-align:center;padding:18px;color:var(--text3);font-weight:600;font-size:.85rem">No homework assigned yet</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Badges -->
-        <div class="panel" style="margin-bottom:20px">
-          <div class="panel-title">
-            My badges
-            <a class="panel-link" href="progress.html">See all badges →</a>
-          </div>
-          <div class="badge-strip" id="badgeStrip">
-            <div style="padding:12px;color:var(--text3);font-weight:600;font-size:.85rem">Earn your first badge by completing practice</div>
-          </div>
-        </div>
-
-        <!-- Notifications panel -->
-        <div class="panel" id="notifPanel" style="display:none;margin-bottom:20px">
-          <div class="panel-title">
-            Recent notifications
-            <span class="panel-link" onclick="document.getElementById('notifPanel').style.display='none'">Close</span>
-          </div>
-          <div id="notifList">
-            <div style="padding:12px;color:var(--text3);font-weight:600;font-size:.85rem">No notifications yet</div>
-          </div>
-        </div>
-
+    <!-- Content -->
+    <div class="content" id="mainContent">
+      <div style="text-align:center;padding:40px;color:var(--text3)">
+        <div style="width:40px;height:40px;border:4px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px"></div>
+        Loading your dashboard...
       </div>
     </div>
+
   </div>
 </div>
 
-<!-- Toast container -->
-<div class="toast-container" id="toastContainer"></div>
+<!-- ── BOTTOM NAVIGATION (mobile) ── -->
+<nav class="bottom-nav" id="bottomNav">
+  <div class="bottom-nav-inner">
+    <a class="bnav-item active" href="dashboard.html">
+      <div class="bnav-icon-wrap"><span class="bnav-icon">🏠</span></div>
+      <span class="bnav-label">Home</span>
+    </a>
+    <a class="bnav-item" href="practice.html">
+      <div class="bnav-icon-wrap"><span class="bnav-icon">⚡</span></div>
+      <span class="bnav-label">Practice</span>
+    </a>
+    <a class="bnav-item" href="lessons.html">
+      <div class="bnav-icon-wrap"><span class="bnav-icon">▶️</span></div>
+      <span class="bnav-label">Lessons</span>
+    </a>
+    <a class="bnav-item" href="homework.html">
+      <div class="bnav-icon-wrap">
+        <span class="bnav-icon">📚</span>
+        <span class="bnav-badge" id="hwBadge" style="display:none">!</span>
+      </div>
+      <span class="bnav-label">Homework</span>
+    </a>
+    <a class="bnav-item" href="progress.html">
+      <div class="bnav-icon-wrap"><span class="bnav-icon">📊</span></div>
+      <span class="bnav-label">Progress</span>
+    </a>
+  </div>
+</nav>
 
-<!-- Supabase -->
+<!-- Toast -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-let _liveMeetLink = null; // global — set by loadLiveClass, used by joinLiveClass
 
-// ── BELT DATA ─────────────────────────────────────────────
-const BELTS = [
-  { name:'White Belt',   minXP:0,     maxXP:499,   color:'#F5F5F5', next:'Yellow Belt',   nextXP:500   },
-  { name:'Yellow Belt',  minXP:500,   maxXP:1199,  color:'#FFF176', next:'Orange Belt',   nextXP:1200  },
-  { name:'Orange Belt',  minXP:1200,  maxXP:2499,  color:'#FFB74D', next:'Green Belt',    nextXP:2500  },
-  { name:'Green Belt',   minXP:2500,  maxXP:4499,  color:'#66BB6A', next:'Blue Belt',     nextXP:4500  },
-  { name:'Blue Belt',    minXP:4500,  maxXP:6999,  color:'#42A5F5', next:'Purple Belt',   nextXP:7000  },
-  { name:'Purple Belt',  minXP:7000,  maxXP:9999,  color:'#AB47BC', next:'Red Belt',      nextXP:10000 },
-  { name:'Red Belt',     minXP:10000, maxXP:13999, color:'#EF5350', next:'Brown Belt',    nextXP:14000 },
-  { name:'Brown Belt',   minXP:14000, maxXP:19999, color:'#8D6E63', next:'Black Belt',    nextXP:20000 },
-  { name:'Black Belt',   minXP:20000, maxXP:29999, color:'#212121', next:'Grand Master',  nextXP:30000 },
-  { name:'Grand Master', minXP:30000, maxXP:Infinity, color:'#F9A825', next:'',           nextXP:0     },
-];
-
-function getBelt(xp) {
-  return BELTS.find(b => xp >= b.minXP && xp <= b.maxXP) || BELTS[0];
-}
-
-function getGreeting() {
+// ── HELPERS ─────────────────────────────────────────────────
+function initials(name) { return (name||'S').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2); }
+function greet() {
   const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 17) return 'Good afternoon';
-  return 'Good evening';
+  return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+}
+function toast(msg, type='success') {
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
 }
 
-function formatDate(d) {
-  return d.toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long' });
-}
-// ── INIT ──────────────────────────────────────────────────
-async function init() {
-  document.getElementById('topbarDate').textContent = formatDate(new Date());
-
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) {
-      window.location.href = '../../login.html';
-      return;
-    }
-
-    const { data: profile, error } = await sb
-      .from('users')
-      .select('*')
-      .eq('id', session.user.id)
-      .single();
-
-    if (error || !profile || profile.role !== 'student') {
-      window.location.href = '../../login.html';
-      return;
-    }
-
-    populateDashboard(profile);
-    await Promise.all([
-      loadStats(session.user.id),
-      loadHomeworkForStudent(session.user.id),
-      loadWeakTopics(session.user.id),
-      loadBadges(session.user.id),
-      loadNotifications(session.user.id),
-      loadLiveClass(session.user.id),
-    ]);
-    showDashboard();
-  } catch (err) {
-    console.error('Dashboard load failed:', err);
-    window.location.href = '../../login.html';
-  }
+// ── AGE GROUP ────────────────────────────────────────────────
+function getGroup(age) {
+  if (!age || age <= 7)  return 'tiny';
+  if (age <= 10)         return 'rising';
+  return 'champions';
 }
 
-function populateDashboard(profile) {
-  const xp = profile.xp_points ?? 0;
-  const belt = getBelt(xp);
-  const name = profile.full_name || 'Student';
-  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  const programLabel = profile.program === 'vedic' ? 'Vedic Maths' : profile.program === 'abacus' ? 'Abacus' : 'Learning';
-  const level = profile.current_level ?? 1;
-
-  document.getElementById('greetingText').textContent = `${getGreeting()}, ${name.split(' ')[0]}! 👋`;
-  document.getElementById('greetingSub').textContent =
-    `${new Date().toLocaleDateString('en-IN', { weekday: 'long' })} · ${programLabel} · ${belt.name} · Level ${level}`;
-
-  document.getElementById('beltCircle').style.background = belt.color;
-  document.getElementById('beltText').textContent = belt.name;
-
-  document.getElementById('xpLevelName').textContent = `${programLabel} — Level ${level}`;
-  document.getElementById('xpTotal').textContent = `${xp.toLocaleString()} XP`;
-  document.getElementById('xpCurrent').textContent = `${xp.toLocaleString()} XP`;
-  document.getElementById('streakBadge').textContent = `🔥 ${profile.streak_days ?? 0} days`;
-  document.getElementById('statStreak').textContent = profile.streak_days ?? 0;
-
-  if (belt.next) {
-    const pct = Math.min(100, ((xp - belt.minXP) / (belt.nextXP - belt.minXP) * 100)).toFixed(0);
-    const needed = Math.max(0, belt.nextXP - xp);
-    document.getElementById('xpBar').style.width = `${pct}%`;
-    document.getElementById('xpNextBelt').textContent =
-      xp === 0 ? 'Complete practice to earn XP' : `${needed.toLocaleString()} XP to unlock ${belt.next}`;
-    document.getElementById('xpNeeded').textContent = `${belt.nextXP.toLocaleString()} XP for ${belt.next}`;
-  } else {
-    document.getElementById('xpBar').style.width = '100%';
-    document.getElementById('xpNextBelt').textContent = 'Grand Master achieved!';
-  }
-
-  document.getElementById('userAv').textContent = initials;
-  document.getElementById('userName').textContent = name;
+function groupLabel(group) {
+  return group === 'tiny' ? '🐣 Tiny Champs' : group === 'rising' ? '🌟 Rising Stars' : '🚀 Champions';
 }
 
-function showDashboard() {
-  document.getElementById('loadingScreen').style.display = 'none';
-  document.getElementById('dashContent').style.display = 'block';
+// ── SUBSCRIPTION CHECK ───────────────────────────────────────
+async function checkSubscription(userId) {
+  const { data: subs } = await sb.from('subscriptions')
+    .select('id, expires_at, status')
+    .eq('student_id', userId)
+    .eq('status', 'active')
+    .order('expires_at', { ascending: false })
+    .limit(1);
+  const sub = subs?.[0];
+  const expired = !sub || new Date(sub.expires_at) < new Date();
+  if (expired) { window.location.href = 'subscription.html'; return false; }
+  return true;
 }
 
-async function loadStats(studentId) {
-  try {
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
-
-    const { data: sessions } = await sb
-      .from('practice_sessions')
-      .select('questions_correct, questions_attempted, created_at')
-      .eq('student_id', studentId)
-      .gte('created_at', monthStart.toISOString())
-      .order('created_at', { ascending: false })
-      .limit(50);
-
-    const list = sessions || [];
-    document.getElementById('statSessions').textContent = list.length;
-
-    if (list.length > 0) {
-      const totalCorrect = list.reduce((s, r) => s + (r.questions_correct || 0), 0);
-      const totalQ = list.reduce((s, r) => s + (r.questions_attempted || 0), 0);
-      const acc = totalQ > 0 ? Math.round((totalCorrect / totalQ) * 100) : 0;
-      document.getElementById('statAccuracy').textContent = `${acc}%`;
-      document.getElementById('statAccuracyChange').textContent = 'this month';
-    } else {
-      document.getElementById('statAccuracy').textContent = '—';
-      document.getElementById('statAccuracyChange').textContent = 'No data yet';
-    }
-  } catch { /* keep empty defaults */ }
-}
-
-async function loadHomeworkForStudent(studentId) {
-  try {
-    const { data: batches } = await sb
-      .from('batch_students')
-      .select('batch_id')
-      .eq('student_id', studentId);
-
-    const hwBadge = document.getElementById('hwBadge');
-    const hwList = document.getElementById('hwList');
-    const homeworkCard = document.getElementById('homeworkCard');
-    const homeworkAction = document.getElementById('homeworkActionCard');
-
-    if (!batches || batches.length === 0) {
-      hwBadge.style.display = 'none';
-      return;
-    }
-
-    const batchIds = batches.map(b => b.batch_id);
-    const { data: homework } = await sb
-      .from('homework')
-      .select('id, title, topic, due_date, question_ids, is_active, batches(name), submissions(id, score, total_questions, submitted_at, student_id)')
-      .in('batch_id', batchIds)
-      .eq('is_active', true)
-      .order('due_date', { ascending: true });
-
-    const today = new Date().toISOString().split('T')[0];
-    const items = (homework || []).map(h => {
-      const mine = (h.submissions || []).filter(s => s.student_id === studentId);
-      return { ...h, mySubmission: mine[0] || null };
-    });
-
-    const pending = items.filter(h => !h.mySubmission);
-    hwBadge.textContent = pending.length;
-    hwBadge.style.display = pending.length > 0 ? 'flex' : 'none';
-
-    if (pending.length > 0) {
-      const dueTomorrow = pending.filter(h => h.due_date === tomorrowDate());
-      homeworkCard.innerHTML = dueTomorrow.length
-        ? `<span style="color:var(--red);font-weight:800">${dueTomorrow.length} due tomorrow!</span><br>${pending.length} assignment${pending.length > 1 ? 's' : ''} pending`
-        : `${pending.length} assignment${pending.length > 1 ? 's' : ''} pending<br><span style="color:var(--text3);font-size:.75rem">Keep up the good work</span>`;
-      if (dueTomorrow.length) homeworkAction.classList.add('urgent');
-    } else if (items.length > 0) {
-      homeworkCard.innerHTML = `All caught up!<br><span style="color:var(--text3);font-size:.75rem">${items.length} completed</span>`;
-    }
-
-    if (items.length === 0) {
-      hwList.innerHTML = `<div style="text-align:center;padding:18px;color:var(--text3);font-weight:600;font-size:.85rem">No homework assigned yet</div>`;
-      return;
-    }
-
-    hwList.innerHTML = items.slice(0, 5).map(h => {
-      const qCount = Array.isArray(h.question_ids) ? h.question_ids.length : 0;
-      if (h.mySubmission) {
-        return `<div class="hw-item">
-          <div class="hw-dot" style="background:var(--green)"></div>
-          <div class="hw-info">
-            <div class="hw-name">${escapeHtml(h.title || h.topic || 'Homework')}</div>
-            <div class="hw-meta">Submitted · ${h.mySubmission.score}/${h.mySubmission.total_questions}</div>
-          </div>
-          <span class="hw-pill" style="background:var(--green-lt);color:var(--green-dk);border:1.5px solid #A5D6A7">${h.mySubmission.score}/${h.mySubmission.total_questions}</span>
-          <button class="hw-btn" style="background:var(--bg2);color:var(--text2);border:2px solid var(--border)" onclick="window.location.href='homework.html'">Review</button>
-        </div>`;
-      }
-      const urgent = h.due_date && h.due_date <= tomorrowDate();
-      return `<div class="hw-item"${urgent ? ' style="border-color:var(--red);background:var(--red-lt)"' : ''}>
-        <div class="hw-dot" style="background:${urgent ? 'var(--red)' : 'var(--orange)'}"></div>
-        <div class="hw-info">
-          <div class="hw-name">${escapeHtml(h.title || h.topic || 'Homework')}</div>
-          <div class="hw-meta">${qCount ? qCount + ' questions' : 'Assigned'}</div>
-        </div>
-        <span class="hw-pill" style="background:${urgent ? 'var(--red-lt)' : 'var(--orange-lt)'};color:${urgent ? 'var(--red-dk)' : 'var(--orange-dk)'};border:1.5px solid ${urgent ? '#FFCDD2' : '#FFCC80'}">${formatDue(h.due_date, today)}</span>
-        <button class="hw-btn" style="background:var(--green);color:#fff" onclick="window.location.href='homework.html'">Start</button>
-      </div>`;
-    }).join('');
-  } catch { /* keep empty defaults */ }
-}
-
-function tomorrowDate() {
-  return new Date(Date.now() + 86400000).toISOString().split('T')[0];
-}
-
-function formatDue(due, today) {
-  if (!due) return 'Assigned';
-  if (due < today) return 'Overdue';
-  if (due === today) return 'Due today';
-  if (due === tomorrowDate()) return 'Tomorrow!';
-  return due;
-}
-
-function escapeHtml(str) {
-  return String(str || '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;');
-}
-
-async function loadWeakTopics(studentId) {
-  try {
-    const { data } = await sb
-      .from('student_weak_topics')
-      .select('*')
-      .eq('student_id', studentId)
-      .limit(4);
-
-    const list = document.getElementById('topicList');
-    if (!data || data.length === 0) {
-      list.innerHTML = `<div style="text-align:center;padding:18px;color:var(--text3);font-weight:600;font-size:.85rem">No practice data yet — start a session to see topic insights</div>`;
-      return;
-    }
-
-    list.innerHTML = '';
-    data.forEach(t => {
-      const acc = parseFloat(t.accuracy) || 0;
-      const color = acc >= 75 ? 'var(--green)' : acc >= 55 ? 'var(--blue)' : acc >= 35 ? 'var(--orange)' : 'var(--red)';
-      const textColor = acc >= 75 ? 'var(--green-dk)' : acc >= 55 ? 'var(--blue-dk)' : acc >= 35 ? 'var(--orange-dk)' : 'var(--red-dk)';
-      list.innerHTML += `
-        <div class="topic-row">
-          <span class="topic-name">${escapeHtml(t.topic)}</span>
-          <div class="topic-bar"><div class="topic-fill" style="background:${color};width:${acc}%"></div></div>
-          <span class="topic-pct" style="color:${textColor}">${Math.round(acc)}%</span>
-        </div>`;
-    });
-  } catch { /* keep empty defaults */ }
-}
-
-async function loadBadges(studentId) {
-  try {
-    const { data } = await sb
-      .from('badges')
-      .select('*')
-      .eq('student_id', studentId)
-      .order('earned_at', { ascending: false });
-
-    const badges = data || [];
-    document.getElementById('statBadges').textContent = badges.length;
-
-    const strip = document.getElementById('badgeStrip');
-    if (badges.length === 0) {
-      strip.innerHTML = `<div style="padding:12px;color:var(--text3);font-weight:600;font-size:.85rem">Earn your first badge by completing practice</div>`;
-      return;
-    }
-
-    strip.innerHTML = badges.slice(0, 12).map(b => `
-      <div class="badge-item">
-        <span class="badge-icon">${escapeHtml(b.icon || '🏅')}</span>
-        <span class="badge-label">${escapeHtml(b.label || b.badge_type || 'Badge')}</span>
-      </div>`).join('');
-  } catch { /* keep empty defaults */ }
-}
-
-async function loadNotifications(studentId) {
-  try {
-    const { data } = await sb
-      .from('notifications')
-      .select('*')
-      .eq('user_id', studentId)
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    const list = document.getElementById('notifList');
-    const dot = document.getElementById('notifDot');
-    const notes = data || [];
-
-    if (notes.length === 0) {
-      list.innerHTML = `<div style="padding:12px;color:var(--text3);font-weight:600;font-size:.85rem">No notifications yet</div>`;
-      dot.style.display = 'none';
-      return;
-    }
-
-    const unread = notes.filter(n => !n.is_read).length;
-    if (unread > 0) {
-      dot.textContent = unread;
-      dot.style.display = 'flex';
-    } else {
-      dot.style.display = 'none';
-    }
-
-    list.innerHTML = notes.map(n => `
-      <div class="notif-item">
-        <div class="notif-ico">${n.type === 'homework' ? '📋' : n.type === 'welcome' ? '👋' : '⭐'}</div>
-        <div>
-          <div class="notif-text">${escapeHtml(n.title || n.message || '')}</div>
-          <div class="notif-time">${n.created_at ? new Date(n.created_at).toLocaleString('en-IN') : ''}</div>
-        </div>
-      </div>`).join('');
-  } catch { /* keep empty defaults */ }
-}
-
-async function loadLiveClass(studentId) {
-  const liveSection = document.getElementById('liveClassSection');
-  try {
-    const { data: links } = await sb
-      .from('batch_students')
-      .select('batch_id, batches(id, name, schedule_json, meet_link, users!teacher_id(full_name))')
-      .eq('student_id', studentId)
-      .limit(1);
-
-    if (!links || links.length === 0 || !links[0].batches) {
-      liveSection.style.display = 'none'; return;
-    }
-
-    const batch    = links[0].batches;
-    const meetLink = batch.meet_link;
-    const teacher  = batch.users?.full_name || 'Your teacher';
-    const schedule = batch.schedule_json || {};
-
-    // First check notification-based scheduled classes (most precise)
-    const { data: classNotifs } = await sb.from('notifications')
-      .select('title,message')
-      .eq('user_id', studentId)
-      .eq('type', 'class_scheduled')
-      .order('created_at', { ascending: false })
-      .limit(5);
-
-    const now = new Date();
-    let foundClass = false;
-
-    for (const notif of (classNotifs || [])) {
-      let cd = null;
-      // class info stored as JSON in message field
-      try { cd = JSON.parse(notif.message || '{}'); } catch { continue; }
-      if (!cd?.meet_link || !cd?.date || !cd?.start_time) continue;
-
-      const cs = new Date(`${cd.date}T${cd.start_time}`);
-      const ce = new Date(cs.getTime() + (cd.duration || 60) * 60000);
-
-      if (now >= cs && now <= ce) {
-        // LIVE NOW
-        liveSection.style.display = 'block';
-        document.getElementById('liveNowBanner').style.display  = 'flex';
-        document.getElementById('upcomingBanner').style.display = 'none';
-        document.getElementById('liveClassTitle').textContent   = `${cd.batch_name || batch.name} — ${cd.topic}`;
-        document.getElementById('liveClassMeta').textContent    = `${teacher} is live now!`;
-        _liveMeetLink = cd.meet_link;
-        foundClass = true;
-        break;
-      } else if (now < cs) {
-        // UPCOMING
-        liveSection.style.display = 'block';
-        document.getElementById('liveNowBanner').style.display  = 'none';
-        document.getElementById('upcomingBanner').style.display = 'flex';
-        const timeStr = cs.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
-        const dateStr = cs.toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'short' });
-        document.getElementById('upcomingClassTitle').textContent = `${cd.topic} — ${cd.batch_name || batch.name}`;
-        document.getElementById('upcomingClassMeta').textContent  = `${teacher} · ${dateStr} at ${timeStr}`;
-        const minsLeft = (cs - now) / 60000;
-        if (minsLeft <= 5) {
-          const joinBtn = document.getElementById('upcomingJoinBtn');
-          joinBtn.textContent   = '📹 Join class →';
-          joinBtn.style.opacity = '1';
-          joinBtn.style.cursor  = 'pointer';
-          joinBtn.onclick = () => window.open(cd.meet_link, '_blank');
-        }
-        foundClass = true;
-        break;
-      }
-    }
-
-    // Fall back to batch meet_link if no notification-based class found
-    if (!foundClass && meetLink) {
-      liveSection.style.display = 'block';
-      document.getElementById('liveNowBanner').style.display  = 'flex';
-      document.getElementById('upcomingBanner').style.display = 'none';
-      document.getElementById('liveClassTitle').textContent   = `${batch.name} — ${schedule.text || 'Class available'}`;
-      document.getElementById('liveClassMeta').textContent    = `${teacher}`;
-      _liveMeetLink = meetLink;
-    } else if (!foundClass) {
-      liveSection.style.display = 'none';
-    }
-
-  } catch(e) {
-    console.error('loadLiveClass error:', e);
-    liveSection.style.display = 'none';
-  }
-}
-
-
-// ── LIVE CLASS JOIN ───────────────────────────────────────
-function joinLiveClass() {
-  if (_liveMeetLink) {
-    window.open(_liveMeetLink, '_blank');
-    showToast('Opening Google Meet — join your class! 📹', 'success');
-  } else {
-    showToast('No class link available yet', '');
-  }
-}
-
-// ── UI HELPERS ────────────────────────────────────────────
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-}
-
-function toggleNotifs() {
+// ── NOTIFICATIONS ────────────────────────────────────────────
+function toggleNotif() {
   const panel = document.getElementById('notifPanel');
-  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-  document.getElementById('notifDot').style.display = 'none';
+  panel.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  const panel = document.getElementById('notifPanel');
+  const btn   = document.getElementById('notifBtn');
+  if (panel.classList.contains('open') && !panel.contains(e.target) && !btn.contains(e.target)) {
+    panel.classList.remove('open');
+  }
+});
+
+async function loadNotifications(userId) {
+  const { data } = await sb.from('notifications')
+    .select('*').eq('user_id', userId)
+    .order('created_at', { ascending: false }).limit(10);
+
+  const list = document.getElementById('notifList');
+  const dot  = document.getElementById('notifDot');
+  if (!data?.length) {
+    list.innerHTML = '<div class="notif-empty">No notifications yet</div>';
+    return;
+  }
+  dot.style.display = 'block';
+  list.innerHTML = data.map(n => `
+    <div class="notif-item">
+      <div class="notif-item-title">${n.title}</div>
+      <div class="notif-item-sub">${n.message || ''}</div>
+    </div>`).join('');
 }
 
-function showBadges() {
-  window.location.href = 'progress.html';
+// ── BUILD DASHBOARD ──────────────────────────────────────────
+function buildDashboard(profile, stats, group) {
+  const name    = profile.full_name || 'Student';
+  const level   = profile.current_level || 1;
+  const xp      = profile.xp_points || 0;
+  const streak  = profile.streak_days || 0;
+  const xpNext  = (Math.floor(xp / 500) + 1) * 500;
+  const xpPct   = Math.min(100, Math.round((xp % 500) / 500 * 100));
+  const isMobile = window.innerWidth <= 768;
+
+  // Topbar
+  document.getElementById('topbarGreeting').textContent = `${greet()}, ${name.split(' ')[0]}! 👋`;
+  if (isMobile) document.getElementById('mobileLogout').style.display = 'flex';
+
+  // Desktop sidebar
+  document.getElementById('desktopAv').textContent   = initials(name);
+  document.getElementById('desktopName').textContent = name;
+  document.getElementById('desktopGroup').textContent = groupLabel(group);
+
+  // Homework badge
+  if (stats.homeworkPending > 0) {
+    document.getElementById('hwBadge').style.display = 'flex';
+  }
+
+  const content = document.getElementById('mainContent');
+
+  // ── TINY (5-7) ─────────────────────────────────────────────
+  if (group === 'tiny') {
+    content.innerHTML = `
+
+      <!-- Mascot hero -->
+      <div style="background:linear-gradient(135deg,#E91E8C,#9C27B0);border-radius:20px;padding:20px;margin-bottom:14px;color:#fff;text-align:center;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:-10px;left:-10px;font-size:60px;opacity:.1;">🐘</div>
+        <div style="position:absolute;bottom:-10px;right:-10px;font-size:60px;opacity:.1;">⭐</div>
+        <div style="font-size:52px;margin-bottom:8px;">🐘</div>
+        <div style="font-size:1.1rem;font-weight:800;margin-bottom:4px;">Hello ${name.split(' ')[0]}! 👋</div>
+        <div style="font-size:.82rem;opacity:.85;margin-bottom:14px;">"Ready to do some maths magic today?"</div>
+        <div style="display:flex;justify-content:center;gap:6px;margin-bottom:8px;">
+          ${Array.from({length:7},(_,i)=>`<span style="font-size:1.4rem;opacity:${i<streak?1:.25};">⭐</span>`).join('')}
+        </div>
+        <div style="font-size:.72rem;opacity:.8;">${streak} day${streak!==1?'s':''} in a row! ${streak<7?`${7-streak} more for a SUPER STAR badge!`:' AMAZING streak! 🎉'}</div>
+      </div>
+
+      <!-- XP blocks -->
+      <div style="background:#FFF9C4;border:2px solid #F9A825;border-radius:16px;padding:12px 14px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="font-size:.82rem;font-weight:800;color:#E65100;">⚡ Power bar</div>
+          <div style="font-size:.82rem;font-weight:800;color:#E65100;">${xp} / ${xpNext}</div>
+        </div>
+        <div style="display:flex;gap:3px;flex-wrap:wrap;">
+          ${Array.from({length:10},(_,i)=>`<div style="width:calc(10% - 3px);height:18px;background:${i<Math.floor(xpPct/10)?'#FF6F00':'#FFF9C4'};border-radius:4px;border:1px ${i<Math.floor(xpPct/10)?'solid #E65100':'dashed #F9A825'};"></div>`).join('')}
+          <span style="font-size:1rem;margin-left:4px;">🏆</span>
+        </div>
+        <div style="font-size:.72rem;color:#E65100;margin-top:5px;">Fill all blocks to level up! 🎉</div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="section-title">What do you want to do?</div>
+      <div class="actions-grid" style="margin-bottom:14px;">
+        <a href="practice.html" class="action-btn" style="background:linear-gradient(145deg,#1976D2,#42A5F5);border:3px solid #1565C0;text-decoration:none;">
+          <span class="action-emoji">⚡</span>
+          <div class="action-name">Play maths!</div>
+          <div class="action-sub">Flash cards</div>
+          <span class="action-badge">+10 ⚡</span>
+        </a>
+        <div class="action-btn" style="background:linear-gradient(145deg,#7B1FA2,#AB47BC);border:3px solid #4A148C;opacity:.7;cursor:default;">
+          <span class="action-emoji">🔒</span>
+          <div class="action-name">Puzzle time!</div>
+          <div class="action-sub">Get 5 right first!</div>
+          <span class="action-badge">+30 ⚡</span>
+        </div>
+        <a href="homework.html" class="action-btn" style="background:linear-gradient(145deg,#E65100,#FF8A50);border:3px solid #BF360C;text-decoration:none;">
+          <span class="action-emoji">📚</span>
+          <div class="action-name">Homework</div>
+          <div class="action-sub">${stats.homeworkPending > 0 ? stats.homeworkPending+' waiting!' : 'All done! 🎉'}</div>
+          ${stats.homeworkPending > 0 ? '<span class="action-badge">!</span>' : ''}
+        </a>
+        <a href="lessons.html" class="action-btn" style="background:linear-gradient(145deg,#2E7D32,#66BB6A);border:3px solid #1B5E20;text-decoration:none;">
+          <span class="action-emoji">▶️</span>
+          <div class="action-name">Watch videos</div>
+          <div class="action-sub">Learn new things</div>
+        </a>
+      </div>
+
+      <!-- Sticker book -->
+      <div class="sticker-card">
+        <div class="sticker-header">
+          <div class="sticker-title">🎁 My sticker book</div>
+          <div class="sticker-count">${stats.stickers} stickers!</div>
+        </div>
+        <div class="stickers-row">
+          <span class="sticker-em">🐘</span><span class="sticker-em">🦁</span><span class="sticker-em">🐯</span>
+          <span class="sticker-em">🐬</span><span class="sticker-em">🦒</span>
+          <span class="sticker-locked">❓</span><span class="sticker-locked">❓</span>
+        </div>
+        <div class="sticker-hint">Solve 5 more sums to unlock a new animal! 🐆</div>
+      </div>
+
+      <!-- Mascot message -->
+      <div class="mascot-card">
+        <div class="mascot-em">🐘</div>
+        <div>
+          <div class="mascot-name">Jumbo says...</div>
+          <div class="mascot-msg">"${getMascotMessage(streak, xpPct)}"</div>
+        </div>
+      </div>`;
+
+  // ── RISING (8-10) ───────────────────────────────────────────
+  } else if (group === 'rising') {
+    content.innerHTML = `
+
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero-top">
+          <div>
+            <div class="hero-greeting">${greet()}!</div>
+            <div class="hero-name">${name} 🌟</div>
+            <div class="hero-sub">Level ${level} · Abacus</div>
+          </div>
+          <div class="streak-box">
+            <div class="streak-icon">🔥</div>
+            <div class="streak-num">${streak}</div>
+            <div class="streak-label">day streak</div>
+          </div>
+        </div>
+        <div class="xp-wrap">
+          <div class="xp-labels"><span>⚡ ${xp} XP</span><span>${xpNext} XP → Level up!</span></div>
+          <div class="xp-bar"><div class="xp-fill" style="width:${xpPct}%"></div></div>
+          <div class="xp-hint">${100-xpPct}% to go — keep going!</div>
+        </div>
+      </div>
+
+      <!-- Daily missions -->
+      <div class="mission-card">
+        <div class="mission-header">
+          <div class="mission-title">🎯 Today's missions</div>
+          <div class="mission-timer">Resets midnight</div>
+        </div>
+        <div class="mission-item ${stats.practiceToday ? 'mission-done' : ''}">
+          <div class="mission-icon">${stats.practiceToday ? '✅' : '⚡'}</div>
+          <div class="mission-info">
+            <div class="mission-name">Complete 1 practice session</div>
+            <div class="mission-desc">${stats.practiceToday ? 'Done! Great work!' : 'Flash cards or worksheets'}</div>
+          </div>
+          <div class="mission-xp">+10 XP</div>
+        </div>
+        <div class="mission-item">
+          <div class="mission-icon">🎯</div>
+          <div class="mission-info">
+            <div class="mission-name">Get 5 correct in a row</div>
+            <div class="mission-desc">3 in a row so far — 2 more to unlock puzzle!</div>
+          </div>
+          <div class="mission-xp">+20 XP</div>
+        </div>
+        <div class="mission-item" style="opacity:.6;">
+          <div class="mission-icon">🧩</div>
+          <div class="mission-info">
+            <div class="mission-name">Solve today's puzzle</div>
+            <div class="mission-desc">Unlock by getting 5 in a row first</div>
+          </div>
+          <div class="mission-xp">+30 XP</div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="section-title">Quick actions</div>
+      <div class="actions-grid" style="margin-bottom:14px;">
+        <a href="practice.html" class="action-btn" style="background:linear-gradient(145deg,#1565C0,#1976D2);text-decoration:none;">
+          <span class="action-emoji">⚡</span>
+          <div class="action-name">Practice now</div>
+          <div class="action-sub">Flash cards · Level ${level}</div>
+          <span class="action-badge">+10 XP</span>
+        </a>
+        <div class="action-btn" style="background:linear-gradient(145deg,#6A1B9A,#7B1FA2);opacity:.7;cursor:default;">
+          <span class="action-emoji">🧩</span>
+          <div class="action-name">Today's puzzle</div>
+          <div class="action-sub">Locked — get 5 right!</div>
+          <span class="action-lock">🔒</span>
+        </div>
+        <a href="homework.html" class="action-btn" style="background:linear-gradient(145deg,#E65100,#F57C00);text-decoration:none;">
+          <span class="action-emoji">📚</span>
+          <div class="action-name">Homework</div>
+          <div class="action-sub">${stats.homeworkPending > 0 ? stats.homeworkPending+' pending' : 'All done!'}</div>
+          ${stats.homeworkPending > 0 ? '<span class="action-badge">!</span>' : ''}
+        </a>
+        <a href="lessons.html" class="action-btn" style="background:linear-gradient(145deg,#2E7D32,#388E3C);text-decoration:none;">
+          <span class="action-emoji">▶️</span>
+          <div class="action-name">Lessons</div>
+          <div class="action-sub">Watch and learn</div>
+        </a>
+      </div>
+
+      <!-- Badges -->
+      <div class="section-title">My badges</div>
+      <div class="badges-row">
+        <div class="badge-item earned"><div class="badge-emoji">⭐</div><div class="badge-name">Speed star</div></div>
+        <div class="badge-item earned"><div class="badge-emoji">🎯</div><div class="badge-name">Perfect!</div></div>
+        <div class="badge-item earned"><div class="badge-emoji">🔥</div><div class="badge-name">5-day fire</div></div>
+        <div class="badge-item locked"><div class="badge-emoji">🧩</div><div class="badge-name">Puzzle pro</div></div>
+        <div class="badge-item locked"><div class="badge-emoji">🥇</div><div class="badge-name">7-day legend</div></div>
+        <div class="badge-item locked"><div class="badge-emoji">🏆</div><div class="badge-name">Top of batch</div></div>
+      </div>
+      <div class="badge-hint">🧩 Solve 7 more puzzles to unlock <strong>Puzzle pro</strong>!</div>
+
+      <!-- Level progress -->
+      <div class="section-title">Level ${level} progress</div>
+      <div class="progress-card">
+        <div class="progress-item">
+          <div class="progress-icon">✅</div>
+          <div class="progress-label" style="color:var(--green-dk)">Big friends addition</div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:100%;background:var(--green)"></div></div>
+          <div class="progress-pct" style="color:var(--green-dk)">100%</div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-icon">🔄</div>
+          <div class="progress-label" style="color:var(--orange-dk)">Small friends addition</div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:82%;background:var(--orange)"></div></div>
+          <div class="progress-pct" style="color:var(--orange-dk)">82%</div>
+        </div>
+        <div class="progress-item" style="opacity:.4">
+          <div class="progress-icon">🔒</div>
+          <div class="progress-label">Big friends subtraction</div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:0%"></div></div>
+          <div class="progress-pct" style="color:var(--text3)">—</div>
+        </div>
+      </div>`;
+
+  // ── CHAMPIONS (11-12) ────────────────────────────────────────
+  } else {
+    content.innerHTML = `
+
+      <!-- Dark hero -->
+      <div style="background:linear-gradient(135deg,#0D47A1,#1A237E);border-radius:20px;padding:18px;margin-bottom:14px;color:#fff;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;right:0;width:100px;height:100%;background:linear-gradient(135deg,transparent,rgba(255,255,255,.03));border-radius:20px;"></div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:10px;">
+          <div>
+            <div style="font-size:.72rem;opacity:.6;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Level ${level} · Week 3 of 12</div>
+            <div style="font-size:1.15rem;font-weight:800;">${name} 🚀</div>
+            <div style="font-size:.75rem;opacity:.7;margin-top:2px;">Rank #2 in batch this week</div>
+          </div>
+          <div style="text-align:right;background:rgba(255,255,255,.12);border-radius:10px;padding:8px 12px;flex-shrink:0;">
+            <div style="font-size:1.2rem;font-weight:800;color:#FFD600;">🔥 ${streak}</div>
+            <div style="font-size:.65rem;opacity:.7;">day streak</div>
+          </div>
+        </div>
+        <div style="font-size:.72rem;opacity:.7;margin-bottom:5px;display:flex;justify-content:space-between;">
+          <span>⚡ ${xp} XP this week</span><span>${xpNext-xp} XP to #1</span>
+        </div>
+        <div style="height:8px;background:rgba(255,255,255,.15);border-radius:20px;overflow:hidden;">
+          <div style="height:100%;width:${xpPct}%;background:linear-gradient(90deg,#FFD600,#FF6F00);border-radius:20px;"></div>
+        </div>
+        <div style="font-size:.68rem;opacity:.6;margin-top:4px;text-align:right;">Close the gap — do one speed drill now!</div>
+      </div>
+
+      <!-- Title chip -->
+      <div class="title-chip">⚡ Maths Wizard <span style="opacity:.7;font-weight:400;font-size:.72rem;margin-left:4px;">· next: Speed Legend at ${xpNext} XP</span></div>
+
+      <!-- Weekly challenge -->
+      <div style="background:linear-gradient(135deg,#B71C1C,#E53935);border-radius:14px;padding:12px 14px;margin-bottom:14px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div>
+          <div style="font-size:.72rem;opacity:.8;margin-bottom:2px;">⏱ Weekly speed challenge</div>
+          <div style="font-size:.95rem;font-weight:800;">Multiplication master</div>
+          <div style="font-size:.72rem;opacity:.8;margin-top:2px;">Ends Sunday · You're 2nd</div>
+        </div>
+        <a href="practice.html" style="background:#fff;color:#B71C1C;border-radius:10px;padding:8px 14px;font-size:.82rem;font-weight:800;text-decoration:none;white-space:nowrap;flex-shrink:0;">Join now →</a>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions-grid" style="margin-bottom:14px;">
+        <a href="practice.html" class="action-btn" style="background:linear-gradient(145deg,#1565C0,#1976D2);text-decoration:none;">
+          <span class="action-emoji">⚡</span>
+          <div class="action-name">Speed drill</div>
+          <div class="action-sub">Multiplication · L${level}</div>
+          <span class="action-badge">+25 XP</span>
+        </a>
+        <div class="action-btn" style="background:linear-gradient(145deg,#4A148C,#6A1B9A);">
+          <span class="action-emoji">🧩</span>
+          <div class="action-name">Sudoku 9×9</div>
+          <div class="action-sub">New puzzle ready!</div>
+          <span class="action-badge">+40 XP</span>
+        </div>
+        <a href="homework.html" class="action-btn" style="background:linear-gradient(145deg,#E65100,#F57C00);text-decoration:none;">
+          <span class="action-emoji">📚</span>
+          <div class="action-name">Homework</div>
+          <div class="action-sub">${stats.homeworkPending > 0 ? stats.homeworkPending+' pending' : 'All done!'}</div>
+          ${stats.homeworkPending > 0 ? '<span class="action-badge">!</span>' : ''}
+        </a>
+        <a href="lessons.html" class="action-btn" style="background:linear-gradient(145deg,#1B5E20,#388E3C);text-decoration:none;">
+          <span class="action-emoji">▶️</span>
+          <div class="action-name">Lessons</div>
+          <div class="action-sub">Watch and learn</div>
+        </a>
+      </div>
+
+      <!-- Leaderboard -->
+      <div class="section-title">Batch leaderboard — this week</div>
+      <div class="lb-card">
+        <div class="lb-item"><div class="lb-rank">🥇</div><div class="lb-name" style="color:var(--orange-dk)">Riya</div><div class="lb-xp">1,500 XP</div></div>
+        <div class="lb-item lb-you"><div class="lb-rank">🥈</div><div class="lb-name">You! ←</div><div class="lb-xp">${xp} XP</div></div>
+        <div class="lb-item"><div class="lb-rank">🥉</div><div class="lb-name" style="color:var(--text2)">Krish</div><div class="lb-xp" style="color:var(--text2)">980 XP</div></div>
+        <div class="lb-hint">💪 ${1500-xp} XP behind Riya — 3 more speed drills to #1!</div>
+      </div>
+
+      <!-- Badges -->
+      <div class="section-title">My badges</div>
+      <div class="badges-row">
+        <div class="badge-item earned"><div class="badge-emoji">⭐</div><div class="badge-name">Speed star</div></div>
+        <div class="badge-item earned"><div class="badge-emoji">🎯</div><div class="badge-name">Perfect ×5</div></div>
+        <div class="badge-item earned"><div class="badge-emoji">🔥</div><div class="badge-name">${streak}-day fire</div></div>
+        <div class="badge-item earned"><div class="badge-emoji">🧩</div><div class="badge-name">Puzzle pro</div></div>
+        <div class="badge-item locked"><div class="badge-emoji">🏆</div><div class="badge-name">Batch #1</div></div>
+        <div class="badge-item locked"><div class="badge-emoji">🥷</div><div class="badge-name">Abacus ninja</div></div>
+      </div>`;
+  }
 }
 
-function showToast(msg, type = '') {
-  const c = document.getElementById('toastContainer');
-  const t = document.createElement('div');
-  t.className = `toast ${type ? 'toast-' + type : ''}`;
-  t.textContent = msg;
-  c.appendChild(t);
-  setTimeout(() => t.remove(), 3500);
+function getMascotMessage(streak, xpPct) {
+  if (xpPct >= 90) return "You are SO close to filling the power bar! Just one more session! ✨";
+  if (streak >= 5) return `${streak} days in a row — you are AMAZING! Keep going, superstar! 🌟`;
+  if (streak === 0) return "I missed you! Come on, let's do some maths magic together today! 🎉";
+  return "Just 2 more right answers and the PUZZLE door opens! You can do it! 🚪✨";
 }
 
+// ── LOAD DATA ────────────────────────────────────────────────
+async function loadStats(userId) {
+  const stats = { homeworkPending: 0, practiceToday: false, stickers: 5 };
+  try {
+    // Homework pending
+    const { data: batches } = await sb.from('batch_students').select('batch_id').eq('student_id', userId);
+    if (batches?.length) {
+      const { data: hw } = await sb.from('homework')
+        .select('id').in('batch_id', batches.map(b=>b.batch_id)).eq('is_active', true);
+      stats.homeworkPending = hw?.length || 0;
+      if (stats.homeworkPending > 0) document.getElementById('hwBadge').style.display = 'flex';
+    }
+  } catch(e) { console.error('stats error:', e); }
+  return stats;
+}
+
+// ── AUTH + INIT ──────────────────────────────────────────────
 async function logout() {
   await sb.auth.signOut();
   window.location.href = '../../login.html';
 }
 
-// ── RUN ───────────────────────────────────────────────────
+async function init() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = '../../login.html'; return; }
+
+    // Subscription check
+    const active = await checkSubscription(session.user.id);
+    if (!active) return;
+
+    // Load profile
+    const { data: profile, error } = await sb.from('users').select('*').eq('id', session.user.id).single();
+    if (error || !profile) { window.location.href = '../../login.html'; return; }
+
+    // Determine age group
+    const group = getGroup(profile.age || null);
+
+    // Load stats and notifications in parallel
+    const [stats] = await Promise.all([
+      loadStats(session.user.id),
+      loadNotifications(session.user.id),
+    ]);
+
+    // Build dashboard
+    buildDashboard(profile, stats, group);
+
+  } catch(err) {
+    console.error('Dashboard init error:', err);
+    document.getElementById('mainContent').innerHTML = `
+      <div style="text-align:center;padding:40px;color:var(--red)">
+        Something went wrong. <a href="../../login.html" style="color:var(--blue)">Please login again</a>
+      </div>`;
+  }
+}
+
 init();
 </script>
 </body>

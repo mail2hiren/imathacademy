@@ -298,13 +298,21 @@ async function startPayment() {
       name: 'iMathAcademy',
       description: `${p.label} subscription for ${profile?.full_name || 'Student'}`,
       image: '/assets/logo.png',
+      // ── CRITICAL: student_id and plan passed to webhook via notes ──
+      notes: {
+        student_id: session.user.id,
+        plan:       plan,
+        student_name: profile?.full_name || '',
+      },
       prefill: {
-        name:  profile?.full_name || '',
-        email: session.user.email || '',
+        name:    profile?.full_name || '',
+        email:   session.user.email || '',
         contact: profile?.phone || '',
       },
       theme: { color: '#1565C0' },
       handler: async function(response) {
+        // Webhook handles DB update automatically
+        // This handler just shows success UI
         await handlePaymentSuccess(plan, response.razorpay_payment_id, response.razorpay_order_id);
       },
       modal: {

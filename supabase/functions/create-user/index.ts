@@ -181,6 +181,8 @@ Deno.serve(async (req) => {
       is_active: true,
       xp_points: 0,
       streak_days: 0,
+      date_of_birth: role === "student" ? date_of_birth || null : null,
+      age_group: role === "student" ? age_group || null : null,
     };
 
     const { error: userError } = await supabase.from("users").insert(userInsert);

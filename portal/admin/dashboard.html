@@ -172,6 +172,7 @@
       <button class="nav-item" onclick="showTab('lessons',this)"><span class="nav-icon">▶️</span> Lessons</button>
       <div class="nav-sec">Finance</div>
       <button class="nav-item" onclick="showTab('fees',this)"><span class="nav-icon">💰</span> Fees</button>
+      <button class="nav-item" onclick="showTab('subscriptions',this)"><span class="nav-icon">🔑</span> Subscriptions</button>
     </nav>
     <div class="sidebar-user">
       <div class="av av-admin" id="adminAv">A</div>
@@ -653,6 +654,91 @@
         </div>
       </div>
 
+
+      <!-- ══ SUBSCRIPTIONS TAB ══ -->
+      <div id="tab-subscriptions" class="tab-panel">
+
+        <!-- Stats -->
+        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:18px;">
+          <div class="stat-card">
+            <div class="stat-n" style="color:var(--green)" id="sub-active">—</div>
+            <div class="stat-l">Active</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-n" style="color:var(--red)" id="sub-expired">—</div>
+            <div class="stat-l">Expired / Blocked</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-n" style="color:var(--orange)" id="sub-duetoday">—</div>
+            <div class="stat-l">Due this week</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-n" style="color:var(--blue)" id="sub-revenue">—</div>
+            <div class="stat-l">Revenue this month</div>
+          </div>
+        </div>
+
+        <!-- Filter tabs -->
+        <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+          <button class="btn btn-blue btn-sm" onclick="filterSubs('all',this)">All</button>
+          <button class="btn btn-ghost btn-sm" onclick="filterSubs('active',this)">Active</button>
+          <button class="btn btn-ghost btn-sm" onclick="filterSubs('expired',this)">Expired</button>
+          <button class="btn btn-ghost btn-sm" onclick="filterSubs('due',this)">Due this week</button>
+        </div>
+
+        <!-- Subscriptions table -->
+        <div class="card" style="margin-bottom:18px;">
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th>Student</th><th>Plan</th><th>Status</th><th>Expires</th><th>Amount</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="subsTbody"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Admin manual payment entry -->
+        <div class="card">
+          <div class="card-title">➕ Manual payment entry</div>
+          <div class="card-sub">For cash, offline UPI or bank transfer payments collected by Megha</div>
+          <div class="form-grid-3" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label class="form-label" for="sub-student">Student</label>
+              <select class="form-select" id="sub-student">
+                <option value="">— Select student —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="sub-plan">Plan</label>
+              <select class="form-select" id="sub-plan">
+                <option value="monthly">Monthly — ₹199</option>
+                <option value="halfyearly">Half-yearly — ₹1,099</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="sub-method">Payment method</label>
+              <select class="form-select" id="sub-method">
+                <option value="cash">Cash</option>
+                <option value="upi_offline">UPI (offline)</option>
+                <option value="bank_transfer">Bank transfer</option>
+                <option value="cheque">Cheque</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="sub-date">Payment date</label>
+              <input type="date" class="form-input" id="sub-date">
+            </div>
+            <div class="form-group" style="grid-column:span 2;">
+              <label class="form-label" for="sub-ref">Reference / note</label>
+              <input type="text" class="form-input" id="sub-ref" placeholder="e.g. UPI ref 123456 or cheque no.">
+            </div>
+          </div>
+          <button class="btn btn-green" onclick="addManualSub()">✅ Mark as paid — activate access</button>
+        </div>
+
+      </div>
+
     </div><!-- /content -->
   </div><!-- /main -->
 </div><!-- /portal -->
@@ -783,7 +869,7 @@ function showTab(name, btn) {
   document.getElementById(`tab-${name}`).classList.add('active');
   if (btn) btn.classList.add('active');
   currentTab = name;
-  const titles = { overview:'Dashboard', students:'Students', teachers:'Teachers', parents:'Parents', batches:'Batches', associations:'Associations', lessons:'Lessons', fees:'Fees' };
+  const titles = { overview:'Dashboard', students:'Students', teachers:'Teachers', parents:'Parents', batches:'Batches', associations:'Associations', lessons:'Lessons', fees:'Fees', subscriptions:'Subscriptions' };
   document.getElementById('topbarTitle').textContent = titles[name] || 'Admin';
   // Load data for the tab
   if (name === 'students')     renderStudents();
@@ -793,6 +879,7 @@ function showTab(name, btn) {
   if (name === 'associations') { renderAssociations(); renderStudentBatches(); renderTeacherBatches(); renderPrograms(); }
   if (name === 'lessons')      renderLessons();
   if (name === 'fees')         renderFees();
+    if (name === 'subscriptions') loadSubscriptions();
 }
 
 // ── SEARCH / FILTER ─────────────────────────────────────────
@@ -1516,6 +1603,192 @@ function quickChangeProgram(id, name, currentProgram, currentLevel) {
 }
 
 // ── AUTH ────────────────────────────────────────────────────
+// ── SUBSCRIPTIONS ───────────────────────────────────────────
+let allSubs = [], subsFilter = 'all';
+
+const SUB_PLANS = {
+  monthly:    { label: 'Monthly',     amount: 199,  days: 30  },
+  halfyearly: { label: 'Half-yearly', amount: 1099, days: 180 },
+};
+
+function addDays(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString();
+}
+
+async function loadSubscriptions() {
+  try {
+    const { data: subs } = await sb.from('subscriptions')
+      .select('*, users!student_id(full_name, email)')
+      .order('created_at', { ascending: false });
+
+    allSubs = subs || [];
+
+    // Stats
+    const now = new Date();
+    const weekFromNow = new Date(); weekFromNow.setDate(weekFromNow.getDate() + 7);
+    const active  = allSubs.filter(s => s.status === 'active' && new Date(s.expires_at) > now);
+    const expired = allSubs.filter(s => s.status !== 'active' || new Date(s.expires_at) <= now);
+    const due     = allSubs.filter(s => s.status === 'active' && new Date(s.expires_at) > now && new Date(s.expires_at) <= weekFromNow);
+
+    // Revenue this month
+    const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0,0,0,0);
+    const revenue = allSubs.filter(s => new Date(s.created_at) >= monthStart).reduce((sum,s) => sum + (s.amount||0), 0);
+
+    document.getElementById('sub-active').textContent   = active.length;
+    document.getElementById('sub-expired').textContent  = expired.length;
+    document.getElementById('sub-duetoday').textContent = due.length;
+    document.getElementById('sub-revenue').textContent  = `₹${revenue.toLocaleString('en-IN')}`;
+
+    renderSubs(allSubs);
+
+    // Populate student dropdown
+    const sel = document.getElementById('sub-student');
+    if (sel) {
+      sel.innerHTML = '<option value="">— Select student —</option>' +
+        allStudents.map(s => `<option value="${s.id}">${s.full_name}</option>`).join('');
+    }
+  } catch(err) {
+    console.error('loadSubscriptions error:', err);
+  }
+}
+
+function filterSubs(filter, btn) {
+  subsFilter = filter;
+  document.querySelectorAll('[onclick^="filterSubs"]').forEach(b => {
+    b.className = 'btn btn-ghost btn-sm';
+  });
+  if (btn) btn.className = 'btn btn-blue btn-sm';
+
+  const now = new Date();
+  const weekFromNow = new Date(); weekFromNow.setDate(weekFromNow.getDate() + 7);
+
+  const filtered = filter === 'all'     ? allSubs
+    : filter === 'active'  ? allSubs.filter(s => s.status === 'active' && new Date(s.expires_at) > now)
+    : filter === 'expired' ? allSubs.filter(s => s.status !== 'active' || new Date(s.expires_at) <= now)
+    : allSubs.filter(s => s.status === 'active' && new Date(s.expires_at) > now && new Date(s.expires_at) <= weekFromNow);
+
+  renderSubs(filtered);
+}
+
+function renderSubs(subs) {
+  const tbody = document.getElementById('subsTbody');
+  if (!subs?.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">No subscriptions found</td></tr>';
+    return;
+  }
+  const now = new Date();
+  tbody.innerHTML = subs.map(s => {
+    const expired = !s.status === 'active' || new Date(s.expires_at) <= now;
+    const statusCls = expired ? 'pill-r' : 'pill-g';
+    const statusTxt = expired ? '🔒 Blocked' : 'Active';
+    const plan = SUB_PLANS[s.plan] || { label: s.plan, amount: s.amount };
+    return `<tr class="${expired ? 'inactive' : ''}">
+      <td>
+        <div style="font-weight:800">${s.users?.full_name || '—'}</div>
+        <div style="font-size:.72rem;color:var(--text3)">${s.users?.email || ''}</div>
+      </td>
+      <td><span class="pill pill-b">${plan.label}</span></td>
+      <td><span class="pill ${statusCls}">${statusTxt}</span></td>
+      <td style="font-size:.82rem">${new Date(s.expires_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</td>
+      <td style="font-weight:800">₹${(s.amount||0).toLocaleString('en-IN')}</td>
+      <td>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${expired ? `<button class="btn btn-green btn-sm" onclick="extendSub('${s.student_id}','${s.id}')">Mark paid</button>` : ''}
+          <button class="btn btn-ghost btn-sm" onclick="extendSubCustom('${s.student_id}','${s.users?.full_name}')">Extend</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function addManualSub() {
+  const studentId = document.getElementById('sub-student').value;
+  const plan      = document.getElementById('sub-plan').value;
+  const method    = document.getElementById('sub-method').value;
+  const ref       = document.getElementById('sub-ref').value.trim();
+  const dateVal   = document.getElementById('sub-date').value;
+
+  if (!studentId) { toast('Please select a student', 'error'); return; }
+
+  const p = SUB_PLANS[plan];
+  const now = dateVal ? new Date(dateVal).toISOString() : new Date().toISOString();
+  const expires = new Date(dateVal || new Date());
+  expires.setDate(expires.getDate() + p.days);
+
+  try {
+    // Mark previous active subscription expired
+    await sb.from('subscriptions').update({ status: 'expired' })
+      .eq('student_id', studentId).eq('status', 'active');
+
+    const { error } = await sb.from('subscriptions').insert({
+      student_id:     studentId,
+      plan,
+      amount:         p.amount,
+      status:         'active',
+      payment_method: method,
+      reference:      ref || null,
+      starts_at:      now,
+      expires_at:     expires.toISOString(),
+      created_by:     'admin',
+    });
+    if (error) throw error;
+
+    toast(`✅ Payment recorded — access activated!`, 'success');
+    document.getElementById('sub-student').value = '';
+    document.getElementById('sub-ref').value = '';
+    await loadSubscriptions();
+  } catch(err) {
+    toast('❌ ' + err.message, 'error');
+  }
+}
+
+async function extendSub(studentId, oldId) {
+  try {
+    await sb.from('subscriptions').update({ status: 'expired' }).eq('id', oldId);
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 30);
+    const { error } = await sb.from('subscriptions').insert({
+      student_id:     studentId,
+      plan:           'monthly',
+      amount:         199,
+      status:         'active',
+      payment_method: 'admin_override',
+      starts_at:      new Date().toISOString(),
+      expires_at:     expires.toISOString(),
+      created_by:     'admin',
+    });
+    if (error) throw error;
+    toast('✅ Subscription extended by 30 days!', 'success');
+    await loadSubscriptions();
+  } catch(err) { toast('❌ ' + err.message, 'error'); }
+}
+
+async function extendSubCustom(studentId, name) {
+  const days = parseInt(prompt(`Extend ${name}'s subscription by how many days?`, '30'));
+  if (!days || isNaN(days)) return;
+  try {
+    const expires = new Date();
+    expires.setDate(expires.getDate() + days);
+    await sb.from('subscriptions').update({ status: 'expired' })
+      .eq('student_id', studentId).eq('status', 'active');
+    const { error } = await sb.from('subscriptions').insert({
+      student_id:     studentId,
+      plan:           days >= 180 ? 'halfyearly' : 'monthly',
+      amount:         days >= 180 ? 1099 : 199,
+      status:         'active',
+      payment_method: 'admin_override',
+      starts_at:      new Date().toISOString(),
+      expires_at:     expires.toISOString(),
+      created_by:     'admin',
+    });
+    if (error) throw error;
+    toast(`✅ Extended by ${days} days!`, 'success');
+    await loadSubscriptions();
+  } catch(err) { toast('❌ ' + err.message, 'error'); }
+}
+
 async function logout() {
   await sb.auth.signOut();
   window.location.href = '../../login.html';

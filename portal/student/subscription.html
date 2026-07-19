@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <title>Subscribe — iMathAcademy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    :root {
+      --green: #43A047; --green-dk: #1B5E20; --green-lt: #E8F5E9;
+      --blue: #1E88E5; --blue-dk: #0D47A1; --blue-lt: #E3F2FD;
+      --red: #E53935; --red-lt: #FFEBEE; --red-dk: #B71C1C;
+      --orange: #FB8C00; --orange-lt: #FFF3E0; --orange-dk: #E65100;
+      --border: #E8EAF6; --bg: #fff; --bg2: #F7F8FF;
+      --text: #1A1A2E; --text2: #4A4A6A; --text3: #9090B0;
+    }
+    .card { background: var(--bg); border-radius: 24px; box-shadow: 0 8px 40px rgba(0,0,0,.12); width: 100%; max-width: 460px; overflow: hidden; }
+
+    /* Header */
+    .header { background: linear-gradient(135deg, #1565C0, #1976D2); padding: 28px 28px 24px; color: #fff; }
+    .logo { font-family: 'Baloo 2', sans-serif; font-size: 1.2rem; font-weight: 800; margin-bottom: 16px; opacity: .9; }
+    .student-info { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .student-av { width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; border: 2px solid rgba(255,255,255,.4); }
+    .student-name { font-size: 1.1rem; font-weight: 800; }
+    .student-level { font-size: .8rem; opacity: .8; margin-top: 2px; }
+    .status-bar { background: rgba(255,255,255,.15); border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+    .status-label { font-size: .75rem; opacity: .8; margin-bottom: 2px; }
+    .status-val { font-size: .9rem; font-weight: 800; }
+    .status-expired { color: #FFD600; }
+    .status-active  { color: #A5D6A7; }
+
+    /* Body */
+    .body { padding: 24px 28px; }
+
+    /* Plan cards */
+    .plans-label { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; color: var(--text3); margin-bottom: 12px; }
+    .plan-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 2px solid var(--border); border-radius: 14px; cursor: pointer; margin-bottom: 10px; transition: all .15s; position: relative; overflow: hidden; }
+    .plan-card.selected { border-color: var(--blue); background: var(--blue-lt); }
+    .plan-card:hover { border-color: var(--blue); }
+    .plan-radio { width: 20px; height: 20px; accent-color: var(--blue); flex-shrink: 0; }
+    .plan-info { flex: 1; }
+    .plan-name { font-size: .95rem; font-weight: 800; }
+    .plan-desc { font-size: .75rem; color: var(--text2); margin-top: 2px; }
+    .plan-price { text-align: right; }
+    .plan-amount { font-size: 1.2rem; font-weight: 800; }
+    .plan-per { font-size: .72rem; color: var(--text3); }
+    .save-badge { position: absolute; top: 0; right: 0; background: var(--green); color: #fff; font-size: .65rem; font-weight: 800; padding: 3px 10px; border-radius: 0 14px 0 10px; }
+
+    /* Features */
+    .features { background: var(--bg2); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; }
+    .features-title { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; color: var(--text3); margin-bottom: 10px; }
+    .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .feature-item { font-size: .8rem; color: var(--text2); display: flex; align-items: center; gap: 6px; font-weight: 600; }
+    .feature-item span { color: var(--green); font-weight: 800; }
+
+    /* Pay button */
+    .pay-btn { width: 100%; padding: 16px; background: var(--blue); color: #fff; border: none; border-radius: 14px; font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 800; cursor: pointer; transition: all .15s; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; }
+    .pay-btn:hover { background: var(--blue-dk); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(30,136,229,.35); }
+    .pay-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* Payment methods */
+    .methods { text-align: center; margin-bottom: 12px; }
+    .methods-label { font-size: .72rem; color: var(--text3); margin-bottom: 8px; }
+    .methods-row { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+    .method-pill { background: var(--bg2); border: 1.5px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: .72rem; font-weight: 700; color: var(--text2); }
+    .secure { text-align: center; font-size: .72rem; color: var(--text3); }
+
+    /* Blocked overlay */
+    .blocked-banner { background: var(--red-lt); border: 2px solid var(--red); border-radius: 14px; padding: 16px; margin-bottom: 18px; text-align: center; }
+    .blocked-icon { font-size: 2.5rem; margin-bottom: 8px; }
+    .blocked-title { font-family: 'Baloo 2', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--red-dk); margin-bottom: 4px; }
+    .blocked-sub { font-size: .82rem; color: var(--red-dk); line-height: 1.6; }
+    .safe-box { background: var(--orange-lt); border: 1.5px solid var(--orange); border-radius: 10px; padding: 10px 14px; margin: 12px 0; text-align: left; }
+    .safe-title { font-size: .78rem; font-weight: 800; color: var(--orange-dk); margin-bottom: 6px; }
+    .safe-item { font-size: .78rem; color: var(--orange-dk); display: flex; gap: 6px; margin-bottom: 3px; }
+
+    /* Success */
+    .success-wrap { padding: 28px; text-align: center; }
+    .success-icon { font-size: 4rem; margin-bottom: 12px; }
+    .success-title { font-family: 'Baloo 2', sans-serif; font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; }
+    .success-sub { font-size: .875rem; color: var(--text2); margin-bottom: 18px; line-height: 1.6; }
+    .receipt { background: var(--bg2); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px; text-align: left; }
+    .receipt-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: .82rem; }
+    .receipt-row:last-child { border-bottom: none; }
+    .receipt-label { color: var(--text2); }
+    .receipt-val { font-weight: 800; }
+    .dashboard-btn { display: block; width: 100%; padding: 14px; background: var(--blue); color: #fff; border: none; border-radius: 12px; font-family: 'Nunito', sans-serif; font-size: .95rem; font-weight: 800; cursor: pointer; text-decoration: none; text-align: center; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 12px; font-size: .875rem; font-weight: 700; color: #fff; z-index: 9999; animation: slideIn .3s ease; display: none; }
+    .toast.success { background: var(--green-dk); }
+    .toast.error   { background: var(--red-dk); }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  </style>
+</head>
+<body>
+
+<div class="card" id="mainCard">
+  <!-- Content injected by JS -->
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+const RAZORPAY_KEY = 'rzp_live_REPLACE_WITH_YOUR_KEY'; // Replace after Razorpay signup
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const PLANS = {
+  monthly:    { label: 'Monthly',     amount: 199,   days: 30,  desc: 'Access for 30 days' },
+  halfyearly: { label: 'Half-yearly', amount: 1099,  days: 180, desc: 'Access for 6 months · Save ₹95' },
+};
+
+let session = null, profile = null, subscription = null;
+let selectedPlan = 'monthly';
+
+function initials(name) { return (name||'S').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2); }
+
+function toast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type}`;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3500);
+}
+
+function isExpired(sub) {
+  if (!sub) return true;
+  if (sub.status === 'expired') return true;
+  return new Date(sub.expires_at) < new Date();
+}
+
+function fmt(date) {
+  return new Date(date).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function addDays(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString();
+}
+
+function selectPlan(plan) {
+  selectedPlan = plan;
+  document.querySelectorAll('.plan-card').forEach(c => {
+    c.classList.toggle('selected', c.dataset.plan === plan);
+    c.querySelector('input').checked = c.dataset.plan === plan;
+  });
+  const p = PLANS[plan];
+  document.getElementById('payBtn').textContent = `Pay ₹${p.amount} securely · via Razorpay`;
+}
+
+function renderPayScreen(expired) {
+  const name = profile?.full_name || 'Student';
+  const level = profile?.current_level || 1;
+  const statusHtml = expired
+    ? `<div class="status-val status-expired">⚠️ ${subscription ? 'Expired ' + fmt(subscription.expires_at) : 'No active subscription'}</div>`
+    : `<div class="status-val status-active">✅ Active until ${fmt(subscription.expires_at)}</div>`;
+
+  document.getElementById('mainCard').innerHTML = `
+    <div class="header">
+      <div class="logo">🧮 iMathAcademy</div>
+      <div class="student-info">
+        <div class="student-av">${initials(name)}</div>
+        <div>
+          <div class="student-name">${name}</div>
+          <div class="student-level">Abacus · Level ${level}</div>
+        </div>
+      </div>
+      <div class="status-bar">
+        <div><div class="status-label">Subscription status</div>${statusHtml}</div>
+        ${subscription ? `<div><div class="status-label">Last paid</div><div style="font-size:.82rem;font-weight:700">${fmt(subscription.created_at)}</div></div>` : ''}
+      </div>
+    </div>
+
+    <div class="body">
+
+      ${expired ? `
+      <div class="blocked-banner">
+        <div class="blocked-icon">🔒</div>
+        <div class="blocked-title">Access paused</div>
+        <div class="blocked-sub">Renew your subscription to continue Aryan's learning journey</div>
+        <div class="safe-box">
+          <div class="safe-title">⭐ Nothing is lost — everything is safe!</div>
+          <div class="safe-item"><span>✓</span> All XP points preserved</div>
+          <div class="safe-item"><span>✓</span> All badges and stickers safe</div>
+          <div class="safe-item"><span>✓</span> Level progress saved</div>
+        </div>
+      </div>` : ''}
+
+      <div class="plans-label">Choose a plan</div>
+
+      <div class="plan-card selected" data-plan="monthly" onclick="selectPlan('monthly')">
+        <input type="radio" class="plan-radio" name="plan" checked>
+        <div class="plan-info">
+          <div class="plan-name">Monthly</div>
+          <div class="plan-desc">Access for 30 days · Flexible</div>
+        </div>
+        <div class="plan-price">
+          <div class="plan-amount">₹199</div>
+          <div class="plan-per">per month</div>
+        </div>
+      </div>
+
+      <div class="plan-card" data-plan="halfyearly" onclick="selectPlan('halfyearly')">
+        <div class="save-badge">SAVE ₹95</div>
+        <input type="radio" class="plan-radio" name="plan">
+        <div class="plan-info">
+          <div class="plan-name">Half-yearly</div>
+          <div class="plan-desc">Access for 6 months · Best value</div>
+        </div>
+        <div class="plan-price">
+          <div class="plan-amount">₹1,099</div>
+          <div class="plan-per">₹183/month</div>
+        </div>
+      </div>
+
+      <div class="features">
+        <div class="features-title">What's included</div>
+        <div class="features-grid">
+          <div class="feature-item"><span>✓</span> Flash card practice</div>
+          <div class="feature-item"><span>✓</span> Video lessons</div>
+          <div class="feature-item"><span>✓</span> Worksheets and quizzes</div>
+          <div class="feature-item"><span>✓</span> Puzzle rewards</div>
+          <div class="feature-item"><span>✓</span> XP badges and stickers</div>
+          <div class="feature-item"><span>✓</span> Progress reports</div>
+          <div class="feature-item"><span>✓</span> Homework access</div>
+          <div class="feature-item"><span>✓</span> Parent dashboard</div>
+        </div>
+      </div>
+
+      <button class="pay-btn" id="payBtn" onclick="startPayment()">
+        Pay ₹199 securely · via Razorpay
+      </button>
+
+      <div class="methods">
+        <div class="methods-label">Accepted payment methods</div>
+        <div class="methods-row">
+          <span class="method-pill">UPI</span>
+          <span class="method-pill">GPay</span>
+          <span class="method-pill">PhonePe</span>
+          <span class="method-pill">Debit card</span>
+          <span class="method-pill">Credit card</span>
+          <span class="method-pill">Net banking</span>
+        </div>
+      </div>
+
+      <div class="secure">🔒 Secured by Razorpay · 256-bit SSL encryption</div>
+    </div>
+  `;
+}
+
+function renderSuccess(plan, paymentId) {
+  const p = PLANS[plan];
+  const expiresAt = addDays(p.days);
+  document.getElementById('mainCard').innerHTML = `
+    <div class="success-wrap">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">Payment successful!</div>
+      <div class="success-sub">${profile?.full_name || 'Student'}'s subscription is now active.<br>Happy learning! 🌟</div>
+
+      <div class="receipt">
+        <div class="receipt-row"><span class="receipt-label">Plan</span><span class="receipt-val">${p.label}</span></div>
+        <div class="receipt-row"><span class="receipt-label">Amount paid</span><span class="receipt-val">₹${p.amount}</span></div>
+        <div class="receipt-row"><span class="receipt-label">Valid until</span><span class="receipt-val">${fmt(expiresAt)}</span></div>
+        <div class="receipt-row"><span class="receipt-label">Payment ID</span><span class="receipt-val" style="font-size:.75rem">${paymentId}</span></div>
+      </div>
+
+      <div style="background:#E8F5E9;border:2px solid #4CAF50;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center;margin-bottom:18px;text-align:left;">
+        <div style="font-size:2.5rem;flex-shrink:0;">🐘</div>
+        <div style="font-size:.875rem;color:#1B5E20;font-weight:700;line-height:1.6">"Welcome back! Your badges and stickers are all here waiting. Let's go! 🌟"</div>
+      </div>
+
+      <a class="dashboard-btn" href="portal/student/dashboard.html">Go to dashboard →</a>
+    </div>
+  `;
+}
+
+async function startPayment() {
+  const plan = selectedPlan;
+  const p = PLANS[plan];
+  const btn = document.getElementById('payBtn');
+  btn.disabled = true;
+  btn.textContent = 'Opening payment...';
+
+  try {
+    const options = {
+      key: RAZORPAY_KEY,
+      amount: p.amount * 100, // paise
+      currency: 'INR',
+      name: 'iMathAcademy',
+      description: `${p.label} subscription for ${profile?.full_name || 'Student'}`,
+      image: '/assets/logo.png',
+      prefill: {
+        name:  profile?.full_name || '',
+        email: session.user.email || '',
+        contact: profile?.phone || '',
+      },
+      theme: { color: '#1565C0' },
+      handler: async function(response) {
+        await handlePaymentSuccess(plan, response.razorpay_payment_id, response.razorpay_order_id);
+      },
+      modal: {
+        ondismiss: function() {
+          btn.disabled = false;
+          btn.textContent = `Pay ₹${p.amount} securely · via Razorpay`;
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+
+  } catch(err) {
+    toast('❌ Payment failed: ' + err.message, 'error');
+    btn.disabled = false;
+    btn.textContent = `Pay ₹${p.amount} securely · via Razorpay`;
+  }
+}
+
+async function handlePaymentSuccess(plan, paymentId, orderId) {
+  try {
+    const p = PLANS[plan];
+    const now = new Date().toISOString();
+    const expiresAt = addDays(p.days);
+
+    // Mark old subscription expired
+    if (subscription?.id) {
+      await sb.from('subscriptions').update({ status: 'expired' }).eq('id', subscription.id);
+    }
+
+    // Create new subscription record
+    const { error } = await sb.from('subscriptions').insert({
+      student_id:          session.user.id,
+      plan,
+      amount:              p.amount,
+      status:              'active',
+      payment_method:      'razorpay',
+      razorpay_payment_id: paymentId,
+      razorpay_order_id:   orderId || null,
+      starts_at:           now,
+      expires_at:          expiresAt,
+      created_by:          'parent',
+    });
+
+    if (error) throw error;
+
+    renderSuccess(plan, paymentId);
+
+  } catch(err) {
+    toast('Payment recorded but error saving: ' + err.message, 'error');
+  }
+}
+
+async function init() {
+  document.getElementById('mainCard').innerHTML = `
+    <div style="padding:40px;text-align:center;color:#9090B0">
+      <div style="width:40px;height:40px;border:4px solid #E8EAF6;border-top-color:#1E88E5;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px"></div>
+      Loading...
+    </div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+  `;
+
+  try {
+    const { data: { session: s } } = await sb.auth.getSession();
+    if (!s) { window.location.href = '/login.html'; return; }
+    session = s;
+
+    const { data: p } = await sb.from('users').select('*').eq('id', s.user.id).single();
+    profile = p;
+
+    // Get latest subscription
+    const { data: subs } = await sb.from('subscriptions')
+      .select('*')
+      .eq('student_id', s.user.id)
+      .eq('status', 'active')
+      .order('expires_at', { ascending: false })
+      .limit(1);
+
+    subscription = subs?.[0] || null;
+    const expired = isExpired(subscription);
+
+    renderPayScreen(expired);
+
+  } catch(err) {
+    document.getElementById('mainCard').innerHTML = `<div style="padding:40px;text-align:center;color:#E53935">Error loading subscription: ${err.message}</div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>

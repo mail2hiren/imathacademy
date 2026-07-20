@@ -309,7 +309,7 @@
       </div>
       <div class="topbar-right">
         <div style="font-size:.8rem;font-weight:600;color:var(--text3)" id="topbarDate"></div>
-        <div class="notif-btn">🔔<div class="notif-dot">3</div></div>
+        <div class="notif-btn" id="notifBtn" onclick="toggleTeacherNotif()" style="cursor:pointer;">🔔<div class="notif-dot" id="notifDot" style="display:none;">0</div></div>
       </div>
     </div>
 
@@ -1536,6 +1536,57 @@ function toggleWsResult(id) {
 
 // Call loadWsResults when tab is shown
 const _origShowTab = typeof showTab === 'function' ? showTab : null;
+
+// ── TEACHER NOTIFICATIONS ─────────────────────────────────────
+async function loadTeacherNotifications(userId) {
+  try {
+    const { data: notifs } = await sb.from('notifications')
+      .select('*').eq('user_id', userId).eq('is_read', false)
+      .order('created_at', { ascending: false }).limit(20);
+    const count = notifs?.length || 0;
+    const dot = document.getElementById('notifDot');
+    if (dot) { dot.textContent = count; dot.style.display = count > 0 ? 'flex' : 'none'; }
+    window._teacherNotifs = notifs || [];
+  } catch(e) { console.error('Teacher notifs:', e); }
+}
+
+function toggleTeacherNotif() {
+  let panel = document.getElementById('teacherNotifPanel');
+  if (panel) { panel.remove(); return; }
+  const notifs = window._teacherNotifs || [];
+  panel = document.createElement('div');
+  panel.id = 'teacherNotifPanel';
+  panel.style.cssText = 'position:fixed;top:60px;right:12px;width:320px;max-width:calc(100vw - 24px);background:#fff;border:2px solid #E8EAF6;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:9999;overflow:hidden;max-height:400px;overflow-y:auto;';
+  panel.innerHTML = `<div style="padding:12px 16px;border-bottom:2px solid #E8EAF6;display:flex;align-items:center;justify-content:space-between;">
+    <div style="font-size:.875rem;font-weight:800;">Notifications</div>
+    <button onclick="markTeacherNotifsRead()" style="font-size:.72rem;font-weight:700;color:#1E88E5;background:none;border:none;cursor:pointer;">Mark all read</button>
+  </div>` + (notifs.length === 0
+    ? '<div style="padding:24px;text-align:center;color:#9090B0;font-size:.82rem;">No new notifications</div>'
+    : notifs.map(n => `<div style="padding:11px 16px;border-bottom:1px solid #F0F0F8;display:flex;gap:10px;align-items:flex-start;background:#F7F8FF;">
+        <div style="font-size:1rem;flex-shrink:0;margin-top:2px;">${n.type==='submission'?'📊':n.type==='homework'?'📚':'🔔'}</div>
+        <div style="flex:1;">
+          <div style="font-size:.82rem;font-weight:700;color:#1A1A2E;">${n.title||''}</div>
+          <div style="font-size:.75rem;color:#9090B0;margin-top:2px;">${n.message||''}</div>
+          <div style="font-size:.68rem;color:#B0B0C8;margin-top:3px;">${n.created_at ? new Date(n.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : ''}</div>
+        </div>
+      </div>`).join(''));
+  document.body.appendChild(panel);
+  markTeacherNotifsRead();
+  setTimeout(() => {
+    document.addEventListener('click', function close(e) {
+      if (!panel.contains(e.target) && e.target.id !== 'notifBtn') { panel.remove(); document.removeEventListener('click', close); }
+    });
+  }, 100);
+}
+
+async function markTeacherNotifsRead() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return;
+  await sb.from('notifications').update({ is_read: true }).eq('user_id', session.user.id).eq('is_read', false);
+  const dot = document.getElementById('notifDot');
+  if (dot) { dot.style.display = 'none'; }
+  window._teacherNotifs = [];
+}
 </script>
 <!-- IN-CLASS FLOATING BAR -->
 <div class="in-class-panel" id="inClassPanel">

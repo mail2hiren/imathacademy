@@ -2,634 +2,228 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Parent Portal — iMathAcademy</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <title>Parent Dashboard — iMathAcademy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; min-height: 100vh; }
     :root {
-      --green:#43A047; --green-dk:#1B5E20; --green-lt:#E8F5E9; --green-md:#2E7D32;
-      --orange:#FB8C00; --orange-dk:#E65100; --orange-lt:#FFF3E0;
-      --blue:#1E88E5; --blue-dk:#0D47A1; --blue-lt:#E3F2FD;
-      --purple:#8E24AA; --purple-dk:#4A148C; --purple-lt:#F3E5F5;
-      --red:#E53935; --red-dk:#B71C1C; --red-lt:#FFEBEE;
-      --yellow:#F9A825; --yellow-lt:#FFFDE7; --yellow-dk:#F57F17;
-      --teal:#00897B; --teal-lt:#E0F2F1; --teal-dk:#004D40;
-      --pink:#D81B60; --pink-lt:#FCE4EC;
-      --bg:#FFFFFF; --bg2:#F7F8FF; --border:#E8EAF6;
-      --text2:#4A4A6A; --text3:#9090B0;
+      --green: #43A047; --green-dk: #1B5E20; --green-lt: #E8F5E9;
+      --blue: #1E88E5; --blue-dk: #0D47A1; --blue-lt: #E3F2FD;
+      --orange: #FB8C00; --orange-dk: #E65100; --orange-lt: #FFF3E0;
+      --purple: #8E24AA; --purple-lt: #F3E5F5; --purple-dk: #4A148C;
+      --red: #E53935; --red-lt: #FFEBEE;
+      --yellow: #F9A825; --yellow-lt: #FFFDE7;
+      --pink: #E91E8C; --pink-lt: #FCE4EC; --pink-dk: #880E4F;
+      --bg: #fff; --bg2: #F7F8FF; --border: #E8EAF6;
+      --text: #1A1A2E; --text2: #4A4A6A; --text3: #9090B0;
+      --bottom-nav-h: 64px;
     }
 
     /* ── LAYOUT ── */
-    .portal { display:flex; min-height:100vh; }
-    .sidebar {
-      width:220px; flex-shrink:0; background:var(--bg);
-      border-right:2px solid var(--border); display:flex;
-      flex-direction:column; position:fixed; top:0; left:0;
-      height:100vh; overflow-y:auto; z-index:100; transition:transform .3s;
-    }
-    .sidebar-logo {
-      padding:20px 16px; border-bottom:2px solid var(--border);
-      font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800;
-      color:var(--pink); display:flex; align-items:center; gap:10px;
-    }
-    .sidebar-logo span { color:var(--orange-dk); }
-    .logo-icon { width:34px; height:34px; background:var(--pink); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
-    .sidebar-nav { flex:1; padding:12px 0; }
-    .nav-section { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--text3); padding:8px 16px 3px; margin-top:6px; }
-    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 16px; font-size:.875rem; font-weight:700; color:var(--text2); cursor:pointer; border-left:3px solid transparent; transition:all .12s; text-decoration:none; }
-    .nav-item:hover { color:var(--text); background:var(--bg2); }
-    .nav-item.active { color:var(--pink); background:var(--pink-lt); border-left-color:var(--pink); }
-    .nav-icon { width:20px; text-align:center; font-size:1rem; }
-    .sidebar-user { padding:14px 16px; border-top:2px solid var(--border); display:flex; align-items:center; gap:10px; }
-    .user-av { width:36px; height:36px; border-radius:50%; background:var(--pink-lt); border:2px solid var(--pink); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; color:var(--pink); flex-shrink:0; }
-    .user-name { font-size:.82rem; font-weight:800; color:var(--text); }
-    .user-role { font-size:.7rem; color:var(--text3); font-weight:600; }
-    .logout-btn { margin-left:auto; background:none; border:none; font-size:.85rem; cursor:pointer; color:var(--text3); }
-    .logout-btn:hover { color:var(--red); }
-    .main { flex:1; margin-left:220px; display:flex; flex-direction:column; }
-    .topbar {
-      height:62px; background:var(--bg); border-bottom:2px solid var(--border);
-      display:flex; align-items:center; justify-content:space-between;
-      padding:0 24px; position:sticky; top:0; z-index:50;
-      box-shadow:0 2px 8px rgba(0,0,0,.05);
-    }
-    .topbar-left { display:flex; align-items:center; gap:12px; }
-    .hamburger { display:none; flex-direction:column; gap:4px; cursor:pointer; background:none; border:none; }
-    .hamburger span { width:20px; height:2px; background:var(--text); border-radius:2px; display:block; }
-    .topbar-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; }
-    .body { padding:24px; max-width:720px; }
+    .portal { display: flex; min-height: 100vh; }
+    .sidebar { width: 220px; flex-shrink: 0; background: var(--bg); border-right: 2px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; overflow-y: auto; }
+    .logo { padding: 18px 16px; border-bottom: 2px solid var(--border); font-family: 'Baloo 2', sans-serif; font-size: 1.1rem; font-weight: 800; color: var(--green-dk); display: flex; align-items: center; gap: 10px; }
+    .logo-icon { width: 34px; height: 34px; background: var(--green); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .logo span { color: var(--orange-dk); }
+    nav { flex: 1; padding: 10px 0; }
+    .nav-sec { font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .8px; color: var(--text3); padding: 8px 16px 2px; margin-top: 4px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: .875rem; font-weight: 700; color: var(--text2); cursor: pointer; border-left: 3px solid transparent; transition: all .12s; text-decoration: none; }
+    .nav-item:hover { background: var(--bg2); }
+    .nav-item.active { color: var(--blue-dk); background: var(--blue-lt); border-left-color: var(--blue); }
+    .nav-icon { width: 22px; text-align: center; font-size: 1.1rem; }
+    .sidebar-user { padding: 12px 16px; border-top: 2px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .av { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 800; flex-shrink: 0; background: var(--pink-lt); color: var(--pink-dk); border: 2px solid var(--pink); }
+    .sidebar-name { font-size: .82rem; font-weight: 800; }
+    .sidebar-role { font-size: .7rem; color: var(--text3); }
+    .logout-btn { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--text3); min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+    .main { flex: 1; margin-left: 220px; }
+    .topbar { height: 56px; background: var(--bg); border-bottom: 2px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; position: sticky; top: 0; z-index: 50; }
+    .topbar-title { font-family: 'Baloo 2', sans-serif; font-size: 1rem; font-weight: 800; }
+    .content { padding: 16px; }
 
-    /* ── PAGE TABS ── */
-    .page-tabs { display:flex; gap:0; background:var(--bg); border:2px solid var(--border); border-radius:30px; overflow:hidden; margin-bottom:24px; width:fit-content; flex-wrap:wrap; }
-    .page-tab { padding:9px 20px; font-size:.85rem; font-weight:800; cursor:pointer; transition:all .15s; color:var(--text2); border:none; background:transparent; font-family:'Nunito',sans-serif; }
-    .page-tab.active { background:var(--pink); color:#fff; }
+    /* ── BOTTOM NAV (mobile) ── */
+    .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; height: var(--bottom-nav-h); background: var(--bg); border-top: 2px solid var(--border); z-index: 200; }
+    .bottom-nav-inner { display: flex; height: 100%; }
+    .bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; text-decoration: none; border: none; background: none; padding: 4px 0; min-height: 44px; touch-action: manipulation; }
+    .bnav-icon { font-size: 1.3rem; }
+    .bnav-label { font-size: .62rem; font-weight: 700; color: var(--text3); font-family: 'Nunito', sans-serif; }
+    .bnav-item.active .bnav-label { color: var(--blue-dk); }
 
-    /* ── CHILD CARD ── */
-    .child-card {
-      background:var(--bg); border:2px solid var(--border);
-      border-radius:20px; padding:18px 20px;
-      display:flex; align-items:center; gap:16px;
-      margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,.05);
-    }
-    .child-av {
-      width:58px; height:58px; border-radius:50%;
-      background:var(--green-lt); border:3px solid var(--green);
-      display:flex; align-items:center; justify-content:center;
-      font-family:'Baloo 2',sans-serif; font-size:1.4rem;
-      font-weight:800; color:var(--green-dk); flex-shrink:0;
-    }
-    .child-info { flex:1; }
-    .child-name { font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800; color:var(--text); margin-bottom:3px; }
-    .child-level { font-size:.82rem; color:var(--text2); font-weight:600; margin-bottom:8px; }
-    .child-tags { display:flex; gap:6px; flex-wrap:wrap; }
-    .tag { padding:3px 10px; border-radius:20px; font-size:.72rem; font-weight:800; }
-    .tag-belt   { background:var(--orange-lt); color:var(--orange-dk); border:1.5px solid #FFCC80; }
-    .tag-streak { background:var(--yellow-lt); color:var(--yellow-dk); border:1.5px solid #FFE082; }
-    .tag-online { background:var(--green-lt);  color:var(--green-dk);  border:1.5px solid #A5D6A7; }
+    /* ── CHILD SELECTOR ── */
+    .child-selector { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+    .child-chip { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border: 2px solid var(--border); border-radius: 14px; cursor: pointer; transition: all .12s; touch-action: manipulation; background: var(--bg); }
+    .child-chip.active { border-color: var(--blue); background: var(--blue-lt); }
+    .child-av { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .9rem; font-weight: 800; flex-shrink: 0; }
+    .child-name { font-size: .875rem; font-weight: 800; }
+    .child-level { font-size: .72rem; color: var(--text2); margin-top: 1px; }
 
-    /* ── STATS ── */
-    .stats-row { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:20px; }
-    .stat-card { background:var(--bg); border:2px solid var(--border); border-radius:16px; padding:14px; text-align:center; }
-    .stat-n { font-family:'Baloo 2',sans-serif; font-size:1.6rem; font-weight:800; line-height:1.1; margin-bottom:3px; }
-    .stat-l { font-size:.75rem; font-weight:700; color:var(--text2); }
-    .stat-s { font-size:.68rem; color:var(--text3); margin-top:2px; }
+    /* ── SECTION TITLE ── */
+    .sec-title { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; color: var(--text3); margin-bottom: 10px; }
 
-    /* ── SECTION CARD ── */
-    .section-card { background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:20px; margin-bottom:16px; }
-    .section-title { font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--text3); margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
-    .section-link { font-size:.72rem; font-weight:700; color:var(--pink); text-transform:none; letter-spacing:0; cursor:pointer; }
+    /* ── CARDS ── */
+    .card { background: var(--bg); border: 2px solid var(--border); border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; }
 
-    /* ── XP CARD ── */
-    .xp-card {
-      background:linear-gradient(135deg,var(--green-dk),var(--green-md));
-      border-radius:18px; padding:18px 20px; color:#fff; margin-bottom:16px;
-    }
-    .xp-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-    .xp-title { font-size:.95rem; font-weight:800; }
-    .xp-streak { background:var(--orange); padding:4px 12px; border-radius:20px; font-size:.78rem; font-weight:800; }
-    .xp-track { height:10px; background:rgba(255,255,255,.25); border-radius:5px; overflow:hidden; margin-bottom:6px; }
-    .xp-fill  { height:100%; background:var(--yellow); border-radius:5px; }
-    .xp-info  { display:flex; justify-content:space-between; font-size:.75rem; opacity:.85; font-weight:600; }
+    /* ── MOTIVATIONAL BANNER ── */
+    .journey-banner { border-radius: 18px; padding: 18px; margin-bottom: 12px; color: #fff; position: relative; overflow: hidden; }
+    .journey-banner::before { content:''; position:absolute; top:-20px; right:-20px; width:100px; height:100px; border-radius:50%; background:rgba(255,255,255,.07); }
+    .journey-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+    .journey-text h2 { font-size: 1rem; font-weight: 800; margin-bottom: 4px; }
+    .journey-text p  { font-size: .78rem; opacity: .85; line-height: 1.6; }
+    .journey-pct { background: rgba(255,255,255,.15); border: 1.5px solid rgba(255,255,255,.3); border-radius: 12px; padding: 10px 14px; text-align: center; flex-shrink: 0; }
+    .journey-pct-num { font-size: 1.4rem; font-weight: 800; }
+    .journey-pct-lbl { font-size: .65rem; opacity: .8; }
+    .journey-bar-wrap { }
+    .journey-bar-labels { display: flex; justify-content: space-between; font-size: .68rem; opacity: .8; margin-bottom: 4px; }
+    .journey-bar { height: 8px; background: rgba(255,255,255,.2); border-radius: 20px; overflow: hidden; }
+    .journey-bar-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg,#FFD600,#FF6F00); transition: width .5s ease; }
 
-    /* ── TOPIC BARS ── */
-    .topic-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border); }
-    .topic-row:last-child { border-bottom:none; }
-    .topic-name { flex:1; font-size:.875rem; font-weight:600; color:var(--text); }
-    .topic-bar  { width:100px; height:8px; background:var(--bg2); border-radius:4px; overflow:hidden; }
-    .topic-fill { height:100%; border-radius:4px; }
-    .topic-pct  { font-size:.8rem; font-weight:800; width:34px; text-align:right; }
+    /* ── TODAY'S SNAPSHOT ── */
+    .snapshot-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .snap-box { background: var(--bg); border: 2px solid var(--border); border-radius: 12px; padding: 10px; text-align: center; }
+    .snap-num { font-size: 1.3rem; font-weight: 800; }
+    .snap-lbl { font-size: .65rem; color: var(--text3); font-weight: 600; margin-top: 2px; }
 
-    /* ── ATTENDANCE TABLE ── */
-    .att-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:4px; margin-bottom:12px; }
-    .att-day-label { font-size:.62rem; font-weight:800; color:var(--text3); text-align:center; padding:4px 0; }
-    .att-cell { width:100%; aspect-ratio:1; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:.65rem; font-weight:800; }
-    .att-present { background:var(--green); color:#fff; }
-    .att-absent  { background:var(--red-lt); color:var(--red-dk); border:1.5px solid #FFCDD2; }
-    .att-future  { background:var(--bg2); border:1.5px solid var(--border); }
-    .att-holiday { background:var(--yellow-lt); color:var(--yellow-dk); }
+    /* ── PLAIN ENGLISH SUMMARY ── */
+    .summary-box { border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+    .summary-title { font-size: .78rem; font-weight: 800; margin-bottom: 5px; }
+    .summary-text  { font-size: .82rem; line-height: 1.7; }
 
-    /* ── HW LIST ── */
-    .hw-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
-    .hw-row:last-child { border-bottom:none; }
-    .hw-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-    .hw-info { flex:1; }
-    .hw-title { font-size:.875rem; font-weight:700; color:var(--text); }
-    .hw-meta  { font-size:.72rem; color:var(--text3); font-weight:600; }
-    .pill { font-size:.72rem; font-weight:800; padding:3px 10px; border-radius:20px; }
-    .pill-g { background:var(--green-lt); color:var(--green-dk); }
-    .pill-r { background:var(--red-lt);   color:var(--red-dk);   }
-    .pill-o { background:var(--orange-lt);color:var(--orange-dk);}
+    /* ── CONVERSATION STARTERS ── */
+    .conv-box { border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; }
+    .conv-title { font-size: .78rem; font-weight: 800; margin-bottom: 8px; }
+    .conv-item { font-size: .82rem; line-height: 1.7; display: flex; gap: 8px; }
 
-    /* ── UPI PAYMENT ── */
-    .fee-header {
-      display:flex; justify-content:space-between; align-items:center;
-      margin-bottom:16px; padding:14px 16px;
-      background:var(--bg2); border:2px solid var(--border); border-radius:14px;
-    }
-    .fee-amount { font-family:'Baloo 2',sans-serif; font-size:1.4rem; font-weight:800; color:var(--text); }
-    .fee-due    { font-size:.78rem; font-weight:700; color:var(--red-dk); background:var(--red-lt); padding:4px 12px; border-radius:20px; }
-    .fee-paid   { font-size:.78rem; font-weight:700; color:var(--green-dk); background:var(--green-lt); padding:4px 12px; border-radius:20px; }
+    /* ── 12-WEEK CALENDAR ── */
+    .weeks-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 6px; margin-bottom: 12px; }
+    .week-box { text-align: center; padding: 8px 4px; border-radius: 10px; border: 2px solid var(--border); }
+    .week-box.done    { background: var(--green-lt); border-color: var(--green); }
+    .week-box.current { background: var(--blue-lt);  border-color: var(--blue); border-width: 2px; }
+    .week-box.locked  { background: var(--bg2); opacity: .5; }
+    .week-box.milestone { background: var(--yellow-lt); border-color: var(--yellow); }
+    .week-num  { font-size: .75rem; font-weight: 800; }
+    .week-icon { font-size: .75rem; margin-top: 2px; }
 
-    .upi-title { font-size:.82rem; font-weight:800; color:var(--text2); margin-bottom:10px; text-transform:uppercase; letter-spacing:.3px; }
-    .upi-apps { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:16px; }
-    .upi-app {
-      background:var(--bg2); border:2px solid var(--border);
-      border-radius:14px; padding:12px 8px; text-align:center;
-      cursor:pointer; transition:all .15s;
-    }
-    .upi-app:hover  { border-color:var(--green); background:var(--green-lt); }
-    .upi-app.sel    { border-color:var(--green); background:var(--green-lt); }
-    .upi-app-logo   {
-      width:42px; height:42px; border-radius:10px;
-      margin:0 auto 6px; display:flex; align-items:center;
-      justify-content:center; font-size:1rem; font-weight:900; color:#fff;
-    }
-    .upi-app-name { font-size:.72rem; font-weight:800; color:var(--text2); }
+    /* ── CONCEPT MILESTONES ── */
+    .concept-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .concept-item:last-child { border-bottom: none; }
+    .concept-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+    .concept-info { flex: 1; }
+    .concept-name { font-size: .875rem; font-weight: 700; }
+    .concept-sub  { font-size: .72rem; color: var(--text2); margin-top: 2px; }
+    .concept-bar-wrap { flex: 2; height: 5px; background: var(--border); border-radius: 20px; overflow: hidden; }
+    .concept-bar-fill { height: 100%; border-radius: 20px; }
+    .concept-pct { font-size: .72rem; font-weight: 800; width: 32px; text-align: right; }
+    .concept-pill { font-size: .65rem; font-weight: 800; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
 
-    .qr-section {
-      background:var(--bg2); border:2px solid var(--border);
-      border-radius:14px; padding:16px; text-align:center;
-      margin-bottom:14px;
-    }
-    .qr-box {
-      width:110px; height:110px; background:#fff;
-      border:2px solid var(--border); border-radius:10px;
-      margin:0 auto 10px; display:flex; align-items:center;
-      justify-content:center; position:relative; overflow:hidden;
-    }
-    /* Fake QR pattern */
-    .qr-box::before {
-      content:''; position:absolute; inset:8px;
-      background:
-        repeating-linear-gradient(0deg,#000 0,#000 3px,transparent 3px,transparent 6px),
-        repeating-linear-gradient(90deg,#000 0,#000 3px,transparent 3px,transparent 6px);
-      opacity:.15;
-    }
-    .qr-corners::before, .qr-corners::after {
-      content:''; position:absolute;
-      width:24px; height:24px;
-      border:3px solid #000;
-    }
-    .qr-corners::before { top:8px; left:8px; border-right:none; border-bottom:none; }
-    .qr-corners::after  { bottom:8px; right:8px; border-left:none; border-top:none; }
-    .qr-scan-label { font-size:.75rem; font-weight:700; color:var(--text2); margin-bottom:6px; }
-    .upi-id-box {
-      background:#fff; border:2px solid var(--border);
-      border-radius:10px; padding:8px 14px;
-      font-family:monospace; font-size:.9rem; font-weight:700;
-      color:var(--text); display:inline-block; letter-spacing:.3px;
-    }
-    .pay-btn {
-      width:100%; padding:14px; background:var(--green); color:#fff;
-      border:none; border-radius:30px; font-family:'Nunito',sans-serif;
-      font-size:1rem; font-weight:800; cursor:pointer; transition:all .15s;
-      margin-top:2px;
-    }
-    .pay-btn:hover { background:var(--green-md); transform:translateY(-1px); }
+    /* ── BADGES ── */
+    .badges-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+    .badges-scroll::-webkit-scrollbar { display: none; }
+    .badge-item { flex-shrink: 0; text-align: center; padding: 10px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg); min-width: 70px; }
+    .badge-item.earned { border-color: var(--yellow); background: var(--yellow-lt); }
+    .badge-item.locked { opacity: .35; }
+    .badge-emoji { font-size: 1.5rem; }
+    .badge-name  { font-size: .65rem; font-weight: 700; margin-top: 4px; color: var(--text2); }
+    .badge-date  { font-size: .6rem; color: var(--text3); margin-top: 2px; }
 
-    .fee-history { display:flex; flex-direction:column; gap:0; }
-    .fee-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
-    .fee-row:last-child { border-bottom:none; }
-    .fee-month { flex:1; font-size:.875rem; font-weight:700; color:var(--text); }
-    .fee-amt   { font-size:.875rem; font-weight:700; color:var(--text2); }
-    .fee-method{ font-size:.72rem; color:var(--text3); font-weight:600; }
-    .fee-rcpt  { font-size:.75rem; font-weight:700; color:var(--blue); cursor:pointer; }
+    /* ── ACTION TIPS ── */
+    .tip-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .tip-item:last-child { border-bottom: none; }
+    .tip-icon { font-size: 1.2rem; flex-shrink: 0; width: 24px; text-align: center; }
+    .tip-title { font-size: .875rem; font-weight: 700; margin-bottom: 3px; }
+    .tip-desc  { font-size: .78rem; color: var(--text2); line-height: 1.6; }
 
-    /* ── MESSAGE FORM ── */
-    .msg-form { display:flex; flex-direction:column; gap:12px; }
-    .msg-to { padding:10px 14px; border:2px solid var(--border); border-radius:12px; font-family:'Nunito',sans-serif; font-size:.875rem; font-weight:600; background:var(--bg2); color:var(--text2); }
-    .msg-textarea {
-      width:100%; padding:12px 14px; border:2px solid var(--border);
-      border-radius:12px; font-family:'Nunito',sans-serif; font-size:.875rem;
-      font-weight:500; color:var(--text); background:var(--bg);
-      outline:none; resize:vertical; min-height:100px; transition:border-color .15s;
-    }
-    .msg-textarea:focus { border-color:var(--pink); }
-    .msg-btn { padding:11px 24px; background:var(--pink); color:#fff; border:none; border-radius:30px; font-family:'Nunito',sans-serif; font-size:.875rem; font-weight:800; cursor:pointer; width:fit-content; transition:all .15s; }
-    .msg-btn:hover { background:var(--pink-dk, #880E4F); }
+    /* ── UPCOMING MILESTONES ── */
+    .milestone-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+    .milestone-item:last-child { border-bottom: none; }
+    .milestone-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+    .milestone-text { flex: 1; font-size: .82rem; }
+    .milestone-when { font-size: .72rem; font-weight: 800; white-space: nowrap; }
 
-    .msg-history { display:flex; flex-direction:column; gap:10px; }
-    .msg-bubble { padding:12px 16px; border-radius:16px; max-width:85%; }
-    .msg-from-me { background:var(--pink); color:#fff; align-self:flex-end; border-bottom-right-radius:4px; }
-    .msg-from-teacher { background:var(--bg2); border:2px solid var(--border); color:var(--text); align-self:flex-start; border-bottom-left-radius:4px; }
-    .msg-text { font-size:.875rem; font-weight:500; line-height:1.5; margin-bottom:4px; }
-    .msg-time { font-size:.65rem; opacity:.7; font-weight:700; }
+    /* ── HOW IT WORKS (explainer) ── */
+    .explainer-step { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; background: var(--bg2); border-radius: 12px; border: 1px solid var(--border); margin-bottom: 8px; }
+    .step-num { background: var(--blue); color: #fff; font-size: .78rem; font-weight: 800; padding: 3px 10px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+    .step-title { font-size: .875rem; font-weight: 700; margin-bottom: 3px; }
+    .step-desc  { font-size: .78rem; color: var(--text2); line-height: 1.6; }
 
-    /* ── REPORT CARD ── */
-    .report-months { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
-    .report-month { background:var(--bg2); border:2px solid var(--border); border-radius:14px; padding:14px; text-align:center; cursor:pointer; transition:all .15s; }
-    .report-month:hover { border-color:var(--blue); background:var(--blue-lt); transform:translateY(-2px); }
-    .report-month-icon  { font-size:1.8rem; margin-bottom:6px; }
-    .report-month-name  { font-size:.82rem; font-weight:800; color:var(--text); margin-bottom:2px; }
-    .report-month-score { font-size:.72rem; color:var(--text2); font-weight:600; }
+    /* ── TABS ── */
+    .tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 16px; padding-bottom: 2px; }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn { padding: 7px 16px; border-radius: 20px; border: 2px solid var(--border); background: var(--bg); font-size: .82rem; font-weight: 700; cursor: pointer; white-space: nowrap; touch-action: manipulation; transition: all .12s; font-family: 'Nunito', sans-serif; }
+    .tab-btn.active { background: var(--blue-lt); border-color: var(--blue); color: var(--blue-dk); }
 
-    /* ── TOAST ── */
-    .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
-    .toast { background:var(--text); color:#fff; padding:10px 18px; border-radius:12px; font-size:.875rem; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,.2); animation:slideIn .3s ease; }
-    .toast-success { background:var(--green-dk); }
-    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
-
-    /* ── PAYMENT SUCCESS ── */
-    .pay-success { display:none; text-align:center; padding:24px 0; }
-    .pay-success.show { display:block; }
-    .pay-success-icon  { font-size:3.5rem; margin-bottom:12px; }
-    .pay-success-title { font-family:'Baloo 2',sans-serif; font-size:1.3rem; font-weight:800; margin-bottom:6px; color:var(--green-dk); }
-    .pay-success-sub   { font-size:.875rem; color:var(--text2); font-weight:500; margin-bottom:16px; }
+    /* ── LOADER ── */
+    .loader { text-align: center; padding: 60px 20px; color: var(--text3); }
+    .spinner { width: 36px; height: 36px; border: 4px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px; }
+    @keyframes spin { to{transform:rotate(360deg)} }
 
     /* ── RESPONSIVE ── */
-    @media (max-width:768px) {
-      .sidebar { transform:translateX(-100%); }
-      .sidebar.open { transform:translateX(0); }
-      .main { margin-left:0; }
-      .hamburger { display:flex; }
-      .body { padding:16px; }
-      .stats-row { grid-template-columns:repeat(2,1fr); }
-      .upi-apps  { grid-template-columns:repeat(2,1fr); }
-      .report-months { grid-template-columns:repeat(2,1fr); }
-      .att-grid  { grid-template-columns:repeat(5,minmax(0,1fr)); }
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding-bottom: var(--bottom-nav-h); }
+      .topbar { height: 52px; padding: 0 14px; }
+      .content { padding: 12px; }
+      .bottom-nav { display: block; }
+      .snapshot-grid { grid-template-columns: 1fr 1fr; }
+      .weeks-grid { grid-template-columns: repeat(4,1fr); }
+      .journey-pct-num { font-size: 1.2rem; }
+    }
+    @media (max-width: 360px) {
+      .snapshot-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
     }
   </style>
 </head>
 <body>
 <div class="portal">
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon">👨‍👩‍👧</div>
-      iMath<span>Academy</span>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section">My child</div>
-      <a class="nav-item active" href="#" onclick="showTab('overview',this)"><span class="nav-icon">🏠</span> Overview</a>
-      <a class="nav-item" href="#" onclick="showTab('progress',this)"><span class="nav-icon">📊</span> Progress</a>
-      <a class="nav-item" href="#" onclick="showTab('homework',this)"><span class="nav-icon">📋</span> Homework</a>
-      <a class="nav-item" href="#" onclick="showTab('attendance',this)"><span class="nav-icon">✅</span> Attendance</a>
-      <div class="nav-section">Account</div>
-      <a class="nav-item" href="#" onclick="showTab('fees',this)"><span class="nav-icon">💳</span> Fees & payment</a>
-      <a class="nav-item" href="#" onclick="showTab('reports',this)"><span class="nav-icon">📄</span> Monthly reports</a>
-      <a class="nav-item" href="#" onclick="showTab('message',this)"><span class="nav-icon">💬</span> Message teacher</a>
+  <!-- Sidebar (desktop) -->
+  <aside class="sidebar">
+    <div class="logo"><div class="logo-icon">🧮</div>iMath<span>Academy</span></div>
+    <nav>
+      <div class="nav-sec">My children</div>
+      <a class="nav-item active" href="#"><span class="nav-icon">🏠</span> Dashboard</a>
+      <div class="nav-sec">Account</div>
+      <a class="nav-item" href="#"><span class="nav-icon">💳</span> Subscription</a>
     </nav>
     <div class="sidebar-user">
-      <div class="user-av">SR</div>
+      <div class="av" id="sidebarAv">P</div>
       <div>
-        <div class="user-name" id="userName">Loading...</div>
-        <div class="user-role">Parent</div>
+        <div class="sidebar-name" id="sidebarName">Parent</div>
+        <div class="sidebar-role">Parent account</div>
       </div>
       <button class="logout-btn" onclick="logout()">⇥</button>
     </div>
   </aside>
 
-  <!-- MAIN -->
+  <!-- Main -->
   <div class="main">
     <div class="topbar">
-      <div class="topbar-left">
-        <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
-        <div class="topbar-title" id="topbarTitle">Parent Portal</div>
-      </div>
-      <div style="font-size:.8rem;font-weight:600;color:var(--text3)" id="topbarDate"></div>
+      <div class="topbar-title" id="topbarTitle">Parent Dashboard</div>
+      <button class="logout-btn" onclick="logout()" id="mobileLogout" style="display:none;">⇥</button>
     </div>
 
-    <div class="body">
-
-      <!-- ══ OVERVIEW TAB ══ -->
-      <div id="tab-overview">
-        <div id="overviewRoot" style="text-align:center;padding:40px;color:var(--text3);font-weight:600">Loading your parent portal...</div>
-      </div>
-
-      <!-- ══ PROGRESS TAB ══ -->
-      <div id="tab-progress" style="display:none">
-
-        <div class="child-card" style="margin-bottom:16px">
-          <div class="child-av">AR</div>
-          <div class="child-info">
-            <div class="child-name">Arjun Rao</div>
-            <div class="child-level">Abacus Level 3 · Orange Belt · 1,240 XP</div>
-          </div>
-        </div>
-
-        <div class="stats-row" style="grid-template-columns:repeat(3,minmax(0,1fr))">
-          <div class="stat-card"><div class="stat-n" style="color:var(--blue)">24</div><div class="stat-l">Sessions this month</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--green)">71%</div><div class="stat-l">Avg accuracy</div><div class="stat-s">↑ +8%</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--orange)">7</div><div class="stat-l">Day streak</div><div class="stat-s">best: 12</div></div>
-        </div>
-
-        <div class="section-card">
-          <div class="section-title">Detailed topic accuracy</div>
-          <div style="font-size:.78rem;color:var(--text2);font-weight:600;margin-bottom:12px">Higher percentage = more accurate. Below 60% means extra practice is needed.</div>
-          <div class="topic-row"><span class="topic-name">✅ Single digit addition</span><div class="topic-bar"><div class="topic-fill" style="background:var(--green);width:91%"></div></div><span class="topic-pct" style="color:var(--green-dk)">91%</span></div>
-          <div class="topic-row"><span class="topic-name">✅ Single digit subtraction</span><div class="topic-bar"><div class="topic-fill" style="background:var(--green);width:87%"></div></div><span class="topic-pct" style="color:var(--green-dk)">87%</span></div>
-          <div class="topic-row"><span class="topic-name">👍 2-digit addition</span><div class="topic-bar"><div class="topic-fill" style="background:var(--blue);width:74%"></div></div><span class="topic-pct" style="color:var(--blue-dk)">74%</span></div>
-          <div class="topic-row"><span class="topic-name">👍 2-digit subtraction</span><div class="topic-bar"><div class="topic-fill" style="background:var(--blue);width:68%"></div></div><span class="topic-pct" style="color:var(--blue-dk)">68%</span></div>
-          <div class="topic-row"><span class="topic-name">⚠️ 3-digit subtraction</span><div class="topic-bar"><div class="topic-fill" style="background:var(--orange);width:58%"></div></div><span class="topic-pct" style="color:var(--orange-dk)">58%</span></div>
-          <div class="topic-row"><span class="topic-name">🔴 Addition with carrying</span><div class="topic-bar"><div class="topic-fill" style="background:var(--red);width:48%"></div></div><span class="topic-pct" style="color:var(--red-dk)">48%</span></div>
-        </div>
-
-        <div class="section-card">
-          <div class="section-title">Badges earned</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <span style="background:var(--yellow-lt);border:1.5px solid #FFE082;padding:6px 12px;border-radius:20px;font-size:.78rem;font-weight:800">🎯 First Steps</span>
-            <span style="background:var(--yellow-lt);border:1.5px solid #FFE082;padding:6px 12px;border-radius:20px;font-size:.78rem;font-weight:800">🔥 7-day Streak</span>
-            <span style="background:var(--yellow-lt);border:1.5px solid #FFE082;padding:6px 12px;border-radius:20px;font-size:.78rem;font-weight:800">⚡ Speed Demon</span>
-            <span style="background:var(--yellow-lt);border:1.5px solid #FFE082;padding:6px 12px;border-radius:20px;font-size:.78rem;font-weight:800">💯 Perfect Score</span>
-            <span style="background:var(--yellow-lt);border:1.5px solid #FFE082;padding:6px 12px;border-radius:20px;font-size:.78rem;font-weight:800">🧮 Bead Master</span>
-            <span style="background:var(--yellow-lt);border:1.5px solid #FFE082;padding:6px 12px;border-radius:20px;font-size:.78rem;font-weight:800">🏅 Orange Belt</span>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- ══ HOMEWORK TAB ══ -->
-      <div id="tab-homework" style="display:none">
-
-        <div class="section-card">
-          <div class="section-title">Current homework</div>
-          <div class="hw-row">
-            <div class="hw-dot" style="background:var(--red)"></div>
-            <div class="hw-info">
-              <div class="hw-title">Addition with carrying — 10 questions</div>
-              <div class="hw-meta">Assigned by Ms. Priya · Due tomorrow</div>
-            </div>
-            <span class="pill pill-r">Due tomorrow!</span>
-          </div>
-          <div class="hw-row">
-            <div class="hw-dot" style="background:var(--orange)"></div>
-            <div class="hw-info">
-              <div class="hw-title">Revision: 3-digit subtraction — 8 questions</div>
-              <div class="hw-meta">Auto-assigned · Weak area revision · 2 days left</div>
-            </div>
-            <span class="pill pill-o">2 days left</span>
-          </div>
-        </div>
-
-        <div class="section-card">
-          <div class="section-title">Completed homework</div>
-          <div class="hw-row">
-            <div class="hw-dot" style="background:var(--green)"></div>
-            <div class="hw-info">
-              <div class="hw-title">Single digit addition — 10 questions</div>
-              <div class="hw-meta">Submitted 2 days ago · Score: 9/10 ⭐</div>
-            </div>
-            <span class="pill pill-g">9/10</span>
-          </div>
-          <div class="hw-row">
-            <div class="hw-dot" style="background:var(--green)"></div>
-            <div class="hw-info">
-              <div class="hw-title">2-digit addition practice</div>
-              <div class="hw-meta">Submitted 1 week ago · Score: 7/8</div>
-            </div>
-            <span class="pill pill-g">7/8</span>
-          </div>
-        </div>
-
-        <div style="background:var(--blue-lt);border:2px solid #90CAF9;border-radius:14px;padding:14px 16px">
-          <div style="font-size:.875rem;font-weight:800;color:var(--blue-dk);margin-bottom:4px">💡 Did you know?</div>
-          <div style="font-size:.78rem;color:var(--blue-dk);font-weight:500;line-height:1.6">The portal automatically assigns extra practice homework when Arjun's accuracy drops below 60% in any topic. This ensures he gets targeted help exactly where he needs it — without any action from you!</div>
-        </div>
-
-      </div>
-
-      <!-- ══ ATTENDANCE TAB ══ -->
-      <div id="tab-attendance" style="display:none">
-
-        <div class="section-card">
-          <div class="section-title">May 2025 — Attendance</div>
-          <div style="display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap">
-            <div style="text-align:center"><div style="font-size:1.4rem;font-weight:800;color:var(--green)">18</div><div style="font-size:.72rem;font-weight:700;color:var(--text2)">Present</div></div>
-            <div style="text-align:center"><div style="font-size:1.4rem;font-weight:800;color:var(--red)">2</div><div style="font-size:.72rem;font-weight:700;color:var(--text2)">Absent</div></div>
-            <div style="text-align:center"><div style="font-size:1.4rem;font-weight:800;color:var(--blue)">90%</div><div style="font-size:.72rem;font-weight:700;color:var(--text2)">Attendance rate</div></div>
-          </div>
-
-          <!-- Calendar grid -->
-          <div class="att-grid">
-            <div class="att-day-label">Mon</div>
-            <div class="att-day-label">Tue</div>
-            <div class="att-day-label">Wed</div>
-            <div class="att-day-label">Thu</div>
-            <div class="att-day-label">Fri</div>
-            <div class="att-day-label">Sat</div>
-            <div class="att-day-label">Sun</div>
-          </div>
-          <div class="att-grid" id="calGrid"></div>
-          <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
-            <div style="display:flex;align-items:center;gap:5px"><div style="width:14px;height:14px;border-radius:3px;background:var(--green)"></div><span style="font-size:.72rem;font-weight:700;color:var(--text2)">Present</span></div>
-            <div style="display:flex;align-items:center;gap:5px"><div style="width:14px;height:14px;border-radius:3px;background:var(--red-lt);border:1.5px solid #FFCDD2"></div><span style="font-size:.72rem;font-weight:700;color:var(--text2)">Absent</span></div>
-            <div style="display:flex;align-items:center;gap:5px"><div style="width:14px;height:14px;border-radius:3px;background:var(--bg2);border:1.5px solid var(--border)"></div><span style="font-size:.72rem;font-weight:700;color:var(--text2)">No class</span></div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- ══ FEES TAB ══ -->
-      <div id="tab-fees" style="display:none">
-
-        <!-- Current fee -->
-        <div class="section-card">
-          <div class="section-title">June 2025 — Payment due</div>
-          <div class="fee-header">
-            <div>
-              <div class="fee-amount">Rs. 800</div>
-              <div style="font-size:.75rem;color:var(--text2);font-weight:600;margin-top:3px">Abacus program · Monthly fee</div>
-            </div>
-            <div class="fee-due">Due 1 June 2025</div>
-          </div>
-
-          <!-- Payment success -->
-          <div class="pay-success" id="paySuccess">
-            <div class="pay-success-icon">✅</div>
-            <div class="pay-success-title">Payment successful!</div>
-            <div class="pay-success-sub">Rs. 800 paid via <span id="payMethod">GPay</span>. Receipt has been emailed to you.</div>
-            <div style="background:var(--green-lt);border:2px solid #A5D6A7;border-radius:12px;padding:12px 16px;display:inline-block">
-              <div style="font-size:.75rem;font-weight:800;color:var(--green-dk)">Receipt #IMA-2025-06-001</div>
-              <div style="font-size:.72rem;color:var(--green-dk);margin-top:2px">June 2025 · Arjun Rao · Rs. 800</div>
-            </div>
-          </div>
-
-          <!-- UPI payment form -->
-          <div id="payForm">
-            <div class="upi-title">Select UPI app to pay</div>
-            <div class="upi-apps">
-              <div class="upi-app sel" id="upi-gpay" onclick="selectUPI('gpay',this)">
-                <div class="upi-app-logo" style="background:#5F259F">G</div>
-                <div class="upi-app-name">GPay</div>
-              </div>
-              <div class="upi-app" id="upi-phonepe" onclick="selectUPI('phonepe',this)">
-                <div class="upi-app-logo" style="background:#5F259F">Pe</div>
-                <div class="upi-app-name">PhonePe</div>
-              </div>
-              <div class="upi-app" id="upi-paytm" onclick="selectUPI('paytm',this)">
-                <div class="upi-app-logo" style="background:#002970">Pt</div>
-                <div class="upi-app-name">Paytm</div>
-              </div>
-              <div class="upi-app" id="upi-any" onclick="selectUPI('any',this)">
-                <div class="upi-app-logo" style="background:#F47920">UPI</div>
-                <div class="upi-app-name">Any UPI</div>
-              </div>
-            </div>
-
-            <div class="qr-section">
-              <div class="qr-scan-label">Scan QR code with your UPI app</div>
-              <div class="qr-box">
-                <div class="qr-corners"></div>
-                <div style="position:relative;z-index:1;font-size:.55rem;font-weight:800;color:var(--text3)">QR<br>CODE</div>
-              </div>
-              <div style="font-size:.75rem;color:var(--text2);font-weight:600;margin-bottom:8px">— or pay using UPI ID —</div>
-              <div class="upi-id-box">imathacademy@razorpay</div>
-            </div>
-
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-              <div>
-                <div style="font-size:.82rem;font-weight:800;color:var(--text)">Amount to pay</div>
-                <div style="font-family:'Baloo 2',sans-serif;font-size:1.5rem;font-weight:800;color:var(--green-dk)">Rs. 800</div>
-              </div>
-              <div style="text-align:right">
-                <div style="font-size:.72rem;color:var(--text3);font-weight:600">Student</div>
-                <div style="font-size:.875rem;font-weight:800">Arjun Rao</div>
-              </div>
-            </div>
-            <button class="pay-btn" onclick="simulatePay()">Pay Rs. 800 now ✓</button>
-            <div style="text-align:center;font-size:.72rem;color:var(--text3);font-weight:600;margin-top:8px">🔒 Secured by Razorpay · 100% safe and encrypted</div>
-          </div>
-        </div>
-
-        <!-- Payment history -->
-        <div class="section-card">
-          <div class="section-title">Payment history</div>
-          <div class="fee-history">
-            <div class="fee-row">
-              <div style="flex:1"><div class="fee-month">May 2025 — Abacus</div><div class="fee-method">Paid 2 May via GPay</div></div>
-              <div class="fee-amt">Rs. 800</div>
-              <span class="pill pill-g" style="margin-left:10px">Paid</span>
-              <span class="fee-rcpt" style="margin-left:10px" onclick="downloadReceipt('May 2025')">Receipt</span>
-            </div>
-            <div class="fee-row">
-              <div style="flex:1"><div class="fee-month">April 2025 — Abacus</div><div class="fee-method">Paid 1 Apr via PhonePe</div></div>
-              <div class="fee-amt">Rs. 800</div>
-              <span class="pill pill-g" style="margin-left:10px">Paid</span>
-              <span class="fee-rcpt" style="margin-left:10px" onclick="downloadReceipt('April 2025')">Receipt</span>
-            </div>
-            <div class="fee-row">
-              <div style="flex:1"><div class="fee-month">March 2025 — Abacus</div><div class="fee-method">Paid 3 Mar via UPI</div></div>
-              <div class="fee-amt">Rs. 800</div>
-              <span class="pill pill-g" style="margin-left:10px">Paid</span>
-              <span class="fee-rcpt" style="margin-left:10px" onclick="downloadReceipt('March 2025')">Receipt</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- ══ REPORTS TAB ══ -->
-      <div id="tab-reports" style="display:none">
-
-        <div class="section-card">
-          <div class="section-title">Monthly progress reports</div>
-          <div style="font-size:.82rem;color:var(--text2);font-weight:500;margin-bottom:16px;line-height:1.6">
-            Reports are auto-generated at the end of each month and emailed to you. Download any past report below.
-          </div>
-          <div class="report-months">
-            <div class="report-month" onclick="downloadReport('May 2025')">
-              <div class="report-month-icon">📊</div>
-              <div class="report-month-name">May 2025</div>
-              <div class="report-month-score">Accuracy: 71% · 24 sessions</div>
-            </div>
-            <div class="report-month" onclick="downloadReport('April 2025')">
-              <div class="report-month-icon">📊</div>
-              <div class="report-month-name">April 2025</div>
-              <div class="report-month-score">Accuracy: 63% · 18 sessions</div>
-            </div>
-            <div class="report-month" onclick="downloadReport('March 2025')">
-              <div class="report-month-icon">📊</div>
-              <div class="report-month-name">March 2025</div>
-              <div class="report-month-score">Accuracy: 55% · 14 sessions</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- What's in the report -->
-        <div class="section-card">
-          <div class="section-title">What each report includes</div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--green);font-weight:800;flex-shrink:0">✓</span><span style="font-size:.875rem;color:var(--text2)">Topic-wise accuracy with visual charts</span></div>
-            <div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--green);font-weight:800;flex-shrink:0">✓</span><span style="font-size:.875rem;color:var(--text2)">Complete attendance record</span></div>
-            <div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--green);font-weight:800;flex-shrink:0">✓</span><span style="font-size:.875rem;color:var(--text2)">Homework submission rate and scores</span></div>
-            <div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--green);font-weight:800;flex-shrink:0">✓</span><span style="font-size:.875rem;color:var(--text2)">XP progress and badges earned</span></div>
-            <div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--green);font-weight:800;flex-shrink:0">✓</span><span style="font-size:.875rem;color:var(--text2)">Teacher's written comments and recommendations</span></div>
-            <div style="display:flex;gap:10px;align-items:flex-start"><span style="color:var(--green);font-weight:800;flex-shrink:0">✓</span><span style="font-size:.875rem;color:var(--text2)">Goals for the coming month</span></div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- ══ MESSAGE TAB ══ -->
-      <div id="tab-message" style="display:none">
-
-        <!-- Message history -->
-        <div class="section-card">
-          <div class="section-title">Conversation with Ms. Priya</div>
-          <div class="msg-history" id="msgHistory">
-            <div style="align-self:flex-start">
-              <div class="msg-bubble msg-from-teacher">
-                <div class="msg-text">Hello Mrs. Rao! Arjun is doing great in class. He has improved a lot in single digit addition. However, he needs a bit more practice on carrying — I have assigned extra homework for that. Please encourage him to practice daily!</div>
-                <div class="msg-time">Ms. Priya · 3 days ago</div>
-              </div>
-            </div>
-            <div style="align-self:flex-end">
-              <div class="msg-bubble msg-from-me">
-                <div class="msg-text">Thank you Ms. Priya! We will make sure he practices every evening. He really enjoys the abacus sessions!</div>
-                <div class="msg-time">You · 2 days ago</div>
-              </div>
-            </div>
-            <div style="align-self:flex-start">
-              <div class="msg-bubble msg-from-teacher">
-                <div class="msg-text">That is wonderful to hear! His streak of 7 days shows his dedication. Keep it up Arjun! 🌟</div>
-                <div class="msg-time">Ms. Priya · Yesterday</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- New message form -->
-        <div class="section-card">
-          <div class="section-title">Send a message to Ms. Priya</div>
-          <div class="msg-form">
-            <div class="msg-to">To: Ms. Priya (Arjun's teacher — Batch A)</div>
-            <textarea class="msg-textarea" id="msgText" placeholder="Type your message here... (e.g. Arjun will be absent on Friday, or asking about homework)"></textarea>
-            <button class="msg-btn" onclick="sendMessage()">Send message 📨</button>
-          </div>
-        </div>
-
-      </div>
-
+    <div class="content" id="mainContent">
+      <div class="loader"><div class="spinner"></div>Loading your children's progress...</div>
     </div>
   </div>
 </div>
 
-<div class="toast-container" id="toastContainer"></div>
+<!-- Bottom nav (mobile) -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bnav-item active" href="#">
+      <span class="bnav-icon">🏠</span><span class="bnav-label">Home</span>
+    </a>
+    <a class="bnav-item" href="#how">
+      <span class="bnav-icon">❓</span><span class="bnav-label">How it works</span>
+    </a>
+    <a class="bnav-item" href="subscription.html">
+      <span class="bnav-icon">💳</span><span class="bnav-label">Subscription</span>
+    </a>
+  </div>
+</nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -638,291 +232,505 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let selectedUPI = 'gpay';
-let linkedChildren = [];
-let activeChild = null;
+let parentProfile = null, children = [], activeChild = null, activeTab = 'progress';
 
-const BELTS = [
-  { name:'White Belt',   minXP:0,     maxXP:499,   next:'Yellow Belt',  nextXP:500   },
-  { name:'Yellow Belt',  minXP:500,   maxXP:1199,  next:'Orange Belt',  nextXP:1200  },
-  { name:'Orange Belt',  minXP:1200,  maxXP:2499,  next:'Green Belt',   nextXP:2500  },
-  { name:'Green Belt',   minXP:2500,  maxXP:4499,  next:'Blue Belt',    nextXP:4500  },
-  { name:'Blue Belt',    minXP:4500,  maxXP:6999,  next:'Purple Belt',  nextXP:7000  },
-  { name:'Purple Belt',  minXP:7000,  maxXP:9999,  next:'Red Belt',     nextXP:10000 },
-  { name:'Red Belt',     minXP:10000, maxXP:13999, next:'Brown Belt',   nextXP:14000 },
-  { name:'Brown Belt',   minXP:14000, maxXP:19999, next:'Black Belt',   nextXP:20000 },
-  { name:'Black Belt',   minXP:20000, maxXP:29999, next:'Grand Master', nextXP:30000 },
-  { name:'Grand Master', minXP:30000, maxXP:Infinity, next:'', nextXP:0 },
+// ── HELPERS ──────────────────────────────────────────────────
+function initials(name) { return (name||'P').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2); }
+function fmt(date) { return date ? new Date(date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '—'; }
+function fmtShort(date) { return date ? new Date(date).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '—'; }
+
+function getGroupLabel(p) {
+  const g = p.age_group || levelGroup(p.current_level||1);
+  return g==='tiny'?'🐣 Tiny Champs':g==='rising'?'🌟 Rising Stars':'🚀 Champions';
+}
+function levelGroup(lv) { return lv<=1?'tiny':lv<=4?'rising':'champions'; }
+
+function getWeeksInLevel(enrollDate) {
+  if (!enrollDate) return { week: 1, total: 12, pct: 8 };
+  const diff = new Date() - new Date(enrollDate);
+  const weeks = Math.max(1, Math.min(12, Math.ceil(diff / (7*24*3600*1000))));
+  return { week: weeks, total: 12, pct: Math.round(weeks/12*100) };
+}
+
+function estimateCompletion(enrollDate) {
+  const d = new Date(enrollDate || new Date());
+  d.setDate(d.getDate() + (12 * 7));
+  return d.toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+}
+
+const BADGE_DEFS = [
+  { key:'speed_star',    emoji:'⭐', name:'Speed star'   },
+  { key:'perfect_score', emoji:'🎯', name:'Perfect!'     },
+  { key:'streak_5',      emoji:'🔥', name:'5-day fire'   },
+  { key:'streak_7',      emoji:'🥇', name:'7-day legend' },
+  { key:'puzzle_pro',    emoji:'🧩', name:'Puzzle pro'   },
+  { key:'top_batch',     emoji:'🏆', name:'Top of batch' },
+  { key:'abacus_ninja',  emoji:'🥷', name:'Abacus ninja' },
 ];
-function getBelt(xp) { return BELTS.find(b => xp >= b.minXP && xp <= b.maxXP) || BELTS[0]; }
 
-function escapeHtml(str) {
-  return String(str || '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
-}
+// ── LEVEL CONCEPT MAP ────────────────────────────────────────
+const LEVEL_CONCEPTS = {
+  0: ['Number recognition','Counting 1–10','Simple addition 1–9'],
+  1: ['Big friends addition','Small friends addition','Big friends subtraction','Small friends subtraction','Level 1 revision'],
+  2: ['Combination addition','Combination subtraction','3-digit practice','Level 2 revision'],
+  3: ['Family formula addition','Family formula subtraction','4-digit practice','Level 3 revision'],
+  4: ['Anzan introduction','Mental addition','Mental subtraction','Level 4 revision'],
+  5: ['Multiplication 2×1','Multiplication 3×1','6-digit add/sub','Level 5 revision'],
+  6: ['Division 2÷1','7-digit add/sub','Level 6 revision'],
+  7: ['Multiplication 4×1','Multiplication 2×2','Division 4÷1','8-digit add/sub','Level 7 revision'],
+  8: ['Decimal operations','Negative numbers','Advanced add/sub','Level 8 revision'],
+};
 
-// ── TAB ────────────────────────────────────────────────────
-function showTab(name, el) {
-  ['overview','progress','homework','attendance','fees','reports','message'].forEach(t => {
-    const node = document.getElementById('tab-' + t);
-    if (node) node.style.display = t === name ? 'block' : 'none';
+// ── RENDER DASHBOARD ─────────────────────────────────────────
+function renderDashboard(child, stats) {
+  const lv = child.current_level || 1;
+  const concepts = LEVEL_CONCEPTS[lv] || LEVEL_CONCEPTS[1];
+  const journey = getWeeksInLevel(child.created_at);
+  const group = child.age_group || levelGroup(lv);
+  const xp = child.xp_points || 0;
+  const streak = child.streak_days || 0;
+  const xpNext = (Math.floor(xp/500)+1)*500;
+  const xpPct = Math.min(100, Math.round((xp%500)/500*100));
+  const badges = stats.badges || [];
+  const earnedBadgeKeys = new Set(badges.map(b=>b.badge_type||b.key));
+  const hw = stats.homeworkPending || 0;
+  const practiceToday = stats.practiceToday || false;
+  const weeklyXP = stats.weeklyXP || 0;
+  const puzzlesSolved = stats.puzzlesSolved || 0;
+
+  // Concept progress — simulate based on level and XP
+  const conceptProgress = concepts.map((c,i) => {
+    const isDone = i < Math.floor(journey.week/12 * concepts.length * 0.7);
+    const isCurrent = !isDone && i === Math.floor(journey.week/12 * concepts.length * 0.7);
+    const pct = isDone ? 100 : isCurrent ? Math.min(95, (xpPct + 10)) : 0;
+    return { name:c, pct, isDone, isCurrent };
   });
-  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-  if (el) el.classList.add('active');
-  const childName = activeChild?.full_name || 'your child';
-  const titles = {
-    overview:'Parent Portal',
-    progress:`${childName}'s Progress`,
-    homework:'Homework',
-    attendance:'Attendance',
-    fees:'Fees & Payment',
-    reports:'Monthly Reports',
-    message:'Message Teacher'
-  };
-  document.getElementById('topbarTitle').textContent = titles[name] || 'Parent Portal';
-  if (name === 'attendance') buildCalendar();
-  if (name !== 'overview' && !activeChild) {
-    const tab = document.getElementById('tab-' + name);
-    if (tab) {
-      tab.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text3);font-weight:600">No linked student yet. Ask admin to link your child to this parent account.</div>`;
-    }
-  }
-}
 
-async function renderOverview() {
-  const root = document.getElementById('overviewRoot');
-  if (!linkedChildren.length) {
-    root.innerHTML = `
-      <div style="text-align:left;background:#fff;border:2px solid var(--border);border-radius:16px;padding:24px">
-        <div style="font-size:1.1rem;font-weight:800;margin-bottom:8px">Welcome</div>
-        <div style="color:var(--text2);font-weight:600;line-height:1.6">
-          No students are linked to your account yet.<br>
-          Once admin links your child, their progress, homework and fees will appear here — only for your child.
-        </div>
-      </div>`;
-    return;
-  }
+  // Action tips based on child data
+  const tips = buildActionTips(child, stats, journey, group);
+  const milestones = buildMilestones(child, stats, journey, streak, badges);
+  const convStarters = buildConvStarters(child, stats, group);
 
-  const child = activeChild || linkedChildren[0];
-  activeChild = child;
-  const xp = child.xp_points ?? 0;
-  const belt = getBelt(xp);
-  const initials = (child.full_name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  const program = child.program === 'vedic' ? 'Vedic Maths' : child.program === 'abacus' ? 'Abacus' : 'Program';
-  const pct = belt.next ? Math.min(100, Math.round(((xp - belt.minXP) / (belt.nextXP - belt.minXP)) * 100)) : 100;
+  document.getElementById('mainContent').innerHTML = `
 
-  const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
-  const [{ data: sessions }, { data: badges }, { data: weak }, { data: pendingHw }] = await Promise.all([
-    sb.from('practice_sessions').select('score, total_questions, created_at').eq('student_id', child.id).gte('created_at', weekAgo),
-    sb.from('badges').select('id').eq('student_id', child.id),
-    sb.from('student_weak_topics').select('*').eq('student_id', child.id).limit(4),
-    sb.from('batch_students').select('batch_id').eq('student_id', child.id),
-  ]);
-
-  let hwNotice = '';
-  if (pendingHw?.length) {
-    const { data: hw } = await sb
-      .from('homework')
-      .select('id, title, due_date, submissions(student_id)')
-      .in('batch_id', pendingHw.map(b => b.batch_id))
-      .eq('is_active', true)
-      .order('due_date', { ascending: true })
-      .limit(5);
-    const pending = (hw || []).filter(h => !(h.submissions || []).some(s => s.student_id === child.id));
-    if (pending.length) {
-      const first = pending[0];
-      hwNotice = `
-        <div style="background:var(--orange-lt);border:2px solid #FFCC80;border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:flex-start">
-          <span style="font-size:1.1rem;flex-shrink:0">📢</span>
+    <!-- Child selector -->
+    ${children.length > 1 ? `
+    <div class="child-selector">
+      ${children.map(c=>`
+        <div class="child-chip ${c.id===child.id?'active':''}" onclick="selectChild('${c.id}')">
+          <div class="child-av" style="background:${c.id===child.id?'#E3F2FD':'#F3E5F5'};color:${c.id===child.id?'#0D47A1':'#4A148C'};border:2px solid ${c.id===child.id?'#1E88E5':'#9C27B0'}">${initials(c.full_name)}</div>
           <div>
-            <div style="font-size:.875rem;font-weight:800;color:var(--orange-dk);margin-bottom:3px">${pending.length} pending homework</div>
-            <div style="font-size:.78rem;color:var(--orange-dk);font-weight:500">${escapeHtml(child.full_name)} has "${escapeHtml(first.title || 'Homework')}"${first.due_date ? ` due ${first.due_date}` : ''}.</div>
+            <div class="child-name" style="color:${c.id===child.id?'#0D47A1':'var(--text)'}">${c.full_name.split(' ')[0]}</div>
+            <div class="child-level">Level ${c.current_level||1} · ${getGroupLabel(c)}</div>
           </div>
-        </div>`;
-    }
-  }
+        </div>`).join('')}
+    </div>` : ''}
 
-  const sess = sessions || [];
-  const totalC = sess.reduce((a, s) => a + (s.score || 0), 0);
-  const totalQ = sess.reduce((a, s) => a + (s.total_questions || 0), 0);
-  const acc = totalQ ? Math.round((totalC / totalQ) * 100) : null;
-
-  const topicRows = (weak || []).length
-    ? (weak || []).map(t => {
-        const a = Math.round(parseFloat(t.accuracy) || 0);
-        const color = a >= 75 ? 'var(--green)' : a >= 55 ? 'var(--blue)' : a >= 35 ? 'var(--orange)' : 'var(--red)';
-        return `<div class="topic-row"><span class="topic-name">${escapeHtml(t.topic)}</span><div class="topic-bar"><div class="topic-fill" style="background:${color};width:${a}%"></div></div><span class="topic-pct" style="color:${color}">${a}%</span></div>`;
-      }).join('')
-    : `<div style="padding:12px;color:var(--text3);font-weight:600">No topic data yet for ${escapeHtml(child.full_name)}</div>`;
-
-  const childPicker = linkedChildren.length > 1
-    ? `<div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap">${linkedChildren.map(c =>
-        `<button onclick="selectChild('${c.id}')" style="border:2px solid ${c.id===child.id?'var(--pink)':'var(--border)'};background:${c.id===child.id?'var(--pink-lt)':'#fff'};color:var(--text);padding:8px 14px;border-radius:20px;font-weight:800;cursor:pointer">${escapeHtml(c.full_name)}</button>`
-      ).join('')}</div>`
-    : '';
-
-  root.innerHTML = `
-    ${childPicker}
-    <div class="child-card">
-      <div class="child-av">${initials}</div>
-      <div class="child-info">
-        <div class="child-name">${escapeHtml(child.full_name)}</div>
-        <div class="child-level">${program} · Level ${child.current_level ?? 1}</div>
-        <div class="child-tags">
-          <span class="tag tag-belt">🏅 ${belt.name}</span>
-          <span class="tag tag-streak">🔥 ${child.streak_days ?? 0}-day streak</span>
+    <!-- Journey banner -->
+    <div class="journey-banner" style="background:linear-gradient(135deg,#1565C0,#6A1B9A);">
+      <div class="journey-top">
+        <div class="journey-text">
+          <h2>${child.full_name.split(' ')[0]} is ${journey.pct >= 50 ? 'more than halfway' : 'making great progress'} through Level ${lv}!</h2>
+          <p>Week ${journey.week} of 12 · Est. completion <strong>${estimateCompletion(child.created_at)}</strong></p>
+        </div>
+        <div class="journey-pct">
+          <div class="journey-pct-num">${journey.pct}%</div>
+          <div class="journey-pct-lbl">Level done</div>
         </div>
       </div>
+      <div class="journey-bar-wrap">
+        <div class="journey-bar-labels"><span>Week 1</span><span>Week ${journey.week} — now</span><span>Week 12 🎓</span></div>
+        <div class="journey-bar"><div class="journey-bar-fill" style="width:${journey.pct}%"></div></div>
+      </div>
     </div>
-    <div class="xp-card">
-      <div class="xp-top">
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn ${activeTab==='progress'?'active':''}" onclick="switchTab('progress',this)">📊 Progress</button>
+      <button class="tab-btn ${activeTab==='badges'?'active':''}" onclick="switchTab('badges',this)">🏅 Badges</button>
+      <button class="tab-btn ${activeTab==='tips'?'active':''}" onclick="switchTab('tips',this)">💡 Action tips</button>
+      <button class="tab-btn ${activeTab==='howworks'?'active':''}" onclick="switchTab('howworks',this)" id="how">❓ How it works</button>
+    </div>
+
+    <!-- ── TAB: PROGRESS ── -->
+    <div id="tab-progress" style="${activeTab==='progress'?'':'display:none'}">
+
+      <!-- Snapshot -->
+      <div class="sec-title">This week — ${child.full_name.split(' ')[0]}</div>
+      <div class="snapshot-grid" style="margin-bottom:12px;">
+        <div class="snap-box"><div class="snap-num" style="color:var(--blue-dk)">${weeklyXP}</div><div class="snap-lbl">XP this week</div></div>
+        <div class="snap-box"><div class="snap-num" style="color:${practiceToday?'var(--green-dk)':'var(--text3)'}">${practiceToday?'✅':'—'}</div><div class="snap-lbl">Practised today</div></div>
+        <div class="snap-box"><div class="snap-num" style="color:var(--orange-dk)">🔥 ${streak}</div><div class="snap-lbl">Day streak</div></div>
+        <div class="snap-box"><div class="snap-num" style="color:var(--purple-dk)">${puzzlesSolved}</div><div class="snap-lbl">Puzzles solved</div></div>
+      </div>
+
+      <!-- XP bar -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="sec-title" style="margin-bottom:8px;">⚡ Total XP — ${xp.toLocaleString('en-IN')} points</div>
+        <div style="height:10px;background:var(--border);border-radius:20px;overflow:hidden;margin-bottom:6px;">
+          <div style="height:100%;width:${xpPct}%;background:linear-gradient(90deg,#FFD600,#FF6F00);border-radius:20px;transition:width .5s;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text3);">
+          <span>${xp} XP</span><span>${xpNext - xp} XP to next level up → ${xpNext} XP</span>
+        </div>
+      </div>
+
+      <!-- Plain English summary -->
+      <div class="summary-box" style="background:var(--green-lt);border:1.5px solid var(--green);margin-bottom:10px;">
+        <div class="summary-title" style="color:var(--green-dk);">This week in plain English</div>
+        <div class="summary-text" style="color:var(--green-dk);">${buildWeeklySummary(child, stats, journey, practiceToday)}</div>
+      </div>
+
+      <!-- Conversation starters -->
+      <div class="conv-box" style="background:var(--blue-lt);border:1.5px solid var(--blue);margin-bottom:12px;">
+        <div class="conv-title" style="color:var(--blue-dk);">💬 Ask ${child.full_name.split(' ')[0]} tonight</div>
+        ${convStarters.map(s=>`<div class="conv-item" style="color:var(--blue-dk);">${s}</div>`).join('')}
+      </div>
+
+      <!-- 12-week calendar -->
+      <div class="sec-title">12-week Level ${lv} journey</div>
+      <div class="weeks-grid" style="margin-bottom:12px;">
+        ${Array.from({length:12},(_,i)=>{
+          const w = i+1;
+          const cls = w < journey.week ? 'done' : w===journey.week ? 'current' : w===12?'milestone':'locked';
+          const icon = w < journey.week ? '✓' : w===journey.week ? '←' : w===12?'🎓':'';
+          const txt = w<journey.week?'Done ✓':w===journey.week?'Now':w===12?'Level up!':'';
+          return `<div class="week-box ${cls}"><div class="week-num" style="color:${w<=journey.week?'var(--green-dk)':w===12?'var(--yellow-dk)':'var(--text3)'}">W${w}</div><div class="week-icon">${txt||''}</div></div>`;
+        }).join('')}
+      </div>
+
+      <!-- Concept milestones -->
+      <div class="sec-title">Concepts inside Level ${lv}</div>
+      <div class="card">
+        ${conceptProgress.map(c=>`
+          <div class="concept-item" style="${!c.isDone&&!c.isCurrent?'opacity:.45':''}">
+            <div class="concept-icon">${c.isDone?'✅':c.isCurrent?'🔄':'🔒'}</div>
+            <div class="concept-info">
+              <div class="concept-name" style="color:${c.isDone?'var(--green-dk)':c.isCurrent?'var(--orange-dk)':'var(--text2)'}">${c.name}</div>
+              ${c.isCurrent?`<div class="concept-sub">${c.pct}% accuracy — almost there!</div>`:''}
+            </div>
+            <div class="concept-bar-wrap"><div class="concept-bar-fill" style="width:${c.pct}%;background:${c.isDone?'var(--green)':c.isCurrent?'var(--orange)':'var(--border)'}"></div></div>
+            <div class="concept-pct" style="color:${c.isDone?'var(--green-dk)':c.isCurrent?'var(--orange-dk)':'var(--text3)'}">${c.pct?c.pct+'%':'—'}</div>
+          </div>`).join('')}
+      </div>
+
+    </div>
+
+    <!-- ── TAB: BADGES ── -->
+    <div id="tab-badges" style="${activeTab==='badges'?'':'display:none'}">
+
+      <!-- Earned badges -->
+      <div class="sec-title">Badges earned by ${child.full_name.split(' ')[0]}</div>
+      ${badges.length === 0
+        ? `<div class="card" style="text-align:center;padding:24px;color:var(--text3);">No badges yet — encourage ${child.full_name.split(' ')[0]} to practice daily to earn the first badge! 🌟</div>`
+        : `<div class="badges-scroll">
+            ${BADGE_DEFS.filter(b=>earnedBadgeKeys.has(b.key)).map(b=>{
+              const earned = badges.find(bd=>(bd.badge_type||bd.key)===b.key);
+              return `<div class="badge-item earned"><div class="badge-emoji">${b.emoji}</div><div class="badge-name">${b.name}</div><div class="badge-date">${earned?.earned_at?fmtShort(earned.earned_at):''}</div></div>`;
+            }).join('')}
+           </div>`}
+
+      <!-- Locked badges -->
+      ${BADGE_DEFS.filter(b=>!earnedBadgeKeys.has(b.key)).length > 0 ? `
+      <div class="sec-title" style="margin-top:14px;">Badges to unlock next</div>
+      <div class="badges-scroll">
+        ${BADGE_DEFS.filter(b=>!earnedBadgeKeys.has(b.key)).slice(0,4).map(b=>`
+          <div class="badge-item locked"><div class="badge-emoji">${b.emoji}</div><div class="badge-name">${b.name}</div><div class="badge-date">Not yet</div></div>
+        `).join('')}
+      </div>` : '<div class="card" style="text-align:center;color:var(--green-dk);font-weight:800;padding:16px;">🏆 All badges earned! Incredible!</div>'}
+
+      <!-- Upcoming milestones -->
+      <div class="sec-title" style="margin-top:14px;">Coming up — keep ${child.full_name.split(' ')[0]} excited</div>
+      <div class="card">
+        ${milestones.map(m=>`
+          <div class="milestone-item">
+            <div class="milestone-icon">${m.icon}</div>
+            <div class="milestone-text">${m.text}</div>
+            <div class="milestone-when" style="color:var(--blue-dk)">${m.when}</div>
+          </div>`).join('')}
+      </div>
+
+      <!-- Reward system explainer for parents -->
+      <div class="sec-title" style="margin-top:14px;">How ${child.full_name.split(' ')[0]}'s rewards work</div>
+      <div class="card">
+        <div style="font-size:.82rem;color:var(--text2);line-height:1.7;margin-bottom:10px;">
+          ${group==='tiny'
+            ? `Tiny Champs earn <strong>stickers</strong> for correct answers and <strong>star badges</strong> for streaks. Every 5 correct answers in a row unlocks a fun <strong>maze puzzle</strong>! Jumbo the elephant celebrates with them on screen. 🐘`
+            : group==='rising'
+            ? `Rising Stars earn <strong>XP points</strong> and <strong>badges</strong>. Every 5 correct answers unlocks a <strong>Sudoku puzzle</strong>. They can see their XP bar fill up and level up as they improve!`
+            : `Champions compete on a <strong>batch leaderboard</strong>. They earn <strong>achievement titles</strong> like Maths Wizard and Abacus Ninja. Every 5 correct answers unlocks a <strong>9×9 Sudoku</strong>!`}
+        </div>
+        <div style="background:var(--yellow-lt);border:1.5px solid var(--yellow);border-radius:10px;padding:10px 12px;font-size:.78rem;color:var(--orange-dk);font-weight:700;">
+          💡 When ${child.full_name.split(' ')[0]} shows you a badge or puzzle they unlocked — celebrate it! It costs nothing and means everything to them. 🌟
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── TAB: ACTION TIPS ── -->
+    <div id="tab-tips" style="${activeTab==='tips'?'':'display:none'}">
+      <div class="sec-title">What you can do at home this week</div>
+      <div class="card">
+        ${tips.map(t=>`
+          <div class="tip-item">
+            <div class="tip-icon">${t.icon}</div>
+            <div>
+              <div class="tip-title">${t.title}</div>
+              <div class="tip-desc">${t.desc}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+
+      <!-- Homework reminder -->
+      ${hw > 0 ? `
+      <div style="background:var(--orange-lt);border:2px solid var(--orange);border-radius:14px;padding:14px;margin-top:12px;">
+        <div style="font-size:.875rem;font-weight:800;color:var(--orange-dk);margin-bottom:4px;">📚 ${hw} homework ${hw===1?'assignment':'assignments'} pending</div>
+        <div style="font-size:.78rem;color:var(--orange-dk);">Gently remind ${child.full_name.split(' ')[0]} to complete the homework assigned by the teacher.</div>
+      </div>` : ''}
+
+      <!-- Subscription reminder -->
+      <div class="sec-title" style="margin-top:14px;">Subscription</div>
+      <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
         <div>
-          <div class="xp-title">${belt.name} — Level ${child.current_level ?? 1}</div>
-          <div style="font-size:.75rem;opacity:.8;margin-top:2px">${belt.next ? `${Math.max(0, belt.nextXP - xp)} XP to unlock ${belt.next}` : 'Grand Master achieved'}</div>
+          <div style="font-size:.875rem;font-weight:800;">Monthly subscription</div>
+          <div style="font-size:.75rem;color:var(--text2);margin-top:2px;">₹199/month · Access to all learning content</div>
         </div>
-        <div class="xp-streak">🔥 ${child.streak_days ?? 0} days</div>
-      </div>
-      <div class="xp-track"><div class="xp-fill" style="width:${pct}%"></div></div>
-      <div class="xp-info">
-        <span>${xp.toLocaleString()} XP earned</span>
-        <span>${belt.next ? `${belt.nextXP.toLocaleString()} XP for ${belt.next}` : ''}</span>
+        <a href="../student/subscription.html" style="background:var(--blue);color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:.82rem;font-weight:800;text-decoration:none;white-space:nowrap;touch-action:manipulation;">Manage →</a>
       </div>
     </div>
-    <div class="stats-row">
-      <div class="stat-card"><div class="stat-n" style="color:var(--blue)">${sess.length}</div><div class="stat-l">Sessions this week</div><div class="stat-s">for ${escapeHtml(child.full_name.split(' ')[0])}</div></div>
-      <div class="stat-card"><div class="stat-n" style="color:var(--green)">${acc === null ? '—' : acc + '%'}</div><div class="stat-l">Weekly accuracy</div><div class="stat-s">${acc === null ? 'No data yet' : 'this week'}</div></div>
-      <div class="stat-card"><div class="stat-n" style="color:var(--orange)">${(badges || []).length}</div><div class="stat-l">Badges earned</div><div class="stat-s">linked child only</div></div>
-    </div>
-    ${hwNotice}
-    <div class="section-card">
-      <div class="section-title">${escapeHtml(child.full_name.split(' ')[0])}'s topic progress</div>
-      ${topicRows}
+
+    <!-- ── TAB: HOW IT WORKS ── -->
+    <div id="tab-howworks" style="${activeTab==='howworks'?'':'display:none'}">
+      <div class="sec-title">How iMathAcademy works — so you can explain it to ${child.full_name.split(' ')[0]}</div>
+
+      <div class="explainer-step">
+        <div class="step-num">Step 1</div>
+        <div>
+          <div class="step-title">Solve maths questions</div>
+          <div class="step-desc">Every correct answer earns XP points and fills up the power bar. Getting 5 right in a row starts a streak fire and unlocks a puzzle!</div>
+        </div>
+      </div>
+
+      <div class="explainer-step">
+        <div class="step-num">Step 2</div>
+        <div>
+          <div class="step-title">Unlock a puzzle reward</div>
+          <div class="step-desc">${group==='tiny'
+            ? 'After 5 correct answers in a row, a maze unlocks! Tiny Champs love guiding Jumbo through the jungle to find bananas. 🐘'
+            : group==='rising'
+            ? 'After 5 correct answers in a row, a Sudoku puzzle unlocks — 4×4 for beginners, 6×6 for more advanced. The puzzle feels like a reward, not work!'
+            : 'After 5 correct answers in a row, a full 9×9 Sudoku unlocks. Champions love the challenge and race to solve it faster each time!'}</div>
+        </div>
+      </div>
+
+      <div class="explainer-step">
+        <div class="step-num">Step 3</div>
+        <div>
+          <div class="step-title">Earn badges and ${group==='tiny'?'stickers':'titles'}</div>
+          <div class="step-desc">${group==='tiny'
+            ? 'Correct answers earn animal stickers — elephants, lions, tigers! Perfect scores earn special badges. Collect them all in the sticker book.'
+            : group==='rising'
+            ? 'Perfect scores, speed records and streaks earn special badges. They show on the profile for parents and teachers to see.'
+            : 'High performance earns achievement titles — Maths Wizard, Speed Legend, Abacus Ninja. These show next to their name on the leaderboard.'}</div>
+        </div>
+      </div>
+
+      <div class="explainer-step">
+        <div class="step-num">Step 4</div>
+        <div>
+          <div class="step-title">Daily login streak</div>
+          <div class="step-desc">Logging in every day builds a streak. 5 days = a fire badge. 7 days = a legend badge. Missing a day resets the streak — kids take this very seriously! Use it to motivate a daily habit.</div>
+        </div>
+      </div>
+
+      <div class="explainer-step">
+        <div class="step-num">Step 5</div>
+        <div>
+          <div class="step-title">Level progression over 12 weeks</div>
+          <div class="step-desc">Each level takes about 3 months (12 weeks) to complete. There are 9 levels from Level 0 to Level 8. Completing Level 8 earns the ultimate Abacus Ninja badge! 🥷</div>
+        </div>
+      </div>
+
+      <div style="background:var(--green-lt);border:2px solid var(--green);border-radius:14px;padding:14px;margin-top:4px;">
+        <div style="font-size:.875rem;font-weight:800;color:var(--green-dk);margin-bottom:6px;">🌟 Your role as a parent</div>
+        <div style="font-size:.82rem;color:var(--green-dk);line-height:1.7;">The biggest motivator for kids is parental pride. Ask to see their badges, celebrate their streak, let them explain a puzzle to you. Ten seconds of your attention is worth more than any sticker. You are the most powerful gamification element of all!</div>
+      </div>
+
     </div>
   `;
 }
 
+// ── DATA HELPERS ─────────────────────────────────────────────
+function buildWeeklySummary(child, stats, journey, practiceToday) {
+  const name = child.full_name.split(' ')[0];
+  const streak = child.streak_days || 0;
+  const xp = stats.weeklyXP || 0;
+  const puzzles = stats.puzzlesSolved || 0;
+  let msg = `${name} `;
+  if (practiceToday) msg += 'has already practised today — great consistency! ';
+  else msg += 'has not yet practised today — a gentle nudge would help. ';
+  msg += `${streak > 0 ? `${streak}-day login streak is going strong. ` : 'The streak was broken recently — encourage a daily habit. '}`;
+  msg += `${xp > 0 ? `Earned ${xp} XP this week. ` : ''}`;
+  msg += `${puzzles > 0 ? `Solved ${puzzles} puzzle${puzzles>1?'s':''} — that means getting 5 correct in a row ${puzzles} time${puzzles>1?'s':''}!` : ''}`;
+  return msg;
+}
+
+function buildConvStarters(child, stats, group) {
+  const name = child.full_name.split(' ')[0];
+  const streak = child.streak_days || 0;
+  const bases = {
+    tiny: [
+      `💬 "Can you show me the puzzle you solved today, ${name}?"`,
+      `💬 "How many stickers are in your sticker book now?"`,
+      `💬 "What does Jumbo say when you get an answer right?"`,
+    ],
+    rising: [
+      `💬 "How many XP points have you got now, ${name}?"`,
+      `💬 "Can you show me the Big Friends rule on the abacus?"`,
+      `💬 "${streak > 0 ? `Your streak is at ${streak} days — can you keep it going tomorrow?` : 'Try to login tomorrow to start a new streak!'}"`,
+    ],
+    champions: [
+      `💬 "What rank are you on the batch leaderboard this week?"`,
+      `💬 "How fast did you solve the Sudoku today?"`,
+      `💬 "What title have you earned — are you a Maths Wizard yet?"`,
+    ],
+  };
+  return (bases[group] || bases.rising).slice(0, 3);
+}
+
+function buildActionTips(child, stats, journey, group) {
+  const name = child.full_name.split(' ')[0];
+  const streak = child.streak_days || 0;
+  const tips = [
+    {
+      icon: '📅',
+      title: `Remind ${name} to login${streak > 0 ? ' today' : ' and restart the streak'}`,
+      desc: streak > 0
+        ? `${name} is on a ${streak}-day streak. Just ask "Did you do your maths today?" — frame it as "your badge is waiting!" not a chore.`
+        : `The streak was broken recently. Help ${name} restart — even 5 minutes of practice counts and gets the streak going again.`,
+    },
+    {
+      icon: group === 'tiny' ? '🐘' : '🧩',
+      title: `Ask to see the ${group==='tiny'?'maze puzzle':'Sudoku'} ${name} solved`,
+      desc: `Let ${name} explain it to you. Teaching reinforces learning and kids feel proud when parents show genuine interest. Ask "How did you solve it?"`,
+    },
+    {
+      icon: '🎯',
+      title: `Celebrate the streak tonight`,
+      desc: `If ${name} has a streak going, mention it at dinner — "I saw you have a ${streak}-day streak, that is amazing!" It costs nothing and means everything.`,
+    },
+    {
+      icon: '🧮',
+      title: `Quick maths game in the car or at dinner`,
+      desc: group === 'tiny'
+        ? `Ask "${name}, what is 3 + 4?" Use simple numbers from Level ${child.current_level}. Make it fun — not a test. Clap and celebrate every right answer!`
+        : `Ask "${name}, what is 47 + 28 — can you do it in your head?" Level ${child.current_level} students can handle this. Let them take their time.`,
+    },
+  ];
+  return tips;
+}
+
+function buildMilestones(child, stats, journey, streak, badges) {
+  const earnedKeys = new Set(badges.map(b=>b.badge_type||b.key));
+  const ms = [];
+  if (streak < 5 && !earnedKeys.has('streak_5')) ms.push({ icon:'🔥', text:`5-day streak badge — ${Math.max(0,5-streak)} more day${5-streak!==1?'s':''} to go`, when:`${5-streak}d` });
+  else if (streak < 7 && !earnedKeys.has('streak_7')) ms.push({ icon:'🥇', text:`7-day legend badge — ${7-streak} more day${7-streak!==1?'s':''} to go`, when:`${7-streak}d` });
+  if (!earnedKeys.has('puzzle_pro')) ms.push({ icon:'🧩', text:`Puzzle pro badge — solve ${Math.max(0,5-(stats.puzzlesSolved||0))} more puzzles`, when:'~1 week' });
+  ms.push({ icon:'🎓', text:`Level ${(child.current_level||1)+1} unlocks after Week 12!`, when:`~${12-journey.week}w` });
+  return ms.slice(0,4);
+}
+
+// ── TABS ─────────────────────────────────────────────────────
+function switchTab(tab, btn) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn?.classList.add('active');
+  ['progress','badges','tips','howworks'].forEach(t=>{
+    const el = document.getElementById('tab-'+t);
+    if(el) el.style.display = t===tab?'':'none';
+  });
+}
+
+// ── CHILD SELECTION ──────────────────────────────────────────
 async function selectChild(id) {
-  activeChild = linkedChildren.find(c => c.id === id) || linkedChildren[0];
-  await renderOverview();
+  activeChild = children.find(c=>c.id===id) || children[0];
+  const stats = await loadChildStats(activeChild.id);
+  renderDashboard(activeChild, stats);
 }
 
-async function loadParentData() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) {
-    window.location.href = '../../login.html';
-    return;
-  }
+// ── LOAD CHILD STATS ─────────────────────────────────────────
+async function loadChildStats(childId) {
+  const stats = { badges:[], weeklyXP:0, practiceToday:false, puzzlesSolved:0, homeworkPending:0 };
+  try {
+    // Badges
+    const { data: badges } = await sb.from('badges').select('*').eq('student_id', childId).order('earned_at',{ascending:false});
+    stats.badges = badges || [];
 
-  const { data: profile } = await sb.from('users').select('*').eq('id', session.user.id).single();
-  if (!profile || profile.role !== 'parent') {
-    window.location.href = '../../login.html';
-    return;
-  }
+    // Weekly XP from practice sessions
+    const weekStart = new Date(); weekStart.setDate(weekStart.getDate()-weekStart.getDay()); weekStart.setHours(0,0,0,0);
+    const { data: ws } = await sb.from('practice_sessions').select('xp_earned').eq('student_id', childId).gte('created_at', weekStart.toISOString());
+    stats.weeklyXP = (ws||[]).reduce((s,r)=>s+(r.xp_earned||0),0);
 
-  document.getElementById('userName').textContent = profile.full_name || 'Parent';
+    // Practice today
+    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+    const { data: ts } = await sb.from('practice_sessions').select('id').eq('student_id', childId).gte('created_at', todayStart.toISOString()).limit(1);
+    stats.practiceToday = (ts?.length||0)>0;
 
-  const { data: links } = await sb
-    .from('parent_student')
-    .select('student_id, users!student_id(*)')
-    .eq('parent_id', session.user.id);
+    // Puzzles solved
+    const { data: ps } = await sb.from('practice_sessions').select('id').eq('student_id', childId).eq('session_type','puzzle');
+    stats.puzzlesSolved = ps?.length || 0;
 
-  linkedChildren = (links || []).map(l => l.users).filter(Boolean);
-  activeChild = linkedChildren[0] || null;
-  await renderOverview();
-}
-
-// ── CALENDAR ───────────────────────────────────────────────
-function buildCalendar() {
-  const grid = document.getElementById('calGrid');
-  if (grid.children.length > 0) return;
-  // May 2025 starts on Thursday (day 4), so pad 3 empty days
-  const DAYS_IN_MAY = 31;
-  const START_DAY   = 3; // 0=Mon
-  const CLASS_DAYS  = [1, 3, 5, 8, 10, 12, 15, 17, 19, 22, 24, 26, 29, 31]; // Mon/Wed/Fri
-  const ABSENT_DAYS = [10, 24];
-
-  for (let i = 0; i < START_DAY; i++) {
-    const empty = document.createElement('div');
-    empty.className = 'att-cell att-future';
-    grid.appendChild(empty);
-  }
-
-  for (let d = 1; d <= DAYS_IN_MAY; d++) {
-    const cell = document.createElement('div');
-    if (CLASS_DAYS.includes(d)) {
-      if (ABSENT_DAYS.includes(d)) {
-        cell.className = 'att-cell att-absent';
-        cell.textContent = d;
-      } else {
-        cell.className = 'att-cell att-present';
-        cell.textContent = d;
-      }
-    } else {
-      cell.className = 'att-cell att-future';
-      cell.textContent = d;
-      cell.style.color = 'var(--text3)';
-      cell.style.fontSize = '.62rem';
+    // Homework pending
+    const { data: batches } = await sb.from('batch_students').select('batch_id').eq('student_id', childId);
+    if(batches?.length) {
+      const { data: hw } = await sb.from('homework').select('id').in('batch_id', batches.map(b=>b.batch_id)).eq('is_active',true);
+      stats.homeworkPending = hw?.length||0;
     }
-    grid.appendChild(cell);
+  } catch(e) { console.error('loadChildStats error:', e); }
+  return stats;
+}
+
+// ── AUTH ─────────────────────────────────────────────────────
+async function logout() { await sb.auth.signOut(); window.location.href='../../login.html'; }
+
+// ── INIT ─────────────────────────────────────────────────────
+async function init() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href='../../login.html'; return; }
+
+    const { data: profile } = await sb.from('users').select('*').eq('id', session.user.id).single();
+    if (!profile || profile.role !== 'parent') { window.location.href='../../login.html'; return; }
+    parentProfile = profile;
+
+    // Sidebar
+    document.getElementById('sidebarAv').textContent   = initials(profile.full_name);
+    document.getElementById('sidebarName').textContent = profile.full_name;
+    if (window.innerWidth <= 768) document.getElementById('mobileLogout').style.display='flex';
+
+    // Load linked children
+    const { data: links } = await sb.from('parent_student').select('student_id, users!student_id(*)').eq('parent_id', session.user.id);
+    children = (links||[]).map(l=>l.users).filter(Boolean);
+
+    if (!children.length) {
+      document.getElementById('mainContent').innerHTML = `
+        <div style="text-align:center;padding:40px 20px;color:var(--text3);">
+          <div style="font-size:3rem;margin-bottom:12px;">👶</div>
+          <div style="font-size:1rem;font-weight:800;color:var(--text);margin-bottom:6px;">No children linked yet</div>
+          <div style="font-size:.875rem;">Ask the academy admin to link your child to your account.</div>
+        </div>`;
+      return;
+    }
+
+    activeChild = children[0];
+    const stats = await loadChildStats(activeChild.id);
+    renderDashboard(activeChild, stats);
+
+  } catch(err) {
+    document.getElementById('mainContent').innerHTML = `<div style="padding:40px;text-align:center;color:var(--red);">Error: ${err.message} <a href="../../login.html">Login again</a></div>`;
   }
 }
 
-// ── UPI PAYMENT ────────────────────────────────────────────
-function selectUPI(app, el) {
-  selectedUPI = app;
-  document.querySelectorAll('.upi-app').forEach(a => a.classList.remove('sel'));
-  el.classList.add('sel');
-}
-
-function simulatePay() {
-  const names = { gpay:'GPay', phonepe:'PhonePe', paytm:'Paytm', any:'UPI' };
-  document.getElementById('payMethod').textContent = names[selectedUPI] || 'UPI';
-  document.getElementById('payForm').style.display    = 'none';
-  document.getElementById('paySuccess').classList.add('show');
-  showToast('Payment of Rs. 800 successful! Receipt emailed. 🎉', 'success');
-}
-
-function downloadReceipt(month) {
-  showToast(`Downloading receipt for ${month}...`, 'success');
-}
-
-function downloadReport(month) {
-  showToast(`Downloading ${month} progress report PDF...`, 'success');
-}
-
-// ── MESSAGING ───────────────────────────────────────────────
-function sendMessage() {
-  const text = document.getElementById('msgText').value.trim();
-  if (!text) { showToast('Please type a message first!', ''); return; }
-  const history = document.getElementById('msgHistory');
-  const bubble  = document.createElement('div');
-  bubble.style.alignSelf = 'flex-end';
-  bubble.innerHTML = `
-    <div class="msg-bubble msg-from-me">
-      <div class="msg-text">${text}</div>
-      <div class="msg-time">You · Just now</div>
-    </div>`;
-  history.appendChild(bubble);
-  bubble.scrollIntoView({ behavior:'smooth' });
-  document.getElementById('msgText').value = '';
-  showToast('Message sent to Ms. Priya!', 'success');
-}
-
-// ── UTILS ──────────────────────────────────────────────────
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
-function showToast(msg, type='') {
-  const c = document.getElementById('toastContainer');
-  const t = document.createElement('div');
-  t.className = `toast${type ? ' toast-'+type : ''}`;
-  t.textContent = msg;
-  c.appendChild(t);
-  setTimeout(() => t.remove(), 3500);
-}
-async function logout() { await sb.auth.signOut(); window.location.href = '../../login.html'; }
-
-function init() {
-  document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
-  loadParentData().catch(() => { window.location.href = '../../login.html'; });
-}
 init();
 </script>
 </body>

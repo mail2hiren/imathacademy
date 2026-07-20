@@ -689,6 +689,7 @@ async function generateWorksheet() {
     parseAndRender(text);
 
     document.getElementById('copyBtn').style.display = 'block';
+    document.getElementById('assignBtn').style.display = 'block';
     document.getElementById('printBtn').style.display = 'block';
 
   } catch(err) {
@@ -898,6 +899,76 @@ async function loadBatches(teacherId, role) {
 }
 
 // ── INIT ─────────────────────────────────────────────────────
+// ── ASSIGN TO STUDENTS ──────────────────────────────────────
+async function assignToStudents() {
+  const batchId   = document.getElementById('batchSel').value;
+  const studentId = document.getElementById('studentSel').value;
+  const title     = `Level ${selectedLevel} — ${document.getElementById('batchSel').options[document.getElementById('batchSel').selectedIndex]?.text || 'Batch'} — ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'})}`;
+  const content   = generatedContent.worksheet || Object.values(generatedContent).find(v=>v) || '';
+
+  if (!content) { toast('No worksheet generated yet', 'error'); return; }
+  if (!batchId && !studentId) { toast('Please select a batch or student first', 'error'); return; }
+
+  const btn = document.getElementById('assignBtn');
+  btn.textContent = 'Assigning...';
+  btn.disabled = true;
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+
+    // Save to lx_worksheets table
+    const { data: ws, error } = await sb.from('lx_worksheets').insert({
+      title,
+      content,
+      answer_key:   generatedContent.answerkey   || null,
+      lesson_plan:  generatedContent.lessonplan  || null,
+      parent_note:  generatedContent.parentnote  || null,
+      level:        selectedLevel,
+      concept:      selectedConcept,
+      activity:     selectedActivity,
+      batch_id:     batchId   || null,
+      student_id:   studentId || null,
+      created_by:   session.user.id,
+      created_at:   new Date().toISOString(),
+      is_active:    true,
+    }).select('id').single();
+
+    if (error) throw error;
+
+    // Send notification to students
+    let notifyIds = [];
+    if (studentId) {
+      notifyIds = [studentId];
+    } else if (batchId) {
+      const students = batchStudents[batchId] || [];
+      notifyIds = students.map(s => s.id);
+    }
+
+    if (notifyIds.length) {
+      await sb.from('notifications').insert(
+        notifyIds.map(uid => ({
+          user_id: uid,
+          type:    'worksheet',
+          title:   '📋 New worksheet assigned!',
+          message: title + ' — Check your Worksheets section.',
+        }))
+      );
+    }
+
+    toast(`✅ Worksheet assigned to ${studentId ? '1 student' : notifyIds.length + ' students'}!`, 'success');
+    btn.textContent = '✅ Assigned!';
+    setTimeout(() => {
+      btn.textContent = '📤 Assign to students';
+      btn.disabled = false;
+    }, 3000);
+
+  } catch(err) {
+    toast('❌ Failed to assign: ' + err.message, 'error');
+    btn.textContent = '📤 Assign to students';
+    btn.disabled = false;
+  }
+}
+
 async function init() {
   try {
     const { data: { session } } = await sb.auth.getSession();

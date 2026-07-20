@@ -56,7 +56,7 @@
     /* ── BOTTOM NAV (mobile only) ── */
     .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; height: var(--bottom-nav-h); background: var(--bg); border-top: 2px solid var(--border); z-index: 200; box-shadow: 0 -4px 16px rgba(0,0,0,.08); }
     .bottom-nav-inner { display: flex; height: 100%; }
-    .bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; text-decoration: none; border: none; background: none; padding: 4px 0; min-height: 44px; transition: all .12s; }
+    .bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; text-decoration: none; border: none; background: none; padding: 4px 0; min-height: 44px; min-width: 44px; transition: all .12s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     .bnav-icon { font-size: 1.3rem; line-height: 1; }
     .bnav-label { font-size: .62rem; font-weight: 700; color: var(--text3); font-family: 'Nunito', sans-serif; }
     .bnav-item.active .bnav-label { color: var(--blue-dk); }
@@ -89,7 +89,7 @@
     .mission-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     .mission-title { font-size: .95rem; font-weight: 800; }
     .mission-timer { font-size: .72rem; color: var(--text3); font-weight: 600; }
-    .mission-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .mission-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); touch-action: manipulation; }
     .mission-item:last-child { border-bottom: none; }
     .mission-icon { font-size: 1.2rem; width: 28px; text-align: center; flex-shrink: 0; }
     .mission-info { flex: 1; }
@@ -100,7 +100,7 @@
 
     /* ── ACTION BUTTONS ── */
     .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
-    .action-btn { border: none; border-radius: 16px; padding: 16px 14px; cursor: pointer; text-align: left; position: relative; overflow: hidden; min-height: 90px; display: flex; flex-direction: column; justify-content: flex-end; transition: transform .15s, box-shadow .15s; -webkit-user-select: none; }
+    .action-btn { border: none; border-radius: 16px; padding: 16px 14px; cursor: pointer; text-align: left; position: relative; overflow: hidden; min-height: 90px; min-width: 44px; display: flex; flex-direction: column; justify-content: flex-end; transition: transform .15s, box-shadow .15s; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
     .action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.15); }
     .action-btn:active { transform: scale(.97); }
     .action-emoji { font-size: 1.8rem; margin-bottom: 6px; }
@@ -147,7 +147,7 @@
 
     /* ── SR LEADERBOARD ── */
     .lb-card { background: var(--bg); border: 2px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 14px; }
-    .lb-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .lb-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); min-height: 44px; }
     .lb-item:last-child { border-bottom: none; }
     .lb-rank { font-size: 1rem; width: 24px; text-align: center; flex-shrink: 0; }
     .lb-name { flex: 1; font-size: .875rem; font-weight: 700; }
@@ -184,14 +184,74 @@
       .content { padding: 12px; }
       .bottom-nav { display: block; }
       .notif-panel { width: 100vw; border-left: none; border-radius: 0; }
-      .hero { border-radius: 16px; padding: 16px; }
-      .hero-name { font-size: 1.1rem; }
+
+      /* Hero adjustments */
+      .hero { border-radius: 16px; padding: 14px; }
+      .hero-name { font-size: 1.05rem; }
+      .hero-top { margin-bottom: 10px; }
+
+      /* Action grid — 2 columns always, tighter */
       .actions-grid { gap: 8px; }
-      .action-btn { min-height: 82px; padding: 12px 12px; }
+      .action-btn { min-height: 82px; padding: 12px 10px; border-radius: 14px; }
+      .action-emoji { font-size: 1.5rem; margin-bottom: 4px; }
+      .action-name { font-size: .82rem; }
+      .action-sub { font-size: .68rem; }
+
+      /* Cards */
+      .mission-card { padding: 12px; border-radius: 14px; }
+      .progress-card { padding: 12px; border-radius: 14px; }
+      .lb-card { padding: 12px; border-radius: 14px; }
+
+      /* Badges scroll horizontal nicely */
+      .badges-row { gap: 6px; }
+      .badge-item { min-width: 62px; padding: 8px 6px; }
+
+      /* Stickers wrap nicely */
+      .sticker-em { font-size: 1.5rem; }
+
+      /* Mascot card */
+      .mascot-card { padding: 12px; border-radius: 14px; }
+      .mascot-em { font-size: 2rem; }
+
+      /* Leaderboard */
+      .lb-item { padding: 7px 0; }
+
+      /* Section titles */
+      .section-title { font-size: .68rem; margin-bottom: 8px; }
+
+      /* XP bar labels smaller */
+      .xp-labels { font-size: .68rem; }
+      .xp-hint { font-size: .65rem; }
+
+      /* Toast above bottom nav */
+      .toast-wrap { bottom: calc(var(--bottom-nav-h) + 12px); right: 12px; }
+
+      /* Notification panel full screen on mobile */
+      .notif-panel { top: 52px; }
+    }
+
+    /* Very small phones — 320px */
+    @media (max-width: 360px) {
+      .actions-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+      .action-btn { min-height: 76px; padding: 10px 8px; }
+      .action-name { font-size: .78rem; }
+      .hero-name { font-size: 1rem; }
+      .streak-num { font-size: 1rem; }
+      .badge-item { min-width: 56px; }
     }
 
     @media (min-width: 769px) {
       .toast-wrap { bottom: 24px; }
+    }
+
+    /* Landscape phones */
+    @media (max-width: 768px) and (orientation: landscape) {
+      .bottom-nav { height: 52px; }
+      :root { --bottom-nav-h: 52px; }
+      .main { padding-bottom: 52px; }
+      .bnav-icon { font-size: 1.1rem; }
+      .bnav-label { display: none; }
+      .hero { padding: 10px 14px; }
     }
   </style>
 </head>

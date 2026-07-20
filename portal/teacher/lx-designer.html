@@ -627,8 +627,22 @@ IMPORTANT RULES:
 
 Please generate the following sections, each clearly labelled:
 
-${wantWorksheet ? `## WORKSHEET
-A complete ${qCount}-question worksheet. Format each question clearly numbered. Include name/date line at top. For picture sums, describe the emoji layout (e.g., "🍎🍎🍎 + 🍎🍎 = ___"). Leave answer blanks as ___.` : ''}
+${wantWorksheet ? `## QUESTIONS
+Return a JSON array of exactly ${qCount} question objects. Each object must have:
+- "question": the question text (string)
+- "answer": the correct answer (string or number)
+- "emoji": a relevant emoji for the question (e.g. 🥭 for mangoes, 🏏 for cricket)
+- "type": "calculation", "fill_blank", "story", or "visual"
+
+Example format:
+\`\`\`json
+[
+  {"question": "Aryan has 23 mangoes and gives 8 to Priya. How many does Aryan have left?", "answer": "15", "emoji": "🥭", "type": "story"},
+  {"question": "45 + 37 = ?", "answer": "82", "emoji": "🧮", "type": "calculation"}
+]
+\`\`\`
+
+After the JSON, add a blank line then the other requested sections.` : ''}
 
 ${wantAnswerKey ? `## ANSWER KEY
 Numbered answers corresponding to each question. Include brief working for complex questions.` : ''}

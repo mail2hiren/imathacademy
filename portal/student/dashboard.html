@@ -427,9 +427,76 @@ async function checkSubscription(userId) {
 }
 
 // ── NOTIFICATIONS ────────────────────────────────────────────
+// ── NOTIFICATIONS (live from DB) ─────────────────────────────
+async function loadNotifications(userId) {
+  try {
+    const { data: notifs } = await sb.from('notifications')
+      .select('*').eq('user_id', userId)
+      .order('created_at', { ascending: false }).limit(20);
+
+    const unread = (notifs||[]).filter(n => !n.is_read);
+    const dot = document.getElementById('notifDot');
+    const btn = document.getElementById('notifBtn');
+    if (dot) dot.style.display = unread.length > 0 ? 'block' : 'none';
+    if (btn) btn.setAttribute('data-count', unread.length);
+
+    // Store for dropdown
+    window._notifs = notifs || [];
+  } catch(e) { console.error('loadNotifications:', e); }
+}
+
 function toggleNotif() {
-  const panel = document.getElementById('notifPanel');
-  panel.classList.toggle('open');
+  let panel = document.getElementById('notifPanel');
+  if (panel) { panel.remove(); return; }
+
+  const notifs = window._notifs || [];
+  panel = document.createElement('div');
+  panel.id = 'notifPanel';
+  panel.style.cssText = 'position:fixed;top:60px;right:12px;width:320px;max-width:calc(100vw - 24px);background:#fff;border:2px solid #E8EAF6;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:9999;overflow:hidden;max-height:400px;overflow-y:auto;';
+
+  const header = `<div style="padding:12px 16px;border-bottom:2px solid #E8EAF6;display:flex;align-items:center;justify-content:space-between;">
+    <div style="font-size:.875rem;font-weight:800;color:#1A1A2E;">Notifications</div>
+    <button onclick="markAllRead()" style="font-size:.72rem;font-weight:700;color:#1E88E5;background:none;border:none;cursor:pointer;">Mark all read</button>
+  </div>`;
+
+  const items = notifs.length === 0
+    ? '<div style="padding:24px;text-align:center;color:#9090B0;font-size:.82rem;">No notifications yet</div>'
+    : notifs.map(n => `
+      <div style="padding:11px 16px;border-bottom:1px solid #F0F0F8;display:flex;gap:10px;align-items:flex-start;background:${n.is_read?'#fff':'#F7F8FF'};">
+        <div style="font-size:1rem;flex-shrink:0;margin-top:2px;">${n.type==='worksheet'?'📋':n.type==='homework'?'📚':n.type==='badge'?'🏅':n.type==='quiz'?'⚡':'🔔'}</div>
+        <div style="flex:1;">
+          <div style="font-size:.82rem;font-weight:700;color:#1A1A2E;">${n.title||''}</div>
+          <div style="font-size:.75rem;color:#9090B0;margin-top:2px;">${n.message||''}</div>
+          <div style="font-size:.68rem;color:#B0B0C8;margin-top:3px;">${n.created_at ? new Date(n.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : ''}</div>
+        </div>
+        ${!n.is_read ? '<div style="width:8px;height:8px;border-radius:50%;background:#1E88E5;flex-shrink:0;margin-top:6px;"></div>' : ''}
+      </div>`).join('');
+
+  panel.innerHTML = header + items;
+  document.body.appendChild(panel);
+
+  // Mark as read
+  markAllRead();
+
+  // Close on outside click
+  setTimeout(() => {
+    document.addEventListener('click', function close(e) {
+      if (!panel.contains(e.target) && e.target.id !== 'notifBtn') {
+        panel.remove();
+        document.removeEventListener('click', close);
+      }
+    });
+  }, 100);
+}
+
+async function markAllRead() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return;
+  await sb.from('notifications').update({ is_read: true })
+    .eq('user_id', session.user.id).eq('is_read', false);
+  const dot = document.getElementById('notifDot');
+  if (dot) dot.style.display = 'none';
+  window._notifs = (window._notifs||[]).map(n => ({...n, is_read: true}));
 }
 document.addEventListener('click', e => {
   const panel = document.getElementById('notifPanel');
@@ -987,6 +1054,47 @@ async function init() {
 }
 
 init();
+
+// ── DASHBOARD LIVE BADGES ────────────────────────────────────
+async function loadDashboardBadges(userId) {
+  try {
+    // Get student batches
+    const { data: batchLinks } = await sb.from('batch_students').select('batch_id').eq('student_id', userId);
+    const batchIds = (batchLinks||[]).map(b => b.batch_id);
+
+    // New worksheets
+    let wsCount = 0;
+    if (batchIds.length) {
+      const { data: wsResponses } = await sb.from('worksheet_responses').select('worksheet_id').eq('student_id', userId);
+      const doneIds = new Set((wsResponses||[]).map(r => r.worksheet_id));
+      const { data: allWs } = await sb.from('lx_worksheets').select('id').eq('is_active', true)
+        .or(`student_id.eq.${userId},batch_id.in.(${batchIds.join(',')})`);
+      wsCount = (allWs||[]).filter(w => !doneIds.has(w.id)).length;
+    }
+
+    // Pending homework
+    let hwCount = 0;
+    if (batchIds.length) {
+      const { data: hw } = await sb.from('homework').select('id').in('batch_id', batchIds).eq('is_active', true);
+      hwCount = hw?.length || 0;
+    }
+
+    // Update worksheet card on dashboard
+    const wsBadge = document.getElementById('wsDashBadge');
+    if (wsBadge && wsCount > 0) { wsBadge.textContent = wsCount + ' new'; wsBadge.style.display = 'inline-block'; }
+
+    // Update homework card on dashboard
+    const hwBadge = document.getElementById('hwDashBadge');
+    if (hwBadge && hwCount > 0) { hwBadge.textContent = hwCount + ' due'; hwBadge.style.display = 'inline-block'; }
+
+    // Update bottom nav badges
+    const wsBnav = document.getElementById('wsBnavBadge');
+    if (wsBnav && wsCount > 0) { wsBnav.textContent = wsCount; wsBnav.style.display = 'flex'; }
+    const hwBnav = document.getElementById('hwBnavBadge');
+    if (hwBnav && hwCount > 0) { hwBnav.textContent = hwCount; hwBnav.style.display = 'flex'; }
+
+  } catch(e) { console.error('loadDashboardBadges:', e); }
+}
 </script>
 </body>
 </html>

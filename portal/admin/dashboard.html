@@ -296,7 +296,7 @@
           <div class="tbl-wrap">
             <table>
               <thead><tr>
-                <th>Name</th><th>Program</th><th>Level</th><th>Batch</th><th>Status</th><th>Actions</th>
+                <th>Name / DOB</th><th>Program</th><th>Level / Group</th><th>Batch</th><th>Status</th><th>Actions</th>
               </tr></thead>
               <tbody id="studentsTbody"><tr><td colspan="6" class="empty">Loading...</td></tr></tbody>
             </table>
@@ -913,6 +913,24 @@ function filterTable(tbodyId, q) {
 // ── HELPERS ─────────────────────────────────────────────────
 function initials(name) { return (name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2); }
 function fmt(date) { return date ? new Date(date).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) : '—'; }
+function calcAgeGroup(profile) {
+  if (profile.age_group) return profile.age_group;
+  if (profile.date_of_birth) {
+    const dob = new Date(profile.date_of_birth);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    if (age <= 7) return 'tiny';
+    if (age <= 10) return 'rising';
+    return 'champions';
+  }
+  const lv = profile.current_level || 1;
+  if (lv <= 1) return 'tiny';
+  if (lv <= 4) return 'rising';
+  return 'champions';
+}
+
 function statusPill(active) {
   const isActive = active !== false && active !== 'false';
   return `<span class="pill ${isActive?'pill-g':'pill-r'}">${isActive?'Active':'Inactive'}</span>`;
@@ -1067,11 +1085,15 @@ function renderStudents() {
           <div>
             <div style="font-weight:800">${s.full_name}</div>
             <div style="font-size:.7rem;color:var(--text3)">${s.email}</div>
+            ${s.date_of_birth ? `<div style="font-size:.7rem;color:var(--text3)">DOB: ${new Date(s.date_of_birth).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div>` : ''}
           </div>
         </div>
       </td>
       <td><span class="pill ${s.program==='vedic'?'pill-p':'pill-b'}">${s.program||'—'}</span></td>
-      <td><span style="font-weight:800">L${s.current_level||1}</span></td>
+      <td>
+        <span style="font-weight:800">L${s.current_level||1}</span>
+        ${s.age_group ? `<div style="font-size:.65rem;margin-top:2px;">${s.age_group==='tiny'?'🐣 Tiny':s.age_group==='rising'?'🌟 Rising':'🚀 Champions'}</div>` : s.date_of_birth ? `<div style="font-size:.65rem;color:var(--text3);margin-top:2px;">auto group</div>` : ''}
+      </td>
       <td style="font-size:.82rem;color:var(--text2)">${batch ? batch.name : '—'}</td>
       <td>${statusPill(s.is_active)}</td>
       <td>
@@ -1615,7 +1637,10 @@ function renderPrograms() {
       </div>
     </td>
     <td><span class="pill ${s.program==='vedic'?'pill-p':'pill-b'}">${s.program||'—'}</span></td>
-    <td><span style="font-weight:800">L${s.current_level||1}</span></td>
+    <td>
+        <span style="font-weight:800">L${s.current_level||1}</span>
+        ${s.age_group ? `<div style="font-size:.65rem;margin-top:2px;">${s.age_group==='tiny'?'🐣 Tiny':s.age_group==='rising'?'🌟 Rising':'🚀 Champions'}</div>` : s.date_of_birth ? `<div style="font-size:.65rem;color:var(--text3);margin-top:2px;">auto group</div>` : ''}
+      </td>
     <td>
       <button class="btn btn-blue btn-sm" onclick="quickChangeProgram('${s.id}','${s.full_name}','${s.program||'abacus'}',${s.current_level||1})">
         ✏️ Change

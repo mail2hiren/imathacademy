@@ -1016,6 +1016,14 @@ async function createUser(role) {
     if (role === 'student') {
       payload.program       = document.getElementById('s-program').value;
       payload.current_level = parseInt(document.getElementById('s-level').value);
+      payload.date_of_birth = document.getElementById('s-dob')?.value || null;
+      payload.age_group     = document.getElementById('s-agegroup')?.value || null;
+      // Validate DOB
+      if (!payload.date_of_birth) {
+        toast('Please enter date of birth', 'error');
+        btn.disabled = false; btn.textContent = '➕ Create student';
+        return;
+      }
     }
     const { data: { session } } = await sb.auth.getSession();
     const res = await fetch(CREATE_USER_FN, {

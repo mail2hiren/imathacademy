@@ -830,26 +830,55 @@ function printOutput() {
 }
 
 // ── LOAD BATCHES ─────────────────────────────────────────────
-async function loadBatches(teacherId) {
+async function loadBatches(teacherId, role) {
   try {
-    const { data: batches } = await sb.from('batches')
-      .select('id, name, current_level')
-      .eq('teacher_id', teacherId)
-      .order('name');
+    // Admin sees all batches, teacher sees only their assigned batches
+    let query = sb.from('batches').select('id, name').order('name');
+    if (role !== 'admin') {
+      query = query.eq('teacher_id', teacherId);
+    }
+    const { data: batches, error: batchErr } = await query;
+
+    if (batchErr) {
+      console.error('Batches query error:', batchErr);
+      toast('Error loading batches: ' + batchErr.message, 'error');
+      return;
+    }
 
     allBatches = batches || [];
-    const sel = document.getElementById('batchSel');
-    sel.innerHTML = '<option value="">— Select batch —</option>' +
-      allBatches.map(b=>`<option value="${b.id}">${b.name}${b.current_level?' · L'+b.current_level:''}</option>`).join('');
 
-    // Load students for each batch
-    for (const b of allBatches) {
-      const { data: students } = await sb.from('batch_students')
-        .select('student_id, users!student_id(id,full_name,current_level,date_of_birth,age_group)')
-        .eq('batch_id', b.id);
-      batchStudents[b.id] = (students||[]).map(s=>s.users).filter(Boolean);
+    const sel = document.getElementById('batchSel');
+    if (!allBatches.length) {
+      sel.innerHTML = '<option value="">— No batches found —</option>';
+      toast('No batches found. Create batches in Admin first.', 'error');
+      return;
     }
-  } catch(e) { console.error('loadBatches error:', e); }
+
+    sel.innerHTML = '<option value="">— Select batch —</option>' +
+      allBatches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+
+    // Load students for ALL batches upfront
+    const { data: allBatchStudents, error: stuErr } = await sb
+      .from('batch_students')
+      .select('batch_id, users!student_id(id, full_name, current_level, date_of_birth, age_group)')
+      .in('batch_id', allBatches.map(b => b.id));
+
+    if (stuErr) {
+      console.error('Students query error:', stuErr);
+    } else {
+      // Group students by batch_id
+      (allBatchStudents || []).forEach(row => {
+        if (!batchStudents[row.batch_id]) batchStudents[row.batch_id] = [];
+        if (row.users) batchStudents[row.batch_id].push(row.users);
+      });
+    }
+
+    console.log(`Loaded ${allBatches.length} batches with students`);
+
+  } catch(e) {
+    console.error('loadBatches error:', e);
+    toast('Error loading batches: ' + e.message, 'error');
+  }
 }
 
 // ── INIT ─────────────────────────────────────────────────────
@@ -864,7 +893,8 @@ async function init() {
       window.location.href = '../../login.html'; return;
     }
 
-    await loadBatches(session.user.id);
+    await loadBatches(session.user.id, profile.role);
+    console.log('LX Designer init complete. Role:', profile.role);
 
   } catch(err) {
     console.error('LX Designer init error:', err);

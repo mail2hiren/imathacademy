@@ -485,7 +485,17 @@
       </div>
 
       <!-- ══ HISTORY TAB ══ -->
-      <div id="tab-history" style="display:none">
+      <div <!-- Leaderboard tab -->
+      <div class="tab-content" id="tab-leaderboard" style="display:none">
+        <div id="leaderboardContent">
+          <div style="text-align:center;padding:40px;color:#9090B0">
+            <div style="width:36px;height:36px;border:4px solid #E8EAF6;border-top-color:#1E88E5;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div>
+            Loading leaderboard...
+          </div>
+        </div>
+      </div>
+
+      id="tab-history" style="display:none">
 
         <div class="section-card">
           <div class="section-title">Recent practice sessions</div>
@@ -511,6 +521,7 @@ const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+let currentUser = null;
 
 const BADGE_CATALOG = [
   { type:'first_practice',  label:'First Steps',     icon:'🎯', xp:50,   desc:'Complete your first practice session' },
@@ -923,6 +934,82 @@ async function init() {
 }
 
 init();
+
+// ── LEADERBOARD ──────────────────────────────────────────────
+async function loadLeaderboard() {
+  const el = document.getElementById('leaderboardContent');
+  if (!el) return;
+  try {
+    // Get student's batches
+    const { data: batches } = await sb.from('batch_students')
+      .select('batch_id, batches(name)')
+      .eq('student_id', currentUser.id);
+
+    if (!batches?.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:#9090B0;">You are not assigned to a batch yet. Ask your teacher!</div>';
+      return;
+    }
+
+    const batchIds = batches.map(b => b.batch_id);
+    const batchName = batches[0]?.batches?.name || 'Your batch';
+
+    // Get all students in same batches with their XP
+    const { data: batchmates } = await sb.from('batch_students')
+      .select('student_id, users!student_id(id, full_name, xp_points, streak_days, current_level)')
+      .in('batch_id', batchIds);
+
+    if (!batchmates?.length) {
+      el.innerHTML = '<div style="text-align:center;padding:40px;color:#9090B0;">No batchmates found yet.</div>';
+      return;
+    }
+
+    // Deduplicate and sort by XP
+    const seen = new Set();
+    const students = batchmates
+      .map(b => b.users)
+      .filter(u => u && !seen.has(u.id) && seen.add(u.id))
+      .sort((a, b) => (b.xp_points||0) - (a.xp_points||0));
+
+    const myRank = students.findIndex(s => s.id === currentUser.id) + 1;
+    const myXP   = students.find(s => s.id === currentUser.id)?.xp_points || 0;
+    const topXP  = students[0]?.xp_points || 0;
+
+    const rankIcons = ['🥇','🥈','🥉'];
+    const isChampions = (currentUser.age_group === 'champions') ||
+      (!currentUser.age_group && (currentUser.current_level||1) >= 5);
+
+    el.innerHTML = `
+      <div style="background:linear-gradient(135deg,#0D47A1,#1A237E);border-radius:16px;padding:16px;margin-bottom:14px;color:#fff;">
+        <div style="font-size:.72rem;opacity:.6;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">${batchName} · Weekly leaderboard</div>
+        <div style="font-size:1.1rem;font-weight:800;">You are <span style="color:#FFD600;">#${myRank}</span> out of ${students.length} students</div>
+        ${myRank > 1 ? `<div style="font-size:.78rem;opacity:.75;margin-top:4px;">${topXP - myXP} XP behind #1 — keep practising!</div>` : '<div style="font-size:.78rem;opacity:.75;margin-top:4px;">🏆 You are #1 this week! Defend your spot!</div>'}
+      </div>
+
+      <div style="background:#fff;border:2px solid #E8EAF6;border-radius:14px;overflow:hidden;margin-bottom:14px;">
+        ${students.map((s, i) => {
+          const isMe = s.id === currentUser.id;
+          const rank = i + 1;
+          return `<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #E8EAF6;${isMe ? 'background:#E3F2FD;' : i % 2 === 0 ? 'background:#FAFAFA;' : ''}">
+            <div style="font-size:1.1rem;width:28px;text-align:center;flex-shrink:0;">${rankIcons[i] || rank}</div>
+            <div style="flex:1;">
+              <div style="font-size:.875rem;font-weight:${isMe?'800':'700'};color:${isMe?'#0D47A1':'#1A1A2E'}">${s.full_name}${isMe?' (you)':''}</div>
+              <div style="font-size:.72rem;color:#9090B0;margin-top:1px;">Level ${s.current_level||1} · 🔥 ${s.streak_days||0} day streak</div>
+            </div>
+            <div style="font-size:.875rem;font-weight:800;color:${isMe?'#0D47A1':'#E65100'}">${(s.xp_points||0).toLocaleString('en-IN')} XP</div>
+          </div>`;
+        }).join('')}
+      </div>
+
+      ${!isChampions ? `
+      <div style="background:#FFF3E0;border:2px solid #FF9800;border-radius:12px;padding:12px 14px;font-size:.82rem;color:#E65100;font-weight:700;">
+        🌟 Leaderboard competition unlocks at Level 5 (Champions). Keep levelling up!
+      </div>` : ''}
+    `;
+  } catch(e) {
+    el.innerHTML = `<div style="padding:20px;color:#E53935;">Could not load leaderboard: ${e.message}</div>`;
+  }
+}
+
 </script>
 
 <!-- Bottom nav (mobile) -->

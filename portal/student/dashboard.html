@@ -721,14 +721,36 @@ function buildDashboard(profile, stats, group, session_user_id) {
           </div>
           <div class="mission-xp">+20 XP</div>
         </div>
-        <div class="mission-item ${stats.streakInSession >= 5 ? '' : ''}" style="${stats.streakInSession < 5 ? 'opacity:.6;' : ''}">
+
+        <!-- Mission 4: Puzzle -->
+        <div class="mission-item ${stats.streakInSession >= 5 ? 'mission-done' : ''}" style="${stats.streakInSession < 5 ? 'opacity:.6;' : ''}" onclick="location.href='practice.html'">
           <div class="mission-icon">${stats.streakInSession >= 5 ? '🧩' : '🔒'}</div>
           <div class="mission-info">
             <div class="mission-name">Solve today's puzzle</div>
-            <div class="mission-desc">${stats.streakInSession >= 5 ? 'Puzzle is ready — tap Practice to play!' : 'Unlock by getting 5 in a row first'}</div>
+            <div style="height:5px;background:var(--border);border-radius:20px;margin:5px 0 3px;overflow:hidden;">
+              <div style="height:100%;width:${stats.streakInSession >= 5 ? '100' : '0'}%;background:var(--purple);border-radius:20px;transition:width .5s;"></div>
+            </div>
+            <div class="mission-desc">${stats.streakInSession >= 5 ? '🧩 Puzzle unlocked — tap to play!' : 'Unlock by getting 5 in a row first'}</div>
           </div>
           <div class="mission-xp">+30 XP</div>
         </div>
+
+        <!-- Mission 5: Weekly quiz -->
+        <div class="mission-item ${stats.quizDoneThisWeek ? 'mission-done' : ''}" onclick="location.href='weekly-quiz.html'">
+          <div class="mission-icon">${stats.quizDoneThisWeek ? '✅' : '⚡'}</div>
+          <div class="mission-info">
+            <div class="mission-name">Weekly quiz</div>
+            <div style="height:5px;background:var(--border);border-radius:20px;margin:5px 0 3px;overflow:hidden;">
+              <div style="height:100%;width:${stats.quizDoneThisWeek ? '100' : '0'}%;background:var(--orange);border-radius:20px;transition:width .5s;"></div>
+            </div>
+            <div class="mission-desc">${stats.quizDoneThisWeek ? '✨ Done this week! +50 XP!' : 'Resets every Monday · 10 questions'}</div>
+          </div>
+          <div class="mission-xp">+50 XP</div>
+        </div>
+
+        <!-- Mission 6: Worksheet (conditional) -->
+        ${stats.newWorksheets > 0 ? '<div class="mission-item" onclick="location.href='worksheets.html'"><div class="mission-icon">📋</div><div class="mission-info"><div class="mission-name">Complete new worksheet</div><div style="height:5px;background:var(--border);border-radius:20px;margin:5px 0 3px;overflow:hidden;"><div style="height:100%;width:0%;background:var(--green);border-radius:20px;"></div></div><div class="mission-desc">'+stats.newWorksheets+' worksheet'+( stats.newWorksheets>1?'s':'')+' waiting — tap to solve!</div></div><div class="mission-xp">+25 XP</div></div>' : ''}
+
       </div>
 
       <!-- Actions -->

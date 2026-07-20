@@ -439,6 +439,19 @@ async function submitWorksheet(wsId, qs){
     });
     await sb.from('users').update({xp_points:(currentUser.xp_points||0)+xp}).eq('id',session.user.id);
     currentUser.xp_points=(currentUser.xp_points||0)+xp;
+
+    // Notify the teacher who assigned this worksheet
+    try {
+      const { data: wsData } = await sb.from('lx_worksheets').select('created_by, title').eq('id',wsId).single();
+      if (wsData?.created_by) {
+        await sb.from('notifications').insert({
+          user_id: wsData.created_by,
+          type: 'submission',
+          title: '📊 Worksheet submitted!',
+          message: (currentUser.full_name||'A student') + ' submitted "' + wsData.title + '" — Score: ' + score + '/' + total + ' (' + pct + '%)',
+        });
+      }
+    } catch(e) { console.log('Teacher notify error:', e); }
   }catch(e){console.error('submit error:',e);}
 
   showXPPop(`+${xp} XP! 🎉`);

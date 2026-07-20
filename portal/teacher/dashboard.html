@@ -288,6 +288,7 @@
       <a class="nav-item" href="#" onclick="showTab('attendance',this)"><span class="nav-icon">✅</span> Attendance</a>
       <div class="nav-sec">Tools</div>
       <a class="nav-item" href="lx-designer.html"><span class="nav-icon">✨</span> LX Designer</a>
+      <a class="nav-item" onclick="showTab('wsresults',this)"><span class="nav-icon">📊</span> Worksheet results</a>
     </nav>
     <div class="sidebar-user">
       <div class="user-av" id="userAv">MP</div>
@@ -1454,6 +1455,87 @@ async function init() {
 }
 
 init();
+
+// ── WORKSHEET RESULTS ────────────────────────────────────────
+async function loadWsResults() {
+  const list = document.getElementById('wsResultsList');
+  if (!list) return;
+  list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);"><div style="width:28px;height:28px;border:3px solid #E8EAF6;border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 10px;"></div>Loading...</div>';
+
+  try {
+    const batchId = document.getElementById('wsResultsBatch')?.value || '';
+
+    // Get worksheets created by this teacher
+    const { data: wsList, error } = await sb.from('lx_worksheets')
+      .select('id, title, level, created_at, batch_id')
+      .eq('created_by', teacherProfile.id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    if (!wsList?.length) {
+      list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">No worksheets assigned yet. Create some in LX Designer!</div>';
+      return;
+    }
+
+    // For each worksheet get submission count and avg score
+    const results = await Promise.all(wsList.map(async ws => {
+      const { data: subs } = await sb.from('worksheet_responses')
+        .select('score, total, student_id, users!student_id(full_name)')
+        .eq('worksheet_id', ws.id);
+      const count = subs?.length || 0;
+      const avgScore = count ? Math.round(subs.reduce((s,r) => s + (r.score/r.total*100), 0) / count) : null;
+      return { ...ws, subs: subs || [], count, avgScore };
+    }));
+
+    list.innerHTML = results.map(ws => `
+      <div style="background:#fff;border:2px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;">
+        <div style="padding:12px 16px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;" onclick="toggleWsResult('res-${ws.id}')">
+          <div style="flex:1;">
+            <div style="font-size:.875rem;font-weight:800;color:var(--text);">${ws.title}</div>
+            <div style="font-size:.72rem;color:var(--text3);margin-top:3px;">Level ${ws.level||'—'} · ${new Date(ws.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:1rem;font-weight:800;color:var(--blue-dk);">${ws.count}</div>
+            <div style="font-size:.65rem;color:var(--text3);">submitted</div>
+          </div>
+          ${ws.avgScore!==null ? `<div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:1rem;font-weight:800;color:${ws.avgScore>=80?'var(--green-dk)':ws.avgScore>=50?'var(--orange-dk)':'var(--red)'};">${ws.avgScore}%</div>
+            <div style="font-size:.65rem;color:var(--text3);">avg score</div>
+          </div>` : ''}
+        </div>
+        <div id="res-${ws.id}" style="display:none;border-top:2px solid var(--border);padding:12px 16px;">
+          ${ws.subs.length === 0 ? '<div style="color:var(--text3);font-size:.82rem;padding:8px 0;">No submissions yet</div>' :
+            ws.subs.map(s => `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #F0F0F8;">
+              <div style="flex:1;font-size:.82rem;font-weight:700;">${s.users?.full_name||'Student'}</div>
+              <div style="font-size:.82rem;font-weight:800;color:${(s.score/s.total*100)>=80?'var(--green-dk)':'var(--orange-dk)'};">${s.score}/${s.total}</div>
+              <div style="font-size:.75rem;color:var(--text3);">${Math.round(s.score/s.total*100)}%</div>
+            </div>`).join('')
+          }
+        </div>
+      </div>`).join('');
+
+    // Populate batch filter
+    const batchSel = document.getElementById('wsResultsBatch');
+    if (batchSel && teacherBatches?.length) {
+      if (batchSel.options.length <= 1) {
+        teacherBatches.forEach(b => {
+          batchSel.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+        });
+      }
+    }
+  } catch(e) {
+    list.innerHTML = `<div style="padding:20px;color:var(--red);">Error: ${e.message}</div>`;
+  }
+}
+
+function toggleWsResult(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// Call loadWsResults when tab is shown
+const _origShowTab = typeof showTab === 'function' ? showTab : null;
 </script>
 <!-- IN-CLASS FLOATING BAR -->
 <div class="in-class-panel" id="inClassPanel">

@@ -496,12 +496,20 @@ function buildDashboard(profile, stats, group) {
         <div class="sticker-hint">Solve 5 more sums to unlock a new animal! 🐆</div>
       </div>
 
+      <!-- Badges -->
+      <div style="background:#FFF3E0;border:2px solid #FF9800;border-radius:16px;padding:14px;margin-bottom:12px;">
+        <div style="font-size:.82rem;font-weight:800;color:#E65100;margin-bottom:10px;">🏅 My badges</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          ${renderBadges(stats.badges)}
+        </div>
+      </div>
+
       <!-- Mascot message -->
       <div class="mascot-card">
         <div class="mascot-em">🐘</div>
         <div>
           <div class="mascot-name">Jumbo says...</div>
-          <div class="mascot-msg">"${getMascotMessage(streak, xpPct)}"</div>
+          <div class="mascot-msg">"${getMascotMessage(streak, xpPct, stats.streakInSession)}"</div>
         </div>
       </div>`;
 
@@ -544,19 +552,19 @@ function buildDashboard(profile, stats, group) {
           </div>
           <div class="mission-xp">+10 XP</div>
         </div>
-        <div class="mission-item">
-          <div class="mission-icon">🎯</div>
+        <div class="mission-item ${stats.streakInSession >= 5 ? 'mission-done' : ''}">
+          <div class="mission-icon">${stats.streakInSession >= 5 ? '✅' : '🎯'}</div>
           <div class="mission-info">
             <div class="mission-name">Get 5 correct in a row</div>
-            <div class="mission-desc">3 in a row so far — 2 more to unlock puzzle!</div>
+            <div class="mission-desc">${stats.streakInSession >= 5 ? 'Done! Puzzle unlocked!' : stats.streakInSession > 0 ? stats.streakInSession+' in a row — '+(5-stats.streakInSession)+' more to unlock puzzle!' : 'Start practising to build your streak!'}</div>
           </div>
           <div class="mission-xp">+20 XP</div>
         </div>
-        <div class="mission-item" style="opacity:.6;">
-          <div class="mission-icon">🧩</div>
+        <div class="mission-item ${stats.streakInSession >= 5 ? '' : ''}" style="${stats.streakInSession < 5 ? 'opacity:.6;' : ''}">
+          <div class="mission-icon">${stats.streakInSession >= 5 ? '🧩' : '🔒'}</div>
           <div class="mission-info">
             <div class="mission-name">Solve today's puzzle</div>
-            <div class="mission-desc">Unlock by getting 5 in a row first</div>
+            <div class="mission-desc">${stats.streakInSession >= 5 ? 'Puzzle is ready — tap Practice to play!' : 'Unlock by getting 5 in a row first'}</div>
           </div>
           <div class="mission-xp">+30 XP</div>
         </div>
@@ -590,17 +598,12 @@ function buildDashboard(profile, stats, group) {
         </a>
       </div>
 
-      <!-- Badges -->
+      <!-- Live badges -->
       <div class="section-title">My badges</div>
-      <div class="badges-row">
-        <div class="badge-item earned"><div class="badge-emoji">⭐</div><div class="badge-name">Speed star</div></div>
-        <div class="badge-item earned"><div class="badge-emoji">🎯</div><div class="badge-name">Perfect!</div></div>
-        <div class="badge-item earned"><div class="badge-emoji">🔥</div><div class="badge-name">5-day fire</div></div>
-        <div class="badge-item locked"><div class="badge-emoji">🧩</div><div class="badge-name">Puzzle pro</div></div>
-        <div class="badge-item locked"><div class="badge-emoji">🥇</div><div class="badge-name">7-day legend</div></div>
-        <div class="badge-item locked"><div class="badge-emoji">🏆</div><div class="badge-name">Top of batch</div></div>
+      <div class="badges-row" id="risingBadgesRow">
+        ${renderBadges(stats.badges)}
       </div>
-      <div class="badge-hint">🧩 Solve 7 more puzzles to unlock <strong>Puzzle pro</strong>!</div>
+      ${getBadgeHint(stats.badges)}
 
       <!-- Level progress -->
       <div class="section-title">Level ${level} progress</div>
@@ -636,7 +639,7 @@ function buildDashboard(profile, stats, group) {
           <div>
             <div style="font-size:.72rem;opacity:.6;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Level ${level} · Week 3 of 12</div>
             <div style="font-size:1.15rem;font-weight:800;">${name} 🚀</div>
-            <div style="font-size:.75rem;opacity:.7;margin-top:2px;">Rank #2 in batch this week</div>
+            <div style="font-size:.75rem;opacity:.7;margin-top:2px;">${stats.leaderboard.length ? 'Rank #'+(stats.leaderboard.findIndex(l=>l.id===session_user_id)+1||'?')+' in batch this week' : 'Keep practising!'}</div>
           </div>
           <div style="text-align:right;background:rgba(255,255,255,.12);border-radius:10px;padding:8px 12px;flex-shrink:0;">
             <div style="font-size:1.2rem;font-weight:800;color:#FFD600;">🔥 ${streak}</div>
@@ -649,7 +652,7 @@ function buildDashboard(profile, stats, group) {
         <div style="height:8px;background:rgba(255,255,255,.15);border-radius:20px;overflow:hidden;">
           <div style="height:100%;width:${xpPct}%;background:linear-gradient(90deg,#FFD600,#FF6F00);border-radius:20px;"></div>
         </div>
-        <div style="font-size:.68rem;opacity:.6;margin-top:4px;text-align:right;">Close the gap — do one speed drill now!</div>
+        <div style="font-size:.68rem;opacity:.6;margin-top:4px;text-align:right;">${stats.leaderboard.length && stats.leaderboard[0].id !== session_user_id ? 'Just '+(stats.leaderboard[0].xp - xp)+' XP behind #1 — do one speed drill now!' : stats.leaderboard[0]?.id === session_user_id ? 'You are #1 this week! 🏆 Keep it up!' : 'Start practising to claim the top spot!'}</div>
       </div>
 
       <!-- Title chip -->
@@ -692,25 +695,18 @@ function buildDashboard(profile, stats, group) {
         </a>
       </div>
 
-      <!-- Leaderboard -->
+      <!-- Live leaderboard -->
       <div class="section-title">Batch leaderboard — this week</div>
       <div class="lb-card">
-        <div class="lb-item"><div class="lb-rank">🥇</div><div class="lb-name" style="color:var(--orange-dk)">Riya</div><div class="lb-xp">1,500 XP</div></div>
-        <div class="lb-item lb-you"><div class="lb-rank">🥈</div><div class="lb-name">You! ←</div><div class="lb-xp">${xp} XP</div></div>
-        <div class="lb-item"><div class="lb-rank">🥉</div><div class="lb-name" style="color:var(--text2)">Krish</div><div class="lb-xp" style="color:var(--text2)">980 XP</div></div>
-        <div class="lb-hint">💪 ${1500-xp} XP behind Riya — 3 more speed drills to #1!</div>
+        ${renderLeaderboard(stats.leaderboard, session_user_id)}
       </div>
 
-      <!-- Badges -->
+      <!-- Live badges -->
       <div class="section-title">My badges</div>
       <div class="badges-row">
-        <div class="badge-item earned"><div class="badge-emoji">⭐</div><div class="badge-name">Speed star</div></div>
-        <div class="badge-item earned"><div class="badge-emoji">🎯</div><div class="badge-name">Perfect ×5</div></div>
-        <div class="badge-item earned"><div class="badge-emoji">🔥</div><div class="badge-name">${streak}-day fire</div></div>
-        <div class="badge-item earned"><div class="badge-emoji">🧩</div><div class="badge-name">Puzzle pro</div></div>
-        <div class="badge-item locked"><div class="badge-emoji">🏆</div><div class="badge-name">Batch #1</div></div>
-        <div class="badge-item locked"><div class="badge-emoji">🥷</div><div class="badge-name">Abacus ninja</div></div>
-      </div>`;
+        ${renderBadges(stats.badges)}
+      </div>
+      ${getBadgeHint(stats.badges)}`;
   }
 }
 
@@ -721,19 +717,103 @@ function getMascotMessage(streak, xpPct) {
   return "Just 2 more right answers and the PUZZLE door opens! You can do it! 🚪✨";
 }
 
-// ── LOAD DATA ────────────────────────────────────────────────
+// ── LOAD ALL LIVE DATA ──────────────────────────────────────
 async function loadStats(userId) {
-  const stats = { homeworkPending: 0, practiceToday: false, stickers: 5 };
+  const stats = {
+    homeworkPending: 0,
+    practiceToday:   false,
+    stickers:        0,
+    puzzlesToday:    false,
+    weeklyXP:        0,
+    leaderboard:     [],
+    badges:          [],
+    conceptProgress: [],
+    streakInSession: 0,
+  };
+
   try {
-    // Homework pending
-    const { data: batches } = await sb.from('batch_students').select('batch_id').eq('student_id', userId);
-    if (batches?.length) {
-      const { data: hw } = await sb.from('homework')
-        .select('id').in('batch_id', batches.map(b=>b.batch_id)).eq('is_active', true);
+    // 1. Homework pending — from batches this student belongs to
+    const { data: batches } = await sb
+      .from('batch_students').select('batch_id').eq('student_id', userId);
+    const batchIds = (batches || []).map(b => b.batch_id);
+
+    if (batchIds.length) {
+      const { data: hw } = await sb
+        .from('homework')
+        .select('id')
+        .in('batch_id', batchIds)
+        .eq('is_active', true);
       stats.homeworkPending = hw?.length || 0;
-      if (stats.homeworkPending > 0) document.getElementById('hwBadge').style.display = 'flex';
     }
-  } catch(e) { console.error('stats error:', e); }
+
+    // 2. Practice today — check practice_sessions
+    const todayStart = new Date();
+    todayStart.setHours(0,0,0,0);
+    const { data: sessions } = await sb
+      .from('practice_sessions')
+      .select('id')
+      .eq('student_id', userId)
+      .gte('created_at', todayStart.toISOString())
+      .limit(1);
+    stats.practiceToday = (sessions?.length || 0) > 0;
+
+    // 3. Badges earned
+    const { data: badges } = await sb
+      .from('badges')
+      .select('*')
+      .eq('student_id', userId)
+      .order('earned_at', { ascending: false });
+    stats.badges = badges || [];
+
+    // 4. Weekly XP — sum from practice_sessions this week
+    const weekStart = new Date();
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    weekStart.setHours(0,0,0,0);
+    const { data: weekSessions } = await sb
+      .from('practice_sessions')
+      .select('xp_earned')
+      .eq('student_id', userId)
+      .gte('created_at', weekStart.toISOString());
+    stats.weeklyXP = (weekSessions || []).reduce((s,r) => s + (r.xp_earned||0), 0);
+
+    // 5. Leaderboard — top students in same batch by XP this week
+    if (batchIds.length) {
+      const { data: batchmates } = await sb
+        .from('batch_students')
+        .select('student_id, users!student_id(full_name, xp_points)')
+        .in('batch_id', batchIds);
+
+      if (batchmates?.length) {
+        stats.leaderboard = batchmates
+          .map(b => ({ name: b.users?.full_name || '?', xp: b.users?.xp_points || 0, id: b.student_id }))
+          .sort((a,b) => b.xp - a.xp)
+          .slice(0, 5);
+      }
+    }
+
+    // 6. Sticker count (use badges count as proxy until stickers table exists)
+    stats.stickers = stats.badges.length;
+
+    // 7. In-session correct answer streak from practice_sessions today
+    const { data: todaySessions } = await sb
+      .from('practice_sessions')
+      .select('correct_answers, total_questions')
+      .eq('student_id', userId)
+      .gte('created_at', todayStart.toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (todaySessions?.[0]) {
+      stats.streakInSession = todaySessions[0].correct_answers || 0;
+    }
+
+  } catch(e) { console.error('loadStats error:', e); }
+
+  // Update homework badge on bottom nav
+  if (stats.homeworkPending > 0) {
+    const badge = document.getElementById('hwBadge');
+    if (badge) badge.style.display = 'flex';
+  }
+
   return stats;
 }
 

@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <title>Puzzle — iMathAcademy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; min-height: 100vh; overflow-x: hidden; }
+    :root {
+      --green: #43A047; --green-dk: #1B5E20; --green-lt: #E8F5E9;
+      --blue: #1E88E5; --blue-dk: #0D47A1; --blue-lt: #E3F2FD;
+      --orange: #FB8C00; --orange-dk: #E65100; --orange-lt: #FFF3E0;
+      --purple: #8E24AA; --purple-lt: #F3E5F5; --purple-dk: #4A148C;
+      --red: #E53935; --red-lt: #FFEBEE;
+      --yellow: #F9A825; --yellow-lt: #FFFDE7;
+      --pink: #E91E8C; --pink-lt: #FCE4EC;
+      --bg: #fff; --bg2: #F7F8FF; --border: #E8EAF6;
+      --text: #1A1A2E; --text2: #4A4A6A; --text3: #9090B0;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar { height: 54px; background: var(--bg); border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 12px; padding: 0 16px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+    .back-btn { background: var(--bg2); border: 2px solid var(--border); border-radius: 10px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; flex-shrink: 0; touch-action: manipulation; }
+    .topbar-title { font-family: 'Baloo 2', sans-serif; font-size: .95rem; font-weight: 800; flex: 1; }
+    .timer-chip { background: var(--orange-lt); border: 2px solid var(--orange); border-radius: 20px; padding: 4px 12px; font-size: .82rem; font-weight: 800; color: var(--orange-dk); white-space: nowrap; }
+
+    .screen { padding: 14px 16px 32px; }
+
+    /* ── LOADER ── */
+    .loader { text-align: center; padding: 60px 20px; color: var(--text3); }
+    .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    /* ── INTRO CARD ── */
+    .intro-card { border-radius: 20px; padding: 24px 20px; margin-bottom: 16px; text-align: center; color: #fff; position: relative; overflow: hidden; }
+    .intro-icon { font-size: 3.5rem; margin-bottom: 10px; }
+    .intro-title { font-family: 'Baloo 2', sans-serif; font-size: 1.2rem; font-weight: 800; margin-bottom: 4px; }
+    .intro-sub { font-size: .82rem; opacity: .85; line-height: 1.6; }
+    .intro-xp { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.2); border: 1.5px solid rgba(255,255,255,.4); border-radius: 20px; padding: 4px 14px; font-size: .82rem; font-weight: 800; margin-top: 10px; }
+
+    /* ── MAZE ── */
+    .maze-wrap { display: flex; justify-content: center; margin-bottom: 16px; }
+    .maze-canvas { border: 3px solid var(--blue-dk); border-radius: 12px; touch-action: none; cursor: crosshair; display: block; background: var(--bg); }
+    .maze-hint { text-align: center; font-size: .78rem; color: var(--text3); font-weight: 600; margin-bottom: 12px; }
+    .maze-controls { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
+    .maze-dir-btn { width: 56px; height: 56px; border: 2px solid var(--border); border-radius: 14px; background: var(--bg); font-size: 1.3rem; cursor: pointer; touch-action: manipulation; display: flex; align-items: center; justify-content: center; transition: all .1s; }
+    .maze-dir-btn:active { background: var(--blue-lt); border-color: var(--blue); transform: scale(.94); }
+
+    /* ── SUDOKU ── */
+    .sudoku-wrap { display: flex; justify-content: center; margin-bottom: 16px; overflow-x: auto; }
+    .sudoku-grid { border: 3px solid var(--text); border-radius: 4px; display: inline-grid; }
+    .sudoku-cell { display: flex; align-items: center; justify-content: center; font-weight: 800; cursor: pointer; transition: all .1s; border: 1px solid #bbb; position: relative; touch-action: manipulation; }
+    .sudoku-cell.given { color: var(--blue-dk); background: var(--blue-lt); cursor: default; }
+    .sudoku-cell.selected { background: #FFF9C4 !important; border-color: var(--orange) !important; }
+    .sudoku-cell.error { background: var(--red-lt) !important; color: var(--red) !important; }
+    .sudoku-cell.correct-anim { animation: cellPop .3s ease; }
+    @keyframes cellPop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
+
+    /* Box borders for 9x9 */
+    .sudoku-grid.size-9 .sudoku-cell:nth-child(3n) { border-right: 2.5px solid var(--text); }
+    .sudoku-grid.size-9 .sudoku-cell:nth-child(n+19):nth-child(-n+27) { border-bottom: 2.5px solid var(--text); }
+    .sudoku-grid.size-9 .sudoku-cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2.5px solid var(--text); }
+    /* Box borders for 6x6 */
+    .sudoku-grid.size-6 .sudoku-cell:nth-child(3n) { border-right: 2.5px solid var(--text); }
+    .sudoku-grid.size-6 .sudoku-cell:nth-child(n+7):nth-child(-n+12) { border-bottom: 2.5px solid var(--text); }
+    .sudoku-grid.size-6 .sudoku-cell:nth-child(n+13):nth-child(-n+18) { border-bottom: 2.5px solid var(--text); }
+    /* 4x4 */
+    .sudoku-grid.size-4 .sudoku-cell:nth-child(2n) { border-right: 2.5px solid var(--text); }
+    .sudoku-grid.size-4 .sudoku-cell:nth-child(n+3):nth-child(-n+4) { border-bottom: 2.5px solid var(--text); }
+    .sudoku-grid.size-4 .sudoku-cell:nth-child(n+7):nth-child(-n+8) { border-bottom: 2.5px solid var(--text); }
+
+    /* Number pad */
+    .numpad { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 14px; }
+    .num-btn { width: 52px; height: 52px; border: 2px solid var(--border); border-radius: 12px; background: var(--bg); font-size: 1.2rem; font-weight: 800; cursor: pointer; touch-action: manipulation; transition: all .1s; display: flex; align-items: center; justify-content: center; }
+    .num-btn:active { background: var(--blue-lt); border-color: var(--blue); transform: scale(.94); }
+    .num-btn.erase { background: var(--red-lt); border-color: var(--red); color: var(--red); }
+    .num-btn.hint-btn { background: var(--yellow-lt); border-color: var(--yellow); color: var(--orange-dk); }
+
+    /* Hints row */
+    .hints-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .hints-left { font-size: .78rem; color: var(--text2); font-weight: 700; }
+    .hint-use-btn { background: var(--yellow-lt); border: 2px solid var(--yellow); border-radius: 10px; padding: 6px 14px; font-size: .78rem; font-weight: 800; color: var(--orange-dk); cursor: pointer; touch-action: manipulation; }
+
+    /* ── COMPLETION ── */
+    .complete-overlay { display: none; position: fixed; inset: 0; z-index: 500; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,.6); backdrop-filter: blur(6px); }
+    .complete-overlay.show { display: flex; animation: fadeIn .3s ease; }
+    .complete-card { background: var(--bg); border-radius: 24px; padding: 28px 24px; width: 100%; max-width: 340px; text-align: center; animation: bounceIn .5s cubic-bezier(.68,-.55,.265,1.55); }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    @keyframes bounceIn { 0%{transform:scale(.3);opacity:0} 60%{transform:scale(1.05)} 80%{transform:scale(.95)} 100%{transform:scale(1);opacity:1} }
+    .complete-icon { font-size: 3.5rem; margin-bottom: 10px; }
+    .complete-title { font-family: 'Baloo 2', sans-serif; font-size: 1.3rem; font-weight: 800; margin-bottom: 6px; }
+    .complete-sub { font-size: .875rem; color: var(--text2); margin-bottom: 16px; line-height: 1.6; }
+    .complete-xp { display: inline-flex; align-items: center; gap: 6px; background: var(--yellow-lt); border: 2px solid var(--yellow); border-radius: 20px; padding: 6px 18px; font-size: 1rem; font-weight: 800; color: var(--orange-dk); margin-bottom: 18px; }
+    .complete-time { font-size: .82rem; color: var(--text3); margin-bottom: 16px; }
+    .complete-btn { width: 100%; padding: 14px; border: none; border-radius: 14px; font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 800; cursor: pointer; touch-action: manipulation; margin-bottom: 8px; }
+    .btn-green { background: var(--green); color: #fff; }
+    .btn-ghost { background: var(--bg2); color: var(--text); border: 2px solid var(--border); }
+
+    /* ── CONFETTI ── */
+    .confetti-piece { position: fixed; pointer-events: none; z-index: 999; animation: confettiFall linear forwards; border-radius: 2px; }
+    @keyframes confettiFall { 0%{opacity:1;top:-10px} 100%{opacity:0;top:110vh} }
+
+    /* ── MASCOT BAR (Tiny) ── */
+    .mascot-bar { display: flex; gap: 10px; align-items: flex-start; background: linear-gradient(135deg,var(--pink-lt),var(--purple-lt)); border: 2px solid #CE93D8; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; }
+    .mascot-em { font-size: 1.8rem; flex-shrink: 0; }
+    .mascot-msg { font-size: .82rem; color: var(--purple-dk); line-height: 1.5; font-weight: 700; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 400px) {
+      .num-btn { width: 44px; height: 44px; font-size: 1rem; }
+      .maze-dir-btn { width: 50px; height: 50px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="back-btn" onclick="goBack()">←</button>
+  <div class="topbar-title" id="topTitle">Puzzle</div>
+  <div class="timer-chip" id="timerChip">⏱ 0:00</div>
+</div>
+
+<div id="loaderScreen" class="loader">
+  <div class="spinner"></div>
+  Setting up your puzzle...
+</div>
+
+<div id="mainScreen" style="display:none;">
+  <div class="screen" id="screenContent"></div>
+</div>
+
+<!-- Completion overlay -->
+<div class="complete-overlay" id="completeOverlay">
+  <div class="complete-card">
+    <div class="complete-icon" id="cIcon">🎉</div>
+    <div class="complete-title" id="cTitle">Puzzle solved!</div>
+    <div class="complete-sub" id="cSub"></div>
+    <div class="complete-xp" id="cXP">+40 ⚡ XP</div>
+    <div class="complete-time" id="cTime"></div>
+    <button class="complete-btn btn-green" onclick="newPuzzle()">New puzzle 🔄</button>
+    <button class="complete-btn btn-ghost" onclick="goBack()">Back to dashboard</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let session = null, profile = null, group = 'rising';
+let timerInterval = null, secondsElapsed = 0;
+let hintsLeft = 3;
+let puzzleType = '';
+
+// ── URL PARAMS ───────────────────────────────────────────────
+const urlGroup = new URLSearchParams(window.location.search).get('group');
+
+// ── GROUP DETECTION ──────────────────────────────────────────
+function getGroup(p) {
+  if (p.age_group) return p.age_group;
+  if (p.date_of_birth) {
+    const dob = new Date(p.date_of_birth), today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    if (age <= 7) return 'tiny'; if (age <= 10) return 'rising'; return 'champions';
+  }
+  const lv = p.current_level || 1;
+  if (lv <= 1) return 'tiny'; if (lv <= 4) return 'rising'; return 'champions';
+}
+
+// ── TIMER ────────────────────────────────────────────────────
+function startTimer() {
+  secondsElapsed = 0;
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    secondsElapsed++;
+    const m = Math.floor(secondsElapsed/60);
+    const s = secondsElapsed % 60;
+    document.getElementById('timerChip').textContent = `⏱ ${m}:${String(s).padStart(2,'0')}`;
+  }, 1000);
+}
+
+function stopTimer() { clearInterval(timerInterval); }
+
+// ── CONFETTI ─────────────────────────────────────────────────
+function triggerConfetti(count=25) {
+  const colours = ['#FFD600','#FF6F00','#4CAF50','#1E88E5','#E91E8C','#9C27B0','#fff'];
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.cssText = `left:${Math.random()*100}vw;width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;background:${colours[Math.floor(Math.random()*colours.length)]};animation-duration:${.8+Math.random()*.8}s;animation-delay:${Math.random()*.5}s;border-radius:${Math.random()>.5?'50%':'2px'}`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1600);
+  }
+}
+
+// ── COMPLETION ───────────────────────────────────────────────
+async function showComplete(xp, title, sub) {
+  stopTimer();
+  const m = Math.floor(secondsElapsed/60), s = secondsElapsed%60;
+  document.getElementById('cIcon').textContent   = group==='tiny'?'🎊':'🏆';
+  document.getElementById('cTitle').textContent  = title;
+  document.getElementById('cSub').textContent    = sub;
+  document.getElementById('cXP').textContent     = `+${xp} ⚡ XP`;
+  document.getElementById('cTime').textContent   = `Solved in ${m}:${String(s).padStart(2,'0')}`;
+  document.getElementById('completeOverlay').className = 'complete-overlay show';
+  triggerConfetti(30);
+
+  // Save XP + badge
+  if (session) {
+    try {
+      await sb.from('users').update({ xp_points: (profile.xp_points||0)+xp }).eq('id', session.user.id);
+      const { data: ex } = await sb.from('badges').select('badge_type').eq('student_id', session.user.id);
+      const earned = new Set((ex||[]).map(b=>b.badge_type));
+      if (!earned.has('puzzle_pro')) {
+        const { data: ps } = await sb.from('badges').select('id').eq('student_id', session.user.id).eq('badge_type','puzzle_pro');
+        const count = (await sb.from('practice_sessions').select('id').eq('student_id', session.user.id).eq('session_type','puzzle')).data?.length || 0;
+        if (count >= 4) await sb.from('badges').insert({ student_id: session.user.id, badge_type: 'puzzle_pro' });
+      }
+      await sb.from('practice_sessions').insert({ student_id: session.user.id, correct_answers:1, total_questions:1, xp_earned:xp, session_type:'puzzle' });
+    } catch(e) { console.error(e); }
+  }
+}
+
+function goBack() { window.location.href = 'dashboard.html'; }
+function newPuzzle() {
+  document.getElementById('completeOverlay').className = 'complete-overlay';
+  loadPuzzle();
+}
+
+// ════════════════════════════════════════════════════════════
+// ── TINY — MAZE PUZZLE ───────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+let mazeGrid = [], mazePlayerPos = {x:0,y:0}, mazeSize = 7, mazeEnd = {x:6,y:6};
+let mazePath = [], mazeCanvas = null, mazeCtx = null;
+const CELL = 44; // px per cell — good for touch
+
+function buildTinyPuzzle() {
+  puzzleType = 'maze';
+  const themes = [
+    { name: '🐘 Jumbo\'s Jungle Maze',   player: '🐘', goal: '🍌', bg: '#E8F5E9', wall: '#2E7D32', path: '#C8E6C9', goalColor: '#FFD600' },
+    { name: '🚀 Space Explorer Maze',    player: '🚀', goal: '⭐', bg: '#E3F2FD', wall: '#1565C0', path: '#BBDEFB', goalColor: '#FFD600' },
+    { name: '🦁 Safari Adventure Maze',  player: '🦁', goal: '🏠', bg: '#FFF3E0', wall: '#E65100', path: '#FFE0B2', goalColor: '#4CAF50' },
+  ];
+  const theme = themes[Math.floor(Math.random() * themes.length)];
+
+  document.getElementById('topTitle').textContent = theme.name;
+
+  mazeSize = 7;
+  mazeEnd = { x: mazeSize-1, y: mazeSize-1 };
+  mazeGrid = generateMaze(mazeSize);
+  mazePlayerPos = { x: 0, y: 0 };
+
+  const content = document.getElementById('screenContent');
+  content.innerHTML = `
+    <div class="intro-card" style="background:linear-gradient(135deg,#E91E8C,#9C27B0);">
+      <div class="intro-icon">🗺️</div>
+      <div class="intro-title">Help ${theme.player} reach the ${theme.goal}!</div>
+      <div class="intro-sub">Find your way through the maze. Swipe or use the arrows below.</div>
+      <div class="intro-xp">+30 ⚡ XP for completing!</div>
+    </div>
+
+    <div class="mascot-bar">
+      <div class="mascot-em">🐘</div>
+      <div class="mascot-msg">Use the arrows to move! Find the path to ${theme.goal} — you can do it!</div>
+    </div>
+
+    <div class="maze-hint">Swipe on the maze or use the arrow buttons below</div>
+    <div class="maze-wrap"><canvas id="mazeCanvas" class="maze-canvas"></canvas></div>
+
+    <div class="maze-controls">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;width:180px;">
+        <div></div>
+        <button class="maze-dir-btn" onclick="movePlayer(0,-1)">↑</button>
+        <div></div>
+        <button class="maze-dir-btn" onclick="movePlayer(-1,0)">←</button>
+        <button class="maze-dir-btn" style="background:var(--red-lt);border-color:var(--red);" onclick="resetMaze()">↺</button>
+        <button class="maze-dir-btn" onclick="movePlayer(1,0)">→</button>
+        <div></div>
+        <button class="maze-dir-btn" onclick="movePlayer(0,1)">↓</button>
+        <div></div>
+      </div>
+    </div>`;
+
+  // Setup canvas
+  setTimeout(() => {
+    mazeCanvas = document.getElementById('mazeCanvas');
+    const size = Math.min(window.innerWidth - 40, 340);
+    const cellPx = Math.floor(size / mazeSize);
+    mazeCanvas.width  = cellPx * mazeSize;
+    mazeCanvas.height = cellPx * mazeSize;
+    mazeCtx = mazeCanvas.getContext('2d');
+    window._mazeCellPx = cellPx;
+    window._mazeTheme = theme;
+    drawMaze();
+    setupMazeSwipe();
+    startTimer();
+  }, 50);
+}
+
+function generateMaze(size) {
+  // Recursive backtracker maze generation
+  const grid = Array.from({length:size}, () => Array(size).fill(0));
+  const visited = Array.from({length:size}, () => Array(size).fill(false));
+  // 0=open, 1=wall encoded in walls object
+  const walls = {}; // key: "x,y" → {right,down}
+  for (let y=0;y<size;y++) for (let x=0;x<size;x++) walls[`${x},${y}`]={right:true,down:true};
+
+  function carve(x,y) {
+    visited[y][x] = true;
+    const dirs = [{dx:1,dy:0},{dx:-1,dy:0},{dx:0,dy:1},{dx:0,dy:-1}].sort(()=>Math.random()-.5);
+    for (const {dx,dy} of dirs) {
+      const nx=x+dx, ny=y+dy;
+      if (nx>=0&&ny>=0&&nx<size&&ny<size&&!visited[ny][nx]) {
+        if (dx===1)  walls[`${x},${y}`].right = false;
+        if (dx===-1) walls[`${nx},${ny}`].right = false;
+        if (dy===1)  walls[`${x},${y}`].down = false;
+        if (dy===-1) walls[`${nx},${ny}`].down = false;
+        carve(nx,ny);
+      }
+    }
+  }
+  carve(0,0);
+  return walls;
+}
+
+function drawMaze() {
+  if (!mazeCtx) return;
+  const cp = window._mazeCellPx || 44;
+  const theme = window._mazeTheme;
+  const ctx = mazeCtx;
+  const size = mazeSize;
+
+  ctx.fillStyle = theme.path;
+  ctx.fillRect(0,0,cp*size,cp*size);
+
+  ctx.strokeStyle = theme.wall;
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+
+  for (let y=0;y<size;y++) {
+    for (let x=0;x<size;x++) {
+      const w = mazeGrid[`${x},${y}`];
+      if (!w) continue;
+      const px = x*cp, py = y*cp;
+      if (w.right && x<size-1) { ctx.beginPath(); ctx.moveTo(px+cp,py); ctx.lineTo(px+cp,py+cp); ctx.stroke(); }
+      if (w.down  && y<size-1) { ctx.beginPath(); ctx.moveTo(px,py+cp); ctx.lineTo(px+cp,py+cp); ctx.stroke(); }
+    }
+  }
+
+  // Border
+  ctx.strokeRect(1,1,cp*size-2,cp*size-2);
+
+  // Goal
+  const gx = mazeEnd.x*cp+cp/2, gy = mazeEnd.y*cp+cp/2;
+  ctx.fillStyle = theme.goalColor;
+  ctx.beginPath(); ctx.arc(gx,gy,cp*.35,0,Math.PI*2); ctx.fill();
+  ctx.font = `${cp*.5}px serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(theme.goal, gx, gy);
+
+  // Player
+  const px2 = mazePlayerPos.x*cp+cp/2, py2 = mazePlayerPos.y*cp+cp/2;
+  ctx.font = `${cp*.55}px serif`;
+  ctx.fillText(theme.player, px2, py2);
+}
+
+function movePlayer(dx,dy) {
+  const nx = mazePlayerPos.x+dx, ny = mazePlayerPos.y+dy;
+  if (nx<0||ny<0||nx>=mazeSize||ny>=mazeSize) return;
+
+  // Check wall between current and next
+  const cx=mazePlayerPos.x, cy=mazePlayerPos.y;
+  const w = mazeGrid[`${Math.min(cx,nx)},${Math.min(cy,ny)}`];
+  if (!w) return;
+  if (dx===1  && w.right) return;
+  if (dx===-1 && mazeGrid[`${nx},${cy}`]?.right) return;
+  if (dy===1  && w.down)  return;
+  if (dy===-1 && mazeGrid[`${cx},${ny}`]?.down)  return;
+
+  mazePlayerPos = {x:nx,y:ny};
+  drawMaze();
+
+  if (nx===mazeEnd.x && ny===mazeEnd.y) {
+    setTimeout(() => showComplete(30, 'Maze solved! 🗺️', 'Amazing! You found the way through the maze!'), 300);
+  }
+}
+
+function resetMaze() {
+  mazePlayerPos = {x:0,y:0};
+  drawMaze();
+}
+
+function setupMazeSwipe() {
+  if (!mazeCanvas) return;
+  let sx=0,sy=0;
+  mazeCanvas.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  mazeCanvas.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>Math.abs(dy)){movePlayer(dx>0?1:-1,0);}else{movePlayer(0,dy>0?1:-1);}
+  },{passive:true});
+  // Keyboard support for desktop
+  document.addEventListener('keydown',e=>{
+    const map={'ArrowUp':[0,-1],'ArrowDown':[0,1],'ArrowLeft':[-1,0],'ArrowRight':[1,0]};
+    if(map[e.key]){e.preventDefault();movePlayer(...map[e.key]);}
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// ── RISING — SUDOKU 4×4 or 6×6 ──────────────────────────────
+// ════════════════════════════════════════════════════════════
+let sudokuSize=4, sudokuBoard=[], sudokuSolution=[], selectedCell=null, sudokuErrors=0;
+
+function buildRisingPuzzle(level) {
+  puzzleType = 'sudoku';
+  sudokuSize  = level <= 3 ? 4 : 6;
+  hintsLeft   = 3;
+  sudokuErrors = 0;
+
+  const titles = {4:'🧩 Sudoku 4×4', 6:'🧩 Sudoku 6×6'};
+  document.getElementById('topTitle').textContent = titles[sudokuSize];
+
+  const {puzzle, solution} = generateSudoku(sudokuSize);
+  sudokuBoard    = puzzle.map(r=>[...r]);
+  sudokuSolution = solution;
+
+  const xpVal = sudokuSize === 4 ? 35 : 45;
+  const nums = Array.from({length:sudokuSize},(_,i)=>i+1);
+
+  document.getElementById('screenContent').innerHTML = `
+    <div class="intro-card" style="background:linear-gradient(145deg,#1565C0,#4A148C);">
+      <div class="intro-icon">${sudokuSize===4?'🧩':'🔢'}</div>
+      <div class="intro-title">Sudoku ${sudokuSize}×${sudokuSize}</div>
+      <div class="intro-sub">Fill the grid so every row, column and box has the numbers 1–${sudokuSize} exactly once.</div>
+      <div class="intro-xp">+${xpVal} ⚡ XP for solving!</div>
+    </div>
+
+    <div class="hints-row">
+      <div class="hints-left">💡 Hints left: <span id="hintsLeft">${hintsLeft}</span></div>
+      <button class="hint-use-btn" onclick="useHint()">Use a hint 💡</button>
+    </div>
+
+    <div class="sudoku-wrap">
+      <div class="sudoku-grid size-${sudokuSize}" id="sudokuGrid" style="grid-template-columns:repeat(${sudokuSize},1fr)"></div>
+    </div>
+
+    <div class="numpad" id="numpad">
+      ${nums.map(n=>`<button class="num-btn" onclick="enterNum(${n})">${n}</button>`).join('')}
+      <button class="num-btn erase" onclick="enterNum(0)">⌫</button>
+    </div>
+
+    <div style="text-align:center;font-size:.75rem;color:var(--text3);margin-top:4px;">Errors: <span id="errorCount">0</span> / 3 allowed</div>`;
+
+  renderSudokuGrid();
+  startTimer();
+}
+
+function generateSudoku(size) {
+  // Generate a complete valid solution then remove cells
+  const sol = createSudokuSolution(size);
+  const puzzle = sol.map(r=>[...r]);
+  const removals = size === 4 ? 6 : 16;
+  let removed = 0;
+  const cells = [];
+  for(let r=0;r<size;r++) for(let c=0;c<size;c++) cells.push([r,c]);
+  cells.sort(()=>Math.random()-.5);
+  for(const [r,c] of cells) {
+    if(removed >= removals) break;
+    puzzle[r][c] = 0;
+    removed++;
+  }
+  return {puzzle, solution:sol};
+}
+
+function createSudokuSolution(size) {
+  const grid = Array.from({length:size},()=>Array(size).fill(0));
+  solveSudoku(grid, size);
+  return grid;
+}
+
+function solveSudoku(grid, size) {
+  const boxR = size===4?2:2, boxC = size===4?2:3;
+  for(let r=0;r<size;r++) {
+    for(let c=0;c<size;c++) {
+      if(grid[r][c]===0) {
+        const nums = Array.from({length:size},(_,i)=>i+1).sort(()=>Math.random()-.5);
+        for(const n of nums) {
+          if(isValidSudoku(grid,r,c,n,size,boxR,boxC)) {
+            grid[r][c]=n;
+            if(solveSudoku(grid,size)) return true;
+            grid[r][c]=0;
+          }
+        }
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+function isValidSudoku(grid,r,c,n,size,boxR,boxC) {
+  for(let i=0;i<size;i++) if(grid[r][i]===n||grid[i][c]===n) return false;
+  const br=Math.floor(r/boxR)*boxR, bc=Math.floor(c/boxC)*boxC;
+  for(let i=br;i<br+boxR;i++) for(let j=bc;j<bc+boxC;j++) if(grid[i][j]===n) return false;
+  return true;
+}
+
+function renderSudokuGrid() {
+  const grid = document.getElementById('sudokuGrid');
+  if(!grid) return;
+  const cellPx = Math.min(Math.floor((window.innerWidth-48)/sudokuSize), sudokuSize===9?46:60);
+  grid.innerHTML = '';
+  for(let r=0;r<sudokuSize;r++) {
+    for(let c=0;c<sudokuSize;c++) {
+      const val = sudokuBoard[r][c];
+      const given = sudokuSolution[r]?.[c] !== 0 && sudokuBoard[r][c] !== 0;
+      const cell = document.createElement('div');
+      cell.className = 'sudoku-cell' + (given?' given':'');
+      cell.style.width  = cellPx+'px';
+      cell.style.height = cellPx+'px';
+      cell.style.fontSize = cellPx*.45+'px';
+      cell.dataset.r = r; cell.dataset.c = c;
+      cell.textContent = val || '';
+      if(!given) cell.addEventListener('click', ()=>selectCell(r,c));
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function selectCell(r,c) {
+  document.querySelectorAll('.sudoku-cell').forEach(el=>el.classList.remove('selected'));
+  selectedCell = {r,c};
+  const idx = r*sudokuSize+c;
+  document.querySelectorAll('.sudoku-cell')[idx]?.classList.add('selected');
+}
+
+function enterNum(n) {
+  if(!selectedCell) return;
+  const {r,c} = selectedCell;
+  const given = sudokuSolution[r]?.[c]!==0;
+  if(given) return;
+
+  sudokuBoard[r][c] = n;
+  const idx = r*sudokuSize+c;
+  const cell = document.querySelectorAll('.sudoku-cell')[idx];
+  if(!cell) return;
+
+  cell.textContent = n||'';
+  cell.classList.remove('error','correct-anim');
+
+  if(n && n !== sudokuSolution[r]?.[c]) {
+    cell.classList.add('error');
+    sudokuErrors++;
+    document.getElementById('errorCount').textContent = sudokuErrors;
+    if(sudokuErrors >= 3) {
+      setTimeout(()=>{ alert('3 mistakes — puzzle reset! Try again!'); resetSudoku(); }, 300);
+    }
+  } else if(n) {
+    cell.classList.add('correct-anim');
+    // Check if complete
+    if(isSudokuComplete()) {
+      const xp = sudokuSize===4?35:45;
+      setTimeout(()=>showComplete(xp,'Sudoku solved! 🎉',`Amazing! You solved the ${sudokuSize}×${sudokuSize} Sudoku! No more empty cells!`),400);
+    }
+  }
+}
+
+function isSudokuComplete() {
+  for(let r=0;r<sudokuSize;r++)
+    for(let c=0;c<sudokuSize;c++)
+      if(sudokuBoard[r][c]!==sudokuSolution[r]?.[c]) return false;
+  return true;
+}
+
+function useHint() {
+  if(hintsLeft<=0){alert('No hints left!');return;}
+  // Find an empty cell and fill it
+  const empty=[];
+  for(let r=0;r<sudokuSize;r++)
+    for(let c=0;c<sudokuSize;c++)
+      if(sudokuBoard[r][c]===0) empty.push({r,c});
+  if(!empty.length) return;
+  const {r,c}=empty[Math.floor(Math.random()*empty.length)];
+  sudokuBoard[r][c]=sudokuSolution[r][c];
+  hintsLeft--;
+  document.getElementById('hintsLeft').textContent=hintsLeft;
+  renderSudokuGrid();
+  selectCell(r,c);
+  if(isSudokuComplete()) setTimeout(()=>showComplete(sudokuSize===4?25:35,'Sudoku solved with hints! 🌟','Well done! Try without hints next time!'),400);
+}
+
+function resetSudoku() {
+  // Re-generate
+  buildRisingPuzzle(profile?.current_level||2);
+}
+
+// Keyboard support for sudoku
+document.addEventListener('keydown',e=>{
+  const n=parseInt(e.key);
+  if(n>=1&&n<=sudokuSize) enterNum(n);
+  if(e.key==='Backspace'||e.key==='Delete') enterNum(0);
+});
+
+// ════════════════════════════════════════════════════════════
+// ── CHAMPIONS — SUDOKU 9×9 or KENKEN-STYLE ──────────────────
+// ════════════════════════════════════════════════════════════
+function buildChampionsPuzzle(level) {
+  puzzleType = 'sudoku9';
+  sudokuSize = 9;
+  hintsLeft = 3;
+  sudokuErrors = 0;
+  document.getElementById('topTitle').textContent = '🥷 Sudoku 9×9 — Champions';
+
+  const {puzzle, solution} = generateSudoku9();
+  sudokuBoard    = puzzle.map(r=>[...r]);
+  sudokuSolution = solution;
+
+  document.getElementById('screenContent').innerHTML = `
+    <div class="intro-card" style="background:linear-gradient(135deg,#0D47A1,#1A237E);">
+      <div class="intro-icon">🥷</div>
+      <div class="intro-title">Sudoku 9×9 — Champions level</div>
+      <div class="intro-sub">Fill the grid. Every row, column and 3×3 box must have 1–9 exactly once.</div>
+      <div class="intro-xp">+60 ⚡ XP for solving!</div>
+    </div>
+
+    <div class="hints-row">
+      <div class="hints-left">💡 Hints: <span id="hintsLeft">${hintsLeft}</span> left</div>
+      <button class="hint-use-btn" onclick="useHint()">Use hint 💡</button>
+    </div>
+
+    <div class="sudoku-wrap">
+      <div class="sudoku-grid size-9" id="sudokuGrid" style="grid-template-columns:repeat(9,1fr)"></div>
+    </div>
+
+    <div class="numpad" id="numpad">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="num-btn" onclick="enterNum(${n})" style="width:44px;height:44px;font-size:1rem;">${n}</button>`).join('')}
+      <button class="num-btn erase" onclick="enterNum(0)" style="width:44px;height:44px;font-size:1rem;">⌫</button>
+    </div>
+    <div style="text-align:center;font-size:.75rem;color:var(--text3);margin-top:4px;">Errors: <span id="errorCount">0</span> / 3 allowed</div>`;
+
+  renderSudokuGrid();
+  startTimer();
+}
+
+function generateSudoku9() {
+  const sol = Array.from({length:9},()=>Array(9).fill(0));
+  // Fill diagonal 3×3 boxes first (they're independent)
+  for(let box=0;box<3;box++) {
+    const nums=[1,2,3,4,5,6,7,8,9].sort(()=>Math.random()-.5);
+    let i=0;
+    for(let r=box*3;r<box*3+3;r++)
+      for(let c=box*3;c<box*3+3;c++)
+        sol[r][c]=nums[i++];
+  }
+  solveSudokuFull(sol);
+  // Remove cells for puzzle — easy: remove ~40, hard: ~55
+  const puzzle=sol.map(r=>[...r]);
+  const cells=[];
+  for(let r=0;r<9;r++) for(let c=0;c<9;c++) cells.push([r,c]);
+  cells.sort(()=>Math.random()-.5);
+  for(let i=0;i<40;i++) puzzle[cells[i][0]][cells[i][1]]=0;
+  return {puzzle,solution:sol};
+}
+
+function solveSudokuFull(grid) {
+  for(let r=0;r<9;r++) {
+    for(let c=0;c<9;c++) {
+      if(grid[r][c]===0) {
+        for(let n=1;n<=9;n++) {
+          if(isValidSudoku(grid,r,c,n,9,3,3)) {
+            grid[r][c]=n;
+            if(solveSudokuFull(grid)) return true;
+            grid[r][c]=0;
+          }
+        }
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+// ── LOAD PUZZLE ──────────────────────────────────────────────
+function loadPuzzle() {
+  const lv = profile?.current_level || 1;
+  if (group === 'tiny') {
+    buildTinyPuzzle();
+  } else if (group === 'rising') {
+    buildRisingPuzzle(lv);
+  } else {
+    buildChampionsPuzzle(lv);
+  }
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+async function init() {
+  try {
+    const { data: { session: s } } = await sb.auth.getSession();
+    if (!s) { window.location.href = '../../login.html'; return; }
+    session = s;
+
+    const { data: p } = await sb.from('users').select('*').eq('id', s.user.id).single();
+    if (!p) { window.location.href = '../../login.html'; return; }
+    profile = p;
+    group = urlGroup || getGroup(p);
+
+    document.getElementById('loaderScreen').style.display = 'none';
+    document.getElementById('mainScreen').style.display = 'block';
+
+    loadPuzzle();
+
+  } catch(err) {
+    document.getElementById('loaderScreen').innerHTML = `<div style="color:var(--red);padding:20px;">Error: ${err.message} <a href="dashboard.html">Go back</a></div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>

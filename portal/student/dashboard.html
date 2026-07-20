@@ -748,8 +748,8 @@ function buildDashboard(profile, stats, group, session_user_id) {
           <div class="mission-xp">+50 XP</div>
         </div>
 
-        <!-- Mission 6: Worksheet (conditional) -->
-          ${stats.newWorksheets > 0 ? '<div class="mission-item" onclick="location.href=\'worksheets.html\'">' + '<div class="mission-icon">📋</div>' + '<div class="mission-info"><div class="mission-name">Complete new worksheet</div>' + '<div style="height:5px;background:var(--border);border-radius:20px;margin:5px 0 3px;overflow:hidden;"><div style="height:100%;width:0%;background:var(--green);border-radius:20px;"></div></div>' + '<div class="mission-desc">' + stats.newWorksheets + ' worksheet' + (stats.newWorksheets > 1 ? \'s\' : \'\') + ' waiting!</div></div>' + '<div class="mission-xp">+25 XP</div></div>' : ''}
+        <!-- Mission 6: Worksheet (injected by JS) -->
+        <div id="mission6Slot"></div>
 
       </div>
 
@@ -1216,6 +1216,29 @@ function updateMissionTimer() {
 }
 updateMissionTimer();
 setInterval(updateMissionTimer, 60000);
+
+// ── INJECT MISSION 6 (worksheet) safely after DOM render ─────
+function injectWorksheetMission(count) {
+  const slot = document.getElementById('mission6Slot');
+  if (!slot) return;
+  if (count > 0) {
+    slot.className = 'mission-item';
+    slot.setAttribute('onclick', "location.href='worksheets.html'");
+    slot.style.cursor = 'pointer';
+    slot.innerHTML =
+      '<div class="mission-icon">📋</div>' +
+      '<div class="mission-info">' +
+        '<div class="mission-name">Complete new worksheet</div>' +
+        '<div style="height:5px;background:var(--border);border-radius:20px;margin:5px 0 3px;overflow:hidden;">' +
+          '<div style="height:100%;width:0%;background:var(--green);border-radius:20px;"></div>' +
+        '</div>' +
+        '<div class="mission-desc">' + count + ' worksheet' + (count > 1 ? 's' : '') + ' waiting — tap to solve!</div>' +
+      '</div>' +
+      '<div class="mission-xp">+25 XP</div>';
+  } else {
+    slot.style.display = 'none';
+  }
+}
 </script>
 </body>
 </html>

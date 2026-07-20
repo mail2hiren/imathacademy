@@ -366,6 +366,7 @@ const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+  function go(url) { location.href = url; }
 
 // ── HELPERS ─────────────────────────────────────────────────
 function initials(name) { return (name||'S').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2); }
@@ -685,7 +686,7 @@ function buildDashboard(profile, stats, group, session_user_id) {
         </div>
 
         <!-- Mission 1: Practice session -->
-        <div class="mission-item ${stats.practiceToday ? 'mission-done' : ''}" onclick="location.href='practice.html'">
+        <div class="mission-item ${stats.practiceToday ? 'mission-done' : ''}" onclick="go(\"practice.html\")">
           <div class="mission-icon">${stats.practiceToday ? '✅' : '⚡'}</div>
           <div class="mission-info">
             <div class="mission-name">Complete 1 practice session</div>
@@ -698,7 +699,7 @@ function buildDashboard(profile, stats, group, session_user_id) {
         </div>
 
         <!-- Mission 2: Questions today -->
-        <div class="mission-item ${stats.questionsToday >= 20 ? 'mission-done' : ''}" onclick="location.href='practice.html'">
+        <div class="mission-item ${stats.questionsToday >= 20 ? 'mission-done' : ''}" onclick="go(\"practice.html\")">
           <div class="mission-icon">${stats.questionsToday >= 20 ? '✅' : '🧮'}</div>
           <div class="mission-info">
             <div class="mission-name">Solve 20 questions today</div>
@@ -711,7 +712,7 @@ function buildDashboard(profile, stats, group, session_user_id) {
         </div>
 
         <!-- Mission 3: 5 in a row -->
-        <div class="mission-item ${stats.streakInSession >= 5 ? 'mission-done' : ''}" onclick="location.href='practice.html'">
+        <div class="mission-item ${stats.streakInSession >= 5 ? 'mission-done' : ''}" onclick="go(\"practice.html\")">
           <div class="mission-icon">${stats.streakInSession >= 5 ? '✅' : '🔥'}</div>
           <div class="mission-info">
             <div class="mission-name">Get 5 correct in a row</div>
@@ -724,7 +725,7 @@ function buildDashboard(profile, stats, group, session_user_id) {
         </div>
 
         <!-- Mission 4: Puzzle -->
-        <div class="mission-item ${stats.streakInSession >= 5 ? 'mission-done' : ''}" style="${stats.streakInSession < 5 ? 'opacity:.6;' : ''}" onclick="location.href='practice.html'">
+        <div class="mission-item ${stats.streakInSession >= 5 ? 'mission-done' : ''}" style="${stats.streakInSession < 5 ? 'opacity:.6;' : ''}" onclick="go(\"practice.html\")">
           <div class="mission-icon">${stats.streakInSession >= 5 ? '🧩' : '🔒'}</div>
           <div class="mission-info">
             <div class="mission-name">Solve today's puzzle</div>
@@ -737,7 +738,7 @@ function buildDashboard(profile, stats, group, session_user_id) {
         </div>
 
         <!-- Mission 5: Weekly quiz -->
-        <div class="mission-item ${stats.quizDoneThisWeek ? 'mission-done' : ''}" onclick="location.href='weekly-quiz.html'">
+        <div class="mission-item ${stats.quizDoneThisWeek ? 'mission-done' : ''}" onclick="go(\"weekly-quiz.html\")">
           <div class="mission-icon">${stats.quizDoneThisWeek ? '✅' : '⚡'}</div>
           <div class="mission-info">
             <div class="mission-name">Weekly quiz</div>

@@ -1118,6 +1118,7 @@ async function init() {
 
     // Build dashboard — pass session user id for leaderboard highlight
     buildDashboard(profile, stats, group, session.user.id);
+    injectWorksheetMission(stats.newWorksheets || 0);
 
   } catch(err) {
     console.error('Dashboard init error:', err);

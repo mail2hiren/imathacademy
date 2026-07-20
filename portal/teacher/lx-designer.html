@@ -374,12 +374,12 @@
     <div class="section">
       <div class="sec-label">6 — Output</div>
       <div class="output-opts" style="margin-bottom:10px;">
-        <label class="output-opt"><input type="checkbox" id="out-worksheet" checked> Worksheet (printable)</label>
-        <label class="output-opt"><input type="checkbox" id="out-answerkey" checked> Answer key</label>
+        <label class="output-opt"><input type="checkbox" id="out-worksheet" checked> Questions for students</label>
+        <label class="output-opt"><input type="checkbox" id="out-answerkey" checked> Answer key (teacher only)</label>
         <label class="output-opt"><input type="checkbox" id="out-hints"> Hint / formula box</label>
-        <label class="output-opt"><input type="checkbox" id="out-lessonplan"> Lesson plan</label>
+        <label class="output-opt"><input type="checkbox" id="out-lessonplan"> Lesson plan (teacher only)</label>
         <label class="output-opt"><input type="checkbox" id="out-parentnote"> Parent summary note</label>
-        <label class="output-opt"><input type="checkbox" id="out-flashcards"> Digital flash cards</label>
+        <label class="output-opt"><input type="checkbox" id="out-flashcards"> Vocabulary flash cards</label>
       </div>
       <div class="form-group">
         <label class="form-label">Special instructions (optional)</label>
@@ -389,10 +389,10 @@
 
     <!-- Generate -->
     <button class="gen-btn" id="genBtn" onclick="generateWorksheet()">
-      <span>✨ Generate with AI</span>
-      <span style="font-size:.82rem;opacity:.85;">Powered by Claude</span>
+      <span>✨ Generate worksheet</span>
+      <span style="font-size:.82rem;opacity:.85;">Then assign directly to students in-app</span>
     </button>
-    <button class="gen-btn-preview" onclick="generatePreview()">👁 Preview a sample question first</button>
+    <button class="gen-btn-preview" onclick="generatePreview()">👁 Preview 2 sample questions first</button>
 
   </div>
 
@@ -416,9 +416,9 @@
         <div class="output-empty">
           <div class="output-empty-icon">✨</div>
           <div class="output-empty-text">
-            Fill in the form on the left and tap <strong>Generate with AI</strong> to create a personalised worksheet for your students.
+            Fill in the form on the left and tap <strong>Generate with AI</strong> to create a personalised worksheet.
             <br><br>
-            The AI will automatically adjust the language, difficulty and style based on the student's age group and level.
+            Once generated, tap <strong>📤 Assign to students</strong> to push it directly to the student's app. They will see it in their Worksheets section and can solve it online.
           </div>
         </div>
       </div>
@@ -688,9 +688,7 @@ async function generateWorksheet() {
     const text = data.text || '';
     parseAndRender(text);
 
-    document.getElementById('copyBtn').style.display = 'block';
     document.getElementById('assignBtn').style.display = 'block';
-    document.getElementById('printBtn').style.display = 'block';
 
   } catch(err) {
     document.getElementById('outputBody').innerHTML = `
@@ -817,18 +815,7 @@ function showOutTab(tab, btn) {
   renderOutTab(tab);
 }
 
-function copyOutput() {
-  const text = Object.values(generatedContent).join('\n\n---\n\n');
-  navigator.clipboard.writeText(text).then(()=>toast('✅ Copied to clipboard!','success'));
-}
-
-function printOutput() {
-  const content = document.getElementById('outputBody').innerHTML;
-  const win = window.open('','_blank');
-  win.document.write(`<html><head><title>iMathAcademy Worksheet</title><style>body{font-family:Nunito,sans-serif;padding:20px;max-width:700px;margin:0 auto;font-size:14px;line-height:1.8}h1{font-size:1.2rem}pre{white-space:pre-wrap;font-family:inherit}@media print{.no-print{display:none}}</style></head><body>${content}</body></html>`);
-  win.document.close();
-  win.print();
-}
+// Print/copy removed — worksheets are assigned digitally to students
 
 // ── LOAD BATCHES ─────────────────────────────────────────────
 async function loadBatches(teacherId, role) {

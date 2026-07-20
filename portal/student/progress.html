@@ -280,7 +280,16 @@
       .badge-grid { grid-template-columns:repeat(3,1fr); }
       .heatmap-grid { grid-template-columns:repeat(2,1fr); }
     }
-  </style>
+  
+    /* ── BOTTOM NAV (mobile) ── */
+    .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: #fff; border-top: 2px solid #E8EAF6; z-index: 200; box-shadow: 0 -4px 16px rgba(0,0,0,.08); }
+    .bottom-nav-inner { display: flex; height: 100%; }
+    .bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; text-decoration: none; border: none; background: none; padding: 4px 0; min-height: 44px; -webkit-tap-highlight-color: transparent; }
+    .bnav-icon { font-size: 1.3rem; line-height: 1; }
+    .bnav-label { font-size: .62rem; font-weight: 700; color: #9090B0; font-family: inherit; }
+    .bnav-item.active .bnav-label { color: #0D47A1; }
+    @media (max-width: 768px) { .bottom-nav { display: block; } body { padding-bottom: 64px; } }
+    </style>
 </head>
 <body>
 <div class="portal">
@@ -753,7 +762,24 @@ function computeWeeklyAccuracy(sessions) {
   return weeks.some(v => v > 0) ? weeks : [];
 }
 
-async function loadRealData() {
+
+    // ── SUBSCRIPTION CHECK ─────────────────────────────────
+    async function checkSubscription(userId) {
+      const { data: subs } = await sb.from('subscriptions')
+        .select('id, expires_at, status')
+        .eq('student_id', userId)
+        .eq('status', 'active')
+        .order('expires_at', { ascending: false })
+        .limit(1);
+      const sub = subs?.[0];
+      if (!sub || new Date(sub.expires_at) < new Date()) {
+        window.location.href = 'subscription.html';
+        return false;
+      }
+      return true;
+    }
+
+    async function loadRealData() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) {
     window.location.href = '../../login.html';
@@ -770,6 +796,9 @@ async function loadRealData() {
 
   if (!profile || profile.role !== 'student') {
     window.location.href = '../../login.html';
+
+    const active = await checkSubscription(session.user.id);
+    if (!active) return;
     return;
   }
 

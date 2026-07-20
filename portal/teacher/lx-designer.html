@@ -983,6 +983,7 @@ async function init() {
 
     await loadBatches(session.user.id, profile.role);
     console.log('LX Designer init complete. Role:', profile.role);
+    loadPreviousWorksheets();
 
   } catch(err) {
     console.error('LX Designer init error:', err);
@@ -991,6 +992,91 @@ async function init() {
 }
 
 init();
+
+// ── PREVIOUS WORKSHEETS (reuse) ──────────────────────────────
+async function loadPreviousWorksheets() {
+  const container = document.getElementById('prevWsList');
+  if (!container) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const { data: wsList } = await sb.from('lx_worksheets')
+      .select('id, title, level, concept, created_at, batch_id, student_id')
+      .eq('created_by', session.user.id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(8);
+
+    if (!wsList?.length) {
+      container.innerHTML = '<div style="color:var(--text3);font-size:.82rem;text-align:center;">No previous worksheets yet</div>';
+      return;
+    }
+
+    container.innerHTML = wsList.map(ws => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:6px;cursor:pointer;background:var(--bg2);"
+           onclick="reuseWorksheet('${ws.id}', ${JSON.stringify(ws.title).replace(/'/g,'&#39;')})">
+        <div style="font-size:1rem;flex-shrink:0;">📋</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ws.title}</div>
+          <div style="font-size:.68rem;color:var(--text3);margin-top:2px;">L${ws.level||'?'} · ${new Date(ws.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
+        </div>
+        <div style="font-size:.72rem;font-weight:700;color:var(--blue-dk);white-space:nowrap;">Reassign →</div>
+      </div>`).join('');
+  } catch(e) {
+    const container = document.getElementById('prevWsList');
+    if (container) container.innerHTML = '';
+  }
+}
+
+async function reuseWorksheet(wsId, title) {
+  const batchId   = document.getElementById('batchSel').value;
+  const studentId = document.getElementById('studentSel').value;
+
+  if (!batchId && !studentId) {
+    toast('Please select a batch or student to assign to', 'error');
+    return;
+  }
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+
+    // Load the original worksheet
+    const { data: original, error } = await sb.from('lx_worksheets').select('*').eq('id', wsId).single();
+    if (error || !original) throw new Error('Could not load worksheet');
+
+    // Create a new copy assigned to new batch/student
+    const newTitle = title + ' (reassigned ' + new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'}) + ')';
+    const { data: newWs, error: insertErr } = await sb.from('lx_worksheets').insert({
+      ...original,
+      id:         undefined,
+      title:      newTitle,
+      batch_id:   batchId || null,
+      student_id: studentId || null,
+      created_by: session.user.id,
+      created_at: new Date().toISOString(),
+    }).select('id').single();
+
+    if (insertErr) throw insertErr;
+
+    // Notify students
+    let notifyIds = [];
+    if (studentId) notifyIds = [studentId];
+    else if (batchId) notifyIds = (batchStudents[batchId]||[]).map(s=>s.id);
+
+    if (notifyIds.length) {
+      await sb.from('notifications').insert(
+        notifyIds.map(uid => ({
+          user_id: uid, type: 'worksheet',
+          title: '📋 New worksheet assigned!',
+          message: newTitle + ' — Check your Worksheets section.',
+        }))
+      );
+    }
+
+    toast('✅ Worksheet reassigned to ' + (studentId ? '1 student' : notifyIds.length + ' students') + '!', 'success');
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  }
+}
 </script>
 </body>
 </html>

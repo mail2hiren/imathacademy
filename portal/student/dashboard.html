@@ -311,10 +311,40 @@ function toast(msg, type='success') {
 }
 
 // ── AGE GROUP ────────────────────────────────────────────────
-function getGroup(age) {
-  if (!age || age <= 7)  return 'tiny';
-  if (age <= 10)         return 'rising';
+// Priority: 1) admin override (age_group field)
+//           2) calculated from date_of_birth
+//           3) fallback from current_level
+function getGroup(profile) {
+  // 1. Admin override takes highest priority
+  if (profile.age_group) return profile.age_group;
+
+  // 2. Calculate from date of birth
+  if (profile.date_of_birth) {
+    const dob  = new Date(profile.date_of_birth);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    if (age <= 7)  return 'tiny';
+    if (age <= 10) return 'rising';
+    return 'champions';
+  }
+
+  // 3. Fallback: use current_level
+  const level = profile.current_level || 1;
+  if (level <= 1) return 'tiny';
+  if (level <= 4) return 'rising';
   return 'champions';
+}
+
+function getAgeFromDOB(dob) {
+  if (!dob) return null;
+  const today = new Date();
+  const birth = new Date(dob);
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age;
 }
 
 function groupLabel(group) {
@@ -369,6 +399,7 @@ async function loadNotifications(userId) {
 
 // ── BUILD DASHBOARD ──────────────────────────────────────────
 function buildDashboard(profile, stats, group) {
+  const age = getAgeFromDOB(profile.date_of_birth);
   const name    = profile.full_name || 'Student';
   const level   = profile.current_level || 1;
   const xp      = profile.xp_points || 0;
@@ -484,7 +515,7 @@ function buildDashboard(profile, stats, group) {
           <div>
             <div class="hero-greeting">${greet()}!</div>
             <div class="hero-name">${name} 🌟</div>
-            <div class="hero-sub">Level ${level} · Abacus</div>
+            <div class="hero-sub">Level ${level} · Abacus${age ? ' · Age '+age : ''}</div>
           </div>
           <div class="streak-box">
             <div class="streak-icon">🔥</div>
@@ -726,7 +757,7 @@ async function init() {
     if (error || !profile) { window.location.href = '../../login.html'; return; }
 
     // Determine age group
-    const group = getGroup(profile.age || null);
+    const group = getGroup(profile);
 
     // Load stats and notifications in parallel
     const [stats] = await Promise.all([

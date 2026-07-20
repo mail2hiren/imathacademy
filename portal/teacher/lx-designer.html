@@ -857,20 +857,36 @@ async function loadBatches(teacherId, role) {
     sel.innerHTML = '<option value="">— Select batch —</option>' +
       allBatches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
 
-    // Load students for ALL batches upfront
-    const { data: allBatchStudents, error: stuErr } = await sb
+    // Load students for ALL batches — two step for reliability
+    const { data: batchLinks, error: linkErr } = await sb
       .from('batch_students')
-      .select('batch_id, users!student_id(id, full_name, current_level, date_of_birth, age_group)')
+      .select('batch_id, student_id')
       .in('batch_id', allBatches.map(b => b.id));
 
-    if (stuErr) {
-      console.error('Students query error:', stuErr);
-    } else {
-      // Group students by batch_id
-      (allBatchStudents || []).forEach(row => {
-        if (!batchStudents[row.batch_id]) batchStudents[row.batch_id] = [];
-        if (row.users) batchStudents[row.batch_id].push(row.users);
-      });
+    if (!linkErr && batchLinks?.length) {
+      const studentIds = [...new Set(batchLinks.map(r => r.student_id))];
+
+      const { data: studentProfiles, error: spErr } = await sb
+        .from('users')
+        .select('id, full_name, current_level, date_of_birth, age_group')
+        .in('id', studentIds);
+
+      if (!spErr && studentProfiles) {
+        const profileMap = {};
+        studentProfiles.forEach(s => profileMap[s.id] = s);
+
+        // Group by batch
+        batchLinks.forEach(row => {
+          if (!batchStudents[row.batch_id]) batchStudents[row.batch_id] = [];
+          if (profileMap[row.student_id]) {
+            batchStudents[row.batch_id].push(profileMap[row.student_id]);
+          }
+        });
+      } else if (spErr) {
+        console.error('Student profiles error:', spErr);
+      }
+    } else if (linkErr) {
+      console.error('Batch links error:', linkErr);
     }
 
     console.log(`Loaded ${allBatches.length} batches with students`);

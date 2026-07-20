@@ -2,219 +2,141 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <link rel="icon" type="image/png" href="/assets/favicon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Worksheets — iMathAcademy</title>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; min-height: 100vh; }
-    :root {
-      --green:#43A047; --green-dk:#1B5E20; --green-lt:#E8F5E9; --green-md:#2E7D32;
-      --orange:#FB8C00; --orange-dk:#E65100; --orange-lt:#FFF3E0;
-      --blue:#1E88E5; --blue-dk:#0D47A1; --blue-lt:#E3F2FD;
-      --purple:#8E24AA; --purple-dk:#4A148C; --purple-lt:#F3E5F5;
-      --red:#E53935; --red-dk:#B71C1C; --red-lt:#FFEBEE;
-      --yellow:#F9A825; --yellow-lt:#FFFDE7; --yellow-dk:#F57F17;
-      --teal:#00897B; --teal-lt:#E0F2F1; --teal-dk:#004D40;
-      --bg:#FFFFFF; --bg2:#F7F8FF; --border:#E8EAF6;
-      --text2:#4A4A6A; --text3:#9090B0;
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    body{font-family:'Nunito',sans-serif;background:#F7F8FF;color:#1A1A2E;min-height:100vh;}
+    :root{
+      --green:#43A047;--green-dk:#1B5E20;--green-lt:#E8F5E9;
+      --blue:#1E88E5;--blue-dk:#0D47A1;--blue-lt:#E3F2FD;
+      --orange:#FB8C00;--orange-dk:#E65100;--orange-lt:#FFF3E0;
+      --purple:#8E24AA;--purple-lt:#F3E5F5;--purple-dk:#4A148C;
+      --red:#E53935;--red-lt:#FFEBEE;
+      --yellow:#F9A825;--yellow-lt:#FFFDE7;
+      --bg:#fff;--bg2:#F7F8FF;--border:#E8EAF6;
+      --text:#1A1A2E;--text2:#4A4A6A;--text3:#9090B0;
     }
-    .portal { display:flex; min-height:100vh; }
-    .sidebar { width:220px; flex-shrink:0; background:var(--bg); border-right:2px solid var(--border); display:flex; flex-direction:column; position:fixed; top:0; left:0; height:100vh; overflow-y:auto; z-index:100; }
-    .sidebar-logo { padding:20px 16px; border-bottom:2px solid var(--border); font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800; color:var(--green-dk); display:flex; align-items:center; gap:10px; }
-    .sidebar-logo span { color:var(--orange-dk); }
-    .logo-icon { width:34px; height:34px; background:var(--green); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
-    .sidebar-nav { flex:1; padding:12px 0; }
-    .nav-section { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--text3); padding:8px 16px 3px; margin-top:6px; }
-    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 16px; font-size:.875rem; font-weight:700; color:var(--text2); cursor:pointer; border-left:3px solid transparent; transition:all .12s; text-decoration:none; }
-    .nav-item:hover { color:var(--text); background:var(--bg2); }
-    .nav-item.active { color:var(--teal-dk); background:var(--teal-lt); border-left-color:var(--teal); }
-    .nav-icon { width:20px; text-align:center; font-size:1rem; }
-    .nav-badge { margin-left:auto; background:var(--red); color:#fff; font-size:.62rem; font-weight:800; padding:2px 6px; border-radius:20px; }
-    .sidebar-user { padding:14px 16px; border-top:2px solid var(--border); display:flex; align-items:center; gap:10px; }
-    .user-av { width:36px; height:36px; border-radius:50%; background:var(--green-lt); border:2px solid var(--green); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; color:var(--green-dk); }
-    .user-name { font-size:.82rem; font-weight:800; }
-    .user-role { font-size:.7rem; color:var(--text3); font-weight:600; }
-    .logout-btn { margin-left:auto; background:none; border:none; font-size:.85rem; cursor:pointer; color:var(--text3); }
-    .main { flex:1; margin-left:220px; display:flex; flex-direction:column; }
-    .topbar { height:62px; background:var(--bg); border-bottom:2px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 24px; position:sticky; top:0; z-index:50; box-shadow:0 2px 8px rgba(0,0,0,.05); }
-    .topbar-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; }
-    .body { padding:24px; max-width:900px; }
 
-    /* ── STREAK BAR ── */
-    .streak-card { background:linear-gradient(135deg,var(--teal-dk),var(--teal)); border-radius:20px; padding:20px 24px; color:#fff; margin-bottom:24px; display:flex; align-items:center; gap:20px; }
-    .streak-days { display:flex; gap:8px; }
-    .streak-day { width:40px; height:40px; border-radius:50%; border:2px solid rgba(255,255,255,.4); display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:800; background:rgba(255,255,255,.15); }
-    .streak-day.done { background:#fff; color:var(--teal-dk); border-color:#fff; }
-    .streak-day.today { background:var(--yellow); color:var(--yellow-dk); border-color:var(--yellow); }
-    .streak-info h3 { font-size:1rem; font-weight:800; margin-bottom:3px; }
-    .streak-info p { font-size:.82rem; opacity:.85; }
-    .streak-lock { margin-left:auto; text-align:center; }
-    .streak-lock .lock-icon { font-size:2rem; }
-    .streak-lock p { font-size:.72rem; opacity:.85; margin-top:4px; }
+    /* ── TOPBAR ── */
+    .topbar{height:56px;background:var(--bg);border-bottom:2px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+    .topbar-logo{display:flex;align-items:center;flex-shrink:0;text-decoration:none;}
+    .topbar-logo img{height:32px;width:auto;object-fit:contain;}
+    .topbar-title{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;flex:1;}
+    .topbar-badge{font-size:.7rem;font-weight:800;background:var(--blue-lt);color:var(--blue-dk);padding:3px 10px;border-radius:20px;border:1.5px solid var(--blue);}
 
-    /* ── LEVEL TABS ── */
-    .level-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:20px; }
-    .level-tab { padding:8px 18px; border-radius:20px; font-size:.82rem; font-weight:800; border:2px solid var(--border); background:var(--bg); color:var(--text2); cursor:pointer; transition:all .15s; font-family:'Nunito',sans-serif; }
-    .level-tab.active { background:var(--teal); color:#fff; border-color:var(--teal); }
+    /* ── CONTENT ── */
+    .content{padding:14px;max-width:680px;margin:0 auto;padding-bottom:80px;}
 
-    /* ── WORKSHEET TYPES ── */
-    .ws-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:24px; }
-    .ws-card { background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:18px; cursor:pointer; transition:all .15s; }
-    .ws-card:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(0,0,0,.08); }
-    .ws-card.locked { opacity:.55; cursor:not-allowed; }
-    .ws-icon { font-size:2rem; margin-bottom:8px; }
-    .ws-title { font-size:.95rem; font-weight:800; margin-bottom:4px; }
-    .ws-desc { font-size:.78rem; color:var(--text2); font-weight:600; line-height:1.5; }
-    .ws-badge { display:inline-block; margin-top:8px; padding:3px 10px; border-radius:20px; font-size:.7rem; font-weight:800; }
-    .badge-green { background:var(--green-lt); color:var(--green-dk); }
-    .badge-orange { background:var(--orange-lt); color:var(--orange-dk); }
-    .badge-teal { background:var(--teal-lt); color:var(--teal-dk); }
-    .badge-lock { background:var(--bg2); color:var(--text3); border:1.5px solid var(--border); }
+    /* ── CARDS ── */
+    .ws-card{background:var(--bg);border:2px solid var(--border);border-radius:16px;margin-bottom:12px;overflow:hidden;transition:box-shadow .12s;}
+    .ws-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);}
+    .ws-card-header{padding:14px 16px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;}
+    .ws-card-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+    .ws-card-info{flex:1;}
+    .ws-card-title{font-size:.9rem;font-weight:800;margin-bottom:3px;}
+    .ws-card-meta{font-size:.72rem;color:var(--text3);display:flex;gap:10px;flex-wrap:wrap;}
+    .ws-card-status{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0;}
+    .ws-status-pill{font-size:.65rem;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+    .pill-new{background:var(--blue-lt);color:var(--blue-dk);border:1.5px solid var(--blue);}
+    .pill-done{background:var(--green-lt);color:var(--green-dk);border:1.5px solid var(--green);}
+    .pill-inprogress{background:var(--yellow-lt);color:#E65100;border:1.5px solid var(--yellow);}
 
-    /* ── ACTIVE WORKSHEET ── */
-    .ws-active { background:var(--bg); border:2px solid var(--border); border-radius:20px; padding:24px; display:none; }
-    .ws-active.show { display:block; }
-    .ws-header { display:flex; align-items:center; gap:14px; margin-bottom:20px; }
-    .ws-progress { background:var(--bg2); border-radius:30px; height:10px; flex:1; overflow:hidden; }
-    .ws-progress-fill { height:100%; border-radius:30px; background:var(--teal); transition:width .4s; }
-    .q-card { background:var(--bg2); border:2px solid var(--border); border-radius:16px; padding:20px; margin-bottom:16px; text-align:center; }
-    .q-num { font-family:'Baloo 2',sans-serif; font-size:2.2rem; font-weight:800; color:var(--text); margin-bottom:12px; }
-    .ws-input { width:120px; padding:10px 14px; font-size:1.4rem; font-weight:800; text-align:center; border:3px solid var(--border); border-radius:14px; font-family:'Baloo 2',sans-serif; outline:none; transition:border-color .15s; }
-    .ws-input:focus { border-color:var(--teal); }
-    .ws-actions { display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap; }
-    .btn { padding:10px 22px; border-radius:30px; font-family:'Nunito',sans-serif; font-size:.875rem; font-weight:800; border:none; cursor:pointer; transition:all .15s; }
-    .btn-teal { background:var(--teal); color:#fff; }
-    .btn-ghost { background:var(--bg2); color:var(--text2); border:2px solid var(--border); }
-    .btn:hover { opacity:.88; transform:translateY(-1px); }
+    /* ── EXPAND BODY ── */
+    .ws-body{display:none;border-top:2px solid var(--border);padding:16px;}
+    .ws-body.open{display:block;}
 
-    /* ── COMPLETE ── */
-    .ws-complete { text-align:center; padding:32px; display:none; }
-    .ws-complete.show { display:block; }
-    .complete-emoji { font-size:3.5rem; margin-bottom:12px; }
-    .complete-title { font-family:'Baloo 2',sans-serif; font-size:1.6rem; font-weight:800; margin-bottom:6px; }
-    .complete-sub { color:var(--text2); font-size:.9rem; font-weight:600; margin-bottom:20px; }
-    .xp-earned { display:inline-block; background:var(--yellow-lt); color:var(--yellow-dk); border:2px solid #FFE082; border-radius:30px; padding:8px 24px; font-size:1.1rem; font-weight:800; margin-bottom:20px; }
+    /* ── QUESTION BLOCK ── */
+    .q-block{padding:12px 14px;border:2px solid var(--border);border-radius:12px;margin-bottom:10px;background:var(--bg2);}
+    .q-num{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px;}
+    .q-text{font-size:1rem;font-weight:700;margin-bottom:10px;line-height:1.5;}
+    .q-input{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;color:var(--text);background:var(--bg);outline:none;transition:border-color .12s;}
+    .q-input:focus{border-color:var(--blue);}
+    .q-input.correct{border-color:var(--green);background:var(--green-lt);color:var(--green-dk);}
+    .q-input.wrong{border-color:var(--red);background:var(--red-lt);color:var(--red);}
+    .q-feedback{font-size:.78rem;font-weight:700;margin-top:5px;display:none;}
+    .q-feedback.show{display:block;}
+    .q-feedback.correct{color:var(--green-dk);}
+    .q-feedback.wrong{color:var(--red);}
 
-    /* ── TOAST ── */
-    .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
-    .toast { background:#212121; color:#fff; padding:10px 18px; border-radius:12px; font-size:.875rem; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,.2); animation:slideIn .3s ease; }
-    .toast-success { background:var(--green-dk); }
-    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+    /* ── HINT BOX ── */
+    .hint-box{background:var(--yellow-lt);border:1.5px solid var(--yellow);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:.82rem;color:var(--orange-dk);}
+    .hint-title{font-weight:800;margin-bottom:4px;}
 
-    @media(max-width:768px) {
-      .sidebar { display:none; }
-      .main { margin-left:0; }
-      .ws-grid { grid-template-columns:1fr; }
-    }
-  
-    /* ── BOTTOM NAV (mobile) ── */
-    .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: #fff; border-top: 2px solid #E8EAF6; z-index: 200; box-shadow: 0 -4px 16px rgba(0,0,0,.08); }
-    .bottom-nav-inner { display: flex; height: 100%; }
-    .bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; text-decoration: none; border: none; background: none; padding: 4px 0; min-height: 44px; -webkit-tap-highlight-color: transparent; }
-    .bnav-icon { font-size: 1.3rem; line-height: 1; }
-    .bnav-label { font-size: .62rem; font-weight: 700; color: #9090B0; font-family: inherit; }
-    .bnav-item.active .bnav-label { color: #0D47A1; }
-    @media (max-width: 768px) { .bottom-nav { display: block; } body { padding-bottom: 64px; } }
-    </style>
+    /* ── SUBMIT ── */
+    .submit-row{display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;}
+    .submit-btn{flex:1;padding:12px;background:var(--blue);color:#fff;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;touch-action:manipulation;min-height:44px;}
+    .submit-btn:disabled{opacity:.6;cursor:not-allowed;}
+    .hint-btn{padding:12px 16px;background:var(--bg2);border:2px solid var(--border);border-radius:12px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;touch-action:manipulation;}
+
+    /* ── RESULTS ── */
+    .result-banner{border-radius:14px;padding:16px;text-align:center;margin-bottom:12px;}
+    .result-score{font-size:2rem;font-weight:900;margin-bottom:4px;}
+    .result-msg{font-size:.875rem;font-weight:700;}
+
+    /* ── LOADER ── */
+    .loader{text-align:center;padding:60px 20px;color:var(--text3);}
+    .spinner{width:32px;height:32px;border:4px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── EMPTY ── */
+    .empty{text-align:center;padding:60px 20px;color:var(--text3);}
+    .empty-icon{font-size:3rem;margin-bottom:10px;}
+    .empty-text{font-size:.875rem;line-height:1.6;}
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--bg);border-top:2px solid var(--border);z-index:200;}
+    .bottom-nav-inner{display:flex;height:100%;}
+    .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;border:none;background:none;padding:4px 0;min-height:44px;}
+    .bnav-icon{font-size:1.3rem;}
+    .bnav-label{font-size:.62rem;font-weight:700;color:var(--text3);font-family:inherit;}
+    .bnav-item.active .bnav-label{color:var(--blue-dk);}
+    @media(max-width:768px){.bottom-nav{display:block;}body{padding-bottom:64px;}}
+
+    /* ── TABS ── */
+    .tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+    .tabs::-webkit-scrollbar{display:none;}
+    .tab-btn{padding:7px 16px;border-radius:20px;border:2px solid var(--border);background:var(--bg);font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Nunito',sans-serif;transition:all .12s;}
+    .tab-btn.active{background:var(--blue-lt);border-color:var(--blue);color:var(--blue-dk);}
+
+    /* ── SECTION TITLE ── */
+    .sec-title{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:10px;}
+  </style>
 </head>
 <body>
-<div class="portal">
 
-  <aside class="sidebar">
-    <div class="sidebar-logo"><div class="logo-icon">🧮</div>iMath<span>Academy</span></div>
-    <nav class="sidebar-nav">
-      <div class="nav-section">Overview</div>
-      <a class="nav-item" href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
-      <div class="nav-section">Learning</div>
-      <a class="nav-item" href="lessons.html"><span class="nav-icon">▶️</span> Lessons</a>
-      <a class="nav-item" href="practice.html"><span class="nav-icon">⚡</span> Practice</a>
-      <a class="nav-item active" href="worksheets.html"><span class="nav-icon">📋</span> Worksheets</a>
-      <a class="nav-item" href="weekly-quiz.html"><span class="nav-icon">⭐</span> Weekly Quiz</a>
-      <div class="nav-section">Progress</div>
-      <a class="nav-item" href="progress.html"><span class="nav-icon">📊</span> My progress</a>
-      <a class="nav-item" href="homework.html"><span class="nav-icon">📚</span> Homework</a>
-    </nav>
-    <div class="sidebar-user">
-      <div class="user-av" id="userAv">—</div>
-      <div><div class="user-name" id="userName">Loading...</div><div class="user-role">Student</div></div>
-      <button class="logout-btn" onclick="logout()">⇥</button>
-    </div>
-  </aside>
-
-  <div class="main">
-    <div class="topbar">
-      <a href="dashboard.html" style="display:flex;align-items:center;flex-shrink:0;text-decoration:none;"><img src="../../assets/logo.png" alt="iMathAcademy" style="height:36px;width:auto;object-fit:contain;"></a>
-    <div class="topbar-title">📋 Worksheets</div>
-      <div style="font-size:.8rem;font-weight:600;color:var(--text3)" id="topbarDate"></div>
-    </div>
-
-    <div class="body">
-
-      <!-- Streak Bar -->
-      <div class="streak-card" id="streakCard">
-        <div>
-          <div style="font-size:.82rem;font-weight:800;margin-bottom:10px;opacity:.9">This week's streak</div>
-          <div class="streak-days" id="streakDays"></div>
-        </div>
-        <div class="streak-info" style="flex:1;margin-left:16px">
-          <h3 id="streakTitle">Complete today's worksheet!</h3>
-          <p id="streakSub">5-day streak unlocks the Weekly Quiz ⭐</p>
-        </div>
-        <div class="streak-lock">
-          <div class="lock-icon" id="quizLockIcon">🔒</div>
-          <p id="quizLockText">Weekly Quiz<br>locked</p>
-        </div>
-      </div>
-
-      <!-- Level selector -->
-      <div class="level-tabs" id="levelTabs"></div>
-
-      <!-- Worksheet type cards -->
-      <div id="worksheetPanel">
-        <div class="ws-grid" id="wsGrid"></div>
-      </div>
-
-      <!-- Active worksheet -->
-      <div class="ws-active" id="wsActive">
-        <div class="ws-header">
-          <button class="btn btn-ghost" style="padding:7px 14px;font-size:.82rem" onclick="closeWorksheet()">← Back</button>
-          <div style="flex:1">
-            <div style="font-size:.82rem;font-weight:800;color:var(--text2);margin-bottom:4px" id="wsActiveTitle">Worksheet</div>
-            <div class="ws-progress"><div class="ws-progress-fill" id="wsProgressFill" style="width:0%"></div></div>
-          </div>
-          <div style="font-size:.82rem;font-weight:700;color:var(--text3)" id="wsQCounter">0/0</div>
-        </div>
-        <div class="q-card">
-          <div class="q-num" id="wsQText">2 + 3</div>
-          <input class="ws-input" type="number" id="wsInput" placeholder="?" onkeydown="if(event.key==='Enter') wsCheckAnswer()">
-        </div>
-        <div class="ws-actions">
-          <button class="btn btn-ghost" onclick="wsSkip()">Skip →</button>
-          <button class="btn btn-teal" onclick="wsCheckAnswer()">Check answer ✓</button>
-        </div>
-        <div id="wsFeedback" style="text-align:center;margin-top:14px;font-size:.9rem;font-weight:700;min-height:24px"></div>
-      </div>
-
-      <!-- Complete screen -->
-      <div class="ws-complete" id="wsComplete">
-        <div class="complete-emoji">🎉</div>
-        <div class="complete-title" id="wcTitle">Worksheet complete!</div>
-        <div class="complete-sub" id="wcSub">Great work today!</div>
-        <div class="xp-earned" id="wcXP">+20 XP earned</div>
-        <div id="wcStreakMsg" style="margin-bottom:20px;font-size:.9rem;font-weight:700;color:var(--teal-dk)"></div>
-        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-          <button class="btn btn-teal" onclick="closeWorksheet()">Try another worksheet</button>
-          <button class="btn btn-ghost" onclick="window.location.href='dashboard.html'">Back to dashboard</button>
-        </div>
-      </div>
-
-    </div>
-  </div>
+<div class="topbar">
+  <a class="topbar-logo" href="dashboard.html"><img src="../../assets/logo.png" alt="iMathAcademy"></a>
+  <div class="topbar-title">My Worksheets</div>
+  <div class="topbar-badge" id="pendingBadge" style="display:none;">0 new</div>
 </div>
 
-<div class="toast-container" id="toastContainer"></div>
+<div class="content">
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="filterWs('all',this)">All</button>
+    <button class="tab-btn" onclick="filterWs('new',this)">🆕 New</button>
+    <button class="tab-btn" onclick="filterWs('inprogress',this)">✏️ In progress</button>
+    <button class="tab-btn" onclick="filterWs('done',this)">✅ Done</button>
+  </div>
+
+  <div id="wsList">
+    <div class="loader"><div class="spinner"></div>Loading your worksheets...</div>
+  </div>
+
+</div>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bnav-item" href="dashboard.html"><span class="bnav-icon">🏠</span><span class="bnav-label">Home</span></a>
+    <a class="bnav-item" href="practice.html"><span class="bnav-icon">⚡</span><span class="bnav-label">Practice</span></a>
+    <a class="bnav-item" href="lessons.html"><span class="bnav-icon">▶️</span><span class="bnav-label">Lessons</span></a>
+    <a class="bnav-item" href="homework.html"><span class="bnav-icon">📚</span><span class="bnav-label">Homework</span></a>
+    <a class="bnav-item active" href="worksheets.html"><span class="bnav-icon">📋</span><span class="bnav-label">Worksheets</span></a>
+  </div>
+</nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -223,320 +145,361 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let studentId = null, studentLevel = 1, streakDays = 0;
-let currentWs = null, wsQuestions = [], wsIdx = 0, wsCorrect = 0;
+let currentUser = null, allWorksheets = [], responses = {}, currentFilter = 'all';
 
-// ── WORKSHEET DEFINITIONS BY LEVEL ────────────────────────
-const LEVELS = [
-  { id:1, name:'Level 1', topics:['Simple addition', 'Simple subtraction'], sumsPerWs:5 },
-  { id:2, name:'Level 2', topics:['Big friends addition', 'Small friends addition'], sumsPerWs:10 },
-  { id:3, name:'Level 3', topics:['Big friends subtraction', 'Small friends subtraction'], sumsPerWs:10 },
-  { id:4, name:'Level 4', topics:['Combination addition', 'Combination subtraction'], sumsPerWs:10 },
-  { id:5, name:'Level 5', topics:['Multiplication 2×1', 'Division 2÷1'], sumsPerWs:10 },
-  { id:6, name:'Level 6', topics:['Multiplication 3×1', 'Division 3÷1'], sumsPerWs:10 },
-];
+// ── SUBSCRIPTION CHECK ────────────────────────────────────
+async function checkSubscription(userId) {
+  const { data } = await sb.from('subscriptions').select('expires_at').eq('student_id', userId).eq('status','active').order('expires_at',{ascending:false}).limit(1);
+  if (!data?.length || new Date(data[0].expires_at) < new Date()) { window.location.href='subscription.html'; return false; }
+  return true;
+}
 
-const WS_TYPES = [
-  { id:'standard',    icon:'📝', title:'Daily Worksheet',       desc:'Sums for today\'s topic. Complete 5 days in a row to unlock the Weekly Quiz!', badge:'Daily', badgeClass:'badge-teal' },
-  { id:'sudoku',      icon:'🔢', title:'Sudoku Maths',          desc:'Fill the grid so every row and column adds up correctly. Great for logic!', badge:'Puzzle', badgeClass:'badge-green' },
-  { id:'mindmath',    icon:'⚡', title:'Mind Math',              desc:'Quick calculations — no writing, just think fast! Beat your best time.', badge:'Speed', badgeClass:'badge-orange' },
-  { id:'skipcounting',icon:'🔢', title:'Skip Counting',         desc:'Complete the number pattern. Count by 2s, 5s, 10s and more.', badge:'Pattern', badgeClass:'badge-green' },
-];
+// ── HELPERS ──────────────────────────────────────────────
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '—'; }
 
-// ── QUESTION GENERATORS ────────────────────────────────────
-function generateQuestions(level, wsType, count) {
-  const qs = [];
-  for (let i = 0; i < count; i++) {
-    let q, a;
-    const l = level;
-
-    if (wsType === 'skipcounting') {
-      // Skip counting: show 4 numbers with one blank, always in position 3 (index 2)
-      const skipOptions = [2, 3, 5, 10];
-      const skip  = skipOptions[Math.floor(Math.random() * skipOptions.length)];
-      const start = Math.floor(Math.random() * 6) * skip;
-      // Pattern: start, start+skip, ___, start+3*skip
-      // Blank is always the 3rd item → answer is start + 2*skip
-      q = `${start}, ${start + skip}, ___, ${start + 3*skip}  (skip by ${skip})`;
-      a = start + 2 * skip;
-
-    } else if (l <= 2) {
-      // Level 1-2: simple single digit addition
-      const a1 = Math.floor(Math.random() * 9) + 1;
-      const a2 = Math.floor(Math.random() * 9) + 1;
-      q = `${a1} + ${a2}`;
-      a = a1 + a2;
-
-    } else if (l === 3) {
-      // Level 3: single digit subtraction (ensure positive result)
-      const a1 = Math.floor(Math.random() * 8) + 2;
-      const a2 = Math.floor(Math.random() * (a1 - 1)) + 1;
-      q = `${a1} - ${a2}`;
-      a = a1 - a2;
-
-    } else if (l === 4) {
-      // Level 4: combination add/subtract with larger numbers
-      const a1   = Math.floor(Math.random() * 50) + 10;
-      const a2   = Math.floor(Math.random() * 20) + 5;
-      const isAdd = Math.random() > 0.5;
-      if (isAdd) {
-        q = `${a1} + ${a2}`;
-        a = a1 + a2;
-      } else {
-        const sub = Math.min(a2, a1 - 1);
-        q = `${a1} - ${sub}`;
-        a = a1 - sub;
-      }
-
-    } else if (l === 5) {
-      // Level 5: multiplication 2x1 and division 2÷1
-      if (Math.random() > 0.5) {
-        const m = Math.floor(Math.random() * 9) + 2;
-        const n = Math.floor(Math.random() * 9) + 1;
-        q = `${m} × ${n}`;
-        a = m * n;
-      } else {
-        const d = Math.floor(Math.random() * 9) + 2;
-        const r = Math.floor(Math.random() * 9) + 1;
-        q = `${d * r} ÷ ${d}`;
-        a = r;
-      }
-
-    } else {
-      // Level 6: multiplication 3x1 and division 3÷1
-      if (Math.random() > 0.5) {
-        const m = Math.floor(Math.random() * 9) + 2;
-        const n = Math.floor(Math.random() * 90) + 10;
-        q = `${m} × ${n}`;
-        a = m * n;
-      } else {
-        const d = Math.floor(Math.random() * 9) + 2;
-        const r = Math.floor(Math.random() * 90) + 10;
-        q = `${d * r} ÷ ${d}`;
-        a = r;
-      }
+function parseQuestions(text) {
+  // Parse numbered questions from AI-generated text
+  const lines = text.split('\n');
+  const questions = [];
+  let current = null;
+  for (const line of lines) {
+    const stripped = line.trim();
+    if (!stripped) continue;
+    // Match: 1. or 1) or Q1.
+    const match = stripped.match(/^(?:Q?(\d+)[.)]\s+)(.+)/);
+    if (match) {
+      if (current) questions.push(current);
+      let qtext = match[2];
+      // Extract blank markers — ___ or ___
+      const hasBlank = qtext.includes('___') || qtext.includes('= ?') || qtext.includes('=?');
+      current = { num: parseInt(match[1]), text: qtext, hasBlank, answer: null };
+    } else if (current && stripped.startsWith('Answer:')) {
+      current.answer = stripped.replace('Answer:','').trim();
     }
-
-    qs.push({ q, a });
   }
-  return qs;
+  if (current) questions.push(current);
+  return questions;
 }
 
-// ── UI BUILDERS ────────────────────────────────────────────
-function buildLevelTabs() {
-  const el = document.getElementById('levelTabs');
-  LEVELS.forEach((lv, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'level-tab' + (lv.id === studentLevel ? ' active' : '');
-    btn.textContent = lv.name;
-    btn.onclick = () => { document.querySelectorAll('.level-tab').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); buildWsGrid(lv.id); };
-    el.appendChild(btn);
-  });
-  buildWsGrid(studentLevel);
+function getHintText(ws) {
+  // Return hint/formula box content if it exists
+  const content = ws.content || '';
+  const hintMatch = content.match(/##\s*HINT BOX\s*([\s\S]*?)(?=##|$)/i);
+  return hintMatch ? hintMatch[1].trim() : null;
 }
 
-function buildWsGrid(levelId) {
-  const el = document.getElementById('wsGrid');
-  el.innerHTML = '';
-  WS_TYPES.forEach(ws => {
-    const card = document.createElement('div');
-    card.className = 'ws-card';
-    card.innerHTML = `
-      <div class="ws-icon">${ws.icon}</div>
-      <div class="ws-title">${ws.title}</div>
-      <div class="ws-desc">${ws.desc}</div>
-      <div class="ws-badge ${ws.badgeClass}">${ws.badge}</div>
-    `;
-    card.onclick = () => startWorksheet(ws, levelId);
-    el.appendChild(card);
-  });
+function getWorksheetQuestions(ws) {
+  const content = ws.content || '';
+  // Extract just the worksheet section
+  const wsMatch = content.match(/##\s*WORKSHEET\s*([\s\S]*?)(?=##|$)/i);
+  const wsText = wsMatch ? wsMatch[1].trim() : content;
+  return parseQuestions(wsText);
 }
 
-function buildStreakBar() {
-  const el = document.getElementById('streakDays');
-  el.innerHTML = '';
-  const days = ['M','T','W','T','F'];
-  const today = new Date().getDay(); // 0=Sun
-  const weekDay = today === 0 ? 4 : Math.min(today-1, 4);
-  days.forEach((d, i) => {
-    const div = document.createElement('div');
-    div.className = 'streak-day' + (i < streakDays ? ' done' : i === weekDay ? ' today' : '');
-    div.textContent = i < streakDays ? '✓' : d;
-    el.appendChild(div);
-  });
-  const locked = streakDays < 5;
-  document.getElementById('quizLockIcon').textContent  = locked ? '🔒' : '⭐';
-  document.getElementById('quizLockText').textContent  = locked ? `Weekly Quiz\n${streakDays}/5 days` : 'Weekly Quiz\nUnlocked!';
-  document.getElementById('streakTitle').textContent   = streakDays >= 5 ? '🎉 Weekly Quiz unlocked!' : `Day ${streakDays} of 5 complete`;
-  document.getElementById('streakSub').textContent     = streakDays >= 5 ? 'Head to Weekly Quiz to earn XP and badges!' : `${5-streakDays} more day${5-streakDays!==1?'s':''} to unlock the Weekly Quiz ⭐`;
+// ── FILTER ───────────────────────────────────────────────
+function filterWs(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn?.classList.add('active');
+  renderList();
 }
 
-// ── WORKSHEET FLOW ─────────────────────────────────────────
-function startWorksheet(ws, levelId) {
-  currentWs  = ws;
-  const lv   = LEVELS.find(l => l.id === levelId) || LEVELS[0];
-  wsQuestions = generateQuestions(levelId, ws.id, lv.sumsPerWs);
-  wsIdx = 0; wsCorrect = 0;
-  document.getElementById('wsActiveTitle').textContent = `${ws.title} — ${lv.name}`;
-  document.getElementById('worksheetPanel').style.display = 'none';
-  document.getElementById('wsActive').classList.add('show');
-  document.getElementById('wsComplete').classList.remove('show');
-  document.getElementById('levelTabs').style.display = 'none';
-  document.getElementById('streakCard').style.display = 'none';
-  loadWsQuestion();
+// ── RENDER LIST ──────────────────────────────────────────
+function renderList() {
+  const list = document.getElementById('wsList');
+  let filtered = allWorksheets;
+  if (currentFilter !== 'all') filtered = allWorksheets.filter(w => getStatus(w) === currentFilter);
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty">
+      <div class="empty-icon">${currentFilter==='new'?'🆕':currentFilter==='done'?'✅':'📋'}</div>
+      <div class="empty-text">${
+        currentFilter==='new' ? 'No new worksheets. Your teacher will assign some soon!' :
+        currentFilter==='done' ? 'No completed worksheets yet. Solve one!' :
+        'No worksheets assigned yet. Your teacher will create some using the LX Designer!'
+      }</div>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(ws => renderCard(ws)).join('');
 }
 
-function loadWsQuestion() {
-  if (wsIdx >= wsQuestions.length) { finishWorksheet(); return; }
-  const q = wsQuestions[wsIdx];
-  document.getElementById('wsQText').textContent = q.q;
-  document.getElementById('wsInput').value = '';
-  document.getElementById('wsInput').style.borderColor = 'var(--border)';
-  document.getElementById('wsFeedback').textContent = '';
-  document.getElementById('wsQCounter').textContent = `${wsIdx+1}/${wsQuestions.length}`;
-  document.getElementById('wsProgressFill').style.width = `${(wsIdx/wsQuestions.length)*100}%`;
-  document.getElementById('wsInput').focus();
+function getStatus(ws) {
+  const r = responses[ws.id];
+  if (!r) return 'new';
+  if (r.submitted) return 'done';
+  return 'inprogress';
 }
 
-let _wsLocked = false;
-function wsCheckAnswer() {
-  if (_wsLocked) return;
-  const val = parseInt(document.getElementById('wsInput').value);
-  const q   = wsQuestions[wsIdx];
-  if (isNaN(val)) { showToast('Type your answer first!', ''); return; }
-  if (val === q.a) {
-    wsCorrect++;
-    document.getElementById('wsInput').style.borderColor = 'var(--green)';
-    document.getElementById('wsFeedback').innerHTML = `<span style="color:var(--green-dk)">✓ Correct! ${q.q} = ${q.a}</span>`;
-    _wsLocked = true;
-    setTimeout(() => { _wsLocked = false; wsIdx++; loadWsQuestion(); }, 900);
-  } else {
-    document.getElementById('wsInput').style.borderColor = 'var(--red)';
-    document.getElementById('wsFeedback').innerHTML = `<span style="color:var(--red-dk)">✗ Not quite — try again!</span>`;
+function getStatusPill(ws) {
+  const s = getStatus(ws);
+  if (s === 'done') return '<span class="ws-status-pill pill-done">✅ Done</span>';
+  if (s === 'inprogress') return '<span class="ws-status-pill pill-inprogress">✏️ In progress</span>';
+  return '<span class="ws-status-pill pill-new">🆕 New</span>';
+}
+
+function getCardIcon(ws) {
+  const level = ws.level || 1;
+  const colors = ['#E3F2FD','#E8F5E9','#FFF3E0','#F3E5F5','#E8F5E9','#FFF3E0','#E3F2FD','#FCE4EC','#EDE7F6'];
+  const bg = colors[level] || '#F7F8FF';
+  return `<div class="ws-card-icon" style="background:${bg};">📋</div>`;
+}
+
+function renderCard(ws) {
+  const qs = getWorksheetQuestions(ws);
+  const hint = getHintText(ws);
+  const status = getStatus(ws);
+  const r = responses[ws.id] || {};
+
+  return `
+  <div class="ws-card" id="card-${ws.id}">
+    <div class="ws-card-header" onclick="toggleCard('${ws.id}')">
+      ${getCardIcon(ws)}
+      <div class="ws-card-info">
+        <div class="ws-card-title">${ws.title}</div>
+        <div class="ws-card-meta">
+          <span>Level ${ws.level || '—'}</span>
+          <span>·</span>
+          <span>${qs.length} questions</span>
+          <span>·</span>
+          <span>Assigned ${fmtDate(ws.created_at)}</span>
+        </div>
+      </div>
+      <div class="ws-card-status">
+        ${getStatusPill(ws)}
+        <span style="color:var(--text3);font-size:.9rem;margin-left:4px;" id="chevron-${ws.id}">▼</span>
+      </div>
+    </div>
+
+    <div class="ws-body" id="body-${ws.id}">
+
+      ${hint ? `<div class="hint-box" id="hint-${ws.id}" style="display:none;">
+        <div class="hint-title">💡 Formula reminder</div>
+        <div style="font-size:.8rem;line-height:1.7;white-space:pre-wrap;">${hint}</div>
+      </div>` : ''}
+
+      ${qs.length === 0 ? `
+        <div style="padding:20px;text-align:center;color:var(--text3);">
+          <div style="font-size:2rem;margin-bottom:8px;">📄</div>
+          <div style="font-size:.875rem;">This worksheet is available as reading material.</div>
+          <div style="font-size:.82rem;margin-top:12px;background:var(--bg2);border-radius:10px;padding:12px;text-align:left;white-space:pre-wrap;line-height:1.7;color:var(--text2);">${(ws.content||'').replace(/##[^\n]*/g,'').trim().slice(0,600)}</div>
+        </div>
+      ` : `
+        <div id="questions-${ws.id}">
+          ${qs.map((q,i) => `
+          <div class="q-block" id="qblock-${ws.id}-${i}">
+            <div class="q-num">Question ${q.num || i+1}</div>
+            <div class="q-text">${q.text.replace(/___+/g,'<span style="display:inline-block;border-bottom:2px solid #999;width:60px;margin:0 4px;"></span>').replace(/=/g,' = ')}</div>
+            <input class="q-input" id="ans-${ws.id}-${i}" type="text" inputmode="numeric" placeholder="Your answer..."
+              ${status==='done' ? 'disabled' : ''}
+              ${r.answers?.[i] ? `value="${r.answers[i]}"` : ''}
+              onkeydown="if(event.key==='Enter'){document.getElementById('ans-${ws.id}-${i+1}')?.focus()}"
+              oninput="saveProgress('${ws.id}',${i},this.value)">
+            <div class="q-feedback ${status==='done'&&r.answers?.[i]?'show':''} ${status==='done'?(r.correct?.[i]?'correct':'wrong'):''}" id="fb-${ws.id}-${i}">
+              ${status==='done' ? (r.correct?.[i] ? '✅ Correct!' : `❌ Answer: ${q.answer || '—'}`) : ''}
+            </div>
+          </div>`).join('')}
+        </div>
+
+        ${status !== 'done' ? `
+        <div class="submit-row">
+          ${hint ? `<button class="hint-btn" onclick="toggleHint('${ws.id}')">💡 Show hint</button>` : ''}
+          <button class="submit-btn" onclick="submitWorksheet('${ws.id}')" id="submit-${ws.id}">
+            Submit answers
+          </button>
+        </div>` : `
+        <div class="result-banner" style="background:${r.pct>=80?'var(--green-lt)':r.pct>=50?'var(--yellow-lt)':'var(--red-lt)'};border:2px solid ${r.pct>=80?'var(--green)':r.pct>=50?'var(--yellow)':'var(--red)'};">
+          <div class="result-score" style="color:${r.pct>=80?'var(--green-dk)':r.pct>=50?'var(--orange-dk)':'var(--red)'};">${r.score}/${qs.length}</div>
+          <div class="result-msg" style="color:${r.pct>=80?'var(--green-dk)':r.pct>=50?'var(--orange-dk)':'var(--red)'};">${r.pct>=80?'Excellent work! 🎉':r.pct>=50?'Good effort! Keep practising 💪':'Keep trying — you can do it! 🌟'}</div>
+        </div>`}
+      `}
+
+    </div>
+  </div>`;
+}
+
+// ── TOGGLE CARD ──────────────────────────────────────────
+function toggleCard(id) {
+  const body = document.getElementById('body-' + id);
+  const chevron = document.getElementById('chevron-' + id);
+  const isOpen = body.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.ws-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('[id^="chevron-"]').forEach(c => c.textContent = '▼');
+  if (!isOpen) {
+    body.classList.add('open');
+    chevron.textContent = '▲';
+    // Focus first input
+    setTimeout(() => { document.querySelector(`#body-${id} .q-input`)?.focus(); }, 100);
   }
 }
 
-function wsSkip() {
-  if (_wsLocked) return;
-  const q = wsQuestions[wsIdx];
-  document.getElementById('wsFeedback').innerHTML = `<span style="color:var(--text3)">Skipped — answer was ${q.a}</span>`;
-  _wsLocked = true;
-  setTimeout(() => { _wsLocked = false; wsIdx++; loadWsQuestion(); }, 1000);
+// ── TOGGLE HINT ──────────────────────────────────────────
+function toggleHint(wsId) {
+  const hint = document.getElementById('hint-' + wsId);
+  if (!hint) return;
+  hint.style.display = hint.style.display === 'none' ? 'block' : 'none';
 }
 
+// ── SAVE PROGRESS (in memory + localStorage) ─────────────
+function saveProgress(wsId, qIdx, value) {
+  if (!responses[wsId]) responses[wsId] = { answers: {}, submitted: false };
+  responses[wsId].answers[qIdx] = value;
+  // Persist locally so they don't lose work on refresh
+  try { localStorage.setItem('ws_progress_' + wsId, JSON.stringify(responses[wsId])); } catch(e){}
+}
 
-    // ── SUBSCRIPTION CHECK ─────────────────────────────────
-    async function checkSubscription(userId) {
-      const { data: subs } = await sb.from('subscriptions')
-        .select('id, expires_at, status')
-        .eq('student_id', userId)
-        .eq('status', 'active')
-        .order('expires_at', { ascending: false })
-        .limit(1);
-      const sub = subs?.[0];
-      if (!sub || new Date(sub.expires_at) < new Date()) {
-        window.location.href = 'subscription.html';
-        return false;
-      }
-      return true;
+// ── SUBMIT ───────────────────────────────────────────────
+async function submitWorksheet(wsId) {
+  const ws = allWorksheets.find(w => w.id === wsId);
+  if (!ws) return;
+  const qs = getWorksheetQuestions(ws);
+  if (!qs.length) return;
+
+  const btn = document.getElementById('submit-' + wsId);
+  btn.disabled = true;
+  btn.textContent = 'Checking...';
+
+  const answers = {};
+  const correct = {};
+  let score = 0;
+
+  qs.forEach((q, i) => {
+    const input = document.getElementById(`ans-${wsId}-${i}`);
+    const val = (input?.value || '').trim();
+    answers[i] = val;
+
+    // Check answer — compare numbers if possible
+    if (q.answer) {
+      const expected = q.answer.toString().trim().replace(/[,\s]/g,'');
+      const given    = val.replace(/[,\s]/g,'');
+      correct[i] = (given === expected) || (parseFloat(given) === parseFloat(expected));
+      if (correct[i]) score++;
     }
+  });
 
-    async function finishWorksheet() {
-  document.getElementById('wsActive').classList.remove('show');
-  document.getElementById('wsComplete').classList.add('show');
-  const total = wsQuestions.length;
-  const xp    = wsCorrect * 5 + (wsCorrect === total ? 20 : 0);
-  document.getElementById('wcTitle').textContent = `${currentWs.title} complete!`;
-  document.getElementById('wcSub').textContent   = `${wsCorrect}/${total} correct`;
-  document.getElementById('wcXP').textContent    = `+${xp} XP earned`;
+  const pct = Math.round(score / qs.length * 100);
+  const xp  = Math.round(pct / 100 * 20) + 5; // 5–25 XP for completing
 
-  // Update streak in DB
+  // Save to DB
   try {
     const { data: { session } } = await sb.auth.getSession();
-    if (session) {
-      streakDays = Math.min(streakDays + 1, 5);
-      await sb.from('users').update({
-        streak_days: streakDays,
-        last_active: new Date().toISOString().split('T')[0],
-        xp_points: (await sb.from('users').select('xp_points').eq('id',session.user.id).single()).data?.xp_points + xp || xp
-      }).eq('id', session.user.id);
 
-      // Notify about weekly quiz unlock
-      if (streakDays >= 5) {
-        document.getElementById('wcStreakMsg').textContent = '🎉 5-day streak! Weekly Quiz is now unlocked!';
-        await sb.from('notifications').insert({ user_id:session.user.id, type:'streak', title:'Weekly Quiz Unlocked! 🎉', message:'You completed a 5-day worksheet streak! Your weekly quiz is now available.' });
-      } else {
-        document.getElementById('wcStreakMsg').textContent = `🔥 ${streakDays}/5 day streak — keep going!`;
-      }
-    }
-  } catch(e) { console.error(e); }
-}
+    await sb.from('worksheet_responses').insert({
+      worksheet_id: wsId,
+      student_id:   currentUser.id,
+      answers:      JSON.stringify(answers),
+      score,
+      total:        qs.length,
+      xp_earned:    xp,
+      submitted_at: new Date().toISOString(),
+    });
 
-function closeWorksheet() {
-  document.getElementById('wsActive').classList.remove('show');
-  document.getElementById('wsComplete').classList.remove('show');
-  document.getElementById('worksheetPanel').style.display = '';
-  document.getElementById('levelTabs').style.display = '';
-  document.getElementById('streakCard').style.display = '';
-  buildStreakBar();
-}
+    // Award XP in practice_sessions
+    await sb.from('practice_sessions').insert({
+      student_id:      currentUser.id,
+      correct_answers: score,
+      total_questions: qs.length,
+      xp_earned:       xp,
+      session_type:    'worksheet',
+    });
 
-// ── UTILS ──────────────────────────────────────────────────
-function showToast(msg, type='') {
-  const c = document.getElementById('toastContainer');
-  const t = document.createElement('div');
-  t.className = `toast${type?' toast-'+type:''}`;
-  t.textContent = msg;
-  c.appendChild(t);
-  setTimeout(() => t.remove(), 3000);
-}
-async function logout() { await sb.auth.signOut(); window.location.href='../../login.html'; }
+    // Update user XP
+    await sb.from('users').update({ xp_points: (currentUser.xp_points || 0) + xp }).eq('id', currentUser.id);
+    currentUser.xp_points = (currentUser.xp_points || 0) + xp;
 
-// ── INIT ───────────────────────────────────────────────────
-async function init() {
-  document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
-  try {
-    const { data:{ session } } = await sb.auth.getSession();
-    if (!session) { window.location.href='../../login.html'; return; }
-    const { data:profile } = await sb.from('users').select('full_name,current_level,streak_days').eq('id',session.user.id).single();
-    const active = await checkSubscription(session.user.id);
-    if (!active) return;
-    if (!profile) { window.location.href='../../login.html'; return; }
-    studentId    = session.user.id;
-    studentLevel = profile.current_level || 1;
-    streakDays   = Math.min(profile.streak_days || 0, 5);
-    const name   = profile.full_name || 'Student';
-    document.getElementById('userAv').textContent   = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-    document.getElementById('userName').textContent = name;
-    buildStreakBar();
-    buildLevelTabs();
-  } catch(err) {
-    console.error(err);
-    window.location.href='../../login.html';
+  } catch(e) {
+    console.error('Submit error:', e);
+    // Even if save fails, show result locally
+  }
+
+  // Store locally
+  responses[wsId] = { answers, correct, score, pct, submitted: true };
+  try { localStorage.removeItem('ws_progress_' + wsId); } catch(e){}
+
+  // Re-render this card
+  const card = document.getElementById('card-' + wsId);
+  if (card) {
+    const newCard = document.createElement('div');
+    newCard.innerHTML = renderCard(ws);
+    card.replaceWith(newCard.firstElementChild);
+    // Re-open the card to show result
+    toggleCard(wsId);
   }
 }
+
+// ── LOAD ─────────────────────────────────────────────────
+async function init() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = '../../login.html'; return; }
+
+    const { data: profile } = await sb.from('users').select('*').eq('id', session.user.id).single();
+    if (!profile || profile.role !== 'student') { window.location.href = '../../login.html'; return; }
+    currentUser = { ...profile, id: session.user.id };
+
+    const active = await checkSubscription(session.user.id);
+    if (!active) return;
+
+    // Load worksheets assigned to this student or their batch
+    const { data: batchLinks } = await sb.from('batch_students').select('batch_id').eq('student_id', session.user.id);
+    const batchIds = (batchLinks || []).map(b => b.batch_id);
+
+    // Build query — worksheets for this student directly OR for their batches
+    let wsQuery = sb.from('lx_worksheets').select('*').eq('is_active', true).order('created_at', { ascending: false });
+
+    // We need worksheets where student_id = me OR batch_id IN my batches
+    if (batchIds.length) {
+      wsQuery = sb.from('lx_worksheets').select('*').eq('is_active', true)
+        .or(`student_id.eq.${session.user.id},batch_id.in.(${batchIds.join(',')})`)
+        .order('created_at', { ascending: false });
+    } else {
+      wsQuery = sb.from('lx_worksheets').select('*').eq('is_active', true)
+        .eq('student_id', session.user.id)
+        .order('created_at', { ascending: false });
+    }
+
+    const { data: worksheets, error } = await wsQuery;
+    if (error) throw error;
+
+    allWorksheets = worksheets || [];
+
+    // Load existing responses
+    let responseQuery = sb.from('worksheet_responses').select('worksheet_id,score,total,submitted_at').eq('student_id', session.user.id);
+    const { data: existingResponses } = await responseQuery;
+    (existingResponses || []).forEach(r => {
+      responses[r.worksheet_id] = {
+        submitted: true,
+        score: r.score,
+        total: r.total,
+        pct: Math.round(r.score / r.total * 100),
+      };
+    });
+
+    // Also restore any in-progress from localStorage
+    allWorksheets.forEach(ws => {
+      if (!responses[ws.id]) {
+        try {
+          const saved = localStorage.getItem('ws_progress_' + ws.id);
+          if (saved) responses[ws.id] = JSON.parse(saved);
+        } catch(e){}
+      }
+    });
+
+    // Update pending badge
+    const newCount = allWorksheets.filter(w => getStatus(w) === 'new').length;
+    const badge = document.getElementById('pendingBadge');
+    if (newCount > 0) { badge.textContent = newCount + ' new'; badge.style.display = 'block'; }
+
+    renderList();
+
+  } catch(err) {
+    document.getElementById('wsList').innerHTML = `<div style="padding:40px;text-align:center;color:var(--red);">Error: ${err.message}</div>`;
+  }
+}
+
 init();
 </script>
-
-<!-- Bottom nav (mobile) -->
-<nav class="bottom-nav">
-  <div class="bottom-nav-inner">
-    <a class="bnav-item " href="dashboard.html">
-      <span class="bnav-icon">🏠</span><span class="bnav-label">Home</span>
-    </a>
-    <a class="bnav-item active" href="practice.html">
-      <span class="bnav-icon">⚡</span><span class="bnav-label">Practice</span>
-    </a>
-    <a class="bnav-item " href="lessons.html">
-      <span class="bnav-icon">▶️</span><span class="bnav-label">Lessons</span>
-    </a>
-    <a class="bnav-item " href="homework.html">
-      <span class="bnav-icon">📚</span><span class="bnav-label">Homework</span>
-    </a>
-    <a class="bnav-item " href="progress.html">
-      <span class="bnav-icon">📊</span><span class="bnav-label">Progress</span>
-    </a>
-  </div>
-</nav>
 </body>
 </html>

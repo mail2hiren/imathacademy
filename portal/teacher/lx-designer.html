@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <title>LX Designer — iMathAcademy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; min-height: 100vh; }
+    :root {
+      --green: #43A047; --green-dk: #1B5E20; --green-lt: #E8F5E9;
+      --blue: #1E88E5; --blue-dk: #0D47A1; --blue-lt: #E3F2FD;
+      --orange: #FB8C00; --orange-dk: #E65100; --orange-lt: #FFF3E0;
+      --purple: #8E24AA; --purple-lt: #F3E5F5; --purple-dk: #4A148C;
+      --red: #E53935; --red-lt: #FFEBEE; --red-dk: #B71C1C;
+      --yellow: #F9A825; --yellow-lt: #FFFDE7;
+      --bg: #fff; --bg2: #F7F8FF; --border: #E8EAF6;
+      --text: #1A1A2E; --text2: #4A4A6A; --text3: #9090B0;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar { height: 56px; background: var(--bg); border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 12px; padding: 0 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+    .back-btn { background: var(--bg2); border: 2px solid var(--border); border-radius: 10px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; flex-shrink: 0; touch-action: manipulation; text-decoration: none; color: var(--text); }
+    .topbar-title { font-family: 'Baloo 2', sans-serif; font-size: 1rem; font-weight: 800; flex: 1; }
+    .ai-badge { background: linear-gradient(135deg,#7B1FA2,#1565C0); color: #fff; font-size: .72rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
+
+    /* ── LAYOUT ── */
+    .page { display: grid; grid-template-columns: 1fr 420px; gap: 16px; padding: 16px; max-width: 1100px; margin: 0 auto; }
+    @media (max-width: 900px) { .page { grid-template-columns: 1fr; } .output-panel { order: -1; } }
+
+    /* ── FORM PANEL ── */
+    .form-panel { }
+    .section { background: var(--bg); border: 2px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+    .sec-label { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .7px; color: var(--text3); margin-bottom: 12px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    @media (max-width: 480px) { .form-grid,.form-grid-3 { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-label { font-size: .72rem; font-weight: 700; color: var(--text2); }
+    .form-hint  { font-size: .65rem; color: var(--text3); margin-top: 2px; }
+    select, input[type=text], input[type=date], textarea {
+      padding: 9px 12px; border: 2px solid var(--border); border-radius: 10px;
+      font-family: 'Nunito', sans-serif; font-size: .875rem; font-weight: 600;
+      color: var(--text); background: var(--bg); outline: none; width: 100%;
+      transition: border-color .12s;
+    }
+    select:focus, input:focus, textarea:focus { border-color: var(--blue); }
+    textarea { resize: vertical; min-height: 60px; }
+
+    /* Level cards */
+    .level-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+    @media (max-width: 480px) { .level-grid { grid-template-columns: repeat(3,1fr); } }
+    .level-card { border: 2px solid var(--border); border-radius: 10px; padding: 8px 10px; cursor: pointer; transition: all .12s; touch-action: manipulation; }
+    .level-card:hover { border-color: var(--blue); }
+    .level-card.selected { border-color: var(--blue); background: var(--blue-lt); }
+    .level-num { font-size: .875rem; font-weight: 800; color: var(--text); }
+    .level-desc { font-size: .65rem; color: var(--text3); margin-top: 2px; line-height: 1.4; }
+    .level-card.selected .level-num { color: var(--blue-dk); }
+    .level-card.selected .level-desc { color: var(--blue-dk); opacity: .8; }
+
+    /* Concept options */
+    .concept-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .concept-opt { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border: 2px solid var(--border); border-radius: 10px; cursor: pointer; transition: all .12s; touch-action: manipulation; }
+    .concept-opt.selected { border-color: var(--purple); background: var(--purple-lt); }
+    .concept-opt input { accent-color: var(--purple); margin-top: 2px; flex-shrink: 0; }
+    .concept-opt-name { font-size: .82rem; font-weight: 700; }
+    .concept-opt-sub  { font-size: .68rem; color: var(--text3); }
+    .concept-opt.selected .concept-opt-name { color: var(--purple-dk); }
+
+    /* Activity type */
+    .activity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .activity-opt { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border: 2px solid var(--border); border-radius: 10px; cursor: pointer; transition: all .12s; touch-action: manipulation; }
+    .activity-opt.selected { border-color: var(--orange); background: var(--orange-lt); }
+    .activity-opt input { accent-color: var(--orange); margin-top: 2px; flex-shrink: 0; }
+    .activity-opt-name { font-size: .82rem; font-weight: 700; }
+    .activity-opt-sub  { font-size: .68rem; color: var(--text3); }
+    .activity-opt.selected .activity-opt-name { color: var(--orange-dk); }
+
+    /* Output checkboxes */
+    .output-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .output-opt { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 2px solid var(--border); border-radius: 10px; cursor: pointer; font-size: .82rem; font-weight: 700; touch-action: manipulation; }
+    .output-opt input { accent-color: var(--green); }
+
+    /* Age hint bar */
+    .age-hint { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; font-size: .78rem; font-weight: 700; margin-top: 8px; }
+
+    /* Generate button */
+    .gen-btn { width: 100%; padding: 16px; background: linear-gradient(135deg,#1565C0,#7B1FA2); color: #fff; border: none; border-radius: 14px; font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 800; cursor: pointer; transition: all .15s; touch-action: manipulation; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .gen-btn:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(21,101,192,.35); }
+    .gen-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; box-shadow: none; }
+    .gen-btn-preview { width: 100%; padding: 12px; background: var(--bg2); color: var(--text); border: 2px solid var(--border); border-radius: 12px; font-family: 'Nunito', sans-serif; font-size: .875rem; font-weight: 700; cursor: pointer; margin-top: 8px; touch-action: manipulation; }
+
+    /* ── OUTPUT PANEL ── */
+    .output-panel { position: sticky; top: 72px; }
+    .output-card { background: var(--bg); border: 2px solid var(--border); border-radius: 16px; overflow: hidden; }
+    .output-header { padding: 14px 16px; border-bottom: 2px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .output-title { font-size: .875rem; font-weight: 800; }
+    .output-actions { display: flex; gap: 6px; }
+    .out-btn { padding: 5px 12px; border-radius: 8px; font-size: .75rem; font-weight: 700; cursor: pointer; border: 2px solid var(--border); background: var(--bg2); touch-action: manipulation; font-family: 'Nunito', sans-serif; }
+    .out-btn-primary { background: var(--blue); color: #fff; border-color: var(--blue-dk); }
+    .output-body { padding: 16px; min-height: 400px; max-height: 70vh; overflow-y: auto; }
+    .output-empty { text-align: center; color: var(--text3); padding: 40px 20px; }
+    .output-empty-icon { font-size: 3rem; margin-bottom: 10px; }
+    .output-empty-text { font-size: .875rem; line-height: 1.6; }
+
+    /* Generated content styles */
+    .ws-title { font-family: 'Baloo 2', sans-serif; font-size: 1.1rem; font-weight: 800; text-align: center; margin-bottom: 4px; }
+    .ws-subtitle { font-size: .78rem; color: var(--text2); text-align: center; margin-bottom: 14px; }
+    .ws-meta { display: flex; justify-content: space-between; font-size: .72rem; color: var(--text3); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 6px 0; margin-bottom: 14px; }
+    .ws-section { font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: var(--text3); margin: 12px 0 6px; }
+    .ws-question { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid #f0f0f0; font-size: .875rem; align-items: flex-start; }
+    .ws-qnum { font-weight: 800; color: var(--blue-dk); width: 20px; flex-shrink: 0; }
+    .ws-qtext { flex: 1; }
+    .ws-answer-line { display: inline-block; border-bottom: 1.5px solid var(--text3); width: 60px; margin-left: 6px; }
+    .ws-hint-box { background: var(--yellow-lt); border: 1.5px solid var(--yellow); border-radius: 10px; padding: 10px 12px; margin-top: 12px; font-size: .78rem; }
+    .ws-hint-title { font-weight: 800; color: var(--orange-dk); margin-bottom: 4px; }
+    .ws-mascot { text-align: center; margin-top: 12px; font-size: .82rem; color: var(--purple-dk); font-style: italic; }
+    .ws-parent-note { background: var(--green-lt); border: 1.5px solid var(--green); border-radius: 10px; padding: 10px 12px; margin-top: 12px; font-size: .78rem; }
+    .ws-answer-key { background: #f9f9ff; border: 1.5px dashed var(--border); border-radius: 10px; padding: 10px 12px; margin-top: 12px; }
+    .ws-ak-title { font-weight: 800; font-size: .78rem; color: var(--text2); margin-bottom: 6px; }
+    .ws-ak-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; }
+    .ws-ak-item { font-size: .75rem; text-align: center; }
+
+    /* Loading animation */
+    .generating { text-align: center; padding: 40px 20px; }
+    .gen-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 12px; }
+    .gen-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--blue); animation: dotPulse 1.2s ease-in-out infinite; }
+    .gen-dot:nth-child(2) { animation-delay: .2s; background: var(--purple); }
+    .gen-dot:nth-child(3) { animation-delay: .4s; background: var(--orange); }
+    @keyframes dotPulse { 0%,100%{transform:scale(.6);opacity:.4} 50%{transform:scale(1);opacity:1} }
+    .gen-text { font-size: .875rem; font-weight: 700; color: var(--text2); }
+    .gen-sub  { font-size: .75rem; color: var(--text3); margin-top: 4px; }
+
+    /* ── TABS (output) ── */
+    .out-tabs { display: flex; border-bottom: 2px solid var(--border); }
+    .out-tab { flex: 1; padding: 9px 6px; text-align: center; font-size: .72rem; font-weight: 700; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all .12s; color: var(--text3); touch-action: manipulation; }
+    .out-tab.active { color: var(--blue-dk); border-bottom-color: var(--blue); }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 10px 18px; border-radius: 12px; font-size: .82rem; font-weight: 700; color: #fff; z-index: 9999; animation: slideIn .3s ease; }
+    .toast-success { background: var(--green-dk); }
+    .toast-error   { background: var(--red-dk); }
+    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+    @media (max-width: 768px) {
+      .page { padding: 12px; gap: 12px; }
+      .output-panel { position: static; }
+      .output-body { max-height: 60vh; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="dashboard.html">←</a>
+  <div class="topbar-title">✨ LX Designer — AI Worksheet Generator</div>
+  <div class="ai-badge">Powered by AI</div>
+</div>
+
+<div class="page">
+
+  <!-- ── FORM PANEL ── -->
+  <div class="form-panel">
+
+    <!-- Step 1: Batch & Student -->
+    <div class="section">
+      <div class="sec-label">1 — Batch and student</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Batch</label>
+          <select id="batchSel" onchange="onBatchChange()">
+            <option value="">— Select batch —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Student</label>
+          <select id="studentSel" onchange="onStudentChange()">
+            <option value="">— Entire batch —</option>
+          </select>
+        </div>
+      </div>
+      <div id="ageHint" style="display:none;" class="age-hint"></div>
+    </div>
+
+    <!-- Step 2: Level -->
+    <div class="section">
+      <div class="sec-label">2 — Abacus level</div>
+      <div class="level-grid" id="levelGrid">
+        <div class="level-card" onclick="selectLevel(this,0)">
+          <div class="level-num">L0</div>
+          <div class="level-desc">Counting, number recognition</div>
+        </div>
+        <div class="level-card selected" onclick="selectLevel(this,1)">
+          <div class="level-num">L1</div>
+          <div class="level-desc">Big + small friends, 2-digit</div>
+        </div>
+        <div class="level-card" onclick="selectLevel(this,2)">
+          <div class="level-num">L2</div>
+          <div class="level-desc">Combination, 3-digit</div>
+        </div>
+        <div class="level-card" onclick="selectLevel(this,3)">
+          <div class="level-num">L3</div>
+          <div class="level-desc">Family formula, 4-digit</div>
+        </div>
+        <div class="level-card" onclick="selectLevel(this,4)">
+          <div class="level-num">L4</div>
+          <div class="level-desc">Anzan, 5-digit add/sub</div>
+        </div>
+        <div class="level-card" onclick="selectLevel(this,5)">
+          <div class="level-num">L5</div>
+          <div class="level-desc">Multiply 2×1, 3×1 only</div>
+        </div>
+        <div class="level-card" onclick="selectLevel(this,6)">
+          <div class="level-num">L6</div>
+          <div class="level-desc">Division 2÷1, 7-digit</div>
+        </div>
+        <div class="level-card" onclick="selectLevel(this,7)">
+          <div class="level-num">L7</div>
+          <div class="level-desc">4×1, 2×2, 4÷1, 8-digit</div>
+        </div>
+        <div class="level-card" onclick="selectLevel(this,8)">
+          <div class="level-num">L8</div>
+          <div class="level-desc">Decimals + negatives</div>
+        </div>
+      </div>
+      <div id="levelSummary" style="margin-top:10px;padding:8px 12px;background:var(--blue-lt);border-radius:10px;font-size:.78rem;color:var(--blue-dk);font-weight:700;border:1.5px solid var(--blue);">
+        Level 1 — Big friends + small friends. Addition and subtraction up to 2 digits.
+      </div>
+    </div>
+
+    <!-- Step 3: Concept -->
+    <div class="section">
+      <div class="sec-label">3 — Concept focus</div>
+      <div class="concept-grid">
+        <label class="concept-opt selected" onclick="selectConcept(this,'add_sub')">
+          <input type="radio" name="concept" checked>
+          <div><div class="concept-opt-name">Addition and subtraction only</div><div class="concept-opt-sub">Focus on this level's A+S difficulty</div></div>
+        </label>
+        <label class="concept-opt" onclick="selectConcept(this,'big_friends')">
+          <input type="radio" name="concept">
+          <div><div class="concept-opt-name">Big friends</div><div class="concept-opt-sub">+10, subtract complement</div></div>
+        </label>
+        <label class="concept-opt" onclick="selectConcept(this,'small_friends')">
+          <input type="radio" name="concept">
+          <div><div class="concept-opt-name">Small friends</div><div class="concept-opt-sub">+5, subtract complement</div></div>
+        </label>
+        <label class="concept-opt" onclick="selectConcept(this,'combination')">
+          <input type="radio" name="concept">
+          <div><div class="concept-opt-name">Combination / family formula</div><div class="concept-opt-sub">Mixed big and small friends</div></div>
+        </label>
+        <label class="concept-opt" onclick="selectConcept(this,'multiplication')">
+          <input type="radio" name="concept">
+          <div><div class="concept-opt-name">Multiplication</div><div class="concept-opt-sub">Based on current level</div></div>
+        </label>
+        <label class="concept-opt" onclick="selectConcept(this,'division')">
+          <input type="radio" name="concept">
+          <div><div class="concept-opt-name">Division</div><div class="concept-opt-sub">Based on current level</div></div>
+        </label>
+        <label class="concept-opt" onclick="selectConcept(this,'anzan')">
+          <input type="radio" name="concept">
+          <div><div class="concept-opt-name">Anzan — mental abacus</div><div class="concept-opt-sub">No physical abacus</div></div>
+        </label>
+        <label class="concept-opt" onclick="selectConcept(this,'revision')">
+          <input type="radio" name="concept">
+          <div><div class="concept-opt-name">Full revision — all concepts</div><div class="concept-opt-sub">AI picks balanced mix</div></div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Step 4: Activity type -->
+    <div class="section">
+      <div class="sec-label">4 — Activity type</div>
+      <div class="activity-grid">
+        <label class="activity-opt selected" onclick="selectActivity(this,'flashcards')">
+          <input type="radio" name="activity" checked>
+          <div><div class="activity-opt-name">Flash cards</div><div class="activity-opt-sub">Young: big cards. Older: speed drill</div></div>
+        </label>
+        <label class="activity-opt" onclick="selectActivity(this,'picture_sums')">
+          <input type="radio" name="activity">
+          <div><div class="activity-opt-name">Visual picture sums</div><div class="activity-opt-sub">Objects to count (ages 5–7)</div></div>
+        </label>
+        <label class="activity-opt" onclick="selectActivity(this,'story_problems')">
+          <input type="radio" name="activity">
+          <div><div class="activity-opt-name">Story problems</div><div class="activity-opt-sub">Word problems with context</div></div>
+        </label>
+        <label class="activity-opt" onclick="selectActivity(this,'fill_blank')">
+          <input type="radio" name="activity">
+          <div><div class="activity-opt-name">Fill in the blank</div><div class="activity-opt-sub">3 + ___ = 7 style</div></div>
+        </label>
+        <label class="activity-opt" onclick="selectActivity(this,'match_pairs')">
+          <input type="radio" name="activity">
+          <div><div class="activity-opt-name">Match the pairs</div><div class="activity-opt-sub">Sum on left, answer on right</div></div>
+        </label>
+        <label class="activity-opt" onclick="selectActivity(this,'speed_challenge')">
+          <input type="radio" name="activity">
+          <div><div class="activity-opt-name">Speed challenge</div><div class="activity-opt-sub">Timed drills (ages 9–12)</div></div>
+        </label>
+        <label class="activity-opt" onclick="selectActivity(this,'colour_answer')">
+          <input type="radio" name="activity">
+          <div><div class="activity-opt-name">Colour by answer</div><div class="activity-opt-sub">Solve and colour (ages 5–8)</div></div>
+        </label>
+        <label class="activity-opt" onclick="selectActivity(this,'mixed')">
+          <input type="radio" name="activity">
+          <div><div class="activity-opt-name">Mixed variety</div><div class="activity-opt-sub">AI picks best mix for age</div></div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Step 5: Settings -->
+    <div class="section">
+      <div class="sec-label">5 — Settings</div>
+      <div class="form-grid-3" style="margin-bottom:10px;">
+        <div class="form-group">
+          <label class="form-label">Difficulty</label>
+          <select id="difficulty">
+            <option value="very_easy">Very easy</option>
+            <option value="easy" selected>Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+            <option value="progressive">Progressive</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Questions</label>
+          <select id="questionCount">
+            <option value="5">5 questions</option>
+            <option value="10" selected>10 questions</option>
+            <option value="15">15 questions</option>
+            <option value="20">20 questions</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Time limit</label>
+          <select id="timeLimit">
+            <option value="none">No time limit</option>
+            <option value="10" selected>10 minutes</option>
+            <option value="15">15 minutes</option>
+            <option value="20">20 minutes</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Theme</label>
+          <select id="theme">
+            <option value="animals">Animals</option>
+            <option value="fruits">Fruits and food</option>
+            <option value="space">Space and stars</option>
+            <option value="cricket">Cricket</option>
+            <option value="festivals">Festivals</option>
+            <option value="superheroes">Superheroes</option>
+            <option value="nature">Nature</option>
+            <option value="none">No theme</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mascot</label>
+          <input type="text" id="mascot" placeholder="e.g. Jumbo the elephant">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Language</label>
+          <select id="language">
+            <option value="english">English</option>
+            <option value="hindi">Hindi</option>
+            <option value="marathi">Marathi</option>
+            <option value="en_hi">English + Hindi</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 6: Output options -->
+    <div class="section">
+      <div class="sec-label">6 — Output</div>
+      <div class="output-opts" style="margin-bottom:10px;">
+        <label class="output-opt"><input type="checkbox" id="out-worksheet" checked> Worksheet (printable)</label>
+        <label class="output-opt"><input type="checkbox" id="out-answerkey" checked> Answer key</label>
+        <label class="output-opt"><input type="checkbox" id="out-hints"> Hint / formula box</label>
+        <label class="output-opt"><input type="checkbox" id="out-lessonplan"> Lesson plan</label>
+        <label class="output-opt"><input type="checkbox" id="out-parentnote"> Parent summary note</label>
+        <label class="output-opt"><input type="checkbox" id="out-flashcards"> Digital flash cards</label>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Special instructions (optional)</label>
+        <textarea id="specialInstructions" placeholder="e.g. Avoid numbers above 50. Use Indian names. Keep it fun for shy students."></textarea>
+      </div>
+    </div>
+
+    <!-- Generate -->
+    <button class="gen-btn" id="genBtn" onclick="generateWorksheet()">
+      <span>✨ Generate with AI</span>
+      <span style="font-size:.82rem;opacity:.85;">Powered by Claude</span>
+    </button>
+    <button class="gen-btn-preview" onclick="generatePreview()">👁 Preview a sample question first</button>
+
+  </div>
+
+  <!-- ── OUTPUT PANEL ── -->
+  <div class="output-panel">
+    <div class="output-card">
+      <div class="output-header">
+        <div class="output-title" id="outputTitle">Generated worksheet</div>
+        <div class="output-actions">
+          <button class="out-btn" onclick="copyOutput()" id="copyBtn" style="display:none;">📋 Copy</button>
+          <button class="out-btn out-btn-primary" onclick="printOutput()" id="printBtn" style="display:none;">🖨 Print</button>
+        </div>
+      </div>
+      <div class="out-tabs" id="outTabs" style="display:none;">
+        <div class="out-tab active" onclick="showOutTab('worksheet',this)">Worksheet</div>
+        <div class="out-tab" onclick="showOutTab('answerkey',this)">Answer key</div>
+        <div class="out-tab" onclick="showOutTab('lessonplan',this)">Lesson plan</div>
+        <div class="out-tab" onclick="showOutTab('parentnote',this)">Parent note</div>
+      </div>
+      <div class="output-body" id="outputBody">
+        <div class="output-empty">
+          <div class="output-empty-icon">✨</div>
+          <div class="output-empty-text">
+            Fill in the form on the left and tap <strong>Generate with AI</strong> to create a personalised worksheet for your students.
+            <br><br>
+            The AI will automatically adjust the language, difficulty and style based on the student's age group and level.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toast" style="display:none;" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let allBatches = [], batchStudents = {}, teacherSession = null;
+let selectedLevel = 1, selectedConcept = 'add_sub', selectedActivity = 'flashcards';
+let generatedContent = { worksheet:'', answerkey:'', lessonplan:'', parentnote:'' };
+let currentOutTab = 'worksheet';
+
+// ── HELPERS ──────────────────────────────────────────────────
+function toast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast toast-' + type;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display='none', 3000);
+}
+
+function getGroupFromAge(age) {
+  if (!age) return null;
+  if (age <= 7) return { label:'🐣 Tiny Champs (5–7)', bg:'#FCE4EC', border:'#E91E8C', color:'#880E4F' };
+  if (age <= 10) return { label:'🌟 Rising Stars (8–10)', bg:'#E3F2FD', border:'#1976D2', color:'#0D47A1' };
+  return { label:'🚀 Champions (11–12)', bg:'#EDE7F6', border:'#6A1B9A', color:'#4A148C' };
+}
+
+const LEVEL_SUMMARIES = {
+  0: 'Level 0 — No formulas. Counting, number recognition and simple addition 1–9 only.',
+  1: 'Level 1 — Big friends + small friends. Addition and subtraction up to 2 digits.',
+  2: 'Level 2 — Big and small friends combination. Addition and subtraction up to 3 digits.',
+  3: 'Level 3 — Family formula (combination concept). Addition and subtraction up to 4 digits.',
+  4: 'Level 4 — Anzan (mental abacus). Addition and subtraction up to 5 digits.',
+  5: 'Level 5 — Multiplication 2×1 and 3×1 only (no division). 6-digit addition and subtraction.',
+  6: 'Level 6 — Division 2÷1. 7-digit addition and subtraction.',
+  7: 'Level 7 — Multiplication 4×1, 2×2. Division 4÷1. 8-digit addition and subtraction.',
+  8: 'Level 8 — Decimals and negative numbers. Advanced addition and subtraction.',
+};
+
+// ── FORM INTERACTIONS ────────────────────────────────────────
+function selectLevel(el, lv) {
+  document.querySelectorAll('.level-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedLevel = lv;
+  document.getElementById('levelSummary').textContent = LEVEL_SUMMARIES[lv] || '';
+}
+
+function selectConcept(el, val) {
+  document.querySelectorAll('.concept-opt').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('input').checked = true;
+  selectedConcept = val;
+}
+
+function selectActivity(el, val) {
+  document.querySelectorAll('.activity-opt').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('input').checked = true;
+  selectedActivity = val;
+}
+
+async function onBatchChange() {
+  const batchId = document.getElementById('batchSel').value;
+  const sel = document.getElementById('studentSel');
+  sel.innerHTML = '<option value="">— Entire batch —</option>';
+  document.getElementById('ageHint').style.display = 'none';
+  if (!batchId) return;
+
+  const students = batchStudents[batchId] || [];
+  students.forEach(s => {
+    sel.innerHTML += `<option value="${s.id}" data-level="${s.current_level||1}" data-dob="${s.date_of_birth||''}" data-group="${s.age_group||''}">${s.full_name}</option>`;
+  });
+
+  // Set level to batch's common level
+  if (students.length) {
+    const commonLevel = students[0].current_level || 1;
+    selectLevelByValue(commonLevel);
+  }
+}
+
+function onStudentChange() {
+  const sel = document.getElementById('studentSel');
+  const opt = sel.options[sel.selectedIndex];
+  const hint = document.getElementById('ageHint');
+  if (!opt.value) { hint.style.display='none'; return; }
+
+  const lv = parseInt(opt.dataset.level)||1;
+  const dob = opt.dataset.dob;
+  const ageGroup = opt.dataset.group;
+  selectLevelByValue(lv);
+
+  // Calculate age
+  let age = null, grp = null;
+  if (dob) {
+    const d = new Date(dob), today = new Date();
+    age = today.getFullYear()-d.getFullYear();
+    const m = today.getMonth()-d.getMonth();
+    if (m<0||(m===0&&today.getDate()<d.getDate())) age--;
+  }
+  const g = ageGroup || (age<=7?'tiny':age<=10?'rising':'champions');
+  grp = getGroupFromAge(age);
+
+  if (grp) {
+    hint.style.cssText = `display:flex;background:${grp.bg};border:1.5px solid ${grp.border};border-radius:10px;padding:8px 12px;margin-top:8px;font-size:.78rem;font-weight:700;color:${grp.color};gap:8px;align-items:center;`;
+    hint.innerHTML = `<span>${grp.label}</span>${age?`<span>· Age ${age}</span>`:''}· <span>AI will automatically adapt tone, difficulty and style for this age group</span>`;
+    hint.style.display = 'flex';
+  }
+}
+
+function selectLevelByValue(lv) {
+  const cards = document.querySelectorAll('.level-card');
+  cards.forEach((c,i) => {
+    c.classList.toggle('selected', i === lv);
+  });
+  selectedLevel = lv;
+  document.getElementById('levelSummary').textContent = LEVEL_SUMMARIES[lv] || '';
+}
+
+// ── BUILD PROMPT ─────────────────────────────────────────────
+function buildPrompt(preview=false) {
+  const batch = document.getElementById('batchSel').options[document.getElementById('batchSel').selectedIndex]?.text || 'selected batch';
+  const student = document.getElementById('studentSel').options[document.getElementById('studentSel').selectedIndex];
+  const studentName = student?.value ? student.text : 'the entire batch';
+  const difficulty = document.getElementById('difficulty').value.replace('_',' ');
+  const qCount = preview ? 2 : document.getElementById('questionCount').value;
+  const timeLimit = document.getElementById('timeLimit').value;
+  const theme = document.getElementById('theme').value;
+  const mascot = document.getElementById('mascot').value || 'no mascot';
+  const language = document.getElementById('language').value.replace('_',' ');
+  const special = document.getElementById('specialInstructions').value;
+
+  // Determine age group from selected student
+  const selOpt = document.getElementById('studentSel').options[document.getElementById('studentSel').selectedIndex];
+  const dob = selOpt?.dataset?.dob || '';
+  let ageGroup = selOpt?.dataset?.group || '';
+  if (!ageGroup && dob) {
+    const d = new Date(dob), today = new Date();
+    let age = today.getFullYear()-d.getFullYear();
+    const m = today.getMonth()-d.getMonth();
+    if (m<0||(m===0&&today.getDate()<d.getDate())) age--;
+    ageGroup = age<=7?'tiny':age<=10?'rising':'champions';
+  }
+  if (!ageGroup) ageGroup = selectedLevel<=1?'tiny':selectedLevel<=4?'rising':'champions';
+
+  const ageDesc = {tiny:'5–7 year old (Tiny Champs)',rising:'8–10 year old (Rising Stars)',champions:'11–12 year old (Champions)'}[ageGroup];
+
+  const wantWorksheet = document.getElementById('out-worksheet').checked;
+  const wantAnswerKey = document.getElementById('out-answerkey').checked;
+  const wantHints     = document.getElementById('out-hints').checked;
+  const wantLesson    = document.getElementById('out-lessonplan').checked;
+  const wantParent    = document.getElementById('out-parentnote').checked;
+  const wantFlash     = document.getElementById('out-flashcards').checked;
+
+  const conceptMap = {
+    add_sub:'addition and subtraction at Level '+selectedLevel+' difficulty',
+    big_friends:'Big Friends rule (add 10, subtract complement)',
+    small_friends:'Small Friends rule (add 5, subtract complement)',
+    combination:'Combination / Family Formula concept',
+    multiplication:'Multiplication at Level '+selectedLevel+' ('+  (selectedLevel===5?'2×1 and 3×1':selectedLevel===6?'2×1 and 3×1':selectedLevel===7?'4×1, 2×2':'appropriate type')+')',
+    division:'Division at Level '+selectedLevel+' ('+(selectedLevel===6?'2÷1':selectedLevel===7?'4÷1':'appropriate type')+')',
+    anzan:'Anzan — mental abacus (no physical abacus)',
+    revision:'Full revision of all Level '+selectedLevel+' concepts',
+  };
+
+  const actMap = {
+    flashcards:'Flash cards',picture_sums:'Visual picture sums with emoji/object illustrations',
+    story_problems:'Story problems / word problems',fill_blank:'Fill in the blank',
+    match_pairs:'Match the pairs (sum on left, answer on right)',
+    speed_challenge:'Speed challenge (timed)',colour_answer:'Colour by answer',mixed:'Mixed variety',
+  };
+
+  return `You are an expert Abacus maths teacher creating a worksheet for iMathAcademy.
+
+STUDENT: ${studentName} from ${batch}
+AGE GROUP: ${ageDesc}
+ABACUS LEVEL: Level ${selectedLevel} — ${LEVEL_SUMMARIES[selectedLevel]}
+CONCEPT FOCUS: ${conceptMap[selectedConcept]||selectedConcept}
+ACTIVITY TYPE: ${actMap[selectedActivity]||selectedActivity}
+DIFFICULTY: ${difficulty}
+QUESTIONS: ${qCount}
+TIME LIMIT: ${timeLimit === 'none' ? 'No time limit' : timeLimit + ' minutes'}
+THEME: ${theme}
+MASCOT: ${mascot}
+LANGUAGE: ${language}
+${special ? 'SPECIAL INSTRUCTIONS: ' + special : ''}
+
+IMPORTANT RULES:
+- Addition and subtraction at Level ${selectedLevel} difficulty MUST be included in all worksheets
+- For Tiny Champs (5–7): Use big emojis, picture sums, simple 2-line stories, large numbers, encouraging language, mascot reactions
+- For Rising Stars (8–10): Mix visual and text, include XP reward mention, use streak/badge motivation language
+- For Champions (11–12): Exam-style, no mascot, include time pressure, use competition language
+- All questions must use proper Abacus terminology (Big Friends, Small Friends, Family Formula etc.)
+- Indian context: use Indian names (Aryan, Priya, Ravi, Meera) and Indian contexts (cricket, festivals, rupees)
+
+Please generate the following sections, each clearly labelled:
+
+${wantWorksheet ? `## WORKSHEET
+A complete ${qCount}-question worksheet. Format each question clearly numbered. Include name/date line at top. For picture sums, describe the emoji layout (e.g., "🍎🍎🍎 + 🍎🍎 = ___"). Leave answer blanks as ___.` : ''}
+
+${wantAnswerKey ? `## ANSWER KEY
+Numbered answers corresponding to each question. Include brief working for complex questions.` : ''}
+
+${wantHints ? `## HINT BOX
+A formula reminder box the student can refer to. Include the key rule for this level's concept in simple language. For Tiny Champs use very simple words.` : ''}
+
+${wantLesson ? `## LESSON PLAN
+A 5-point lesson plan for the teacher covering: (1) Warm-up activity (2) Concept introduction (3) Guided practice (4) Independent work (5) Wrap-up and assessment. Keep each point to 2-3 sentences.` : ''}
+
+${wantParent ? `## PARENT NOTE
+A short, friendly note (3-4 sentences) to send home with the student. Tell parents what was covered today, one thing they can practice at home tonight, and one encouraging thing about this level. Write in warm, simple English.` : ''}
+
+${wantFlash ? `## FLASH CARDS
+5 flash card prompts (question on front, answer on back). Format as: Front: [question] | Back: [answer]` : ''}
+
+Keep the tone warm, encouraging and age-appropriate. Make the worksheet feel fun — not like homework.`;
+}
+
+// ── GENERATE ─────────────────────────────────────────────────
+async function generateWorksheet() {
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span>Generating...</span><span style="font-size:.82rem;opacity:.85;">This takes 10–15 seconds</span>';
+
+  document.getElementById('outputBody').innerHTML = `
+    <div class="generating">
+      <div class="gen-dots"><div class="gen-dot"></div><div class="gen-dot"></div><div class="gen-dot"></div></div>
+      <div class="gen-text">AI is creating your worksheet...</div>
+      <div class="gen-sub">Adjusting for age group, level and theme</div>
+    </div>`;
+
+  document.getElementById('outTabs').style.display = 'none';
+  document.getElementById('copyBtn').style.display = 'none';
+  document.getElementById('printBtn').style.display = 'none';
+
+  try {
+    const prompt = buildPrompt(false);
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2000,
+        system: 'You are an expert Abacus maths teacher at iMathAcademy India. Generate age-appropriate, curriculum-aligned worksheets. Always respond in the exact format requested with clear section headers using ## markers.',
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+
+    const text = data.content?.[0]?.text || '';
+    parseAndRender(text);
+
+    document.getElementById('copyBtn').style.display = 'block';
+    document.getElementById('printBtn').style.display = 'block';
+
+  } catch(err) {
+    document.getElementById('outputBody').innerHTML = `
+      <div style="text-align:center;padding:40px;color:var(--red);">
+        <div style="font-size:2rem;margin-bottom:10px;">⚠️</div>
+        <div style="font-weight:800;margin-bottom:6px;">Generation failed</div>
+        <div style="font-size:.82rem;color:var(--text2);">${err.message}</div>
+      </div>`;
+    toast('❌ AI generation failed: ' + err.message, 'error');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span>✨ Generate with AI</span><span style="font-size:.82rem;opacity:.85;">Powered by Claude</span>';
+}
+
+async function generatePreview() {
+  const btn = document.querySelector('.gen-btn-preview');
+  btn.disabled = true;
+  btn.textContent = 'Generating preview...';
+
+  document.getElementById('outputBody').innerHTML = `
+    <div class="generating">
+      <div class="gen-dots"><div class="gen-dot"></div><div class="gen-dot"></div><div class="gen-dot"></div></div>
+      <div class="gen-text">Generating a sample question...</div>
+    </div>`;
+
+  try {
+    const prompt = `Generate just 2 sample questions (no answer key, no lesson plan) for an Abacus Level ${selectedLevel} worksheet. Activity type: ${selectedActivity}. Theme: ${document.getElementById('theme').value}. Age group: ${selectedLevel<=1?'Tiny Champs 5-7':selectedLevel<=4?'Rising Stars 8-10':'Champions 11-12'}. Keep it brief — just show 2 example questions with the right format and style.`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 400,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text || '';
+
+    document.getElementById('outputBody').innerHTML = `
+      <div style="padding:4px;">
+        <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:10px;">SAMPLE PREVIEW — 2 questions</div>
+        <div style="font-size:.875rem;line-height:1.8;white-space:pre-wrap;color:var(--text);">${escapeHtml(text)}</div>
+        <div style="margin-top:14px;padding:10px 12px;background:var(--blue-lt);border-radius:10px;font-size:.78rem;color:var(--blue-dk);font-weight:700;">
+          ✅ Happy with the style? Click <strong>Generate with AI</strong> to create the full worksheet with all ${document.getElementById('questionCount').value} questions.
+        </div>
+      </div>`;
+
+  } catch(err) {
+    document.getElementById('outputBody').innerHTML = `<div style="padding:20px;color:var(--red);">Preview failed: ${err.message}</div>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = '👁 Preview a sample question first';
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function parseAndRender(text) {
+  // Split into sections by ## headers
+  const sections = {};
+  const parts = text.split(/^## /m);
+  parts.forEach(p => {
+    const lines = p.trim().split('\n');
+    const header = lines[0].trim().toUpperCase();
+    const body = lines.slice(1).join('\n').trim();
+    if (header.includes('WORKSHEET'))   sections.worksheet   = body;
+    if (header.includes('ANSWER KEY'))  sections.answerkey   = body;
+    if (header.includes('HINT'))        sections.hints       = body;
+    if (header.includes('LESSON'))      sections.lessonplan  = body;
+    if (header.includes('PARENT'))      sections.parentnote  = body;
+    if (header.includes('FLASH'))       sections.flashcards  = body;
+  });
+
+  generatedContent = sections;
+
+  // Show tabs if multiple sections
+  const hasTabs = Object.keys(sections).length > 1;
+  document.getElementById('outTabs').style.display = hasTabs ? 'flex' : 'none';
+
+  renderOutTab('worksheet');
+}
+
+function renderOutTab(tab) {
+  currentOutTab = tab;
+  const body = document.getElementById('outputBody');
+  let content = generatedContent[tab] || generatedContent.worksheet || '';
+
+  if (!content) {
+    const fallback = Object.values(generatedContent).find(v=>v);
+    content = fallback || 'This section was not generated. Check the output options and regenerate.';
+  }
+
+  // Render as formatted HTML
+  const studentName = document.getElementById('studentSel').options[document.getElementById('studentSel').selectedIndex]?.text || '';
+  const today = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+
+  body.innerHTML = `
+    <div style="font-family:'Nunito',sans-serif;">
+      ${tab === 'worksheet' ? `
+        <div class="ws-title">iMathAcademy — Level ${selectedLevel} Worksheet</div>
+        <div class="ws-subtitle">${LEVEL_SUMMARIES[selectedLevel]}</div>
+        <div class="ws-meta">
+          <span>Name: ${studentName || '____________________'}</span>
+          <span>Date: ${today}</span>
+          <span>Score: ___ / ${document.getElementById('questionCount').value}</span>
+        </div>
+      ` : `<div style="font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:12px;">${tab.replace(/([A-Z])/g,' $1').trim().toUpperCase()}</div>`}
+      <div style="font-size:.875rem;line-height:1.9;white-space:pre-wrap;color:var(--text);">${escapeHtml(content)}</div>
+    </div>`;
+}
+
+function showOutTab(tab, btn) {
+  document.querySelectorAll('.out-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderOutTab(tab);
+}
+
+function copyOutput() {
+  const text = Object.values(generatedContent).join('\n\n---\n\n');
+  navigator.clipboard.writeText(text).then(()=>toast('✅ Copied to clipboard!','success'));
+}
+
+function printOutput() {
+  const content = document.getElementById('outputBody').innerHTML;
+  const win = window.open('','_blank');
+  win.document.write(`<html><head><title>iMathAcademy Worksheet</title><style>body{font-family:Nunito,sans-serif;padding:20px;max-width:700px;margin:0 auto;font-size:14px;line-height:1.8}h1{font-size:1.2rem}pre{white-space:pre-wrap;font-family:inherit}@media print{.no-print{display:none}}</style></head><body>${content}</body></html>`);
+  win.document.close();
+  win.print();
+}
+
+// ── LOAD BATCHES ─────────────────────────────────────────────
+async function loadBatches(teacherId) {
+  try {
+    const { data: batches } = await sb.from('batches')
+      .select('id, name, current_level')
+      .eq('teacher_id', teacherId)
+      .order('name');
+
+    allBatches = batches || [];
+    const sel = document.getElementById('batchSel');
+    sel.innerHTML = '<option value="">— Select batch —</option>' +
+      allBatches.map(b=>`<option value="${b.id}">${b.name}${b.current_level?' · L'+b.current_level:''}</option>`).join('');
+
+    // Load students for each batch
+    for (const b of allBatches) {
+      const { data: students } = await sb.from('batch_students')
+        .select('student_id, users!student_id(id,full_name,current_level,date_of_birth,age_group)')
+        .eq('batch_id', b.id);
+      batchStudents[b.id] = (students||[]).map(s=>s.users).filter(Boolean);
+    }
+  } catch(e) { console.error('loadBatches error:', e); }
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+async function init() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href='../../login.html'; return; }
+    teacherSession = session;
+
+    const { data: profile } = await sb.from('users').select('*').eq('id', session.user.id).single();
+    if (!profile || (profile.role !== 'teacher' && profile.role !== 'admin')) {
+      window.location.href = '../../login.html'; return;
+    }
+
+    await loadBatches(session.user.id);
+
+  } catch(err) {
+    console.error('LX Designer init error:', err);
+    toast('❌ Error loading: ' + err.message, 'error');
+  }
+}
+
+init();
+</script>
+</body>
+</html>

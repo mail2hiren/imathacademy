@@ -440,6 +440,19 @@
         <!-- Error box -->
         <div class="error-box" id="errorBox"></div>
 
+        <!-- Already logged in banner -->
+        <div id="session-banner" style="display:none; background:#E3F2FD; border:2px solid #1976D2; border-radius:14px; padding:14px 16px; margin-bottom:14px; align-items:center; gap:12px; flex-wrap:wrap;">
+          <div style="flex:1;">
+            <div style="font-size:.78rem; color:#0D47A1; font-weight:700; margin-bottom:2px;">Already signed in as</div>
+            <div style="font-size:1rem; font-weight:800; color:#0D47A1;" id="banner-name">—</div>
+            <div style="font-size:.75rem; color:#1565C0;" id="banner-role">—</div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button id="banner-continue" style="background:#1565C0; color:#fff; border:none; border-radius:10px; padding:9px 18px; font-size:.875rem; font-weight:700; cursor:pointer; font-family:inherit;">Continue →</button>
+            <button onclick="switchAccount()" style="background:#fff; color:#1565C0; border:2px solid #1565C0; border-radius:10px; padding:9px 18px; font-size:.875rem; font-weight:700; cursor:pointer; font-family:inherit;">Switch account</button>
+          </div>
+        </div>
+
         <!-- Login form -->
         <form id="loginForm" onsubmit="handleLogin(event)">
           <div class="form-group">

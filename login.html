@@ -774,13 +774,35 @@
 
     const { data: profile } = await sb
       .from('users')
-      .select('role')
+      .select('role, full_name')
       .eq('id', session.user.id)
       .single();
 
-    if (profile && ROLE_ROUTES[profile.role]) {
-      window.location.href = ROLE_ROUTES[profile.role];
+    if (!profile) return;
+
+    // Show "already logged in" banner instead of auto-redirecting
+    // This lets testers switch accounts easily
+    const banner = document.getElementById('session-banner');
+    const bannerName = document.getElementById('banner-name');
+    const bannerRole = document.getElementById('banner-role');
+    const bannerContinue = document.getElementById('banner-continue');
+
+    if (banner) {
+      bannerName.textContent = profile.full_name || session.user.email;
+      bannerRole.textContent = profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
+      bannerContinue.onclick = () => {
+        if (ROLE_ROUTES[profile.role]) window.location.href = ROLE_ROUTES[profile.role];
+      };
+      banner.style.display = 'flex';
     }
+  }
+
+  async function switchAccount() {
+    await sb.auth.signOut();
+    document.getElementById('session-banner').style.display = 'none';
+    document.getElementById('email').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('email').focus();
   }
 
   // Run session check on page load

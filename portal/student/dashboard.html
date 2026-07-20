@@ -680,21 +680,44 @@ function buildDashboard(profile, stats, group, session_user_id) {
       <div class="mission-card">
         <div class="mission-header">
           <div class="mission-title">🎯 Today's missions</div>
-          <div class="mission-timer">Resets midnight</div>
+          <div class="mission-timer" id="missionTimer">Resets midnight</div>
         </div>
-        <div class="mission-item ${stats.practiceToday ? 'mission-done' : ''}">
+
+        <!-- Mission 1: Practice session -->
+        <div class="mission-item ${stats.practiceToday ? 'mission-done' : ''}" onclick="location.href='practice.html'">
           <div class="mission-icon">${stats.practiceToday ? '✅' : '⚡'}</div>
           <div class="mission-info">
             <div class="mission-name">Complete 1 practice session</div>
-            <div class="mission-desc">${stats.practiceToday ? 'Done! Great work!' : 'Flash cards or worksheets'}</div>
+            <div style="height:5px;background:var(--border);border-radius:20px;margin:5px 0 3px;overflow:hidden;">
+              <div style="height:100%;width:${stats.practiceToday?'100':'0'}%;background:var(--green);border-radius:20px;transition:width .5s;"></div>
+            </div>
+            <div class="mission-desc">${stats.practiceToday ? '✨ Done! +10 XP earned!' : 'Tap to start practising'}</div>
           </div>
           <div class="mission-xp">+10 XP</div>
         </div>
-        <div class="mission-item ${stats.streakInSession >= 5 ? 'mission-done' : ''}">
-          <div class="mission-icon">${stats.streakInSession >= 5 ? '✅' : '🎯'}</div>
+
+        <!-- Mission 2: Questions today -->
+        <div class="mission-item ${stats.questionsToday >= 20 ? 'mission-done' : ''}" onclick="location.href='practice.html'">
+          <div class="mission-icon">${stats.questionsToday >= 20 ? '✅' : '🧮'}</div>
+          <div class="mission-info">
+            <div class="mission-name">Solve 20 questions today</div>
+            <div style="height:5px;background:var(--border);border-radius:20px;margin:5px 0 3px;overflow:hidden;">
+              <div style="height:100%;width:${Math.min(100,Math.round(stats.questionsToday/20*100))}%;background:var(--blue);border-radius:20px;transition:width .5s;"></div>
+            </div>
+            <div class="mission-desc">${stats.questionsToday >= 20 ? '✨ Done! +15 XP earned!' : stats.questionsToday+' / 20 questions — '+Math.max(0,20-stats.questionsToday)+' more to go!'}</div>
+          </div>
+          <div class="mission-xp">+15 XP</div>
+        </div>
+
+        <!-- Mission 3: 5 in a row -->
+        <div class="mission-item ${stats.streakInSession >= 5 ? 'mission-done' : ''}" onclick="location.href='practice.html'">
+          <div class="mission-icon">${stats.streakInSession >= 5 ? '✅' : '🔥'}</div>
           <div class="mission-info">
             <div class="mission-name">Get 5 correct in a row</div>
-            <div class="mission-desc">${stats.streakInSession >= 5 ? 'Done! Puzzle unlocked!' : stats.streakInSession > 0 ? stats.streakInSession+' in a row — '+(5-stats.streakInSession)+' more to unlock puzzle!' : 'Start practising to build your streak!'}</div>
+            <div style="height:5px;background:var(--border);border-radius:20px;margin:5px 0 3px;overflow:hidden;">
+              <div style="height:100%;width:${Math.min(100,stats.streakInSession/5*100)}%;background:var(--orange);border-radius:20px;transition:width .5s;"></div>
+            </div>
+            <div class="mission-desc">${stats.streakInSession >= 5 ? '✨ Done! Puzzle unlocked!' : stats.streakInSession > 0 ? stats.streakInSession+' / 5 in a row — keep going!' : 'Start practising to build your streak!'}</div>
           </div>
           <div class="mission-xp">+20 XP</div>
         </div>
@@ -926,15 +949,19 @@ function getMascotMessage(streak, xpPct, streakInSession=0) {
 // ── LOAD ALL LIVE DATA ──────────────────────────────────────
 async function loadStats(userId) {
   const stats = {
-    homeworkPending: 0,
-    practiceToday:   false,
-    stickers:        0,
-    puzzlesToday:    false,
-    weeklyXP:        0,
-    leaderboard:     [],
-    badges:          [],
-    conceptProgress: [],
-    streakInSession: 0,
+    homeworkPending:    0,
+    practiceToday:      false,
+    stickers:           0,
+    puzzlesToday:       false,
+    weeklyXP:           0,
+    leaderboard:        [],
+    badges:             [],
+    conceptProgress:    [],
+    streakInSession:    0,
+    questionsToday:     0,   // live count for mission progress bar
+    worksheetsToday:    0,   // worksheets submitted today
+    quizDoneThisWeek:   false,
+    newWorksheets:      0,
   };
 
   try {
@@ -1000,16 +1027,32 @@ async function loadStats(userId) {
     // 6. Sticker count (use badges count as proxy until stickers table exists)
     stats.stickers = stats.badges.length;
 
-    // 7. In-session correct answer streak from practice_sessions today
+    // 7. In-session correct answer streak + total questions today
     const { data: todaySessions } = await sb
       .from('practice_sessions')
-      .select('correct_answers, total_questions')
+      .select('correct_answers, total_questions, session_type')
       .eq('student_id', userId)
       .gte('created_at', todayStart.toISOString())
-      .order('created_at', { ascending: false })
-      .limit(1);
-    if (todaySessions?.[0]) {
+      .order('created_at', { ascending: false });
+    if (todaySessions?.length) {
       stats.streakInSession = todaySessions[0].correct_answers || 0;
+      stats.questionsToday = todaySessions.reduce((s,r) => s + (r.total_questions||0), 0);
+      stats.worksheetsToday = todaySessions.filter(r => r.session_type==='worksheet').length;
+    }
+
+    // 8. Quiz done this week
+    const weekNum = (() => { const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+4-(d.getDay()||7)); const y=new Date(d.getFullYear(),0,1); return Math.ceil((((d-y)/86400000)+1)/7); })();
+    const { data: quizDone } = await sb.from('quiz_results')
+      .select('id').eq('student_id', userId).eq('week_number', weekNum).limit(1);
+    stats.quizDoneThisWeek = (quizDone?.length||0) > 0;
+
+    // 9. New worksheets count
+    if (batchIds.length) {
+      const { data: wsResponses } = await sb.from('worksheet_responses').select('worksheet_id').eq('student_id', userId);
+      const doneIds = new Set((wsResponses||[]).map(r => r.worksheet_id));
+      const { data: allWs } = await sb.from('lx_worksheets').select('id').eq('is_active', true)
+        .or(\`student_id.eq.\${userId},batch_id.in.(\${batchIds.join(',')})\`);
+      stats.newWorksheets = (allWs||[]).filter(w => !doneIds.has(w.id)).length;
     }
 
   } catch(e) { console.error('loadStats error:', e); }
@@ -1137,6 +1180,20 @@ function spawnConfetti() {
     setTimeout(() => el.remove(), 3000);
   }
 }
+
+// ── MISSION COUNTDOWN TIMER ──────────────────────────────────
+function updateMissionTimer() {
+  const el = document.getElementById('missionTimer');
+  if (!el) return;
+  const now = new Date();
+  const midnight = new Date(); midnight.setHours(24,0,0,0);
+  const diff = midnight - now;
+  const h = Math.floor(diff/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  el.textContent = `Resets in ${h}h ${m}m`;
+}
+updateMissionTimer();
+setInterval(updateMissionTimer, 60000);
 </script>
 </body>
 </html>

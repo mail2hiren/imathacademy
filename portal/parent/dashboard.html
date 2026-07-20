@@ -312,6 +312,18 @@ function renderDashboard(child, stats) {
   const milestones = buildMilestones(child, stats, journey, streak, badges);
   const convStarters = buildConvStarters(child, stats, group);
 
+  // Show parent notes
+  const notesSection = document.getElementById('parentNotesSection');
+  const notesList = document.getElementById('parentNotesList');
+  if (notesSection && notesList && stats.parentNotes?.length) {
+    notesList.innerHTML = stats.parentNotes.map(n => `
+      <div style="background:#E8F5E9;border:1.5px solid #43A047;border-radius:12px;padding:12px 14px;margin-bottom:8px;">
+        <div style="font-size:.72rem;font-weight:800;color:#1B5E20;margin-bottom:4px;">${n.title}</div>
+        <div style="font-size:.82rem;color:#1B5E20;line-height:1.7;">${n.parent_note}</div>
+      </div>`).join('');
+    notesSection.style.display = 'block';
+  }
+
   document.getElementById('mainContent').innerHTML = `
 
     <!-- Child selector -->
@@ -380,6 +392,12 @@ function renderDashboard(child, stats) {
       <div class="summary-box" style="background:var(--green-lt);border:1.5px solid var(--green);margin-bottom:10px;">
         <div class="summary-title" style="color:var(--green-dk);">This week in plain English</div>
         <div class="summary-text" style="color:var(--green-dk);">${buildWeeklySummary(child, stats, journey, practiceToday)}</div>
+      </div>
+
+      <!-- Parent notes from teacher (from worksheet LX Designer) -->
+      <div id="parentNotesSection" style="display:none;margin-bottom:12px;">
+        <div class="sec-title">📝 Notes from teacher this week</div>
+        <div id="parentNotesList"></div>
       </div>
 
       <!-- Conversation starters -->
@@ -688,6 +706,24 @@ async function loadChildStats(childId) {
       stats.homeworkPending = hw?.length||0;
     }
   } catch(e) { console.error('loadChildStats error:', e); }
+
+  // Load teacher parent notes from worksheets
+  try {
+    const { data: batchLinks } = await sb.from('batch_students').select('batch_id').eq('student_id', childId);
+    const batchIds = (batchLinks||[]).map(b => b.batch_id);
+    if (batchIds.length) {
+      const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      const { data: notes } = await sb.from('lx_worksheets')
+        .select('title, parent_note, created_at')
+        .or(`student_id.eq.${childId},batch_id.in.(${batchIds.join(',')})`)
+        .not('parent_note', 'is', null)
+        .gte('created_at', oneWeekAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(3);
+      stats.parentNotes = (notes||[]).filter(n => n.parent_note?.trim());
+    }
+  } catch(e) {}
+
   return stats;
 }
 

@@ -398,7 +398,7 @@ async function loadNotifications(userId) {
 }
 
 // ── BUILD DASHBOARD ──────────────────────────────────────────
-function buildDashboard(profile, stats, group) {
+function buildDashboard(profile, stats, group, session_user_id) {
   const age = getAgeFromDOB(profile.date_of_birth);
   const name    = profile.full_name || 'Student';
   const level   = profile.current_level || 1;
@@ -435,8 +435,8 @@ function buildDashboard(profile, stats, group) {
         <div style="font-size:52px;margin-bottom:8px;">🐘</div>
         <div style="font-size:1.1rem;font-weight:800;margin-bottom:4px;">Hello ${name.split(' ')[0]}! 👋</div>
         <div style="font-size:.82rem;opacity:.85;margin-bottom:14px;">"Ready to do some maths magic today?"</div>
-        <div style="display:flex;justify-content:center;gap:6px;margin-bottom:8px;">
-          ${Array.from({length:7},(_,i)=>`<span style="font-size:1.4rem;opacity:${i<streak?1:.25};">⭐</span>`).join('')}
+        <div style="display:flex;justify-content:center;gap:5px;margin-bottom:8px;flex-wrap:wrap;">
+          ${Array.from({length:7},(_,i)=>`<span style="font-size:${i<streak?'1.6':'1.2'}rem;opacity:${i<streak?1:.2};transition:all .3s;">⭐</span>`).join('')}
         </div>
         <div style="font-size:.72rem;opacity:.8;">${streak} day${streak!==1?'s':''} in a row! ${streak<7?`${7-streak} more for a SUPER STAR badge!`:' AMAZING streak! 🎉'}</div>
       </div>
@@ -710,7 +710,75 @@ function buildDashboard(profile, stats, group) {
   }
 }
 
-function getMascotMessage(streak, xpPct) {
+// ── BADGE DEFINITIONS ───────────────────────────────────────
+const BADGE_DEFS = [
+  { key: 'speed_star',    emoji: '⭐', name: 'Speed star'    },
+  { key: 'perfect_score', emoji: '🎯', name: 'Perfect!'      },
+  { key: 'streak_5',      emoji: '🔥', name: '5-day fire'    },
+  { key: 'streak_7',      emoji: '🥇', name: '7-day legend'  },
+  { key: 'streak_30',     emoji: '🌟', name: '30-day star'   },
+  { key: 'puzzle_pro',    emoji: '🧩', name: 'Puzzle pro'    },
+  { key: 'top_batch',     emoji: '🏆', name: 'Top of batch'  },
+  { key: 'abacus_ninja',  emoji: '🥷', name: 'Abacus ninja'  },
+  { key: 'first_login',   emoji: '🎉', name: 'First login!'  },
+];
+
+function renderBadges(earned) {
+  const earnedKeys = new Set((earned||[]).map(b => b.badge_type || b.type || b.key));
+
+  // Show earned first, then show up to 3 locked badges as preview
+  const earnedDefs  = BADGE_DEFS.filter(b =>  earnedKeys.has(b.key));
+  const lockedDefs  = BADGE_DEFS.filter(b => !earnedKeys.has(b.key)).slice(0, 3);
+  const all = [...earnedDefs, ...lockedDefs];
+
+  if (!all.length) return '<div style="font-size:.82rem;color:var(--text3);padding:8px;">Complete activities to earn your first badge!</div>';
+
+  return all.map(b => {
+    const isEarned = earnedKeys.has(b.key);
+    return `<div class="badge-item ${isEarned ? 'earned' : 'locked'}">
+      <div class="badge-emoji">${b.emoji}</div>
+      <div class="badge-name">${b.name}</div>
+    </div>`;
+  }).join('');
+}
+
+function getBadgeHint(earned) {
+  const earnedKeys = new Set((earned||[]).map(b => b.badge_type || b.type || b.key));
+  const next = BADGE_DEFS.find(b => !earnedKeys.has(b.key));
+  if (!next) return '<div class="badge-hint">🏆 You have earned all badges! Incredible!</div>';
+  const hints = {
+    speed_star:    'Answer 10 questions in a row with speed to earn <strong>Speed star</strong>!',
+    perfect_score: 'Get 100% on any worksheet to earn <strong>Perfect!</strong>',
+    streak_5:      'Login 5 days in a row to earn <strong>5-day fire</strong>!',
+    streak_7:      'Login 7 days in a row to earn <strong>7-day legend</strong>!',
+    puzzle_pro:    'Solve 5 puzzles to earn <strong>Puzzle pro</strong>!',
+    top_batch:     'Reach #1 on the batch leaderboard to earn <strong>Top of batch</strong>!',
+    abacus_ninja:  'Complete Level 8 to become an <strong>Abacus ninja</strong>!',
+    first_login:   'Just login to earn your first badge!',
+  };
+  return `<div class="badge-hint">👉 ${hints[next.key] || 'Keep practising to earn more badges!'}</div>`;
+}
+
+const RANK_ICONS = ['🥇','🥈','🥉','4','5'];
+function renderLeaderboard(lb, myId) {
+  if (!lb?.length) return '<div style="padding:12px;text-align:center;color:var(--text3);font-size:.82rem;">Complete activities this week to appear on the leaderboard!</div>';
+  const myRank = lb.findIndex(l => l.id === myId);
+  const top = lb.slice(0, 5);
+  return top.map((l, i) => {
+    const isMe = l.id === myId;
+    const gap  = i === 0 ? '' : `<div style="font-size:.68rem;color:var(--text3);">${top[0].xp - l.xp} XP behind #1</div>`;
+    return `<div class="lb-item ${isMe ? 'lb-you' : ''}">
+      <div class="lb-rank">${RANK_ICONS[i]||i+1}</div>
+      <div class="lb-name" style="${i===0?'color:var(--orange-dk)':isMe?'color:var(--blue-dk)':'color:var(--text2)'}">${l.name}${isMe?' (you!)':''}</div>
+      <div>
+        <div class="lb-xp">${l.xp.toLocaleString('en-IN')} XP</div>
+        ${!isMe && i > 0 ? gap : ''}
+      </div>
+    </div>`;
+  }).join('') + (myRank > -1 ? `<div class="lb-hint">💪 ${myRank === 0 ? "You're #1 this week! 🏆 Defend your spot!" : `${lb[0].xp - lb[myRank].xp} XP behind #1 — keep going!`}</div>` : '');
+}
+
+function getMascotMessage(streak, xpPct, streakInSession=0) {
   if (xpPct >= 90) return "You are SO close to filling the power bar! Just one more session! ✨";
   if (streak >= 5) return `${streak} days in a row — you are AMAZING! Keep going, superstar! 🌟`;
   if (streak === 0) return "I missed you! Come on, let's do some maths magic together today! 🎉";
@@ -845,8 +913,8 @@ async function init() {
       loadNotifications(session.user.id),
     ]);
 
-    // Build dashboard
-    buildDashboard(profile, stats, group);
+    // Build dashboard — pass session user id for leaderboard highlight
+    buildDashboard(profile, stats, group, session.user.id);
 
   } catch(err) {
     console.error('Dashboard init error:', err);

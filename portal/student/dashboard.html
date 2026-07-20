@@ -749,7 +749,7 @@ function buildDashboard(profile, stats, group, session_user_id) {
         </div>
 
         <!-- Mission 6: Worksheet (conditional) -->
-          ${stats.newWorksheets > 0 ? `<div class="mission-item" onclick="location.href='worksheets.html'"><div class="mission-icon">📋</div><div class="mission-info"><div class="mission-name">Complete new worksheet</div><div style="height:5px;background:var(--border);border-radius:20px;margin:5px 0 3px;overflow:hidden;"><div style="height:100%;width:0%;background:var(--green);border-radius:20px;"></div></div><div class="mission-desc">${stats.newWorksheets} worksheet${stats.newWorksheets > 1 ? 's' : ''} waiting!</div></div><div class="mission-xp">+25 XP</div></div>` : ''}
+          ${stats.newWorksheets > 0 ? '<div class="mission-item" onclick="location.href=\'worksheets.html\'">' + '<div class="mission-icon">📋</div>' + '<div class="mission-info"><div class="mission-name">Complete new worksheet</div>' + '<div style="height:5px;background:var(--border);border-radius:20px;margin:5px 0 3px;overflow:hidden;"><div style="height:100%;width:0%;background:var(--green);border-radius:20px;"></div></div>' + '<div class="mission-desc">' + stats.newWorksheets + ' worksheet' + (stats.newWorksheets > 1 ? \'s\' : \'\') + ' waiting!</div></div>' + '<div class="mission-xp">+25 XP</div></div>' : ''}
 
       </div>
 

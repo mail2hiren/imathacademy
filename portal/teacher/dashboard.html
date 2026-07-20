@@ -1352,6 +1352,7 @@ async function init() {
 
     // ── Real name from DB ──
     const name = profile.full_name || 'Teacher';
+    loadTeacherNotifications(session.user.id);
     document.getElementById('userAv').textContent   = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
     document.getElementById('userName').textContent = name;
 

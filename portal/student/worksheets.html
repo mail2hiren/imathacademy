@@ -13,489 +13,500 @@
       --blue:#1E88E5;--blue-dk:#0D47A1;--blue-lt:#E3F2FD;
       --orange:#FB8C00;--orange-dk:#E65100;--orange-lt:#FFF3E0;
       --purple:#8E24AA;--purple-lt:#F3E5F5;--purple-dk:#4A148C;
-      --red:#E53935;--red-lt:#FFEBEE;
-      --yellow:#F9A825;--yellow-lt:#FFFDE7;
+      --red:#E53935;--red-lt:#FFEBEE;--red-dk:#B71C1C;
+      --yellow:#F9A825;--yellow-lt:#FFFDE7;--yellow-dk:#E65100;
       --bg:#fff;--bg2:#F7F8FF;--border:#E8EAF6;
       --text:#1A1A2E;--text2:#4A4A6A;--text3:#9090B0;
     }
-
-    /* ── TOPBAR ── */
-    .topbar{height:56px;background:var(--bg);border-bottom:2px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.04);}
-    .topbar-logo{display:flex;align-items:center;flex-shrink:0;text-decoration:none;}
-    .topbar-logo img{height:32px;width:auto;object-fit:contain;}
+    .topbar{height:56px;background:var(--bg);border-bottom:2px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 14px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+    .topbar img{height:32px;width:auto;object-fit:contain;}
     .topbar-title{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;flex:1;}
-    .topbar-badge{font-size:.7rem;font-weight:800;background:var(--blue-lt);color:var(--blue-dk);padding:3px 10px;border-radius:20px;border:1.5px solid var(--blue);}
-
-    /* ── CONTENT ── */
+    .new-badge{font-size:.7rem;font-weight:800;background:var(--red-lt);color:var(--red-dk);padding:3px 10px;border-radius:20px;border:1.5px solid var(--red);}
     .content{padding:14px;max-width:680px;margin:0 auto;padding-bottom:80px;}
 
-    /* ── CARDS ── */
-    .ws-card{background:var(--bg);border:2px solid var(--border);border-radius:16px;margin-bottom:12px;overflow:hidden;transition:box-shadow .12s;}
-    .ws-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);}
-    .ws-card-header{padding:14px 16px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;}
-    .ws-card-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
-    .ws-card-info{flex:1;}
-    .ws-card-title{font-size:.9rem;font-weight:800;margin-bottom:3px;}
-    .ws-card-meta{font-size:.72rem;color:var(--text3);display:flex;gap:10px;flex-wrap:wrap;}
-    .ws-card-status{display:flex;align-items:center;gap:6px;margin-left:auto;flex-shrink:0;}
-    .ws-status-pill{font-size:.65rem;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+    /* Tabs */
+    .tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+    .tabs::-webkit-scrollbar{display:none;}
+    .tab-btn{padding:7px 16px;border-radius:20px;border:2px solid var(--border);background:var(--bg);font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Nunito',sans-serif;transition:all .12s;touch-action:manipulation;}
+    .tab-btn.active{background:var(--blue-lt);border-color:var(--blue);color:var(--blue-dk);}
+
+    /* Worksheet card */
+    .ws-card{background:var(--bg);border:2px solid var(--border);border-radius:16px;margin-bottom:12px;overflow:hidden;transition:box-shadow .15s;}
+    .ws-card.is-new{border-color:var(--blue);}
+    .ws-header{padding:14px 16px;display:flex;align-items:flex-start;gap:12px;cursor:pointer;touch-action:manipulation;}
+    .ws-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+    .ws-info{flex:1;min-width:0;}
+    .ws-title{font-size:.9rem;font-weight:800;margin-bottom:4px;}
+    .ws-meta{font-size:.72rem;color:var(--text3);display:flex;gap:8px;flex-wrap:wrap;}
+    .ws-pill{font-size:.65rem;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap;}
     .pill-new{background:var(--blue-lt);color:var(--blue-dk);border:1.5px solid var(--blue);}
     .pill-done{background:var(--green-lt);color:var(--green-dk);border:1.5px solid var(--green);}
-    .pill-inprogress{background:var(--yellow-lt);color:#E65100;border:1.5px solid var(--yellow);}
+    .pill-inprogress{background:var(--yellow-lt);color:var(--yellow-dk);border:1.5px solid var(--yellow);}
 
-    /* ── EXPAND BODY ── */
-    .ws-body{display:none;border-top:2px solid var(--border);padding:16px;}
-    .ws-body.open{display:block;}
+    /* Solver */
+    .solver{display:none;border-top:2px solid var(--border);}
+    .solver.open{display:block;}
 
-    /* ── QUESTION BLOCK ── */
-    .q-block{padding:12px 14px;border:2px solid var(--border);border-radius:12px;margin-bottom:10px;background:var(--bg2);}
-    .q-num{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:6px;}
-    .q-text{font-size:1rem;font-weight:700;margin-bottom:10px;line-height:1.5;}
-    .q-input{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;color:var(--text);background:var(--bg);outline:none;transition:border-color .12s;}
+    /* Progress bar at top of solver */
+    .progress-bar-wrap{height:4px;background:var(--border);}
+    .progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));transition:width .3s ease;}
+
+    /* Question card */
+    .q-wrap{padding:16px;}
+    .q-counter{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:12px;text-align:center;}
+
+    /* Tiny Champs style */
+    .tiny-q{background:linear-gradient(135deg,#E3F2FD,#F3E5F5);border-radius:20px;padding:20px;text-align:center;margin-bottom:16px;}
+    .tiny-emoji{font-size:3.5rem;margin-bottom:10px;}
+    .tiny-text{font-size:1.2rem;font-weight:800;color:var(--blue-dk);line-height:1.4;}
+    .tiny-input{width:100%;padding:14px;border:3px solid var(--blue);border-radius:16px;font-family:'Nunito',sans-serif;font-size:1.4rem;font-weight:800;color:var(--text);background:var(--bg);outline:none;text-align:center;}
+
+    /* Rising Stars / Champions style */
+    .q-card{background:var(--bg2);border:2px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;}
+    .q-text{font-size:1rem;font-weight:700;color:var(--text);line-height:1.6;margin-bottom:12px;}
+    .q-input{width:100%;padding:12px 16px;border:2px solid var(--border);border-radius:12px;font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text);background:var(--bg);outline:none;text-align:center;transition:border-color .15s;}
     .q-input:focus{border-color:var(--blue);}
     .q-input.correct{border-color:var(--green);background:var(--green-lt);color:var(--green-dk);}
-    .q-input.wrong{border-color:var(--red);background:var(--red-lt);color:var(--red);}
-    .q-feedback{font-size:.78rem;font-weight:700;margin-top:5px;display:none;}
-    .q-feedback.show{display:block;}
-    .q-feedback.correct{color:var(--green-dk);}
-    .q-feedback.wrong{color:var(--red);}
+    .q-input.wrong{border-color:var(--red);background:var(--red-lt);color:var(--red-dk);}
 
-    /* ── HINT BOX ── */
-    .hint-box{background:var(--yellow-lt);border:1.5px solid var(--yellow);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:.82rem;color:var(--orange-dk);}
-    .hint-title{font-weight:800;margin-bottom:4px;}
+    /* Feedback */
+    .feedback{text-align:center;padding:10px;border-radius:12px;font-size:.9rem;font-weight:800;margin-top:8px;display:none;}
+    .feedback.show{display:block;}
+    .feedback.correct{background:var(--green-lt);color:var(--green-dk);}
+    .feedback.wrong{background:var(--red-lt);color:var(--red-dk);}
 
-    /* ── SUBMIT ── */
-    .submit-row{display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;}
-    .submit-btn{flex:1;padding:12px;background:var(--blue);color:#fff;border:none;border-radius:12px;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;touch-action:manipulation;min-height:44px;}
-    .submit-btn:disabled{opacity:.6;cursor:not-allowed;}
-    .hint-btn{padding:12px 16px;background:var(--bg2);border:2px solid var(--border);border-radius:12px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;touch-action:manipulation;}
+    /* Hint box */
+    .hint-box{background:var(--yellow-lt);border:2px solid var(--yellow);border-radius:12px;padding:12px 14px;margin-bottom:14px;}
+    .hint-toggle{background:var(--bg2);border:2px solid var(--border);border-radius:10px;padding:8px 16px;font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;margin-bottom:12px;width:100%;touch-action:manipulation;}
 
-    /* ── RESULTS ── */
-    .result-banner{border-radius:14px;padding:16px;text-align:center;margin-bottom:12px;}
-    .result-score{font-size:2rem;font-weight:900;margin-bottom:4px;}
-    .result-msg{font-size:.875rem;font-weight:700;}
+    /* Navigation buttons */
+    .q-nav{display:flex;gap:8px;padding:0 16px 16px;}
+    .q-nav-btn{flex:1;padding:13px;border-radius:12px;border:none;font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;touch-action:manipulation;transition:all .12s;}
+    .btn-check{background:var(--blue);color:#fff;}
+    .btn-check:disabled{opacity:.5;cursor:not-allowed;}
+    .btn-next{background:var(--green);color:#fff;}
+    .btn-prev{background:var(--bg2);color:var(--text);border:2px solid var(--border);}
 
-    /* ── LOADER ── */
+    /* XP animation */
+    .xp-pop{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2rem;font-weight:900;color:var(--orange-dk);pointer-events:none;z-index:9999;animation:xpFloat 1.2s ease forwards;}
+    @keyframes xpFloat{0%{opacity:0;transform:translate(-50%,-60%)}20%{opacity:1}80%{opacity:1;transform:translate(-50%,-120%)}100%{opacity:0;transform:translate(-50%,-140%)}}
+
+    /* Results screen */
+    .result-screen{padding:24px 16px;text-align:center;}
+    .result-trophy{font-size:4rem;margin-bottom:12px;}
+    .result-score{font-size:2.5rem;font-weight:900;margin-bottom:6px;}
+    .result-msg{font-size:1rem;font-weight:700;margin-bottom:20px;}
+    .result-breakdown{background:var(--bg2);border-radius:14px;padding:14px;text-align:left;margin-bottom:16px;}
+    .result-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);}
+    .result-row:last-child{border-bottom:none;}
+    .result-qnum{font-size:.75rem;font-weight:800;color:var(--text3);width:24px;}
+    .result-qtext{flex:1;font-size:.82rem;color:var(--text2);}
+    .result-ans{font-size:.82rem;font-weight:800;}
+
+    /* Empty / loader */
     .loader{text-align:center;padding:60px 20px;color:var(--text3);}
     .spinner{width:32px;height:32px;border:4px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;}
     @keyframes spin{to{transform:rotate(360deg)}}
-
-    /* ── EMPTY ── */
     .empty{text-align:center;padding:60px 20px;color:var(--text3);}
     .empty-icon{font-size:3rem;margin-bottom:10px;}
-    .empty-text{font-size:.875rem;line-height:1.6;}
 
-    /* ── BOTTOM NAV ── */
+    /* Bottom nav */
     .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--bg);border-top:2px solid var(--border);z-index:200;}
     .bottom-nav-inner{display:flex;height:100%;}
-    .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;border:none;background:none;padding:4px 0;min-height:44px;}
+    .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;border:none;background:none;padding:4px 0;min-height:44px;position:relative;}
     .bnav-icon{font-size:1.3rem;}
     .bnav-label{font-size:.62rem;font-weight:700;color:var(--text3);font-family:inherit;}
     .bnav-item.active .bnav-label{color:var(--blue-dk);}
     @media(max-width:768px){.bottom-nav{display:block;}body{padding-bottom:64px;}}
-
-    /* ── TABS ── */
-    .tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
-    .tabs::-webkit-scrollbar{display:none;}
-    .tab-btn{padding:7px 16px;border-radius:20px;border:2px solid var(--border);background:var(--bg);font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Nunito',sans-serif;transition:all .12s;}
-    .tab-btn.active{background:var(--blue-lt);border-color:var(--blue);color:var(--blue-dk);}
-
-    /* ── SECTION TITLE ── */
-    .sec-title{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:10px;}
   </style>
 </head>
 <body>
-
 <div class="topbar">
-  <a class="topbar-logo" href="dashboard.html"><img src="../../assets/logo.png" alt="iMathAcademy"></a>
+  <a href="dashboard.html" style="display:flex;align-items:center;flex-shrink:0;text-decoration:none;">
+    <img src="../../assets/logo.png" alt="iMathAcademy">
+  </a>
   <div class="topbar-title">My Worksheets</div>
-  <div class="topbar-badge" id="pendingBadge" style="display:none;">0 new</div>
+  <span class="new-badge" id="newBadge" style="display:none;">0 new</span>
 </div>
 
 <div class="content">
-
   <div class="tabs">
-    <button class="tab-btn active" onclick="filterWs('all',this)">All</button>
-    <button class="tab-btn" onclick="filterWs('new',this)">🆕 New</button>
-    <button class="tab-btn" onclick="filterWs('inprogress',this)">✏️ In progress</button>
-    <button class="tab-btn" onclick="filterWs('done',this)">✅ Done</button>
+    <button class="tab-btn active" onclick="setFilter('all',this)">All</button>
+    <button class="tab-btn" onclick="setFilter('new',this)">🆕 New</button>
+    <button class="tab-btn" onclick="setFilter('inprogress',this)">✏️ In progress</button>
+    <button class="tab-btn" onclick="setFilter('done',this)">✅ Done</button>
   </div>
-
-  <div id="wsList">
-    <div class="loader"><div class="spinner"></div>Loading your worksheets...</div>
-  </div>
-
+  <div id="wsList"><div class="loader"><div class="spinner"></div>Loading worksheets...</div></div>
 </div>
 
-<!-- Bottom nav -->
-<nav class="bottom-nav">
-  <div class="bottom-nav-inner">
-    <a class="bnav-item" href="dashboard.html"><span class="bnav-icon">🏠</span><span class="bnav-label">Home</span></a>
-    <a class="bnav-item" href="practice.html"><span class="bnav-icon">⚡</span><span class="bnav-label">Practice</span></a>
-    <a class="bnav-item" href="lessons.html"><span class="bnav-icon">▶️</span><span class="bnav-label">Lessons</span></a>
-    <a class="bnav-item" href="homework.html"><span class="bnav-icon">📚</span><span class="bnav-label">Homework</span></a>
-    <a class="bnav-item active" href="worksheets.html"><span class="bnav-icon">📋</span><span class="bnav-label">Worksheets</span></a>
-  </div>
-</nav>
+<nav class="bottom-nav"><div class="bottom-nav-inner">
+  <a class="bnav-item" href="dashboard.html"><span class="bnav-icon">🏠</span><span class="bnav-label">Home</span></a>
+  <a class="bnav-item" href="practice.html"><span class="bnav-icon">⚡</span><span class="bnav-label">Practice</span></a>
+  <a class="bnav-item" href="lessons.html"><span class="bnav-icon">▶️</span><span class="bnav-label">Lessons</span></a>
+  <a class="bnav-item" href="homework.html"><span class="bnav-icon">📚</span><span class="bnav-label">Homework</span></a>
+  <a class="bnav-item active" href="worksheets.html"><span class="bnav-icon">📋</span><span class="bnav-label">Worksheets</span></a>
+</div></nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL='https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+const {createClient}=supabase;
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 
-let currentUser = null, allWorksheets = [], responses = {}, currentFilter = 'all';
+let currentUser=null, allWs=[], responses={}, filter='all';
+const LEVEL_ICONS=['🔢','🧮','➕','➕','🧠','✖️','➗','💡','🔢'];
+const GROUP_COLORS={tiny:{bg:'#E3F2FD',border:'#1976D2'},rising:{bg:'#E8F5E9',border:'#43A047'},champions:{bg:'#EDE7F6',border:'#7B1FA2'}};
 
-// ── SUBSCRIPTION CHECK ────────────────────────────────────
-async function checkSubscription(userId) {
-  const { data } = await sb.from('subscriptions').select('expires_at').eq('student_id', userId).eq('status','active').order('expires_at',{ascending:false}).limit(1);
-  if (!data?.length || new Date(data[0].expires_at) < new Date()) { window.location.href='subscription.html'; return false; }
+// ── SUBSCRIPTION CHECK ─────────────────────────────────────
+async function checkSub(uid){
+  const{data}=await sb.from('subscriptions').select('expires_at').eq('student_id',uid).eq('status','active').order('expires_at',{ascending:false}).limit(1);
+  if(!data?.length||new Date(data[0].expires_at)<new Date()){window.location.href='subscription.html';return false;}
   return true;
 }
 
-// ── HELPERS ──────────────────────────────────────────────
-function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '—'; }
+// ── PARSE QUESTIONS from JSON or raw text ──────────────────
+function parseQuestions(content){
+  // Try JSON first (new format from AI)
+  try {
+    const jsonMatch = content.match(/```json\s*([\s\S]*?)```/i) || content.match(/(\[[\s\S]*?\])/);
+    if(jsonMatch){
+      const parsed = JSON.parse(jsonMatch[1]);
+      if(Array.isArray(parsed) && parsed[0]?.question) return parsed;
+    }
+  } catch(e){}
 
-function parseQuestions(text) {
-  // Parse numbered questions from AI-generated text
+  // Try ## QUESTIONS section
+  const wsMatch = content.match(/##\s*(?:WORKSHEET|QUESTIONS)\s*([\s\S]*?)(?=##|$)/i);
+  const text = wsMatch ? wsMatch[1].trim() : content;
+
+  // Parse numbered questions
   const lines = text.split('\n');
   const questions = [];
-  let current = null;
-  for (const line of lines) {
-    const stripped = line.trim();
-    if (!stripped) continue;
-    // Match: 1. or 1) or Q1.
-    const match = stripped.match(/^(?:Q?(\d+)[.)]\s+)(.+)/);
-    if (match) {
-      if (current) questions.push(current);
-      let qtext = match[2];
-      // Extract blank markers — ___ or ___
-      const hasBlank = qtext.includes('___') || qtext.includes('= ?') || qtext.includes('=?');
-      current = { num: parseInt(match[1]), text: qtext, hasBlank, answer: null };
-    } else if (current && stripped.startsWith('Answer:')) {
-      current.answer = stripped.replace('Answer:','').trim();
+  let cur = null;
+  for(const line of lines){
+    const s = line.trim();
+    if(!s) continue;
+    const m = s.match(/^(?:Q?(\d+)[.)]\s*)(.+)/);
+    if(m){
+      if(cur) questions.push(cur);
+      cur = { question: m[2], answer: null, emoji: '🧮', type: 'calculation' };
+    } else if(cur && s.toLowerCase().startsWith('answer')){
+      cur.answer = s.replace(/^answer\s*:?\s*/i,'').trim();
     }
   }
-  if (current) questions.push(current);
+  if(cur) questions.push(cur);
   return questions;
 }
 
-function getHintText(ws) {
-  // Return hint/formula box content if it exists
-  const content = ws.content || '';
-  const hintMatch = content.match(/##\s*HINT BOX\s*([\s\S]*?)(?=##|$)/i);
-  return hintMatch ? hintMatch[1].trim() : null;
+function getHint(content){
+  const m = content.match(/##\s*HINT[^\n]*\n([\s\S]*?)(?=##|$)/i);
+  return m ? m[1].trim() : null;
 }
 
-function getWorksheetQuestions(ws) {
-  const content = ws.content || '';
-  // Extract just the worksheet section
-  const wsMatch = content.match(/##\s*WORKSHEET\s*([\s\S]*?)(?=##|$)/i);
-  const wsText = wsMatch ? wsMatch[1].trim() : content;
-  return parseQuestions(wsText);
+function getStatus(ws){
+  const r=responses[ws.id];
+  if(!r) return 'new';
+  if(r.submitted) return 'done';
+  return 'inprogress';
 }
 
-// ── FILTER ───────────────────────────────────────────────
-function filterWs(filter, btn) {
-  currentFilter = filter;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+function getGroup(){
+  const lv=currentUser?.current_level||1;
+  return currentUser?.age_group||(lv<=1?'tiny':lv<=4?'rising':'champions');
+}
+
+// ── FILTER ─────────────────────────────────────────────────
+function setFilter(f,btn){
+  filter=f;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   btn?.classList.add('active');
   renderList();
 }
 
-// ── RENDER LIST ──────────────────────────────────────────
-function renderList() {
-  const list = document.getElementById('wsList');
-  let filtered = allWorksheets;
-  if (currentFilter !== 'all') filtered = allWorksheets.filter(w => getStatus(w) === currentFilter);
-
-  if (!filtered.length) {
-    list.innerHTML = `<div class="empty">
-      <div class="empty-icon">${currentFilter==='new'?'🆕':currentFilter==='done'?'✅':'📋'}</div>
-      <div class="empty-text">${
-        currentFilter==='new' ? 'No new worksheets. Your teacher will assign some soon!' :
-        currentFilter==='done' ? 'No completed worksheets yet. Solve one!' :
-        'No worksheets assigned yet. Your teacher will create some using the LX Designer!'
-      }</div>
-    </div>`;
+// ── RENDER LIST ────────────────────────────────────────────
+function renderList(){
+  const list=document.getElementById('wsList');
+  let items=allWs;
+  if(filter!=='all') items=allWs.filter(w=>getStatus(w)===filter);
+  if(!items.length){
+    list.innerHTML=`<div class="empty"><div class="empty-icon">${filter==='done'?'✅':'📋'}</div><div style="font-size:.875rem;">${filter==='new'?'No new worksheets — great work!':filter==='done'?'No completed worksheets yet.':'Your teacher hasn\'t assigned worksheets yet.'}</div></div>`;
     return;
   }
-
-  list.innerHTML = filtered.map(ws => renderCard(ws)).join('');
+  list.innerHTML=items.map(ws=>renderCard(ws)).join('');
 }
 
-function getStatus(ws) {
-  const r = responses[ws.id];
-  if (!r) return 'new';
-  if (r.submitted) return 'done';
-  return 'inprogress';
-}
+function renderCard(ws){
+  const status=getStatus(ws);
+  const qs=parseQuestions(ws.content||'');
+  const r=responses[ws.id]||{};
+  const iconBg=LEVEL_ICONS[ws.level||1];
+  const pill=status==='done'?'<span class="ws-pill pill-done">✅ Done</span>':status==='inprogress'?'<span class="ws-pill pill-inprogress">✏️ In progress</span>':'<span class="ws-pill pill-new">🆕 New</span>';
 
-function getStatusPill(ws) {
-  const s = getStatus(ws);
-  if (s === 'done') return '<span class="ws-status-pill pill-done">✅ Done</span>';
-  if (s === 'inprogress') return '<span class="ws-status-pill pill-inprogress">✏️ In progress</span>';
-  return '<span class="ws-status-pill pill-new">🆕 New</span>';
-}
-
-function getCardIcon(ws) {
-  const level = ws.level || 1;
-  const colors = ['#E3F2FD','#E8F5E9','#FFF3E0','#F3E5F5','#E8F5E9','#FFF3E0','#E3F2FD','#FCE4EC','#EDE7F6'];
-  const bg = colors[level] || '#F7F8FF';
-  return `<div class="ws-card-icon" style="background:${bg};">📋</div>`;
-}
-
-function renderCard(ws) {
-  const qs = getWorksheetQuestions(ws);
-  const hint = getHintText(ws);
-  const status = getStatus(ws);
-  const r = responses[ws.id] || {};
-
-  return `
-  <div class="ws-card" id="card-${ws.id}">
-    <div class="ws-card-header" onclick="toggleCard('${ws.id}')">
-      ${getCardIcon(ws)}
-      <div class="ws-card-info">
-        <div class="ws-card-title">${ws.title}</div>
-        <div class="ws-card-meta">
-          <span>Level ${ws.level || '—'}</span>
-          <span>·</span>
-          <span>${qs.length} questions</span>
-          <span>·</span>
-          <span>Assigned ${fmtDate(ws.created_at)}</span>
+  return `<div class="ws-card ${status==='new'?'is-new':''}" id="card-${ws.id}">
+    <div class="ws-header" onclick="toggleCard('${ws.id}')">
+      <div class="ws-icon" style="background:#E3F2FD;">${iconBg}</div>
+      <div class="ws-info">
+        <div class="ws-title">${ws.title}</div>
+        <div class="ws-meta">
+          <span>Level ${ws.level||'—'}</span><span>·</span>
+          <span>${qs.length} question${qs.length!==1?'s':''}</span><span>·</span>
+          <span>${new Date(ws.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>
         </div>
       </div>
-      <div class="ws-card-status">
-        ${getStatusPill(ws)}
-        <span style="color:var(--text3);font-size:.9rem;margin-left:4px;" id="chevron-${ws.id}">▼</span>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        ${pill}
+        ${r.score!==undefined?`<span style="font-size:.72rem;font-weight:800;color:${r.pct>=80?'var(--green-dk)':'var(--orange-dk)'};">${r.score}/${qs.length}</span>`:''}
       </div>
     </div>
-
-    <div class="ws-body" id="body-${ws.id}">
-
-      ${hint ? `<div class="hint-box" id="hint-${ws.id}" style="display:none;">
-        <div class="hint-title">💡 Formula reminder</div>
-        <div style="font-size:.8rem;line-height:1.7;white-space:pre-wrap;">${hint}</div>
-      </div>` : ''}
-
-      ${qs.length === 0 ? `
-        <div style="padding:20px;text-align:center;color:var(--text3);">
-          <div style="font-size:2rem;margin-bottom:8px;">📄</div>
-          <div style="font-size:.875rem;">This worksheet is available as reading material.</div>
-          <div style="font-size:.82rem;margin-top:12px;background:var(--bg2);border-radius:10px;padding:12px;text-align:left;white-space:pre-wrap;line-height:1.7;color:var(--text2);">${(ws.content||'').replace(/##[^\n]*/g,'').trim().slice(0,600)}</div>
-        </div>
-      ` : `
-        <div id="questions-${ws.id}">
-          ${qs.map((q,i) => `
-          <div class="q-block" id="qblock-${ws.id}-${i}">
-            <div class="q-num">Question ${q.num || i+1}</div>
-            <div class="q-text">${q.text.replace(/___+/g,'<span style="display:inline-block;border-bottom:2px solid #999;width:60px;margin:0 4px;"></span>').replace(/=/g,' = ')}</div>
-            <input class="q-input" id="ans-${ws.id}-${i}" type="text" inputmode="numeric" placeholder="Your answer..."
-              ${status==='done' ? 'disabled' : ''}
-              ${r.answers?.[i] ? `value="${r.answers[i]}"` : ''}
-              onkeydown="if(event.key==='Enter'){document.getElementById('ans-${ws.id}-${i+1}')?.focus()}"
-              oninput="saveProgress('${ws.id}',${i},this.value)">
-            <div class="q-feedback ${status==='done'&&r.answers?.[i]?'show':''} ${status==='done'?(r.correct?.[i]?'correct':'wrong'):''}" id="fb-${ws.id}-${i}">
-              ${status==='done' ? (r.correct?.[i] ? '✅ Correct!' : `❌ Answer: ${q.answer || '—'}`) : ''}
-            </div>
-          </div>`).join('')}
-        </div>
-
-        ${status !== 'done' ? `
-        <div class="submit-row">
-          ${hint ? `<button class="hint-btn" onclick="toggleHint('${ws.id}')">💡 Show hint</button>` : ''}
-          <button class="submit-btn" onclick="submitWorksheet('${ws.id}')" id="submit-${ws.id}">
-            Submit answers
-          </button>
-        </div>` : `
-        <div class="result-banner" style="background:${r.pct>=80?'var(--green-lt)':r.pct>=50?'var(--yellow-lt)':'var(--red-lt)'};border:2px solid ${r.pct>=80?'var(--green)':r.pct>=50?'var(--yellow)':'var(--red)'};">
-          <div class="result-score" style="color:${r.pct>=80?'var(--green-dk)':r.pct>=50?'var(--orange-dk)':'var(--red)'};">${r.score}/${qs.length}</div>
-          <div class="result-msg" style="color:${r.pct>=80?'var(--green-dk)':r.pct>=50?'var(--orange-dk)':'var(--red)'};">${r.pct>=80?'Excellent work! 🎉':r.pct>=50?'Good effort! Keep practising 💪':'Keep trying — you can do it! 🌟'}</div>
-        </div>`}
-      `}
-
+    <div class="solver" id="solver-${ws.id}">
+      ${renderSolver(ws,qs,r,status)}
     </div>
   </div>`;
 }
 
-// ── TOGGLE CARD ──────────────────────────────────────────
-function toggleCard(id) {
-  const body = document.getElementById('body-' + id);
-  const chevron = document.getElementById('chevron-' + id);
-  const isOpen = body.classList.contains('open');
-  // Close all
-  document.querySelectorAll('.ws-body').forEach(b => b.classList.remove('open'));
-  document.querySelectorAll('[id^="chevron-"]').forEach(c => c.textContent = '▼');
-  if (!isOpen) {
-    body.classList.add('open');
-    chevron.textContent = '▲';
-    // Focus first input
-    setTimeout(() => { document.querySelector(`#body-${id} .q-input`)?.focus(); }, 100);
+function renderSolver(ws,qs,r,status){
+  if(status==='done') return renderResult(ws,qs,r);
+  const group=getGroup();
+  const hint=getHint(ws.content||'');
+  const cur=r.currentQ||0;
+  const pct=qs.length?Math.round((cur/qs.length)*100):0;
+
+  return `<div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+    <div class="q-wrap">
+      <div class="q-counter">Question ${cur+1} of ${qs.length}</div>
+      ${hint?`<button class="hint-toggle" onclick="toggleHint('${ws.id}')">💡 Show formula hint</button><div class="hint-box" id="hint-${ws.id}" style="display:none;"><div style="font-size:.75rem;font-weight:800;color:var(--yellow-dk);margin-bottom:4px;">Formula reminder</div><div style="font-size:.82rem;line-height:1.7;white-space:pre-wrap;">${hint}</div></div>`:''}
+      ${qs.length?renderQuestion(ws.id, qs[cur], cur, group):'<div style="padding:20px;text-align:center;color:var(--text3);">No questions found in this worksheet.</div>'}
+    </div>
+    ${qs.length?`<div class="q-nav">
+      ${cur>0?`<button class="q-nav-btn btn-prev" onclick="prevQ('${ws.id}')">← Back</button>`:''}
+      <button class="q-nav-btn btn-check" id="checkBtn-${ws.id}" onclick="checkAnswer('${ws.id}',${cur},'${encodeAnswers(qs)}')">Check answer</button>
+    </div>`:''}
+  </div>`;
+}
+
+function encodeAnswers(qs){
+  return btoa(JSON.stringify(qs.map(q=>q.answer||'')));
+}
+
+function renderQuestion(wsId, q, idx, group){
+  if(group==='tiny'){
+    return `<div class="tiny-q">
+      <div class="tiny-emoji">${q.emoji||'🧮'}</div>
+      <div class="tiny-text">${q.question}</div>
+      <input class="tiny-input" id="inp-${wsId}-${idx}" type="text" inputmode="numeric" placeholder="?" autocomplete="off"
+        onkeydown="if(event.key==='Enter')checkAnswer('${wsId}',${idx},'')">
+    </div>
+    <div class="feedback" id="fb-${wsId}-${idx}"></div>`;
+  }
+  return `<div class="q-card">
+    <div class="q-text">${q.question}</div>
+    <input class="q-input" id="inp-${wsId}-${idx}" type="text" inputmode="numeric" placeholder="Your answer..." autocomplete="off"
+      onkeydown="if(event.key==='Enter')checkAnswer('${wsId}',${idx},'')">
+  </div>
+  <div class="feedback" id="fb-${wsId}-${idx}"></div>`;
+}
+
+function renderResult(ws, qs, r){
+  const pct=r.pct||0;
+  const trophy=pct>=80?'🏆':pct>=50?'⭐':'💪';
+  const msg=pct>=80?'Excellent work!':pct>=50?'Good effort — keep going!':'Keep practising — you can do it!';
+  const color=pct>=80?'var(--green-dk)':pct>=50?'var(--orange-dk)':'var(--red-dk)';
+  return `<div class="result-screen">
+    <div class="result-trophy">${trophy}</div>
+    <div class="result-score" style="color:${color};">${r.score}/${qs.length}</div>
+    <div class="result-msg" style="color:${color};">${msg}</div>
+    <div style="background:var(--orange-lt);border:2px solid var(--orange);border-radius:14px;padding:12px;margin-bottom:16px;">
+      <div style="font-size:.875rem;font-weight:800;color:var(--orange-dk);">+${r.xp||0} XP earned! ⚡</div>
+    </div>
+    <div class="result-breakdown">
+      <div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:8px;">Your answers</div>
+      ${qs.map((q,i)=>`<div class="result-row">
+        <div class="result-qnum">${i+1}</div>
+        <div class="result-qtext" style="font-size:.78rem;">${q.question.slice(0,50)}${q.question.length>50?'...':''}</div>
+        <div class="result-ans" style="color:${r.correct?.[i]?'var(--green-dk)':'var(--red-dk)'};">${r.answers?.[i]||'—'} ${r.correct?.[i]?'✅':'❌'}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ── INTERACTION ────────────────────────────────────────────
+function toggleCard(id){
+  const solver=document.getElementById('solver-'+id);
+  if(!solver) return;
+  const isOpen=solver.classList.contains('open');
+  document.querySelectorAll('.solver').forEach(s=>s.classList.remove('open'));
+  if(!isOpen){
+    solver.classList.add('open');
+    setTimeout(()=>document.querySelector(`#solver-${id} input`)?.focus(),150);
   }
 }
 
-// ── TOGGLE HINT ──────────────────────────────────────────
-function toggleHint(wsId) {
-  const hint = document.getElementById('hint-' + wsId);
-  if (!hint) return;
-  hint.style.display = hint.style.display === 'none' ? 'block' : 'none';
+function toggleHint(wsId){
+  const h=document.getElementById('hint-'+wsId);
+  if(h) h.style.display=h.style.display==='none'?'block':'none';
 }
 
-// ── SAVE PROGRESS (in memory + localStorage) ─────────────
-function saveProgress(wsId, qIdx, value) {
-  if (!responses[wsId]) responses[wsId] = { answers: {}, submitted: false };
-  responses[wsId].answers[qIdx] = value;
-  // Persist locally so they don't lose work on refresh
-  try { localStorage.setItem('ws_progress_' + wsId, JSON.stringify(responses[wsId])); } catch(e){}
-}
+function checkAnswer(wsId, qIdx, encodedAnswers){
+  const ws=allWs.find(w=>w.id===wsId);
+  if(!ws) return;
+  const qs=parseQuestions(ws.content||'');
+  const q=qs[qIdx];
+  const input=document.getElementById(`inp-${wsId}-${qIdx}`);
+  const fb=document.getElementById(`fb-${wsId}-${qIdx}`);
+  if(!input||!fb) return;
 
-// ── SUBMIT ───────────────────────────────────────────────
-async function submitWorksheet(wsId) {
-  const ws = allWorksheets.find(w => w.id === wsId);
-  if (!ws) return;
-  const qs = getWorksheetQuestions(ws);
-  if (!qs.length) return;
+  const val=input.value.trim();
+  if(!val){input.focus();return;}
 
-  const btn = document.getElementById('submit-' + wsId);
-  btn.disabled = true;
-  btn.textContent = 'Checking...';
+  // Check answer
+  const expected=(q.answer||'').toString().trim().replace(/[,\s]/g,'');
+  const given=val.replace(/[,\s]/g,'');
+  const isCorrect=expected&&(given===expected||parseFloat(given)===parseFloat(expected));
 
-  const answers = {};
-  const correct = {};
-  let score = 0;
+  input.classList.add(isCorrect?'correct':'wrong');
+  fb.className=`feedback show ${isCorrect?'correct':'wrong'}`;
+  fb.textContent=isCorrect?`✅ Correct! Well done!`:`❌ Not quite. ${expected?'Answer: '+expected:'Try again!'}`;
 
-  qs.forEach((q, i) => {
-    const input = document.getElementById(`ans-${wsId}-${i}`);
-    const val = (input?.value || '').trim();
-    answers[i] = val;
+  // Store answer
+  if(!responses[wsId]) responses[wsId]={answers:{},correct:{},currentQ:0};
+  responses[wsId].answers[qIdx]=val;
+  responses[wsId].correct[qIdx]=isCorrect;
 
-    // Check answer — compare numbers if possible
-    if (q.answer) {
-      const expected = q.answer.toString().trim().replace(/[,\s]/g,'');
-      const given    = val.replace(/[,\s]/g,'');
-      correct[i] = (given === expected) || (parseFloat(given) === parseFloat(expected));
-      if (correct[i]) score++;
+  // XP pop on correct
+  if(isCorrect) showXPPop('+10 XP! ⚡');
+
+  // Change button to Next
+  const checkBtn=document.getElementById(`checkBtn-${wsId}`);
+  if(checkBtn){
+    if(qIdx < qs.length-1){
+      checkBtn.textContent='Next →';
+      checkBtn.onclick=()=>nextQ(wsId, qIdx, qs);
+      checkBtn.className='q-nav-btn btn-next';
+    } else {
+      checkBtn.textContent='Submit all ✓';
+      checkBtn.onclick=()=>submitWorksheet(wsId, qs);
+      checkBtn.className='q-nav-btn btn-next';
     }
-  });
-
-  const pct = Math.round(score / qs.length * 100);
-  const xp  = Math.round(pct / 100 * 20) + 5; // 5–25 XP for completing
-
-  // Save to DB
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-
-    await sb.from('worksheet_responses').insert({
-      worksheet_id: wsId,
-      student_id:   currentUser.id,
-      answers:      JSON.stringify(answers),
-      score,
-      total:        qs.length,
-      xp_earned:    xp,
-      submitted_at: new Date().toISOString(),
-    });
-
-    // Award XP in practice_sessions
-    await sb.from('practice_sessions').insert({
-      student_id:      currentUser.id,
-      correct_answers: score,
-      total_questions: qs.length,
-      xp_earned:       xp,
-      session_type:    'worksheet',
-    });
-
-    // Update user XP
-    await sb.from('users').update({ xp_points: (currentUser.xp_points || 0) + xp }).eq('id', currentUser.id);
-    currentUser.xp_points = (currentUser.xp_points || 0) + xp;
-
-  } catch(e) {
-    console.error('Submit error:', e);
-    // Even if save fails, show result locally
   }
+}
 
-  // Store locally
-  responses[wsId] = { answers, correct, score, pct, submitted: true };
-  try { localStorage.removeItem('ws_progress_' + wsId); } catch(e){}
+function nextQ(wsId, curIdx, qs){
+  const nextIdx=curIdx+1;
+  if(!responses[wsId]) responses[wsId]={answers:{},correct:{},currentQ:0};
+  responses[wsId].currentQ=nextIdx;
 
-  // Re-render this card
-  const card = document.getElementById('card-' + wsId);
-  if (card) {
-    const newCard = document.createElement('div');
-    newCard.innerHTML = renderCard(ws);
-    card.replaceWith(newCard.firstElementChild);
-    // Re-open the card to show result
+  // Re-render solver in place
+  const solver=document.getElementById('solver-'+wsId);
+  const ws=allWs.find(w=>w.id===wsId);
+  if(!solver||!ws) return;
+  solver.innerHTML=renderSolver(ws, qs, responses[wsId], 'new');
+  solver.classList.add('open');
+  setTimeout(()=>document.querySelector(`#solver-${wsId} input`)?.focus(),100);
+}
+
+function prevQ(wsId){
+  if(!responses[wsId]) return;
+  responses[wsId].currentQ=Math.max(0,(responses[wsId].currentQ||1)-1);
+  const ws=allWs.find(w=>w.id===wsId);
+  const solver=document.getElementById('solver-'+wsId);
+  if(!ws||!solver) return;
+  const qs=parseQuestions(ws.content||'');
+  solver.innerHTML=renderSolver(ws,qs,responses[wsId],'new');
+  solver.classList.add('open');
+}
+
+async function submitWorksheet(wsId, qs){
+  const r=responses[wsId]||{};
+  const score=Object.values(r.correct||{}).filter(Boolean).length;
+  const total=qs.length;
+  const pct=Math.round(score/total*100);
+  const xp=Math.max(5,Math.round(pct/100*25));
+
+  responses[wsId]={...r, submitted:true, score, pct, xp};
+
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    await sb.from('worksheet_responses').upsert({
+      worksheet_id:wsId, student_id:session.user.id,
+      answers:JSON.stringify(r.answers), score, total, xp_earned:xp,
+      submitted_at:new Date().toISOString()
+    });
+    await sb.from('practice_sessions').insert({
+      student_id:session.user.id, correct_answers:score,
+      total_questions:total, xp_earned:xp, session_type:'worksheet'
+    });
+    await sb.from('users').update({xp_points:(currentUser.xp_points||0)+xp}).eq('id',session.user.id);
+    currentUser.xp_points=(currentUser.xp_points||0)+xp;
+  }catch(e){console.error('submit error:',e);}
+
+  showXPPop(`+${xp} XP! 🎉`);
+
+  // Re-render card with result
+  const card=document.getElementById('card-'+wsId);
+  if(card){
+    const tmp=document.createElement('div');
+    tmp.innerHTML=renderCard(allWs.find(w=>w.id===wsId));
+    card.replaceWith(tmp.firstElementChild);
     toggleCard(wsId);
   }
 }
 
-// ── LOAD ─────────────────────────────────────────────────
-async function init() {
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) { window.location.href = '../../login.html'; return; }
+function showXPPop(text){
+  const el=document.createElement('div');
+  el.className='xp-pop';
+  el.textContent=text;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1300);
+}
 
-    const { data: profile } = await sb.from('users').select('*').eq('id', session.user.id).single();
-    if (!profile || profile.role !== 'student') { window.location.href = '../../login.html'; return; }
-    currentUser = { ...profile, id: session.user.id };
+// ── INIT ──────────────────────────────────────────────────
+async function init(){
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    if(!session){window.location.href='../../login.html';return;}
+    const{data:profile}=await sb.from('users').select('*').eq('id',session.user.id).single();
+    if(!profile||profile.role!=='student'){window.location.href='../../login.html';return;}
+    currentUser={...profile,id:session.user.id};
+    const ok=await checkSub(session.user.id);
+    if(!ok) return;
 
-    const active = await checkSubscription(session.user.id);
-    if (!active) return;
+    // Load batches
+    const{data:batchLinks}=await sb.from('batch_students').select('batch_id').eq('student_id',session.user.id);
+    const batchIds=(batchLinks||[]).map(b=>b.batch_id);
 
-    // Load worksheets assigned to this student or their batch
-    const { data: batchLinks } = await sb.from('batch_students').select('batch_id').eq('student_id', session.user.id);
-    const batchIds = (batchLinks || []).map(b => b.batch_id);
-
-    // Build query — worksheets for this student directly OR for their batches
-    let wsQuery = sb.from('lx_worksheets').select('*').eq('is_active', true).order('created_at', { ascending: false });
-
-    // We need worksheets where student_id = me OR batch_id IN my batches
-    if (batchIds.length) {
-      wsQuery = sb.from('lx_worksheets').select('*').eq('is_active', true)
+    // Load worksheets
+    let wsData=[];
+    if(batchIds.length){
+      const{data}=await sb.from('lx_worksheets').select('*').eq('is_active',true)
         .or(`student_id.eq.${session.user.id},batch_id.in.(${batchIds.join(',')})`)
-        .order('created_at', { ascending: false });
+        .order('created_at',{ascending:false});
+      wsData=data||[];
     } else {
-      wsQuery = sb.from('lx_worksheets').select('*').eq('is_active', true)
-        .eq('student_id', session.user.id)
-        .order('created_at', { ascending: false });
+      const{data}=await sb.from('lx_worksheets').select('*').eq('is_active',true)
+        .eq('student_id',session.user.id).order('created_at',{ascending:false});
+      wsData=data||[];
     }
+    allWs=wsData;
 
-    const { data: worksheets, error } = await wsQuery;
-    if (error) throw error;
-
-    allWorksheets = worksheets || [];
-
-    // Load existing responses
-    let responseQuery = sb.from('worksheet_responses').select('worksheet_id,score,total,submitted_at').eq('student_id', session.user.id);
-    const { data: existingResponses } = await responseQuery;
-    (existingResponses || []).forEach(r => {
-      responses[r.worksheet_id] = {
-        submitted: true,
-        score: r.score,
-        total: r.total,
-        pct: Math.round(r.score / r.total * 100),
+    // Load submitted responses
+    const{data:subs}=await sb.from('worksheet_responses').select('*').eq('student_id',session.user.id);
+    (subs||[]).forEach(s=>{
+      responses[s.worksheet_id]={
+        submitted:true, score:s.score, pct:Math.round(s.score/s.total*100),
+        xp:s.xp_earned, answers:JSON.parse(s.answers||'{}'), correct:{}
       };
     });
 
-    // Also restore any in-progress from localStorage
-    allWorksheets.forEach(ws => {
-      if (!responses[ws.id]) {
-        try {
-          const saved = localStorage.getItem('ws_progress_' + ws.id);
-          if (saved) responses[ws.id] = JSON.parse(saved);
-        } catch(e){}
-      }
-    });
-
-    // Update pending badge
-    const newCount = allWorksheets.filter(w => getStatus(w) === 'new').length;
-    const badge = document.getElementById('pendingBadge');
-    if (newCount > 0) { badge.textContent = newCount + ' new'; badge.style.display = 'block'; }
+    // New badge
+    const newCount=allWs.filter(w=>getStatus(w)==='new').length;
+    const badge=document.getElementById('newBadge');
+    if(newCount>0){badge.textContent=newCount+' new';badge.style.display='inline-block';}
 
     renderList();
-
-  } catch(err) {
-    document.getElementById('wsList').innerHTML = `<div style="padding:40px;text-align:center;color:var(--red);">Error: ${err.message}</div>`;
+  }catch(err){
+    document.getElementById('wsList').innerHTML=`<div style="padding:40px;text-align:center;color:var(--red);">Error: ${err.message}</div>`;
   }
 }
 

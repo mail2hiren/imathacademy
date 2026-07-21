@@ -1157,14 +1157,14 @@ async function loadDashboardBadges(userId) {
     }
 
     // Pending homework
+    // Pending homework = lx_worksheets not yet submitted
     let hwCount = 0;
     if (batchIds.length) {
-      const { data: hw } = await sb.from('homework').select('id').in('batch_id', batchIds).eq('is_active', true);
-      hwCount = hw?.length || 0;
-    }
-
-    // Update worksheet card on dashboard
-    const wsBadge = document.getElementById('wsDashBadge');
+      const { data: _wsR } = await sb.from('worksheet_responses').select('worksheet_id').eq('student_id', userId);
+      const _doneIds = new Set((_wsR||[]).map(r => r.worksheet_id));
+      const { data: _allHw } = await sb.from('lx_worksheets').select('id').eq('is_active', true)
+        .or('student_id.eq.' + userId + ',batch_id.in.(' + batchIds.join(',') + ')');
+      hwCount = (_allHw||[]).filter(w => !_doneIds.has(w.id)).length;
     if (wsBadge && wsCount > 0) { wsBadge.textContent = wsCount + ' new'; wsBadge.style.display = 'inline-block'; }
 
     // Update homework card on dashboard

@@ -128,7 +128,7 @@
     .main { flex: 1; margin-left: 220px; min-width: 0; }
     .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 199; }
     @media (max-width: 768px) {
-      .sidebar { transform: translateX(-100%); }
+      .sidebar { display: none !important; transform: none; }
       .sidebar.open { transform: translateX(0); }
       .sidebar-overlay.show { display: block; }
       .main { margin-left: 0; }
@@ -145,7 +145,7 @@
   
     /* ── HAMBURGER (mobile) ── */
     .hamburger-btn { display: none !important; }
-    @media (max-width: 768px) { .hamburger-btn { display: inline-flex !important; } }
+    @media (max-width: 768px) { .hamburger-btn { display: none !important; } }
   </style>
 </head>
 <body>

@@ -119,7 +119,9 @@
     .bnav-icon { font-size: 1.3rem; line-height: 1; }
     .bnav-label { font-size: .62rem; font-weight: 700; color: #9090B0; font-family: inherit; }
     .bnav-item.active .bnav-label { color: #0D47A1; }
-    @media (max-width: 768px) { .bottom-nav { display: block; } body { padding-bottom: 64px; } }
+    @media (max-width: 768px) {
+      .sidebar { display: none !important; }
+      .hamburger-btn, .hamburger-mobile { display: none !important; } .bottom-nav { display: block; } body { padding-bottom: 64px; } }
     </style>
 </head>
 <body oncontextmenu="return false">

@@ -301,7 +301,7 @@
     <!-- Top bar -->
     <div class="topbar">
       <a href="dashboard.html" style="display:flex;align-items:center;flex-shrink:0;text-decoration:none;"><img src="../../assets/logo.png" alt="iMathAcademy" style="height:36px;width:auto;object-fit:contain;"></a>
-    <div class="topbar-title" id="topbarGreeting">Good morning! 👋</div>
+    <div class="topbar-title" id="topbarGreeting">Good morning! 🌅</div>
       <div class="topbar-right">
         <button class="notif-btn" onclick="toggleNotif()" id="notifBtn">
           🔔
@@ -553,7 +553,7 @@ function buildDashboard(profile, stats, group, session_user_id) {
   const isMobile = window.innerWidth <= 768;
 
   // Topbar
-  document.getElementById('topbarGreeting').textContent = `${greet()}, ${name.split(' ')[0]}! 👋`;
+  document.getElementById('topbarGreeting').textContent = `${greet()}, ${name.split(' ')[0]}! 🙏`;
   if (isMobile) document.getElementById('mobileLogout').style.display = 'flex';
 
   // Desktop sidebar
@@ -577,7 +577,7 @@ function buildDashboard(profile, stats, group, session_user_id) {
         <div style="position:absolute;top:-10px;left:-10px;font-size:60px;opacity:.1;">🐘</div>
         <div style="position:absolute;bottom:-10px;right:-10px;font-size:60px;opacity:.1;">⭐</div>
         <div style="font-size:52px;margin-bottom:8px;">🐘</div>
-        <div style="font-size:1.1rem;font-weight:800;margin-bottom:4px;">Hello ${name.split(' ')[0]}! 👋</div>
+        <div style="font-size:1.1rem;font-weight:800;margin-bottom:4px;">Hello ${name.split(' ')[0]}! 🙏</div>
         <div style="font-size:.82rem;opacity:.85;margin-bottom:14px;">"Ready to do some maths magic today?"</div>
         <div style="display:flex;justify-content:center;gap:5px;margin-bottom:8px;flex-wrap:wrap;">
           ${Array.from({length:7},(_,i)=>`<span style="font-size:${i<streak?'1.6':'1.2'}rem;opacity:${i<streak?1:.2};transition:all .3s;">⭐</span>`).join('')}

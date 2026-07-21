@@ -716,11 +716,15 @@ async function loadChildStats(childId) {
     const { data: ps } = await sb.from('practice_sessions').select('id').eq('student_id', childId).eq('session_type','puzzle');
     stats.puzzlesSolved = ps?.length || 0;
 
-    // Homework pending
+    // Homework pending = lx_worksheets not yet submitted
     const { data: batches } = await sb.from('batch_students').select('batch_id').eq('student_id', childId);
     if(batches?.length) {
-      const { data: hw } = await sb.from('homework').select('id').in('batch_id', batches.map(b=>b.batch_id)).eq('is_active',true);
-      stats.homeworkPending = hw?.length||0;
+      const { data: wsResp } = await sb.from('worksheet_responses').select('worksheet_id').eq('student_id', childId);
+      const doneIds = new Set((wsResp||[]).map(r=>r.worksheet_id));
+      const batchIds = batches.map(b=>b.batch_id);
+      const { data: allWs } = await sb.from('lx_worksheets').select('id').eq('is_active',true)
+        .or('student_id.eq.'+childId+',batch_id.in.('+batchIds.join(',')+')');
+      stats.homeworkPending = (allWs||[]).filter(w=>!doneIds.has(w.id)).length;
     }
   } catch(e) { console.error('loadChildStats error:', e); }
 

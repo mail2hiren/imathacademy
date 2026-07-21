@@ -501,7 +501,7 @@ async function onBatchChange() {
   const batchId = document.getElementById('batchSel').value;
   const sel = document.getElementById('studentSel');
   sel.innerHTML = '<option value="">— Entire batch —</option>';
-  document.getElementById('ageHint').style.display = 'none';
+  hideEl('ageHint');
   if (!batchId) return;
 
   const students = batchStudents[batchId] || [];
@@ -720,8 +720,8 @@ async function generateWorksheet() {
     toast('❌ AI generation failed: ' + err.message, 'error');
   }
 
-  btn.disabled = false;
-  btn.innerHTML = '<span>✨ Generate with AI</span><span style="font-size:.82rem;opacity:.85;">Powered by Claude</span>';
+  if(btn) { btn.disabled = false; }
+  if(btn) { btn.innerHTML = '<span>✨ Generate with AI</span><span style="font-size:.82rem;opacity:.85;">Powered by Claude</span>'; }
 }
 
 async function generatePreview() {
@@ -767,7 +767,7 @@ async function generatePreview() {
     document.getElementById('outputBody').innerHTML = `<div style="padding:20px;color:var(--red);">Preview failed: ${err.message}</div>`;
   }
 
-  btn.disabled = false;
+  if(btn) { btn.disabled = false; }
   btn.textContent = '👁 Preview a sample question first';
 }
 
@@ -795,7 +795,7 @@ function parseAndRender(text) {
 
   // Show tabs if multiple sections
   const hasTabs = Object.keys(sections).length > 1;
-  document.getElementById('outTabs').style.display = hasTabs ? 'flex' : 'none';
+  const _ot2 = document.getElementById('outTabs'); if(_ot2) _ot2.style.display = hasTabs ? 'flex' : 'none';
 
   renderOutTab('worksheet');
 }
@@ -966,13 +966,13 @@ async function assignToStudents() {
     btn.textContent = '✅ Assigned!';
     setTimeout(() => {
       if(btn) btn.textContent = '📤 Assign to students';
-      btn.disabled = false;
+  if(btn) { btn.disabled = false; }
     }, 3000);
 
   } catch(err) {
     toast('❌ Failed to assign: ' + err.message, 'error');
     if(btn) btn.textContent = '📤 Assign to students';
-    btn.disabled = false;
+  if(btn) { btn.disabled = false; }
   }
 }
 

@@ -401,9 +401,9 @@
     <div class="output-card">
       <div class="output-header">
         <div class="output-title" id="outputTitle">Generated worksheet</div>
-        <div class="output-actions">
+        <div class="output-actions" style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="out-btn" onclick="assignToStudents()" id="assignBtn" style="display:none;background:var(--green,#43A047);color:#fff;border-color:#1B5E20;font-weight:800;">📤 Assign to students</button>
           <button class="out-btn" onclick="copyOutput()" id="copyBtn" style="display:none;">📋 Copy</button>
-          <button class="out-btn out-btn-primary" onclick="printOutput()" id="printBtn" style="display:none;">🖨 Print</button>
         </div>
       </div>
       <div class="out-tabs" id="outTabs" style="display:none;">
@@ -436,6 +436,11 @@ const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Safe element show/hide helper
+  function showEl(id) { const e = document.getElementById(id); if(e) e.style.display = 'block'; }
+  function hideEl(id) { const e = document.getElementById(id); if(e) e.style.display = 'none'; }
+  function showFlex(id) { const e = document.getElementById(id); if(e) e.style.display = 'flex'; }
 
 let allBatches = [], batchStudents = {}, teacherSession = null;
 let selectedLevel = 1, selectedConcept = 'add_sub', selectedActivity = 'flashcards';
@@ -675,9 +680,10 @@ async function generateWorksheet() {
       <div class="gen-sub">Adjusting for age group, level and theme</div>
     </div>`;
 
-  document.getElementById('outTabs').style.display = 'none';
-  document.getElementById('copyBtn').style.display = 'none';
-  document.getElementById('printBtn').style.display = 'none';
+  hideEl('outTabs');
+  hideEl('copyBtn');
+  hideEl('printBtn');
+  hideEl('assignBtn');
 
   try {
     const prompt = buildPrompt(false);
@@ -702,7 +708,7 @@ async function generateWorksheet() {
     const text = data.text || '';
     parseAndRender(text);
 
-    document.getElementById('assignBtn').style.display = 'block';
+    showEl('assignBtn');
 
   } catch(err) {
     document.getElementById('outputBody').innerHTML = `
@@ -959,13 +965,13 @@ async function assignToStudents() {
     toast(`✅ Worksheet assigned to ${studentId ? '1 student' : notifyIds.length + ' students'}!`, 'success');
     btn.textContent = '✅ Assigned!';
     setTimeout(() => {
-      btn.textContent = '📤 Assign to students';
+      if(btn) btn.textContent = '📤 Assign to students';
       btn.disabled = false;
     }, 3000);
 
   } catch(err) {
     toast('❌ Failed to assign: ' + err.message, 'error');
-    btn.textContent = '📤 Assign to students';
+    if(btn) btn.textContent = '📤 Assign to students';
     btn.disabled = false;
   }
 }

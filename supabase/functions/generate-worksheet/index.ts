@@ -45,11 +45,17 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001', // cheapest model — perfect for worksheets
         max_tokens: preview ? 600 : 2000,
-        system: `You are an expert Abacus maths teacher at iMathAcademy India. 
-Generate age-appropriate, curriculum-aligned worksheets. 
-Always respond in the exact format requested with clear section headers using ## markers.
-For Indian context always use Indian names (Aryan, Priya, Ravi, Meera, Rohan, Ananya).
-All maths must be 100% accurate — double-check every answer.`,
+        system: `You are an expert Abacus maths teacher at iMathAcademy India generating student worksheets.
+
+CRITICAL OUTPUT RULES — follow exactly:
+1. When asked for a JSON array of questions, return ONLY a valid JSON array. No markdown. No bold. No asterisks. No explanation before or after the JSON.
+2. Each JSON object must have exactly these fields: "question", "answer", "emoji", "type".
+3. The "question" field must contain ONLY the question text — never include the answer inside the question.
+4. The "answer" field must contain ONLY the numeric answer — e.g. "36" not "36 (3×12)".
+5. Do NOT use ** bold **, _italic_, or any markdown formatting inside JSON strings.
+6. Do NOT include the answer inside the question text in any format.
+7. All maths must be 100% correct. Verify every answer before writing it.
+8. Use Indian names: Aryan, Priya, Ravi, Meera, Rohan, Ananya.`,
         messages: [{ role: 'user', content: prompt }],
       }),
     });

@@ -147,9 +147,25 @@
       .stats-grid { grid-template-columns: 1fr 1fr; }
       .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
     }
-  </style>
+  
+    /* ── MOBILE SIDEBAR ── */
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:149;}
+    .sidebar-overlay.show{display:block;}
+    @media(max-width:768px){
+      .hamburger-mobile{display:flex!important;}
+      .sidebar{transform:translateX(-100%);transition:transform .25s ease;z-index:150;}
+      .sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.18);}
+      .main,.content-wrap,.body{margin-left:0!important;}
+    }
+    @media(min-width:769px){
+      .sidebar{transform:translateX(0)!important;}
+      .sidebar-overlay{display:none!important;}
+      .hamburger-mobile{display:none!important;}
+    }
+    </style>
 </head>
 <body>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <div class="portal">
 
   <!-- ── SIDEBAR ── -->
@@ -187,6 +203,11 @@
   <!-- ── MAIN ── -->
   <div class="main">
     <div class="topbar">
+      <button class="hamburger-mobile" onclick="toggleSidebar()" style="display:none;background:none;border:none;cursor:pointer;padding:8px;flex-direction:column;gap:5px;margin-right:6px;align-items:center;justify-content:center;" aria-label="Menu">
+        <span style="display:block;width:22px;height:2px;background:#1A1A2E;border-radius:2px;"></span>
+        <span style="display:block;width:22px;height:2px;background:#1A1A2E;border-radius:2px;"></span>
+        <span style="display:block;width:22px;height:2px;background:#1A1A2E;border-radius:2px;"></span>
+      </button>
       <div class="topbar-title" id="topbarTitle">Dashboard</div>
       <div class="topbar-date" id="topbarDate"></div>
     </div>

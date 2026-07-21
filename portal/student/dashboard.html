@@ -1150,7 +1150,7 @@ async function loadDashboardBadges(userId) {
       const { data: wsResponses } = await sb.from('worksheet_responses').select('worksheet_id').eq('student_id', userId);
       const doneIds = new Set((wsResponses||[]).map(r => r.worksheet_id));
       const { data: allWs } = await sb.from('lx_worksheets').select('id').eq('is_active', true)
-        .or(`student_id.eq.${userId},batch_id.in.(${batchIds.join(',')})`);
+        .or('student_id.eq.' + userId + ',batch_id.in.(' + batchIds.join(',') + ')');
       wsCount = (allWs||[]).filter(w => !doneIds.has(w.id)).length;
     }
 

@@ -491,6 +491,7 @@
 
         <div class="section-card">
           <div class="section-title">All students — progress overview</div>
+        <div class="section-card"><div id="studentList"><div style="text-align:center;padding:30px;color:var(--text3);">Loading students...</div></div></div>
           <div class="roster-header">
             <div style="width:32px"></div>
             <div style="flex:1">Student</div>
@@ -1346,6 +1347,319 @@ async function markTeacherNotifsRead() {
   if (dot) { dot.style.display = 'none'; }
   window._teacherNotifs = [];
 }
+
+
+// ══ REVIEW TAB ════════════════════════════════════════════════
+async function populateReviewDropdown() {
+  const sel = document.getElementById('hwSelect');
+  if (!sel) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const { data: wsList } = await sb.from('lx_worksheets')
+      .select('id, title, level, created_at, batch_id, batches!batch_id(name)')
+      .eq('created_by', session.user.id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(30);
+    if (!wsList?.length) {
+      sel.innerHTML = '<option value="">No worksheets assigned yet</option>';
+      return;
+    }
+    sel.innerHTML = '<option value="">Select a worksheet...</option>' +
+      wsList.map(w => `<option value="${w.id}">${w.title} — ${w.batches?.name || 'Individual'} · L${w.level || '?'}</option>`).join('');
+  } catch(e) { console.error('populateReviewDropdown:', e); }
+}
+
+async function loadSubmissions() {
+  const wsId = document.getElementById('hwSelect')?.value;
+  const list  = document.getElementById('submList');
+  const title = document.getElementById('submTitle');
+  const exportBtn = document.getElementById('exportBtn');
+  if (!list) return;
+  if (!wsId) {
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:.875rem;">Select a worksheet above</div>';
+    if (title) title.textContent = 'Select a worksheet above to see submissions';
+    if (exportBtn) exportBtn.style.display = 'none';
+    return;
+  }
+  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">Loading...</div>';
+  try {
+    // Get all students in the worksheet's batch
+    const { data: wsData } = await sb.from('lx_worksheets')
+      .select('title, batch_id, student_id, batches!batch_id(name)')
+      .eq('id', wsId).single();
+
+    let studentIds = [];
+    if (wsData?.batch_id) {
+      const { data: batchStudents } = await sb.from('batch_students')
+        .select('student_id, users!student_id(full_name, current_level)')
+        .eq('batch_id', wsData.batch_id);
+      studentIds = batchStudents || [];
+    } else if (wsData?.student_id) {
+      const { data: singleUser } = await sb.from('users')
+        .select('id, full_name, current_level').eq('id', wsData.student_id).single();
+      if (singleUser) studentIds = [{ student_id: singleUser.id, users: singleUser }];
+    }
+
+    // Get responses
+    const { data: responses } = await sb.from('worksheet_responses')
+      .select('student_id, score, total, xp_earned, submitted_at')
+      .eq('worksheet_id', wsId);
+    const respMap = {};
+    (responses || []).forEach(r => respMap[r.student_id] = r);
+
+    const submitted = studentIds.filter(s => respMap[s.student_id]);
+    const pending   = studentIds.filter(s => !respMap[s.student_id]);
+    const avg = submitted.length
+      ? Math.round(submitted.reduce((s, st) => s + (respMap[st.student_id].score / respMap[st.student_id].total * 100), 0) / submitted.length)
+      : 0;
+
+    if (title) title.textContent = `${wsData?.title || 'Worksheet'} · ${submitted.length}/${studentIds.length} submitted · Avg ${avg}%`;
+    if (exportBtn) exportBtn.style.display = submitted.length ? 'inline' : 'none';
+
+    if (!studentIds.length) {
+      list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">No students found for this worksheet.</div>';
+      return;
+    }
+
+    list.innerHTML = studentIds.map(s => {
+      const r = respMap[s.student_id];
+      const name = s.users?.full_name || 'Student';
+      const pct  = r ? Math.round(r.score / r.total * 100) : null;
+      const color = pct === null ? 'var(--text3)' : pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--orange)' : 'var(--red)';
+      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;flex-shrink:0;">${name.charAt(0)}</div>
+        <div style="flex:1">
+          <div style="font-size:.875rem;font-weight:700;">${name}</div>
+          <div style="font-size:.72rem;color:var(--text3);">Level ${s.users?.current_level || '?'}</div>
+        </div>
+        <div style="text-align:right;font-weight:800;color:${color};font-size:.9rem;">
+          ${r ? `${r.score}/${r.total} (${pct}%)` : '<span style="color:var(--text3);font-weight:600;font-size:.82rem;">Pending</span>'}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = `<div style="padding:20px;color:var(--red);">Error: ${e.message}</div>`;
+  }
+}
+
+function exportScores() {
+  const title = document.getElementById('submTitle')?.textContent || 'scores';
+  const rows = document.querySelectorAll('#submList > div');
+  let csv = 'Name,Level,Score,Submitted
+';
+  rows.forEach(row => {
+    const cells = row.querySelectorAll('div');
+    if (cells.length >= 3) {
+      const name  = cells[1]?.querySelector('div')?.textContent?.trim() || '';
+      const level = cells[1]?.querySelectorAll('div')[1]?.textContent?.replace('Level ', '') || '';
+      const score = cells[2]?.textContent?.trim() || '';
+      csv += `"${name}","${level}","${score}"
+`;
+    }
+  });
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'scores.csv';
+  a.click();
+}
+
+// ══ STUDENTS TAB ══════════════════════════════════════════════
+function filterStudents() {
+  const search = (document.getElementById('studentSearch')?.value || '').toLowerCase();
+  const batch  = document.getElementById('filterBatch')?.value || '';
+  const status = document.getElementById('filterStatus')?.value || '';
+  const rows   = document.querySelectorAll('#studentList .student-row');
+  rows.forEach(row => {
+    const name    = (row.dataset.name || '').toLowerCase();
+    const batchId = row.dataset.batch || '';
+    const risk    = row.dataset.risk  || '';
+    const matchSearch = !search || name.includes(search);
+    const matchBatch  = !batch  || batchId === batch;
+    const matchStatus = !status || (status === 'risk' && risk === '1');
+    row.style.display = matchSearch && matchBatch && matchStatus ? '' : 'none';
+  });
+}
+
+async function renderStudentList() {
+  const list = document.getElementById('studentList');
+  if (!list) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    // Get teacher's batches
+    const { data: batches } = await sb.from('batches').select('id, name').eq('teacher_id', session.user.id);
+    if (!batches?.length) {
+      list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">No batches assigned yet.</div>';
+      return;
+    }
+    const batchIds = batches.map(b => b.id);
+    const batchMap = {};
+    batches.forEach(b => batchMap[b.id] = b.name);
+
+    // Populate batch filter dropdown
+    const filterBatch = document.getElementById('filterBatch');
+    if (filterBatch) {
+      filterBatch.innerHTML = '<option value="">All batches</option>' +
+        batches.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+    }
+
+    // Get all students in teacher's batches
+    const { data: batchStudents } = await sb.from('batch_students')
+      .select('batch_id, student_id, users!student_id(id, full_name, current_level, xp_points, streak_days, created_at)')
+      .in('batch_id', batchIds);
+
+    if (!batchStudents?.length) {
+      list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">No students in your batches yet.</div>';
+      return;
+    }
+
+    // Get submission counts per student
+    const studentIds = [...new Set(batchStudents.map(s => s.student_id))];
+    const { data: subCounts } = await sb.from('worksheet_responses')
+      .select('student_id').in('student_id', studentIds);
+    const subMap = {};
+    (subCounts || []).forEach(s => subMap[s.student_id] = (subMap[s.student_id] || 0) + 1);
+
+    list.innerHTML = batchStudents.map(s => {
+      const u = s.users;
+      if (!u) return '';
+      const subs = subMap[s.student_id] || 0;
+      const isRisk = u.streak_days < 3 || subs === 0;
+      return `<div class="student-row" data-name="${(u.full_name||'').toLowerCase()}" data-batch="${s.batch_id}" data-risk="${isRisk ? 1 : 0}"
+        style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;"
+        onclick="viewStudent('${u.id}')">
+        <div style="width:38px;height:38px;border-radius:50%;background:${isRisk ? '#FFEBEE' : 'var(--blue-lt)'};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.875rem;color:${isRisk ? 'var(--red)' : 'var(--blue-dk)'};flex-shrink:0;">${(u.full_name||'?').charAt(0)}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:.875rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.full_name || 'Unknown'}</div>
+          <div style="font-size:.72rem;color:var(--text3);">${batchMap[s.batch_id] || ''} · L${u.current_level || 1} · ${u.xp_points || 0} XP</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-size:.82rem;font-weight:700;color:${isRisk ? 'var(--red)' : 'var(--green)'};">${isRisk ? '⚠️ Needs attention' : '✅ On track'}</div>
+          <div style="font-size:.68rem;color:var(--text3);">🔥 ${u.streak_days || 0}d · ${subs} submissions</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    console.error('renderStudentList:', e);
+    const list = document.getElementById('studentList');
+    if (list) list.innerHTML = `<div style="padding:20px;color:var(--red);">Error: ${e.message}</div>`;
+  }
+}
+
+// ══ ATTENDANCE TAB ════════════════════════════════════════════
+async function loadAttendance() {
+  const batchId = document.getElementById('attBatch')?.value;
+  const date    = document.getElementById('attDate')?.value;
+  const list    = document.getElementById('attList');
+  if (!list || !batchId || !date) return;
+  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">Loading...</div>';
+  try {
+    const { data: batchStudents } = await sb.from('batch_students')
+      .select('student_id, users!student_id(id, full_name)')
+      .eq('batch_id', batchId);
+    if (!batchStudents?.length) {
+      list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">No students in this batch.</div>';
+      return;
+    }
+    const title = document.getElementById('attTitle');
+    if (title) title.textContent = `Attendance for ${new Date(date).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})}`;
+    list.innerHTML = batchStudents.map(s => `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;flex-shrink:0;">${(s.users?.full_name||'?').charAt(0)}</div>
+        <div style="flex:1;font-size:.875rem;font-weight:700;">${s.users?.full_name || 'Student'}</div>
+        <div style="display:flex;gap:6px;">
+          <label style="display:flex;align-items:center;gap:4px;font-size:.82rem;font-weight:700;cursor:pointer;">
+            <input type="radio" name="att-${s.student_id}" value="present" style="accent-color:var(--green);"> Present
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:.82rem;font-weight:700;cursor:pointer;">
+            <input type="radio" name="att-${s.student_id}" value="absent" style="accent-color:var(--red);"> Absent
+          </label>
+        </div>
+      </div>`).join('');
+  } catch(e) {
+    list.innerHTML = `<div style="padding:20px;color:var(--red);">Error: ${e.message}</div>`;
+  }
+}
+
+async function populateAttBatches() {
+  const sel = document.getElementById('attBatch');
+  if (!sel) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const { data: batches } = await sb.from('batches').select('id, name, current_level').eq('teacher_id', session.user.id);
+    if (!batches?.length) { sel.innerHTML = '<option value="">No batches found</option>'; return; }
+    sel.innerHTML = '<option value="">Select batch...</option>' +
+      batches.map(b => `<option value="${b.id}">${b.name} — Level ${b.current_level || '?'}</option>`).join('');
+  } catch(e) { console.error('populateAttBatches:', e); }
+}
+
+// ══ WORKSHEET RESULTS TAB ════════════════════════════════════
+async function loadWsResults() {
+  const list = document.getElementById('wsResultsList');
+  if (!list) return;
+  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">Loading...</div>';
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const { data: worksheets } = await sb.from('lx_worksheets')
+      .select('id, title, level, created_at, batch_id, batches!batch_id(name)')
+      .eq('created_by', session.user.id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (!worksheets?.length) {
+      list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">No worksheets assigned yet. Use LX Designer to create and assign worksheets.</div>';
+      return;
+    }
+
+    const wsIds = worksheets.map(w => w.id);
+    const { data: responses } = await sb.from('worksheet_responses')
+      .select('worksheet_id, student_id, score, total, xp_earned, submitted_at, users!student_id(full_name)')
+      .in('worksheet_id', wsIds)
+      .order('submitted_at', { ascending: false });
+
+    const respByWs = {};
+    (responses || []).forEach(r => {
+      if (!respByWs[r.worksheet_id]) respByWs[r.worksheet_id] = [];
+      respByWs[r.worksheet_id].push(r);
+    });
+
+    const totalSubmissions = (responses || []).length;
+    if (!totalSubmissions) {
+      list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">No submissions yet. Share worksheets with students and they will appear here.</div>';
+      return;
+    }
+
+    list.innerHTML = worksheets.filter(w => respByWs[w.id]?.length).map(w => {
+      const resps = respByWs[w.id] || [];
+      const avg   = resps.length ? Math.round(resps.reduce((s,r) => s + (r.score/r.total*100), 0) / resps.length) : 0;
+      return `<div style="background:var(--bg);border:2px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;">
+        <div style="padding:12px 16px;background:var(--bg2);border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+          <div>
+            <div style="font-size:.9rem;font-weight:800;">${w.title}</div>
+            <div style="font-size:.72rem;color:var(--text3);margin-top:2px;">Level ${w.level || '?'} · ${w.batches?.name || 'Individual'} · ${new Date(w.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:.9rem;font-weight:800;color:${avg>=80?'var(--green)':avg>=50?'var(--orange)':'var(--red)'};">${avg}% avg</div>
+            <div style="font-size:.72rem;color:var(--text3);">${resps.length} submission${resps.length!==1?'s':''}</div>
+          </div>
+        </div>
+        ${resps.map(r => {
+          const pct = Math.round(r.score/r.total*100);
+          return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--border);">
+            <div style="flex:1;font-size:.875rem;font-weight:700;">${r.users?.full_name || 'Student'}</div>
+            <div style="font-size:.82rem;color:var(--text3);">${new Date(r.submitted_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+            <div style="font-weight:800;font-size:.9rem;color:${pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)'};">${r.score}/${r.total} (${pct}%)</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('') || '<div style="text-align:center;padding:30px;color:var(--text3);">No submissions found.</div>';
+
+  } catch(e) {
+    list.innerHTML = `<div style="padding:20px;color:var(--red);">Error loading results: ${e.message}</div>`;
+  }
+}
+
 </script>
 <!-- IN-CLASS FLOATING BAR -->
 <div class="in-class-panel" id="inClassPanel">

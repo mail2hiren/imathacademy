@@ -1408,7 +1408,7 @@ async function init() {
     // ── Pending submissions count ──
     let pc = 0;
     try {
-      const { data: hwData } = await sb.from('homework').select('id').eq('teacher_id', session.user.id);
+      const { data: hwData } = await sb.from('lx_worksheets').select('id').eq('created_by', session.user.id).eq('is_active', true);
       const hwIds = (hwData || []).map(h => h.id);
       if (hwIds.length > 0) {
         // Count worksheet_responses for teacher's worksheets that have no feedback yet

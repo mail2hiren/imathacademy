@@ -441,88 +441,21 @@
       </div>
 
       <!-- ══ ASSIGN HOMEWORK TAB ══ -->
-      <div id="tab-assign" style="display:none">
+      <div id="tab-assign" class="tab-panel" style="display:none">
 
-        <div class="assign-box">
-          <div class="assign-title">Assign homework</div>
-          <div class="assign-sub">3 steps — done in under 90 seconds</div>
-
-          <div class="assign-step">
-            <div class="step-circle">1</div>
-            <div class="step-body">
-              <div class="step-label">Select batch and topic</div>
-              <div class="step-inputs">
-                <select class="form-sel" id="aBatch" onchange="updatePreview()">
-                  <option value="">Select batch</option>
-                </select>
-                <select class="form-sel" id="aTopic" onchange="updatePreview()">
-                  <option value="">Select topic</option>
-                  <option>Addition with carrying</option>
-                  <option>3-digit subtraction</option>
-                  <option>2-digit addition</option>
-                  <option>Single digit addition</option>
-                  <option>Multiplication ×2–×5</option>
-                  <option>Nikhilam multiplication</option>
-                  <option>Ekadhikena Purvena</option>
-                </select>
-              </div>
-            </div>
+        <!-- Homework merged into LX Designer -->
+        <div style="text-align:center;padding:40px 20px;">
+          <div style="font-size:3rem;margin-bottom:12px;">✏️</div>
+          <div style="font-family:'Baloo 2',sans-serif;font-size:1.2rem;font-weight:800;margin-bottom:8px;">Assign Work via LX Designer</div>
+          <div style="font-size:.875rem;color:var(--text2);line-height:1.7;margin-bottom:20px;max-width:400px;margin-left:auto;margin-right:auto;">
+            Homework and worksheets are now one system. Use <strong>LX Designer</strong> to generate AI-powered questions and assign them directly to students or batches.
           </div>
-
-          <div class="assign-step">
-            <div class="step-circle">2</div>
-            <div class="step-body">
-              <div class="step-label">Set difficulty, question count and due date</div>
-              <div class="step-inputs">
-                <select class="form-sel" id="aDiff" onchange="updatePreview()">
-                  <option value="easy">Easy</option>
-                  <option value="medium" selected>Medium</option>
-                  <option value="hard">Hard</option>
-                </select>
-                <select class="form-sel" id="aCount" onchange="updatePreview()">
-                  <option value="5">5 questions</option>
-                  <option value="8">8 questions</option>
-                  <option value="10" selected>10 questions</option>
-                  <option value="15">15 questions</option>
-                </select>
-                <input type="date" class="form-inp" id="aDue" onchange="updatePreview()" style="flex:1">
-              </div>
-            </div>
-          </div>
-
-          <div class="assign-step">
-            <div class="step-circle">3</div>
-            <div class="step-body">
-              <div class="step-label">Review and assign</div>
-              <div class="assign-preview" id="assignPreview">
-                Loading preview...
-              </div>
-              <button class="assign-btn" onclick="assignHomework()">
-                Assign to students — notify by email 🚀
-              </button>
-            </div>
-          </div>
+          <a href="lx-designer.html" style="display:inline-block;padding:12px 28px;background:var(--blue);color:#fff;border-radius:12px;font-weight:800;text-decoration:none;font-size:.875rem;">
+            ✨ Open LX Designer →
+          </a>
         </div>
 
-        <!-- Recent assignments -->
-        <div class="section-card">
-          <div class="section-title">Recent assignments</div>
-          <div class="sub-row">
-            <div style="flex:1"><div class="sub-name">Addition with carrying</div><div class="sub-meta">Batch A · 10 questions · Due tomorrow · 9/12 submitted</div></div>
-            <span class="pill pill-o">9/12 submitted</span>
-          </div>
-          <div class="sub-row">
-            <div style="flex:1"><div class="sub-name">Revision: 3-digit subtraction (auto)</div><div class="sub-meta">Batch A · 8 questions · 2 days left · Auto-assigned</div></div>
-            <span class="pill pill-b">Auto</span>
-          </div>
-          <div class="sub-row">
-            <div style="flex:1"><div class="sub-name">Single digit addition</div><div class="sub-meta">Batch A · 10 questions · Completed · Avg 90%</div></div>
-            <span class="pill pill-g">Complete</span>
-          </div>
-        </div>
-
-      </div>
-
+      
       <!-- ══ REVIEW TAB ══ -->
       <div id="tab-review" style="display:none">
 
@@ -937,215 +870,10 @@ function updatePreview() {
 }
 
 async function assignHomework() {
-  const batchId     = document.getElementById('aBatch').value;
-  const topic       = document.getElementById('aTopic').value;
-  const due         = document.getElementById('aDue').value;
-  const description = document.getElementById('aDesc')?.value?.trim() || '';
-  const questions   = parseInt(document.getElementById('aQuestions')?.value || '10');
-
-  if (!batchId)  { showToast('Please select a batch', ''); return; }
-  if (!topic)    { showToast('Please select a topic', ''); return; }
-  if (!due)      { showToast('Please set a due date', ''); return; }
-
-  const btn = document.querySelector('[onclick="assignHomework()"]');
-  if (btn) { btn.disabled = true; btn.textContent = 'Assigning...'; }
-
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) throw new Error('Not logged in');
-
-    // Insert homework record into Supabase
-    const { data: hw, error } = await sb.from('homework').insert({
-      batch_id:    batchId,
-      teacher_id:  session.user.id,
-      title:       topic,
-      description: description || null,
-      due_date:    due,
-      questions:   questions,
-      is_active:   true,
-      created_at:  new Date().toISOString(),
-    }).select().single();
-
-    if (error) throw error;
-
-    // Notify all students in the batch
-    const { data: batchStudents } = await sb
-      .from('batch_students')
-      .select('student_id')
-      .eq('batch_id', batchId);
-
-    if (batchStudents?.length) {
-      const notifs = batchStudents.map(bs => ({
-        user_id: bs.student_id,
-        type:    'homework',
-        title:   `📚 New homework: ${topic}`,
-        message: `Your teacher has assigned new homework on "${topic}". Due: ${new Date(due).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})}`,
-      }));
-      await sb.from('notifications').insert(notifs);
-    }
-
-    // Get batch name for toast
-    const batch = Object.values(STUDENTS).flat()[0];
-    const batchName = batchId;
-    showToast(`✅ Homework assigned! ${batchStudents?.length || 0} students notified.`, 'success');
-
-    // Clear form
-    document.getElementById('aBatch').value = '';
-    document.getElementById('aTopic').value = '';
-    document.getElementById('aDue').value   = '';
-    if (document.getElementById('aDesc')) document.getElementById('aDesc').value = '';
-    document.getElementById('assignPreview')?.classList.remove('show');
-
-  } catch(err) {
-    showToast('❌ ' + err.message, '');
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Assign to students — notify by email 🚀'; }
-  }
-}
-
-// ── REVIEW SUBMISSIONS ─────────────────────────────────────
-function loadSubmissions() {
-  const el  = document.getElementById('submList');
-  const data = SUBMISSIONS_HW1;
-  if (!data.length) {
-    document.getElementById('submTitle').textContent = 'No homework submissions yet for your batches';
-    el.innerHTML = '<div style="padding:20px;color:var(--text3);font-weight:600">Assign homework to start seeing student submissions here</div>';
-    return;
-  }
-  const submitted = data.filter(s => s.submitted);
-  const avgScore  = submitted.length ? Math.round(submitted.reduce((a,s) => a + (s.score/s.total*100), 0) / submitted.length) : 0;
-  document.getElementById('submTitle').textContent = `${submitted.length} of ${data.length} submitted · Avg ${avgScore}%`;
-  el.innerHTML = '';
-  data.forEach(s => {
-    const acc = s.submitted ? Math.round(s.score / s.total * 100) : 0;
-    const accPill = acc >= 80 ? 'pill-g' : acc >= 60 ? 'pill-o' : acc > 0 ? 'pill-r' : 'pill-gray';
-    const div = document.createElement('div');
-    div.className = 'sub-row' + (!s.submitted ? ' not-sub' : '');
-    div.innerHTML = `
-      <div class="av ${s.avClass}">${s.initials}</div>
-      <div style="flex:1"><div class="sub-name">${s.name}</div><div class="sub-meta">${s.submitted ? `Submitted · ${s.time}` : 'Not submitted'}</div></div>
-      ${s.submitted ? `<span class="pill ${accPill}">${s.score}/${s.total} (${acc}%)</span>` : '<span class="pill pill-r">Missing</span>'}
-      ${s.submitted
-        ? `<input class="feedback-input" placeholder="Add feedback (optional)" style="max-width:200px" onkeydown="if(event.key==='Enter'){saveFeedback(this,'${s.name}')}">`
-        : `<button class="btn-ghost-sm" style="padding:6px 12px;border-radius:20px;font-size:.75rem;font-weight:800;border:2px solid var(--border);background:var(--bg2);cursor:pointer" onclick="sendReminder('${s.name}')">Send reminder</button>`}
-    `;
-    el.appendChild(div);
-  });
-}
-
-function saveFeedback(inp, name) {
-  if (!inp.value.trim()) return;
-  inp.style.borderColor = 'var(--green)';
-  showToast(`Feedback saved for ${name}`, 'success');
-}
-
-function sendReminder(name) { showToast(`Reminder sent to ${name}!`, 'success'); }
-function exportScores()     { showToast('Scores exported as CSV!', 'success'); }
-
-// ── ALL STUDENTS ───────────────────────────────────────────
-function renderAllStudents(students) {
-  const el = document.getElementById('allStudentsList');
-  el.innerHTML = '';
-  students.forEach(s => {
-    const accColor = s.acc >= 75 ? 'pill-g' : s.acc >= 55 ? 'pill-o' : 'pill-r';
-    const hwColor  = s.hw >= 80 ? 'var(--green)' : s.hw >= 60 ? 'var(--orange)' : 'var(--red)';
-    const row = document.createElement('div');
-    row.className = 'roster-row' + (s.risk ? ' at-risk' : '');
-    row.onclick = () => { showTab('classes', null); setTimeout(() => viewStudent(s.id), 100); };
-    row.innerHTML = `
-      <div class="av ${s.avClass}">${s.initials}</div>
-      <div style="flex:1"><div class="r-name">${s.name}</div><div class="r-meta">${s.meta}</div></div>
-      <div style="width:70px;text-align:center"><span class="pill ${accColor}">${s.acc}%</span></div>
-      <div style="width:55px;text-align:center"><span class="pill ${s.mode==='online'?'pill-g':'pill-o'}" style="font-size:.65rem">${s.mode}</span></div>
-      <div style="width:80px;text-align:center;font-size:.75rem;font-weight:700;color:${hwColor}">${s.hw}%</div>
-      <div style="width:70px;text-align:center;font-size:.75rem;color:var(--text2);font-weight:600">${s.lastSeen}</div>
-    `;
-    el.appendChild(row);
-  });
-}
-
-function filterStudents() {
-  const search = document.getElementById('studentSearch').value.toLowerCase();
-  const batch  = document.getElementById('filterBatch').value;
-  const status = document.getElementById('filterStatus').value;
-  let all = batch ? (STUDENTS[batch] || []) : Object.values(STUDENTS).flat();
-  if (search) all = all.filter(s => s.name.toLowerCase().includes(search));
-  if (status === 'risk')    all = all.filter(s => s.risk);
-  if (status === 'online')  all = all.filter(s => s.mode === 'online');
-  if (status === 'offline') all = all.filter(s => s.mode === 'offline');
-  renderAllStudents(all);
-}
-
-// ── ATTENDANCE ─────────────────────────────────────────────
-let attState = {};
-function setDefaultDate() {
-  const d = document.getElementById('attDate');
-  if (!d.value) d.value = new Date().toISOString().split('T')[0];
-}
-
-function loadAttendance() {
-  const batchSel = document.getElementById('attBatch');
-  const batch = batchSel?.value || currentBatch || firstBatchKey();
-  if (batchSel && batch && !batchSel.value) batchSel.value = batch;
-
-  const data  = ATT_DATA[batch] || [];
-  attState = {};
-  data.forEach(s => { attState[s.id] = s.present; });
-  const title = document.getElementById('attTitle');
-  if (title) title.textContent = data.length ? `Mark attendance · ${data.length} students` : 'No students in batch';
-  const el = document.getElementById('attList');
-  el.innerHTML = '';
-  if (!data.length) {
-    el.innerHTML = '<div style="padding:16px;color:var(--text3);font-weight:600">No students in this batch yet</div>';
-  }
-  data.forEach(s => {
-    const div = document.createElement('div');
-    div.className = 'att-row';
-    div.innerHTML = `
-      <div class="av ${s.avClass}">${s.initials}</div>
-      <div style="flex:1"><div class="r-name">${s.name}</div></div>
-      <div class="att-toggle">
-        <button class="att-btn ${s.present?'present':''}" id="atp-${s.id}" onclick="markAtt('${s.id}','present')">Present</button>
-        <button class="att-btn ${!s.present?'absent':''}"  id="ata-${s.id}" onclick="markAtt('${s.id}','absent')">Absent</button>
-      </div>
-    `;
-    el.appendChild(div);
-  });
-
-  const sumEl = document.getElementById('attSummary');
-  sumEl.innerHTML = '';
-  const sample = Object.values(STUDENTS).flat();
-  if (!sample.length) {
-    sumEl.innerHTML = '<div style="padding:12px;color:var(--text3);font-weight:600">No students yet</div>';
-    return;
-  }
-  sample.forEach(s => {
-    sumEl.innerHTML += `
-      <div class="topic-row">
-        <span class="topic-name">${s.name}</span>
-        <div class="topic-bar"><div class="topic-fill" style="background:${s.att>=80?'var(--green)':'var(--orange)'};width:${Math.max(s.att||0,4)}%"></div></div>
-        <span class="topic-pct" style="color:${s.att>=80?'var(--green-dk)':'var(--orange-dk)'}">${s.att||0}%</span>
-      </div>`;
-  });
-}
-
-function markAtt(id, status) {
-  attState[id] = (status === 'present');
-  const pBtn = document.getElementById(`atp-${id}`);
-  const aBtn = document.getElementById(`ata-${id}`);
-  if (pBtn) { pBtn.classList.toggle('present', status === 'present'); }
-  if (aBtn) { aBtn.classList.toggle('absent',  status === 'absent'); }
-}
-
-function markAllPresent() {
-  Object.keys(attState).forEach(id => {
-    attState[id] = true;
-    const pBtn = document.getElementById(`atp-${id}`);
-    const aBtn = document.getElementById(`ata-${id}`);
-    if (pBtn) pBtn.classList.add('present');
-    if (aBtn) aBtn.classList.remove('absent');
-  });
-  showToast('All students marked present!', 'success');
+  // Homework merged into LX Designer worksheets (option 2 decision)
+  // Redirect teacher to LX Designer to assign work
+  toast('Use LX Designer to assign worksheets as homework — it generates AI questions automatically!', 'info');
+  setTimeout(() => { window.location.href = 'lx-designer.html'; }, 1800);
 }
 
 async function saveAttendance() {

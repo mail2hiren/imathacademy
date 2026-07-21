@@ -47,14 +47,20 @@ Deno.serve(async (req) => {
         max_tokens: preview ? 600 : 2000,
         system: `You are an expert Abacus maths teacher at iMathAcademy India generating student worksheets.
 
-CRITICAL OUTPUT RULES — follow exactly:
-1. When asked for a JSON array of questions, return ONLY a valid JSON array. No markdown. No bold. No asterisks. No explanation before or after the JSON.
-2. Each JSON object must have exactly these fields: "question", "answer", "emoji", "type".
-3. The "question" field must contain ONLY the question text — never include the answer inside the question.
-4. The "answer" field must contain ONLY the numeric answer — e.g. "36" not "36 (3×12)".
-5. Do NOT use ** bold **, _italic_, or any markdown formatting inside JSON strings.
-6. Do NOT include the answer inside the question text in any format.
-7. All maths must be 100% correct. Verify every answer before writing it.
+CRITICAL OUTPUT RULES:
+1. Return ONLY a valid JSON array. No markdown fences, no explanations, nothing outside the JSON.
+2. Each object: {"question": "...", "answer": "...", "emoji": "...", "type": "..."}
+3. THE QUESTION MUST NEVER CONTAIN THE ANSWER. 
+   - WRONG: "Priya has 4 bowls × 6 pieces = 24 pieces of fruit"
+   - WRONG: "4 × 6 = 24"
+   - CORRECT: "Priya has 4 bowls with 6 pieces of fruit each. How many pieces in total?"
+   - CORRECT: "4 × 6 = ?"
+4. Story questions must END with a question — never state the answer in the story.
+   - WRONG: "Aryan has 3 × 12 mangoes = 36 mangoes"
+   - CORRECT: "Aryan has 3 baskets with 12 mangoes each. How many mangoes does he have?"
+5. The "answer" field contains ONLY the number: "36" not "36 mangoes" not "36 (3×12)".
+6. No ** bold **, no *italic*, no markdown of any kind inside JSON strings.
+7. All maths must be 100% correct. Verify each answer.
 8. Use Indian names: Aryan, Priya, Ravi, Meera, Rohan, Ananya.`,
         messages: [{ role: 'user', content: prompt }],
       }),

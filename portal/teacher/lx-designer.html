@@ -607,64 +607,65 @@ function buildPrompt(preview=false) {
     speed_challenge:'Speed challenge (timed)',colour_answer:'Colour by answer',mixed:'Mixed variety',
   };
 
-  return `You are an expert Abacus maths teacher creating a worksheet for iMathAcademy.
+  return `You are an expert Abacus maths teacher at iMathAcademy India creating a student worksheet.
 
+━━━ ASSIGNMENT ━━━
 STUDENT: ${studentName} from ${batch}
 AGE GROUP: ${ageDesc}
-ABACUS LEVEL: Level ${selectedLevel} — ${LEVEL_SUMMARIES[selectedLevel]}
-CONCEPT FOCUS: ${conceptMap[selectedConcept]||selectedConcept}
-ACTIVITY TYPE: ${actMap[selectedActivity]||selectedActivity}
+ABACUS LEVEL: Level ${selectedLevel}
+LEVEL DESCRIPTION: ${LEVEL_SUMMARIES[selectedLevel]}
+
+━━━ WHAT TO TEACH — FOLLOW THIS EXACTLY ━━━
+CONCEPT: ${conceptMap[selectedConcept]||selectedConcept}
+ACTIVITY: ${actMap[selectedActivity]||selectedActivity}
 DIFFICULTY: ${difficulty}
 QUESTIONS: ${qCount}
-TIME LIMIT: ${timeLimit === 'none' ? 'No time limit' : timeLimit + ' minutes'}
 THEME: ${theme}
-MASCOT: ${mascot}
 LANGUAGE: ${language}
 ${special ? 'SPECIAL INSTRUCTIONS: ' + special : ''}
 
-IMPORTANT RULES:
-- Addition and subtraction at Level ${selectedLevel} difficulty MUST be included in all worksheets
-- For Tiny Champs (5–7): Use big emojis, picture sums, simple 2-line stories, large numbers, encouraging language, mascot reactions
-- For Rising Stars (8–10): Mix visual and text, include XP reward mention, use streak/badge motivation language
-- For Champions (11–12): Exam-style, no mascot, include time pressure, use competition language
-- All questions must use proper Abacus terminology (Big Friends, Small Friends, Family Formula etc.)
-- Indian context: use Indian names (Aryan, Priya, Ravi, Meera) and Indian contexts (cricket, festivals, rupees)
+━━━ STRICT RULES — DO NOT BREAK THESE ━━━
+1. ALL ${qCount} questions MUST be about: ${conceptMap[selectedConcept]||selectedConcept}
+   - If concept is Multiplication: every question is a multiplication question. No addition. No subtraction.
+   - If concept is Division: every question is a division question. No other operations.
+   - If concept is Big Friends: every question uses the Big Friends rule (complement to 10).
+   - If concept is Small Friends: every question uses the Small Friends rule (complement to 5).
+   - If concept is Anzan: questions are mental maths only — no written working.
+   - If concept is Addition and subtraction: questions use only addition and subtraction.
+   - If concept is Full revision: mix all concepts taught at Level ${selectedLevel}.
+2. All maths must be 100% correct — verify every answer before writing it.
+3. Use ONLY Level ${selectedLevel} number ranges — do not use numbers too big or too small for this level.
+4. Indian context: use Indian names (Aryan, Priya, Ravi, Meera, Rohan, Ananya) and Indian settings (cricket, festivals, rupees, mangoes, chai).
+5. Age-appropriate tone:
+   - Tiny Champs (5–7): Big emojis on every question, very simple language, short sentences, encouraging words, mascot ${mascot !== 'no mascot' ? '(' + mascot + ')' : ''} reacts to answers.
+   - Rising Stars (8–10): Friendly but challenging, mention XP and badges as motivation.
+   - Champions (11–12): Exam-style, include time challenge, competitive language.
 
-Please generate the following sections, each clearly labelled:
-
+━━━ OUTPUT FORMAT ━━━
 ${wantWorksheet ? `## QUESTIONS
-Return a JSON array of exactly ${qCount} question objects. Each object must have:
-- "question": the question text (string)
-- "answer": the correct answer (string or number)
-- "emoji": a relevant emoji for the question (e.g. 🥭 for mangoes, 🏏 for cricket)
-- "type": "calculation", "fill_blank", "story", or "visual"
+Return a valid JSON array of exactly ${qCount} objects. Each object:
+{
+  "question": "full question text here",
+  "answer": "correct answer as string",
+  "emoji": "one relevant emoji",
+  "type": "calculation|fill_blank|story|visual"
+}
 
-Example format:
-\`\`\`json
-[
-  {"question": "Aryan has 23 mangoes and gives 8 to Priya. How many does Aryan have left?", "answer": "15", "emoji": "🥭", "type": "story"},
-  {"question": "45 + 37 = ?", "answer": "82", "emoji": "🧮", "type": "calculation"}
-]
-\`\`\`
-
-After the JSON, add a blank line then the other requested sections.` : ''}
+IMPORTANT: Return ONLY the JSON array first, no other text before it. Valid JSON only.
+Then after the JSON, on a new line, add the other sections below.` : ''}
 
 ${wantAnswerKey ? `## ANSWER KEY
-Numbered answers corresponding to each question. Include brief working for complex questions.` : ''}
+List each question number with the answer and one line of working.` : ''}
 
 ${wantHints ? `## HINT BOX
-A formula reminder box the student can refer to. Include the key rule for this level's concept in simple language. For Tiny Champs use very simple words.` : ''}
+Write the key formula or rule for ${conceptMap[selectedConcept]||selectedConcept} in simple words a student can remember. Max 3 lines.` : ''}
 
 ${wantLesson ? `## LESSON PLAN
-A 5-point lesson plan for the teacher covering: (1) Warm-up activity (2) Concept introduction (3) Guided practice (4) Independent work (5) Wrap-up and assessment. Keep each point to 2-3 sentences.` : ''}
+5 steps: (1) Warm-up (2) Concept intro (3) Guided practice (4) Independent work (5) Wrap-up. 2 sentences each.` : ''}
 
 ${wantParent ? `## PARENT NOTE
-A short, friendly note (3-4 sentences) to send home with the student. Tell parents what was covered today, one thing they can practice at home tonight, and one encouraging thing about this level. Write in warm, simple English.` : ''}
-
-${wantFlash ? `## FLASH CARDS
-5 flash card prompts (question on front, answer on back). Format as: Front: [question] | Back: [answer]` : ''}
-
-Keep the tone warm, encouraging and age-appropriate. Make the worksheet feel fun — not like homework.`;
+3 sentences for parents: what was practised today, one thing to try at home tonight, one encouragement.` : ''}
+`
 }
 
 // ── GENERATE ─────────────────────────────────────────────────

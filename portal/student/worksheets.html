@@ -229,36 +229,89 @@ async function checkSub(uid){
 
 // ── PARSE QUESTIONS from JSON or raw text ──────────────────
 function parseQuestions(content){
-  // Try JSON first (new format from AI)
-  try {
-    const jsonMatch = content.match(/```json\s*([\s\S]*?)```/i) || content.match(/(\[[\s\S]*?\])/);
-    if(jsonMatch){
+  // ── Step 1: Try clean JSON array ──────────────────────────
+  // Strip markdown code fences if present
+  const stripped = content.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+
+  // Try to find a JSON array anywhere in the content
+  const jsonMatch = stripped.match(/(\[\s*\{[\s\S]*?\}\s*\])/);
+  if(jsonMatch){
+    try {
       const parsed = JSON.parse(jsonMatch[1]);
-      if(Array.isArray(parsed) && parsed[0]?.question) return parsed;
-    }
-  } catch(e){}
+      if(Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.question){
+        // Clean up each question — strip markdown, separate answer from question
+        return parsed.map(q => ({
+          question: cleanText(q.question),
+          answer:   cleanAnswer(q.answer),
+          emoji:    q.emoji || '🧮',
+          type:     q.type  || 'calculation',
+        }));
+      }
+    } catch(e){ console.log('JSON parse failed:', e.message); }
+  }
 
-  // Try ## QUESTIONS section
-  const wsMatch = content.match(/##\s*(?:WORKSHEET|QUESTIONS)\s*([\s\S]*?)(?=##|$)/i);
-  const text = wsMatch ? wsMatch[1].trim() : content;
+  // ── Step 2: Parse markdown-style numbered list ─────────────
+  // Handle format: "**Question 1**: 3 × 12 = ? | (explanation)"
+  // or "1. 3 × 12 = ___"
+  const wsMatch = content.match(/##\s*(?:WORKSHEET|QUESTIONS)[^\n]*\n([\s\S]*?)(?=##|$)/i);
+  const text = wsMatch ? wsMatch[1].trim() : stripped;
 
-  // Parse numbered questions
   const lines = text.split('\n');
   const questions = [];
   let cur = null;
+
   for(const line of lines){
     const s = line.trim();
     if(!s) continue;
-    const m = s.match(/^(?:Q?(\d+)[.)]\s*)(.+)/);
+
+    // Match: "**Question 1**:", "1.", "Q1.", "1)"
+    const m = s.match(/^(?:\*{0,2}(?:Question\s*)?(\d+)\*{0,2}[:.)]\s*|Q?(\d+)[.)\s]\s*)(.+)/i);
     if(m){
       if(cur) questions.push(cur);
-      cur = { question: m[2], answer: null, emoji: '🧮', type: 'calculation' };
-    } else if(cur && s.toLowerCase().startsWith('answer')){
-      cur.answer = s.replace(/^answer\s*:?\s*/i,'').trim();
+      let qtext = cleanText(m[3] || m[2] || '');
+      // Strip answer from question if embedded: "3 × 12 = **36** | ..."
+      // Remove everything after | (explanation)
+      qtext = qtext.replace(/\|.*$/,'').trim();
+      // Remove bold answer: "= **36**" → "= ___"
+      qtext = qtext.replace(/=\s*\*{1,2}([\d.]+)\*{1,2}/g, '= ?');
+      // Remove answer in parentheses at end
+      qtext = qtext.replace(/\(\d+[^)]*\)\s*$/,'').trim();
+      cur = { question: qtext, answer: null, emoji: '🧮', type: 'calculation' };
+    } else if(cur && /^answer\s*:?/i.test(s)){
+      cur.answer = cleanAnswer(s.replace(/^answer\s*:?\s*/i,''));
     }
   }
   if(cur) questions.push(cur);
   return questions;
+}
+
+// Strip markdown bold/italic from text
+function cleanText(text){
+  if(!text) return '';
+  return text
+    .replace(/\*\*([^*]+)\*\*/g, '$1')  // **bold** → text
+    .replace(/\*([^*]+)\*/g, '$1')        // *italic* → text
+    .replace(/__([^_]+)__/g, '$1')         // __bold__ → text
+    .replace(/_([^_]+)_/g, '$1')           // _italic_ → text
+    .replace(/`([^`]+)`/g, '$1')           // `code` → text
+    .trim();
+}
+
+// Clean and normalise answer — extract just the number
+function cleanAnswer(ans){
+  if(!ans && ans !== 0) return null;
+  const s = String(ans).trim();
+  // Remove markdown, explanations, units
+  const cleaned = s
+    .replace(/\*\*([^*]+)\*\*/g,'$1')
+    .replace(/\*([^*]+)\*/g,'$1')
+    .replace(/\|.*$/,'')          // Remove | explanation
+    .replace(/\(.*\)/g,'')       // Remove (parenthetical)
+    .trim();
+  // Extract first number found
+  const numMatch = cleaned.match(/^-?[\d,]+\.?\d*/);
+  if(numMatch) return numMatch[0].replace(/,/g,'');
+  return cleaned;
 }
 
 function getHint(content){

@@ -113,9 +113,64 @@
       .num-btn { width: 44px; height: 44px; font-size: 1rem; }
       .maze-dir-btn { width: 50px; height: 50px; }
     }
+  
+    /* ── SIDEBAR ── */
+    .portal { display: flex; min-height: 100vh; }
+    .sidebar { width: 220px; flex-shrink: 0; background: #fff; border-right: 2px solid #E8EAF6; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 200; overflow-y: auto; transform: translateX(0); transition: transform .25s ease; }
+    .sidebar-logo { padding: 14px 16px; border-bottom: 2px solid #E8EAF6; }
+    .sidebar-nav { flex: 1; padding: 8px 0; }
+    .nav-section { font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .7px; color: #9090B0; padding: 10px 16px 3px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: .875rem; font-weight: 700; color: #4A4A6A; text-decoration: none; border-left: 3px solid transparent; transition: all .12s; }
+    .nav-item:hover { background: #F7F8FF; }
+    .nav-item.active { color: #0D47A1; background: #E3F2FD; border-left-color: #1E88E5; }
+    .nav-icon { width: 20px; text-align: center; font-size: 1rem; }
+    .sidebar-footer { padding: 12px 16px; border-top: 2px solid #E8EAF6; font-size: .8rem; color: #9090B0; }
+    .main { flex: 1; margin-left: 220px; min-width: 0; }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 199; }
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.show { display: block; }
+      .main { margin-left: 0; }
+    }
+
+    /* ── BOTTOM NAV (mobile) ── */
+    .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: #fff; border-top: 2px solid #E8EAF6; z-index: 300; }
+    .bottom-nav-inner { display: flex; height: 100%; }
+    .bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; border: none; background: none; padding: 4px 0; min-height: 44px; }
+    .bnav-icon { font-size: 1.3rem; line-height: 1; }
+    .bnav-label { font-size: .62rem; font-weight: 700; color: #9090B0; font-family: inherit; }
+    .bnav-item.active .bnav-label { color: #0D47A1; }
+    @media (max-width: 768px) { .bottom-nav { display: block; } body { padding-bottom: 64px; } }
   </style>
 </head>
 <body>
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="portal">
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <a href="dashboard.html" style="display:flex;align-items:center;text-decoration:none;">
+        <img src="../../assets/logo.png" alt="iMathAcademy" style="height:36px;width:auto;object-fit:contain;">
+      </a>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Learning</div>
+      <a class="nav-item" href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a class="nav-item" href="lessons.html"><span class="nav-icon">▶️</span> Lessons</a>
+      <a class="nav-item" href="practice.html"><span class="nav-icon">⚡</span> Practice</a>
+      <a class="nav-item" href="worksheets.html"><span class="nav-icon">📋</span> Worksheets</a>
+      <a class="nav-item" href="homework.html"><span class="nav-icon">📚</span> Homework</a>
+      <a class="nav-item" href="weekly-quiz.html"><span class="nav-icon">🏆</span> Weekly Quiz</a>
+      <div class="nav-section">Progress</div>
+      <a class="nav-item" href="progress.html"><span class="nav-icon">📊</span> My Progress</a>
+      <div class="nav-section">Account</div>
+      <a class="nav-item" href="subscription.html"><span class="nav-icon">💳</span> Subscription</a>
+    </nav>
+    <div class="sidebar-footer" id="sidebarUser"></div>
+  </aside>
+
+<div class="main">
 
 <div class="topbar">
   <button class="back-btn" onclick="goBack()">←</button>
@@ -152,6 +207,17 @@ const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ── SUBSCRIPTION CHECK ─────────────────────────────────────
+  async function checkSubscription(userId) {
+    const { data } = await sb.from('subscriptions')
+      .select('expires_at').eq('student_id', userId)
+      .eq('status', 'active').order('expires_at', { ascending: false }).limit(1);
+    if (!data?.length || new Date(data[0].expires_at) < new Date()) {
+      window.location.href = 'subscription.html'; return false;
+    }
+    return true;
+  }
 
 let session = null, profile = null, group = 'rising';
 let timerInterval = null, secondsElapsed = 0;
@@ -722,6 +788,30 @@ async function init() {
 }
 
 init();
+
+  function toggleSidebar() {
+    const s = document.getElementById('sidebar');
+    const o = document.getElementById('overlay');
+    s?.classList.toggle('open');
+    o?.classList.toggle('show');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar')?.classList.remove('open');
+    document.getElementById('overlay')?.classList.remove('show');
+  }
 </script>
+</div>
+</div>
+
+<!-- Bottom nav (mobile) -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a class="bnav-item" href="dashboard.html"><span class="bnav-icon">🏠</span><span class="bnav-label">Home</span></a>
+    <a class="bnav-item" href="practice.html"><span class="bnav-icon">⚡</span><span class="bnav-label">Practice</span></a>
+    <a class="bnav-item" href="lessons.html"><span class="bnav-icon">▶️</span><span class="bnav-label">Lessons</span></a>
+    <a class="bnav-item" href="homework.html"><span class="bnav-icon">📚</span><span class="bnav-label">Homework</span></a>
+    <a class="bnav-item" href="progress.html"><span class="bnav-icon">📊</span><span class="bnav-label">Progress</span></a>
+  </div>
+</nav>
 </body>
 </html>

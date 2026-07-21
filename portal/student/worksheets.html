@@ -240,12 +240,15 @@ function parseQuestions(content){
       const parsed = JSON.parse(jsonMatch[1]);
       if(Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.question){
         // Clean up each question — strip markdown, separate answer from question
-        return parsed.map(q => ({
-          question: cleanText(q.question),
-          answer:   cleanAnswer(q.answer),
-          emoji:    q.emoji || '🧮',
-          type:     q.type  || 'calculation',
-        }));
+        return parsed.map(q => {
+          const ans = cleanAnswer(q.answer);
+          return {
+            question: stripAnswerFromQuestion(q.question, ans),
+            answer:   ans,
+            emoji:    q.emoji || '🧮',
+            type:     q.type  || 'calculation',
+          };
+        });
       }
     } catch(e){ console.log('JSON parse failed:', e.message); }
   }
@@ -276,7 +279,14 @@ function parseQuestions(content){
       qtext = qtext.replace(/=\s*\*{1,2}([\d.]+)\*{1,2}/g, '= ?');
       // Remove answer in parentheses at end
       qtext = qtext.replace(/\(\d+[^)]*\)\s*$/,'').trim();
-      cur = { question: qtext, answer: null, emoji: '🧮', type: 'calculation' };
+      // Extract answer from question if embedded (e.g. "4 × 6 = 24")
+      let embeddedAns = null;
+      const eqMatch = qtext.match(/=\s*([\d.]+)\s*(?:[^=?]*)?$/);
+      if(eqMatch && !qtext.includes('?') && !qtext.includes('___')) {
+        embeddedAns = eqMatch[1];
+      }
+      qtext = stripAnswerFromQuestion(qtext, embeddedAns);
+      cur = { question: qtext, answer: embeddedAns, emoji: '🧮', type: 'calculation' };
     } else if(cur && /^answer\s*:?/i.test(s)){
       cur.answer = cleanAnswer(s.replace(/^answer\s*:?\s*/i,''));
     }
@@ -285,33 +295,79 @@ function parseQuestions(content){
   return questions;
 }
 
-// Strip markdown bold/italic from text
+// ── TEXT CLEANING ────────────────────────────────────────────
 function cleanText(text){
   if(!text) return '';
   return text
-    .replace(/\*\*([^*]+)\*\*/g, '$1')  // **bold** → text
-    .replace(/\*([^*]+)\*/g, '$1')        // *italic* → text
-    .replace(/__([^_]+)__/g, '$1')         // __bold__ → text
-    .replace(/_([^_]+)_/g, '$1')           // _italic_ → text
-    .replace(/`([^`]+)`/g, '$1')           // `code` → text
+    .replace(/\*\*([^*]+)\*\*/g, '$1')   // **bold** → text
+    .replace(/\*([^*]+)\*/g, '$1')         // *italic* → text
+    .replace(/__([^_]+)__/g, '$1')          // __bold__ → text
+    .replace(/_([^_]+)_/g, '$1')            // _italic_ → text
+    .replace(/`([^`]+)`/g, '$1')            // `code` → text
     .trim();
 }
 
-// Clean and normalise answer — extract just the number
 function cleanAnswer(ans){
-  if(!ans && ans !== 0) return null;
+  if(ans === null || ans === undefined || ans === '') return null;
   const s = String(ans).trim();
-  // Remove markdown, explanations, units
   const cleaned = s
     .replace(/\*\*([^*]+)\*\*/g,'$1')
     .replace(/\*([^*]+)\*/g,'$1')
-    .replace(/\|.*$/,'')          // Remove | explanation
-    .replace(/\(.*\)/g,'')       // Remove (parenthetical)
+    .replace(/\|.*$/,'')
+    .replace(/\(.*?\)/g,'')
     .trim();
-  // Extract first number found
   const numMatch = cleaned.match(/^-?[\d,]+\.?\d*/);
   if(numMatch) return numMatch[0].replace(/,/g,'');
   return cleaned;
+}
+
+// ── STRIP ANSWER FROM QUESTION TEXT ──────────────────────────
+// The AI sometimes embeds the answer in the question like:
+// "4 × 6 = 24 pieces of fruit" or "4 bowls × 6 = 24" or "= **24**"
+// We strip everything that reveals the answer to the student.
+function stripAnswerFromQuestion(qtext, answer) {
+  let q = cleanText(qtext);
+
+  // Remove "= ANSWER" or "= **ANSWER**" at end
+  if(answer) {
+    const a = String(answer).trim();
+    // Remove exact answer after = sign
+    q = q.replace(new RegExp('=\\s*\\*{0,2}' + a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\*{0,2}\\s*[^.]*$', 'i'), '= ?');
+    // Remove answer anywhere it appears as a standalone number at end
+    q = q.replace(new RegExp('\\s+' + a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\s*\\.?\\s*$'), '');
+  }
+
+  // Remove "= 24 pieces of fruit" style (= number + words)
+  q = q.replace(/=\s*\*{0,2}\d+\*{0,2}[^.?]*$/i, '= ?');
+
+  // Remove "Answer: 24" or "Ans: 24" embedded in question
+  q = q.replace(/\b(?:ans(?:wer)?|result|solution)\s*[=:]\s*\d+\b/gi, '');
+
+  // Remove "| explanation" suffix
+  q = q.replace(/\|.*$/, '').trim();
+
+  // Remove trailing parenthetical with numbers "(= 24)" "(Answer: 24)"
+  q = q.replace(/\(\s*(?:=?\s*\d+|answer\s*[=:]?\s*\d+)\s*\)/gi, '').trim();
+
+  // Remove trailing number after the last operator × ÷ + -
+  // e.g. "4 × 6 = 24" → "4 × 6 = ?"  (already handled above)
+  // "4 bowls × 6 pieces each = 24 pieces of fruit" → "4 bowls × 6 pieces each = ?"
+  q = q.replace(/([×÷+\-]\s*\d+[^=]*)=\s*[\d.]+.*$/i, '$1= ?');
+
+  // If question ends with just a number (the answer), remove it
+  if(answer) {
+    const a = String(answer).trim();
+    const endsWithAnswer = new RegExp('\\s+' + a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\s*\\.?$');
+    q = q.replace(endsWithAnswer, '').trim();
+  }
+
+  // Clean up multiple spaces
+  q = q.replace(/\s{2,}/g,' ').trim();
+
+  // If question now ends with "=" add "?" 
+  if(q.endsWith('=')) q += ' ?';
+
+  return q;
 }
 
 function getHint(content){

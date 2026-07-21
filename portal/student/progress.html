@@ -2,302 +2,130 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <link rel="icon" type="image/png" href="/assets/favicon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>My Progress — iMathAcademy</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; min-height: 100vh; }
-    :root {
-      --green:#43A047; --green-dk:#1B5E20; --green-lt:#E8F5E9; --green-md:#2E7D32;
-      --orange:#FB8C00; --orange-dk:#E65100; --orange-lt:#FFF3E0;
-      --blue:#1E88E5; --blue-dk:#0D47A1; --blue-lt:#E3F2FD;
-      --purple:#8E24AA; --purple-dk:#4A148C; --purple-lt:#F3E5F5;
-      --red:#E53935; --red-dk:#B71C1C; --red-lt:#FFEBEE;
-      --yellow:#F9A825; --yellow-lt:#FFFDE7; --yellow-dk:#F57F17;
-      --teal:#00897B; --teal-lt:#E0F2F1; --teal-dk:#004D40;
-      --bg:#FFFFFF; --bg2:#F7F8FF; --border:#E8EAF6;
-      --text2:#4A4A6A; --text3:#9090B0;
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    body{font-family:'Nunito',sans-serif;background:#F7F8FF;color:#1A1A2E;min-height:100vh;}
+    :root{
+      --green:#43A047;--green-dk:#1B5E20;--green-lt:#E8F5E9;
+      --blue:#1E88E5;--blue-dk:#0D47A1;--blue-lt:#E3F2FD;
+      --orange:#FB8C00;--orange-dk:#E65100;--orange-lt:#FFF3E0;
+      --purple:#8E24AA;--purple-lt:#F3E5F5;--purple-dk:#4A148C;
+      --red:#E53935;--red-lt:#FFEBEE;--red-dk:#B71C1C;
+      --yellow:#F9A825;--yellow-lt:#FFFDE7;--yellow-dk:#F57F17;
+      --bg:#fff;--bg2:#F7F8FF;--border:#E8EAF6;
+      --text:#1A1A2E;--text2:#4A4A6A;--text3:#9090B0;
     }
 
     /* ── LAYOUT ── */
-    .portal { display:flex; min-height:100vh; }
-    .sidebar {
-      width:220px; flex-shrink:0; background:var(--bg);
-      border-right:2px solid var(--border); display:flex;
-      flex-direction:column; position:fixed; top:0; left:0;
-      height:100vh; overflow-y:auto; z-index:100; transition:transform .3s;
-    }
-    .sidebar-logo {
-      padding:20px 16px; border-bottom:2px solid var(--border);
-      font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800;
-      color:var(--green-dk); display:flex; align-items:center; gap:10px;
-    }
-    .sidebar-logo span { color:var(--orange-dk); }
-    .logo-icon { width:34px; height:34px; background:var(--green); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
-    .sidebar-nav { flex:1; padding:12px 0; }
-    .nav-section { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--text3); padding:8px 16px 3px; margin-top:6px; }
-    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 16px; font-size:.875rem; font-weight:700; color:var(--text2); cursor:pointer; border-left:3px solid transparent; transition:all .12s; text-decoration:none; }
-    .nav-item:hover { color:var(--text); background:var(--bg2); }
-    .nav-item.active { color:var(--teal-dk); background:var(--teal-lt); border-left-color:var(--teal); }
-    .nav-icon { width:20px; text-align:center; font-size:1rem; }
-    .nav-badge { margin-left:auto; background:var(--red); color:#fff; font-size:.62rem; font-weight:800; padding:2px 6px; border-radius:20px; min-width:18px; text-align:center; }
-    .sidebar-user { padding:14px 16px; border-top:2px solid var(--border); display:flex; align-items:center; gap:10px; }
-    .user-av { width:36px; height:36px; border-radius:50%; background:var(--green-lt); border:2px solid var(--green); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; color:var(--green-dk); flex-shrink:0; }
-    .user-name { font-size:.82rem; font-weight:800; color:var(--text); }
-    .user-role { font-size:.7rem; color:var(--text3); font-weight:600; }
-    .logout-btn { margin-left:auto; background:none; border:none; font-size:.85rem; cursor:pointer; color:var(--text3); }
-    .logout-btn:hover { color:var(--red); }
-    .main { flex:1; margin-left:220px; display:flex; flex-direction:column; }
-    .topbar {
-      height:62px; background:var(--bg); border-bottom:2px solid var(--border);
-      display:flex; align-items:center; justify-content:space-between;
-      padding:0 24px; position:sticky; top:0; z-index:50;
-      box-shadow:0 2px 8px rgba(0,0,0,.05);
-    }
-    .topbar-left { display:flex; align-items:center; gap:12px; }
-    .hamburger { display:none; flex-direction:column; gap:4px; cursor:pointer; background:none; border:none; }
-    .hamburger span { width:20px; height:2px; background:var(--text); border-radius:2px; display:block; }
-    .topbar-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; }
-    .back-link { font-size:.82rem; font-weight:700; color:var(--text3); text-decoration:none; }
-    .back-link:hover { color:var(--green-dk); }
-    .body { padding:24px; }
+    .portal{display:flex;min-height:100vh;}
+    .sidebar{width:220px;flex-shrink:0;background:var(--bg);border-right:2px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:300;overflow-y:auto;}
+    .sidebar-logo{padding:14px 16px;border-bottom:2px solid var(--border);}
+    .sidebar-nav{flex:1;padding:8px 0;}
+    .nav-section{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);padding:10px 16px 3px;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:.875rem;font-weight:700;color:var(--text2);text-decoration:none;border-left:3px solid transparent;transition:all .12s;}
+    .nav-item:hover{background:var(--bg2);}
+    .nav-item.active{color:var(--blue-dk);background:var(--blue-lt);border-left-color:var(--blue);}
+    .nav-icon{width:20px;text-align:center;font-size:1rem;}
+    .main{flex:1;margin-left:220px;min-width:0;}
 
-    /* ── PAGE TABS ── */
-    .page-tabs {
-      display:flex; gap:0; background:var(--bg);
-      border:2px solid var(--border); border-radius:30px;
-      overflow:hidden; margin-bottom:24px; width:fit-content;
-    }
-    .page-tab {
-      padding:9px 20px; font-size:.85rem; font-weight:800;
-      cursor:pointer; transition:all .15s; color:var(--text2);
-      border:none; background:transparent; font-family:'Nunito',sans-serif;
-    }
-    .page-tab.active { background:var(--teal); color:#fff; }
+    /* ── TOPBAR ── */
+    .topbar{height:56px;background:var(--bg);border-bottom:2px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 16px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+    .topbar img{height:32px;width:auto;}
+    .topbar-title{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;flex:1;}
 
-    /* ── XP + BELT ── */
-    .xp-belt-row { display:grid; grid-template-columns:1fr 280px; gap:16px; margin-bottom:20px; }
-    .xp-card {
-      background:linear-gradient(135deg,var(--green-dk),var(--green-md));
-      border-radius:20px; padding:22px 24px; color:#fff;
-      box-shadow:0 4px 16px rgba(27,94,32,.3);
-    }
-    .xp-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
-    .xp-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; }
-    .xp-badges { display:flex; gap:8px; }
-    .xp-badge { padding:4px 12px; border-radius:20px; font-size:.78rem; font-weight:800; }
-    .xp-badge-xp { background:rgba(255,255,255,.2); color:#fff; }
-    .xp-badge-s  { background:var(--orange); color:#fff; }
-    .xp-track { height:12px; background:rgba(255,255,255,.25); border-radius:6px; overflow:hidden; margin-bottom:8px; }
-    .xp-fill  { height:100%; background:var(--yellow); border-radius:6px; transition:width .8s ease; }
-    .xp-info  { display:flex; justify-content:space-between; font-size:.78rem; opacity:.85; font-weight:600; }
+    /* ── CONTENT ── */
+    .content{padding:14px;max-width:680px;margin:0 auto;padding-bottom:80px;}
 
-    .belt-card {
-      background:var(--bg); border:2px solid var(--border);
-      border-radius:20px; padding:20px; text-align:center;
-    }
-    .belt-circle-lg {
-      width:72px; height:72px; border-radius:50%;
-      margin:0 auto 12px; border:4px solid rgba(0,0,0,.1);
-      display:flex; align-items:center; justify-content:center;
-      font-size:2rem;
-    }
-    .belt-name { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; color:var(--text); margin-bottom:4px; }
-    .belt-level { font-size:.8rem; color:var(--text2); font-weight:600; margin-bottom:10px; }
-    .belt-progress-row { display:flex; flex-direction:column; gap:4px; }
-    .belt-prog-label { font-size:.72rem; font-weight:700; color:var(--text3); display:flex; justify-content:space-between; }
-    .belt-prog-track { height:8px; background:var(--bg2); border-radius:4px; overflow:hidden; border:1px solid var(--border); }
-    .belt-prog-fill  { height:100%; border-radius:4px; background:var(--orange); }
+    /* ── TABS ── */
+    .tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:16px;padding-bottom:2px;}
+    .tabs::-webkit-scrollbar{display:none;}
+    .tab-btn{padding:7px 16px;border-radius:20px;border:2px solid var(--border);background:var(--bg);font-size:.82rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Nunito',sans-serif;transition:all .12s;touch-action:manipulation;}
+    .tab-btn.active{background:var(--blue-lt);border-color:var(--blue);color:var(--blue-dk);}
+
+    /* ── CARDS ── */
+    .card{background:var(--bg);border:2px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:12px;}
+    .sec-title{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:10px;}
 
     /* ── STATS GRID ── */
-    .stats-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:20px; }
-    .stat-card { background:var(--bg); border:2px solid var(--border); border-radius:16px; padding:14px; text-align:center; transition:all .2s; }
-    .stat-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.08); }
-    .stat-n { font-family:'Baloo 2',sans-serif; font-size:1.7rem; font-weight:800; line-height:1.1; margin-bottom:3px; }
-    .stat-l { font-size:.75rem; font-weight:700; color:var(--text2); }
-    .stat-s { font-size:.68rem; color:var(--text3); margin-top:2px; }
+    .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px;}
+    .stat-box{background:var(--bg);border:2px solid var(--border);border-radius:14px;padding:14px;text-align:center;}
+    .stat-num{font-size:1.6rem;font-weight:900;margin-bottom:2px;}
+    .stat-lbl{font-size:.7rem;color:var(--text3);font-weight:700;}
 
-    /* ── SECTION CARD ── */
-    .section-card {
-      background:var(--bg); border:2px solid var(--border);
-      border-radius:18px; padding:20px; margin-bottom:16px;
-    }
-    .section-title {
-      font-size:.75rem; font-weight:800; text-transform:uppercase;
-      letter-spacing:.5px; color:var(--text3); margin-bottom:14px;
-      display:flex; align-items:center; justify-content:space-between;
-    }
-    .section-link { font-size:.72rem; font-weight:700; color:var(--teal); text-transform:none; letter-spacing:0; cursor:pointer; }
+    /* ── XP BAR ── */
+    .xp-card{background:linear-gradient(135deg,#0D47A1,#4A148C);border-radius:16px;padding:16px;color:#fff;margin-bottom:12px;}
+    .xp-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+    .xp-title{font-size:.875rem;font-weight:800;margin-bottom:3px;}
+    .xp-sub{font-size:.75rem;opacity:.8;}
+    .xp-badge{font-size:.72rem;font-weight:800;padding:4px 12px;border-radius:20px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);}
+    .xp-track{height:8px;background:rgba(255,255,255,.2);border-radius:20px;overflow:hidden;margin-bottom:6px;}
+    .xp-fill{height:100%;background:linear-gradient(90deg,#FFD600,#FF6F00);border-radius:20px;transition:width .5s;}
+    .xp-info{display:flex;justify-content:space-between;font-size:.72rem;opacity:.75;}
 
-    /* ── BAR CHART ── */
-    .bar-chart { display:flex; align-items:flex-end; gap:8px; height:120px; margin-bottom:8px; }
-    .bar-col { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; }
-    .bar-val { font-size:.68rem; font-weight:800; color:var(--text2); }
-    .bar { border-radius:6px 6px 0 0; width:100%; min-height:4px; transition:height .6s ease; }
-    .bar-label { font-size:.62rem; font-weight:700; color:var(--text3); text-align:center; }
+    /* ── BADGE GRID ── */
+    .badge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+    .badge-item{text-align:center;padding:12px 8px;border:2px solid var(--border);border-radius:12px;background:var(--bg);}
+    .badge-item.earned{border-color:var(--yellow);background:var(--yellow-lt);}
+    .badge-item.locked{opacity:.35;}
+    .badge-emoji{font-size:1.8rem;margin-bottom:4px;}
+    .badge-name{font-size:.68rem;font-weight:700;color:var(--text2);}
+    .badge-date{font-size:.6rem;color:var(--text3);margin-top:2px;}
 
-    /* ── TOPIC ACCURACY ── */
-    .topic-row {
-      display:flex; align-items:center; gap:10px;
-      padding:9px 0; border-bottom:1px solid var(--border);
-    }
-    .topic-row:last-child { border-bottom:none; }
-    .topic-name { flex:1; font-size:.875rem; font-weight:600; color:var(--text); }
-    .topic-sessions { font-size:.72rem; color:var(--text3); font-weight:600; min-width:50px; text-align:right; }
-    .topic-bar  { width:110px; height:8px; background:var(--bg2); border-radius:4px; overflow:hidden; }
-    .topic-fill { height:100%; border-radius:4px; }
-    .topic-pct  { font-size:.8rem; font-weight:800; width:36px; text-align:right; }
-    .topic-trend { font-size:.75rem; font-weight:800; width:24px; text-align:center; }
+    /* ── LEADERBOARD ── */
+    .lb-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+    .lb-row:last-child{border-bottom:none;}
+    .lb-rank{font-size:1rem;width:28px;text-align:center;flex-shrink:0;}
+    .lb-name{flex:1;font-size:.875rem;font-weight:700;}
+    .lb-xp{font-size:.875rem;font-weight:800;}
+    .lb-streak{font-size:.72rem;color:var(--text3);}
 
-    /* ── HEATMAP ── */
-    .heatmap-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
-    .heatmap-cell {
-      border-radius:10px; padding:10px 8px; text-align:center;
-      border:2px solid transparent; transition:all .15s; cursor:default;
-    }
-    .heatmap-cell:hover { transform:scale(1.04); }
-    .hm-icon  { font-size:1rem; margin-bottom:4px; display:block; }
-    .hm-topic { font-size:.65rem; font-weight:700; color:var(--text2); line-height:1.3; margin-bottom:3px; }
-    .hm-pct   { font-size:.8rem; font-weight:800; }
-    .hm-red    { background:var(--red-lt);    border-color:#FFCDD2; }
-    .hm-red    .hm-pct { color:var(--red-dk); }
-    .hm-orange { background:var(--orange-lt); border-color:#FFCC80; }
-    .hm-orange .hm-pct { color:var(--orange-dk); }
-    .hm-yellow { background:var(--yellow-lt); border-color:#FFE082; }
-    .hm-yellow .hm-pct { color:var(--yellow-dk); }
-    .hm-blue   { background:var(--blue-lt);   border-color:#90CAF9; }
-    .hm-blue   .hm-pct { color:var(--blue-dk); }
-    .hm-green  { background:var(--green-lt);  border-color:#A5D6A7; }
-    .hm-green  .hm-pct { color:var(--green-dk); }
+    /* ── HISTORY ── */
+    .hist-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+    .hist-item:last-child{border-bottom:none;}
+    .hist-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+    .hist-info{flex:1;min-width:0;}
+    .hist-title{font-size:.875rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .hist-meta{font-size:.72rem;color:var(--text3);margin-top:2px;}
+    .hist-xp{font-size:.82rem;font-weight:800;color:var(--orange-dk);flex-shrink:0;}
 
-    /* ── SESSION HISTORY ── */
-    .session-row {
-      display:flex; align-items:center; gap:12px;
-      padding:10px 0; border-bottom:1px solid var(--border);
-    }
-    .session-row:last-child { border-bottom:none; }
-    .session-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-    .session-info { flex:1; }
-    .session-topic { font-size:.82rem; font-weight:700; color:var(--text); }
-    .session-meta  { font-size:.72rem; color:var(--text3); font-weight:600; }
-    .session-score { font-size:.82rem; font-weight:800; }
-    .session-xp    { font-size:.72rem; font-weight:700; color:var(--yellow-dk); }
+    /* ── TOPICS ── */
+    .topic-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+    .topic-item:last-child{border-bottom:none;}
+    .topic-name{flex:1;font-size:.875rem;font-weight:700;}
+    .topic-bar-wrap{flex:2;height:5px;background:var(--border);border-radius:20px;overflow:hidden;}
+    .topic-bar-fill{height:100%;border-radius:20px;}
+    .topic-pct{font-size:.75rem;font-weight:800;width:36px;text-align:right;flex-shrink:0;}
 
-    /* ── BADGE WALL ── */
-    .badge-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; }
-    .badge-cell {
-      background:var(--bg2); border:2px solid var(--border);
-      border-radius:14px; padding:12px 8px; text-align:center;
-      position:relative; transition:all .2s;
-    }
-    .badge-cell.earned { background:var(--yellow-lt); border-color:#FFE082; }
-    .badge-cell.earned:hover { transform:scale(1.06); box-shadow:0 4px 12px rgba(249,168,37,.2); }
-    .badge-cell.locked { opacity:.35; filter:grayscale(1); }
-    .badge-cell-icon  { font-size:1.8rem; display:block; margin-bottom:6px; }
-    .badge-cell-label { font-size:.7rem; font-weight:800; color:var(--text2); line-height:1.3; }
-    .badge-cell-xp    { font-size:.62rem; color:var(--text3); margin-top:3px; }
-    .badge-new-tag {
-      position:absolute; top:-5px; right:-5px;
-      background:var(--red); color:#fff; font-size:.55rem; font-weight:800;
-      padding:2px 5px; border-radius:10px;
-    }
-    .badge-earned-date { font-size:.6rem; color:var(--text3); margin-top:2px; }
+    /* ── LOADER ── */
+    .loader{text-align:center;padding:40px 20px;color:var(--text3);}
+    .spinner{width:32px;height:32px;border:4px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .empty{text-align:center;padding:30px;color:var(--text3);font-size:.875rem;}
 
-    /* ── PERSONAL BESTS ── */
-    .pb-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
-    .pb-card { background:var(--bg2); border:2px solid var(--border); border-radius:14px; padding:14px; text-align:center; }
-    .pb-icon  { font-size:1.5rem; margin-bottom:8px; }
-    .pb-val   { font-family:'Baloo 2',sans-serif; font-size:1.4rem; font-weight:800; color:var(--text); margin-bottom:3px; }
-    .pb-label { font-size:.75rem; font-weight:700; color:var(--text2); margin-bottom:2px; }
-    .pb-date  { font-size:.68rem; color:var(--text3); }
+    /* ── BOTTOM NAV ── */
+    .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--bg);border-top:2px solid var(--border);z-index:200;}
+    .bottom-nav-inner{display:flex;height:100%;}
+    .bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-decoration:none;border:none;background:none;padding:4px 0;min-height:44px;}
+    .bnav-icon{font-size:1.3rem;}
+    .bnav-label{font-size:.62rem;font-weight:700;color:var(--text3);font-family:inherit;}
+    .bnav-item.active .bnav-label{color:var(--blue-dk);}
 
-    /* ── BELT JOURNEY ── */
-    .belt-journey { display:flex; align-items:center; gap:0; overflow-x:auto; padding-bottom:8px; }
-    .belt-step {
-      display:flex; flex-direction:column; align-items:center;
-      gap:6px; min-width:70px; position:relative;
+    @media(max-width:768px){
+      .sidebar{display:none!important;}
+      .main{margin-left:0;}
+      .bottom-nav{display:block;}
+      body{padding-bottom:64px;}
+      .stats-grid{grid-template-columns:repeat(2,1fr);}
+      .badge-grid{grid-template-columns:repeat(3,1fr);}
     }
-    .belt-step:not(:last-child)::after {
-      content:''; position:absolute; top:18px; left:calc(50% + 18px);
-      width:calc(100% - 36px); height:3px; background:var(--border); z-index:0;
-    }
-    .belt-step.done:not(:last-child)::after { background:var(--green); }
-    .belt-circle-sm {
-      width:36px; height:36px; border-radius:50%;
-      border:3px solid var(--border); position:relative; z-index:1;
-      transition:all .2s;
-    }
-    .belt-step.done  .belt-circle-sm { border-color:var(--green-dk); }
-    .belt-step.current .belt-circle-sm { border-color:var(--orange); box-shadow:0 0 0 3px rgba(251,140,0,.2); }
-    .belt-step-name { font-size:.62rem; font-weight:800; color:var(--text3); text-align:center; }
-    .belt-step.done    .belt-step-name { color:var(--green-dk); }
-    .belt-step.current .belt-step-name { color:var(--orange-dk); }
-    .belt-check { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:.7rem; }
-
-    /* ── DOWNLOAD REPORT ── */
-    .report-card {
-      background:linear-gradient(135deg,var(--blue-dk),var(--blue));
-      border-radius:18px; padding:20px 24px; color:#fff;
-      display:flex; align-items:center; gap:16px; margin-bottom:16px;
-    }
-    .report-icon { font-size:2.5rem; flex-shrink:0; }
-    .report-info { flex:1; }
-    .report-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; margin-bottom:4px; }
-    .report-sub   { font-size:.82rem; opacity:.85; font-weight:500; }
-    .report-btn {
-      background:#fff; color:var(--blue-dk);
-      border:none; padding:10px 20px; border-radius:20px;
-      font-family:'Nunito',sans-serif; font-size:.85rem;
-      font-weight:800; cursor:pointer; white-space:nowrap;
-      transition:all .15s; flex-shrink:0;
-    }
-    .report-btn:hover { background:var(--blue-lt); }
-
-    /* ── TOAST ── */
-    .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
-    .toast { background:var(--text); color:#fff; padding:10px 18px; border-radius:12px; font-size:.875rem; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,.2); animation:slideIn .3s ease; }
-    .toast-success { background:var(--green-dk); }
-    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width:768px) {
-      .sidebar { transform:translateX(-100%); }
-      .sidebar.open { transform:translateX(0); }
-      .main { margin-left:0; }
-      .hamburger { display:flex; }
-      .body { padding:16px; }
-      .xp-belt-row { grid-template-columns:1fr; }
-      .stats-grid  { grid-template-columns:repeat(2,1fr); }
-      .heatmap-grid { grid-template-columns:repeat(3,1fr); }
-      .badge-grid   { grid-template-columns:repeat(4,1fr); }
-      .pb-grid      { grid-template-columns:1fr; }
-    }
-    @media (max-width:480px) {
-      .badge-grid { grid-template-columns:repeat(3,1fr); }
-      .heatmap-grid { grid-template-columns:repeat(2,1fr); }
-    }
-  
-    /* ── BOTTOM NAV (mobile) ── */
-    .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: #fff; border-top: 2px solid #E8EAF6; z-index: 200; box-shadow: 0 -4px 16px rgba(0,0,0,.08); }
-    .bottom-nav-inner { display: flex; height: 100%; }
-    .bnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; text-decoration: none; border: none; background: none; padding: 4px 0; min-height: 44px; -webkit-tap-highlight-color: transparent; }
-    .bnav-icon { font-size: 1.3rem; line-height: 1; }
-    .bnav-label { font-size: .62rem; font-weight: 700; color: #9090B0; font-family: inherit; }
-    .bnav-item.active .bnav-label { color: #0D47A1; }
-    @media (max-width: 768px) {
-      .sidebar { display: none !important; }
-      .hamburger-btn, .hamburger-mobile { display: none !important; } .bottom-nav { display: block; } body { padding-bottom: 64px; } }
-    </style>
+  </style>
 </head>
 <body>
-<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
 <div class="portal">
 
-  <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <a href="dashboard.html" style="display:flex;align-items:center;text-decoration:none;">
@@ -309,735 +137,428 @@
       <a class="nav-item" href="dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
       <a class="nav-item" href="lessons.html"><span class="nav-icon">▶️</span> Lessons</a>
       <a class="nav-item" href="practice.html"><span class="nav-icon">⚡</span> Practice</a>
-      <a class="nav-item" href="homework.html"><span class="nav-icon">📋</span> Homework<span class="nav-badge" id="hwBadge" style="display:none">0</span></a>
+      <a class="nav-item" href="worksheets.html"><span class="nav-icon">📋</span> Worksheets</a>
+      <a class="nav-item" href="homework.html"><span class="nav-icon">📚</span> Homework</a>
+      <a class="nav-item" href="weekly-quiz.html"><span class="nav-icon">🏆</span> Weekly Quiz</a>
       <div class="nav-section">Progress</div>
-      <a class="nav-item active" href="progress.html"><span class="nav-icon">📊</span> My progress</a>
-      <a class="nav-item" href="progress.html"><span class="nav-icon">🏅</span> Badges & XP</a>
-      <div class="nav-section">Classes</div>
-      <a class="nav-item" href="#"><span class="nav-icon">📹</span> Live classes</a>
+      <a class="nav-item active" href="progress.html"><span class="nav-icon">📊</span> My Progress</a>
+      <div class="nav-section">Account</div>
+      <a class="nav-item" href="subscription.html"><span class="nav-icon">💳</span> Subscription</a>
     </nav>
-    <div class="sidebar-user">
-      <div class="user-av" id="userAv">?</div>
-      <div>
-        <div class="user-name" id="userName">Loading...</div>
-        <div class="user-role">Student</div>
-      </div>
-      <button class="logout-btn" onclick="logout()">⇥</button>
-    </div>
   </aside>
 
-  <!-- MAIN -->
   <div class="main">
     <div class="topbar">
-    <button onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;font-size:1.3rem;padding:4px 8px;display:none;" class="hamburger-btn" id="hamburgerBtn">☰</button>
-      <a href="dashboard.html" style="display:flex;align-items:center;flex-shrink:0;text-decoration:none;"><img src="../../assets/logo.png" alt="iMathAcademy" style="height:36px;width:auto;object-fit:contain;"></a>
-    <div class="topbar-left">
-        <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
-        <div class="topbar-title">📊 My Progress</div>
-      </div>
-      <a class="back-link" href="dashboard.html">← Back to dashboard</a>
+      <a href="dashboard.html" style="display:flex;align-items:center;flex-shrink:0;text-decoration:none;">
+        <img src="../../assets/logo.png" alt="iMathAcademy" style="height:32px;width:auto;">
+      </a>
+      <div class="topbar-title">📊 My Progress</div>
     </div>
 
-    <div class="body">
+    <div class="content">
 
-      <!-- Page tabs -->
-      <div class="page-tabs">
-        <button class="page-tab active" onclick="showTab('overview',this)">Overview</button>
-        <button class="page-tab" onclick="showTab('topics',this)">Topics</button>
-        <button class="page-tab" onclick="showTab('badges',this)">Badges & XP</button>
-        <button class="page-tab" onclick="showTab('leaderboard',this)">🏆 Leaderboard</button>
-        <button class="page-tab" onclick="showTab('history',this)">History</button>
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('overview',this)">Overview</button>
+        <button class="tab-btn" onclick="showTab('badges',this)">🏅 Badges</button>
+        <button class="tab-btn" onclick="showTab('leaderboard',this)">🏆 Leaderboard</button>
+        <button class="tab-btn" onclick="showTab('history',this)">History</button>
       </div>
 
-      <!-- ══ OVERVIEW TAB ══ -->
+      <!-- OVERVIEW TAB -->
       <div id="tab-overview">
 
-        <!-- XP + Belt -->
-        <div class="xp-belt-row">
-          <div class="xp-card">
-            <div class="xp-top">
-              <div>
-                <div class="xp-title" id="xpTitle">Getting started · White Belt</div>
-                <div style="font-size:.78rem;opacity:.8;margin-top:2px" id="xpSub">0 XP total earned</div>
-              </div>
-              <div class="xp-badges">
-                <div class="xp-badge xp-badge-xp" id="xpBadge">0 XP</div>
-                <div class="xp-badge xp-badge-s" id="streakBadge">🔥 0 days</div>
-              </div>
+        <!-- XP Card -->
+        <div class="xp-card">
+          <div class="xp-top">
+            <div>
+              <div class="xp-title" id="xpTitle">Abacus — Level 1</div>
+              <div class="xp-sub" id="xpSub">0 XP earned</div>
             </div>
-            <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
-            <div class="xp-info">
-              <span id="xpCurrent">0 / 500 XP</span>
-              <span id="xpNext">Start practising to earn XP</span>
-            </div>
+            <div class="xp-badge" id="xpBadge">0 XP</div>
           </div>
-
-          <div class="belt-card">
-            <div class="belt-circle-lg" id="beltCircle" style="background:#F5F5F5">🥋</div>
-            <div class="belt-name" id="beltName">White Belt</div>
-            <div class="belt-level" id="beltLevel">Level 1 of 10</div>
-            <div class="belt-progress-row">
-              <div class="belt-prog-label">
-                <span>Progress to Yellow</span>
-                <span id="beltPct">0%</span>
-              </div>
-              <div class="belt-prog-track">
-                <div class="belt-prog-fill" id="beltProg" style="width:0%"></div>
-              </div>
-            </div>
+          <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+          <div class="xp-info">
+            <span id="xpCurrent">0 XP</span>
+            <span id="xpNext">Keep going!</span>
           </div>
         </div>
 
         <!-- Stats -->
+        <div class="sec-title">This week</div>
         <div class="stats-grid">
-          <div class="stat-card"><div class="stat-n" style="color:var(--blue)" id="statSessions">0</div><div class="stat-l">Practice sessions</div><div class="stat-s">this month</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--green)" id="statAccuracy">—</div><div class="stat-l">Overall accuracy</div><div class="stat-s" id="statAccuracySub">No data yet</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--orange)" id="statStreak">0</div><div class="stat-l">Day streak</div><div class="stat-s">keep practising</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--purple)" id="statBadges">0</div><div class="stat-l">Badges earned</div><div class="stat-s" id="statBadgesSub">complete practice to earn</div></div>
-        </div>
-
-        <!-- Belt journey -->
-        <div class="section-card">
-          <div class="section-title">Belt journey</div>
-          <div class="belt-journey" id="beltJourney"></div>
-        </div>
-
-        <!-- Weekly accuracy chart -->
-        <div class="section-card">
-          <div class="section-title">
-            Weekly accuracy (last 8 weeks)
-            <span class="section-link" onclick="showTab('history',document.querySelectorAll('.page-tab')[3])">View history →</span>
+          <div class="stat-box">
+            <div class="stat-num" id="statStreak" style="color:var(--orange-dk)">0</div>
+            <div class="stat-lbl">🔥 Day streak</div>
           </div>
-          <div class="bar-chart" id="barChart"></div>
-          <div style="font-size:.72rem;color:var(--text3);font-weight:600;text-align:center">Each bar shows your average accuracy for that week</div>
-        </div>
-
-        <!-- Needs attention -->
-        <div class="section-card">
-          <div class="section-title">
-            Topics needing attention
-            <span class="section-link" onclick="showTab('topics',document.querySelectorAll('.page-tab')[1])">See all topics →</span>
+          <div class="stat-box">
+            <div class="stat-num" id="statSessions" style="color:var(--blue-dk)">0</div>
+            <div class="stat-lbl">Practice sessions</div>
           </div>
-          <div id="attentionList"></div>
-        </div>
-
-        <!-- Download report -->
-        <div class="report-card">
-          <div class="report-icon">📄</div>
-          <div class="report-info">
-            <div class="report-title">Monthly progress report</div>
-            <div class="report-sub">Auto-generated PDF with your full progress, attendance and badges — also emailed to your parent</div>
+          <div class="stat-box">
+            <div class="stat-num" id="statAccuracy" style="color:var(--green-dk)">—</div>
+            <div class="stat-lbl">Accuracy</div>
           </div>
-          <button class="report-btn" onclick="downloadReport()">Download PDF</button>
+          <div class="stat-box">
+            <div class="stat-num" id="statBadges" style="color:var(--purple-dk)">0</div>
+            <div class="stat-lbl">Badges earned</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" id="statWorksheets" style="color:var(--green-dk)">0</div>
+            <div class="stat-lbl">Worksheets done</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" id="statWeeklyXP" style="color:var(--orange-dk)">0</div>
+            <div class="stat-lbl">XP this week</div>
+          </div>
         </div>
 
-        <!-- Personal bests -->
-        <div class="section-card">
-          <div class="section-title">Personal bests</div>
-          <div class="pb-grid">
-            <div class="pb-card"><div class="pb-icon">⚡</div><div class="pb-val">34s</div><div class="pb-label">Fastest speed drill</div><div class="pb-date">10 questions · 3 days ago</div></div>
-            <div class="pb-card"><div class="pb-icon">🔥</div><div class="pb-val">12 days</div><div class="pb-label">Longest streak</div><div class="pb-date">Last month</div></div>
-            <div class="pb-card"><div class="pb-icon">💯</div><div class="pb-val">10/10</div><div class="pb-label">Perfect homework score</div><div class="pb-date">Single digit addition</div></div>
+        <!-- Level progress -->
+        <div class="card">
+          <div class="sec-title">Level <span id="levelNum">1</span> progress</div>
+          <div style="font-size:.82rem;color:var(--text2);margin-bottom:8px;" id="levelDesc">Big friends + small friends — 2-digit add/sub</div>
+          <div style="height:10px;background:var(--border);border-radius:20px;overflow:hidden;margin-bottom:6px;">
+            <div id="levelBar" style="height:100%;width:8%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:20px;transition:width .5s;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--text3);">
+            <span id="levelWeek">Week 1 of 12</span>
+            <span id="levelEst">Est. completion: —</span>
           </div>
         </div>
 
       </div>
 
-      <!-- ══ TOPICS TAB ══ -->
-      <div id="tab-topics" style="display:none">
-
-        <div class="section-card">
-          <div class="section-title">Topic accuracy heatmap</div>
-          <div style="font-size:.78rem;color:var(--text2);font-weight:600;margin-bottom:14px">
-            🔴 Below 40% &nbsp;·&nbsp; 🟠 40–60% &nbsp;·&nbsp; 🟡 60–75% &nbsp;·&nbsp; 🔵 75–85% &nbsp;·&nbsp; 🟢 Above 85%
-          </div>
-          <div class="heatmap-grid" id="heatmapGrid"></div>
-        </div>
-
-        <div class="section-card">
-          <div class="section-title">All topics — detailed breakdown</div>
-          <div id="allTopicsList"></div>
-        </div>
-
-      </div>
-
-      <!-- ══ BADGES TAB ══ -->
+      <!-- BADGES TAB -->
       <div id="tab-badges" style="display:none">
-
-        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:20px">
-          <div class="stat-card"><div class="stat-n" style="color:var(--yellow)" id="badgeCountStat">0</div><div class="stat-l">Badges earned</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--text3)" id="badgeLockedStat">0</div><div class="stat-l">Badges to unlock</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--purple)" id="badgeXpStat">0</div><div class="stat-l">Total XP</div></div>
+        <div class="sec-title">Earned badges</div>
+        <div class="badge-grid" id="badgeGrid">
+          <div class="loader"><div class="spinner"></div></div>
         </div>
-
-        <!-- XP breakdown -->
-        <div class="section-card" style="margin-bottom:16px">
-          <div class="section-title">How to earn more XP</div>
-          <div style="display:flex;flex-direction:column;gap:0">
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)"><span style="font-size:.875rem;font-weight:600">Correct answer — first try</span><span style="font-size:.82rem;font-weight:800;color:var(--blue);background:var(--blue-lt);padding:3px 10px;border-radius:20px">+15 XP</span></div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)"><span style="font-size:.875rem;font-weight:600">Complete a 10-question session</span><span style="font-size:.82rem;font-weight:800;color:var(--green-dk);background:var(--green-lt);padding:3px 10px;border-radius:20px">+50 XP</span></div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)"><span style="font-size:.875rem;font-weight:600">Submit homework on time</span><span style="font-size:.82rem;font-weight:800;color:var(--orange-dk);background:var(--orange-lt);padding:3px 10px;border-radius:20px">+80 XP</span></div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)"><span style="font-size:.875rem;font-weight:600">Score 100% on homework</span><span style="font-size:.82rem;font-weight:800;color:var(--green-dk);background:var(--green-lt);padding:3px 10px;border-radius:20px">+150 XP</span></div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)"><span style="font-size:.875rem;font-weight:600">Maintain a 7-day streak</span><span style="font-size:.82rem;font-weight:800;color:var(--yellow-dk);background:var(--yellow-lt);padding:3px 10px;border-radius:20px">+200 XP</span></div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)"><span style="font-size:.875rem;font-weight:600">Complete a full level</span><span style="font-size:.82rem;font-weight:800;color:var(--purple-dk);background:var(--purple-lt);padding:3px 10px;border-radius:20px">+500 XP</span></div>
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0"><span style="font-size:.875rem;font-weight:600">Personal best speed drill</span><span style="font-size:.82rem;font-weight:800;color:var(--teal-dk);background:var(--teal-lt);padding:3px 10px;border-radius:20px">+100 XP</span></div>
-          </div>
-        </div>
-
-        <div class="section-card">
-          <div class="section-title">All badges</div>
-          <div class="badge-grid" id="badgeGrid"></div>
-        </div>
-
+        <div class="sec-title" style="margin-top:14px;">Locked — earn these next</div>
+        <div class="badge-grid" id="lockedGrid"></div>
       </div>
 
-      <!-- ══ HISTORY TAB ══ -->
-      <div <!-- Leaderboard tab -->
-      <div class="tab-content" id="tab-leaderboard" style="display:none">
-        <div id="leaderboardContent">
-          <div style="text-align:center;padding:40px;color:#9090B0">
-            <div style="width:36px;height:36px;border:4px solid #E8EAF6;border-top-color:#1E88E5;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 12px;"></div>
-            Loading leaderboard...
-          </div>
+      <!-- LEADERBOARD TAB -->
+      <div id="tab-leaderboard" style="display:none">
+        <div class="card" id="lbCard">
+          <div class="loader"><div class="spinner"></div>Loading leaderboard...</div>
         </div>
       </div>
 
-      <div class="tab-content" id="tab-history" style="display:none">
-
-        <div class="section-card">
-          <div class="section-title">Recent practice sessions</div>
-          <div id="sessionHistory"></div>
+      <!-- HISTORY TAB -->
+      <div id="tab-history" style="display:none">
+        <div class="sec-title">Recent practice sessions</div>
+        <div class="card" id="historyList">
+          <div class="loader"><div class="spinner"></div></div>
         </div>
-
-        <div class="section-card">
-          <div class="section-title">Homework history</div>
-          <div id="hwHistory"></div>
+        <div class="sec-title" style="margin-top:14px;">Worksheet submissions</div>
+        <div class="card" id="wsHistoryList">
+          <div class="loader"><div class="spinner"></div></div>
         </div>
-
       </div>
 
     </div>
   </div>
 </div>
 
-<div class="toast-container" id="toastContainer"></div>
+<!-- Bottom nav -->
+<nav class="bottom-nav"><div class="bottom-nav-inner">
+  <a class="bnav-item" href="dashboard.html"><span class="bnav-icon">🏠</span><span class="bnav-label">Home</span></a>
+  <a class="bnav-item" href="practice.html"><span class="bnav-icon">⚡</span><span class="bnav-label">Practice</span></a>
+  <a class="bnav-item" href="lessons.html"><span class="bnav-icon">▶️</span><span class="bnav-label">Lessons</span></a>
+  <a class="bnav-item" href="homework.html"><span class="bnav-icon">📚</span><span class="bnav-label">Homework</span></a>
+  <a class="bnav-item active" href="progress.html"><span class="bnav-icon">📊</span><span class="bnav-label">Progress</span></a>
+</div></nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-let currentUser = null;
+const SUPABASE_URL='https://bhullfoajenhkxlkiubs.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+const {createClient}=supabase;
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
 
-const BADGE_CATALOG = [
-  { type:'first_practice',  label:'First Steps',     icon:'🎯', xp:50,   desc:'Complete your first practice session' },
-  { type:'streak_7',        label:'7-Day Streak',    icon:'🔥', xp:200,  desc:'Maintain a 7-day practice streak' },
-  { type:'speed_demon',     label:'Speed Demon',     icon:'⚡', xp:100,  desc:'Complete a speed drill in under 60 seconds' },
-  { type:'perfect_score',   label:'Perfect Score',   icon:'💯', xp:100,  desc:'Score 100% on any homework' },
-  { type:'bead_master',     label:'Bead Master',     icon:'🧮', xp:120,  desc:'Complete 10 abacus practice sessions' },
-  { type:'bookworm',        label:'Bookworm',        icon:'📚', xp:80,   desc:'Watch 5 lessons in a row' },
-  { type:'top_class',       label:'Top of Class',    icon:'🌟', xp:150,  desc:'Highest score in your batch this week' },
-  { type:'orange_belt',     label:'Orange Belt',     icon:'🏅', xp:300,  desc:'Earn the Orange Belt — Level 3' },
-  { type:'on_fire',         label:'On Fire',         icon:'🎖', xp:100,  desc:'Score above 80% for 5 sessions in a row' },
-  { type:'green_belt',      label:'Green Belt',      icon:'🟢', xp:400,  desc:'Earn the Green Belt — Level 4' },
-  { type:'week_champ',      label:'Week Champion',   icon:'👑', xp:200,  desc:'Top student in your batch for a full week' },
-  { type:'rocket_speed',    label:'Rocket Speed',    icon:'🚀', xp:150,  desc:'Complete a 10-question session in under 90 seconds' },
-  { type:'mind_master',     label:'Mind Master',     icon:'🧠', xp:200,  desc:'Complete 5 Vedic Maths sessions' },
-  { type:'diamond',         label:'Diamond',         icon:'💎', xp:500,  desc:'Maintain 85%+ accuracy for an entire month' },
-  { type:'grand_master',    label:'Grand Master',    icon:'🏆', xp:1000, desc:'Reach Level 10 — Grand Master belt' },
+let currentUser=null;
+
+const BADGE_DEFS=[
+  {key:'speed_star',   emoji:'⭐',name:'Speed star',   desc:'Answer in under 5 sec'},
+  {key:'perfect_score',emoji:'🎯',name:'Perfect score', desc:'100% on a session'},
+  {key:'streak_5',     emoji:'🔥',name:'5-day fire',    desc:'Login 5 days in a row'},
+  {key:'streak_7',     emoji:'🥇',name:'7-day legend',  desc:'Login 7 days in a row'},
+  {key:'puzzle_pro',   emoji:'🧩',name:'Puzzle pro',    desc:'Solve 5 puzzles'},
+  {key:'top_batch',    emoji:'🏆',name:'Top of batch',  desc:'#1 on leaderboard'},
+  {key:'abacus_ninja', emoji:'🥷',name:'Abacus ninja',  desc:'Complete Level 8'},
 ];
 
-const BELTS_DATA = [
-  { name:'White Belt',   minXP:0,     maxXP:499,   color:'#F5F5F5', next:'Yellow Belt',  nextXP:500,   short:'White'  },
-  { name:'Yellow Belt',  minXP:500,   maxXP:1199,  color:'#FFF176', next:'Orange Belt',  nextXP:1200,  short:'Yellow' },
-  { name:'Orange Belt',  minXP:1200,  maxXP:2499,  color:'#FFB74D', next:'Green Belt',   nextXP:2500,  short:'Orange' },
-  { name:'Green Belt',   minXP:2500,  maxXP:4499,  color:'#66BB6A', next:'Blue Belt',    nextXP:4500,  short:'Green'  },
-  { name:'Blue Belt',    minXP:4500,  maxXP:6999,  color:'#42A5F5', next:'Purple Belt',  nextXP:7000,  short:'Blue'   },
-  { name:'Purple Belt',  minXP:7000,  maxXP:9999,  color:'#AB47BC', next:'Red Belt',     nextXP:10000, short:'Purple' },
-  { name:'Red Belt',     minXP:10000, maxXP:13999, color:'#EF5350', next:'Brown Belt',   nextXP:14000, short:'Red'    },
-  { name:'Brown Belt',   minXP:14000, maxXP:19999, color:'#8D6E63', next:'Black Belt',   nextXP:20000, short:'Brown'  },
-  { name:'Black Belt',   minXP:20000, maxXP:29999, color:'#212121', next:'Grand Master', nextXP:30000, short:'Black'  },
-  { name:'Grand Master', minXP:30000, maxXP:Infinity, color:'#F9A825', next:'', nextXP:0, short:'Grand' },
-];
+const LEVEL_DESC={
+  0:'Counting and number recognition',
+  1:'Big friends + small friends — 2-digit add/sub',
+  2:'Combination — 3-digit add/sub',
+  3:'Family formula — 4-digit add/sub',
+  4:'Anzan mental abacus — 5-digit add/sub',
+  5:'Multiplication 2×1, 3×1 — 6-digit add/sub',
+  6:'Division 2÷1 — 7-digit add/sub',
+  7:'Multiplication 4×1, 2×2 — Division 4÷1 — 8-digit',
+  8:'Decimals and negative numbers',
+};
 
-function getBelt(xp) { return BELTS_DATA.find(b => xp >= b.minXP && xp <= b.maxXP) || BELTS_DATA[0]; }
+const RANK_ICONS=['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'];
 
-function escapeHtml(str) {
-  return String(str || '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;');
+// ── SUBSCRIPTION CHECK ─────────────────────────────────────
+async function checkSubscription(uid){
+  const{data}=await sb.from('subscriptions').select('expires_at').eq('student_id',uid).eq('status','active').order('expires_at',{ascending:false}).limit(1);
+  if(!data?.length||new Date(data[0].expires_at)<new Date()){window.location.href='subscription.html';return false;}
+  return true;
 }
 
-function showTab(name, btn) {
-  ['overview','topics','badges','history'].forEach(t => {
-    document.getElementById(`tab-${t}`).style.display = t === name ? 'block' : 'none';
-  });
-  document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
-  if (btn) btn.classList.add('active');
+// ── TABS ──────────────────────────────────────────────────
+function showTab(tab, btn){
+  document.querySelectorAll('[id^="tab-"]').forEach(el=>el.style.display='none');
+  document.getElementById('tab-'+tab).style.display='block';
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn?.classList.add('active');
+  if(tab==='leaderboard') loadLeaderboard();
+  if(tab==='history')     loadHistory();
 }
 
-function emptyState(msg) {
-  return `<div style="text-align:center;padding:24px;color:var(--text3);font-weight:600">${msg}</div>`;
-}
+// ── FORMAT HELPERS ────────────────────────────────────────
+function fmtDate(d){return d?new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'—';}
+function fmtDateTime(d){return d?new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—';}
+function getWeekStart(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-d.getDay());return d.toISOString();}
 
-function buildBeltJourney(xp) {
-  const current = getBelt(xp);
-  const el = document.getElementById('beltJourney');
-  el.innerHTML = '';
-  BELTS_DATA.forEach(b => {
-    const done = xp > b.maxXP || (b.nextXP === 0 && xp >= b.minXP);
-    const isCurrent = b.name === current.name;
-    const step = document.createElement('div');
-    step.className = 'belt-step' + (done && !isCurrent ? ' done' : '') + (isCurrent ? ' current' : '');
-    step.innerHTML = `
-      <div class="belt-circle-sm" style="background:${b.color}">
-        ${done && !isCurrent ? '<span class="belt-check">✓</span>' : ''}
-        ${isCurrent ? '<span class="belt-check" style="color:var(--orange-dk)">●</span>' : ''}
-      </div>
-      <div class="belt-step-name">${b.short}</div>
-    `;
-    el.appendChild(step);
-  });
-}
+// ── LOAD OVERVIEW ─────────────────────────────────────────
+async function loadOverview(uid, profile){
+  const lv = profile.current_level||1;
+  const xp = profile.xp_points||0;
+  const streak = profile.streak_days||0;
 
-function buildBarChart(weeklyData) {
-  const el = document.getElementById('barChart');
-  if (!weeklyData.length) {
-    el.innerHTML = emptyState('Complete practice sessions to see weekly accuracy');
-    return;
-  }
-  el.innerHTML = '';
-  weeklyData.forEach((val, i) => {
-    const color = val >= 80 ? 'var(--green)' : val >= 60 ? 'var(--blue)' : val >= 40 ? 'var(--orange)' : 'var(--red)';
-    const col = document.createElement('div');
-    col.className = 'bar-col';
-    col.innerHTML = `
-      <div class="bar-val">${val}%</div>
-      <div class="bar" style="background:${color};height:${Math.max(4, val)}px"></div>
-      <div class="bar-label">Wk ${i + 1}</div>
-    `;
-    el.appendChild(col);
-  });
-}
-
-function buildTopics(topics) {
-  const attention = document.getElementById('attentionList');
-  const heatmap = document.getElementById('heatmapGrid');
-  const allList = document.getElementById('allTopicsList');
-
-  if (!topics.length) {
-    const msg = emptyState('No topic data yet — practise to unlock insights');
-    attention.innerHTML = msg;
-    if (heatmap) heatmap.innerHTML = msg;
-    if (allList) allList.innerHTML = msg;
-    return;
-  }
-
-  const weak = topics.filter(t => t.acc < 60 && t.sessions > 0).slice(0, 4);
-  attention.innerHTML = '';
-  if (weak.length === 0) {
-    attention.innerHTML = emptyState('All topics looking great!');
-  } else {
-    weak.forEach(t => {
-      attention.innerHTML += `
-        <div class="topic-row">
-          <span class="topic-name">${escapeHtml(t.name)}</span>
-          <div class="topic-bar"><div class="topic-fill" style="background:${t.color};width:${t.acc}%"></div></div>
-          <span class="topic-pct" style="color:${t.color}">${t.acc}%</span>
-        </div>`;
-    });
-  }
-
-  if (heatmap) {
-    heatmap.innerHTML = '';
-    topics.forEach(t => {
-      heatmap.innerHTML += `
-        <div class="heatmap-cell ${t.hClass}" title="${escapeHtml(t.name)}: ${t.acc}% accuracy">
-          <div class="hm-topic">${escapeHtml(t.name)}</div>
-          <div class="hm-pct">${t.acc > 0 ? t.acc + '%' : 'Not started'}</div>
-        </div>`;
-    });
-  }
-
-  if (allList) {
-    allList.innerHTML = '';
-    [...topics].sort((a, b) => b.acc - a.acc).forEach(t => {
-      allList.innerHTML += `
-        <div class="topic-row">
-          <span class="topic-name">${escapeHtml(t.name)}</span>
-          <span class="topic-sessions">${t.sessions} sessions</span>
-          <div class="topic-bar" style="width:130px"><div class="topic-fill" style="background:${t.color};width:${t.acc}%"></div></div>
-          <span class="topic-pct" style="color:${t.color}">${t.acc > 0 ? t.acc + '%' : '—'}</span>
-        </div>`;
-    });
-  }
-}
-
-function buildBadgeGrid(earnedBadges) {
-  const earnedTypes = new Set(earnedBadges.map(b => b.badge_type || b.type));
-  const el = document.getElementById('badgeGrid');
-  el.innerHTML = '';
-  BADGE_CATALOG.forEach(b => {
-    const earned = earnedTypes.has(b.type);
-    const match = earnedBadges.find(x => (x.badge_type || x.type) === b.type);
-    el.innerHTML += `
-      <div class="badge-cell ${earned ? 'earned' : 'locked'}" title="${escapeHtml(b.desc)}">
-        <span class="badge-cell-icon">${b.icon}</span>
-        <div class="badge-cell-label">${escapeHtml(b.label)}</div>
-        <div class="badge-cell-xp">+${b.xp} XP</div>
-        ${earned
-          ? `<div class="badge-earned-date">${match?.earned_at ? new Date(match.earned_at).toLocaleDateString('en-IN') : 'Earned'}</div>`
-          : '<div class="badge-earned-date">Locked 🔒</div>'}
-      </div>`;
-  });
-
-  document.getElementById('badgeCountStat').textContent = earnedBadges.length;
-  document.getElementById('badgeLockedStat').textContent = Math.max(0, BADGE_CATALOG.length - earnedBadges.length);
-}
-
-function buildSessionHistory(sessions) {
-  const el = document.getElementById('sessionHistory');
-  if (!sessions.length) {
-    el.innerHTML = emptyState('No practice sessions yet');
-    return;
-  }
-  el.innerHTML = '';
-  sessions.forEach(s => {
-    const total = s.total_questions || 0;
-    const correct = s.score || 0;
-    const acc = total ? Math.round((correct / total) * 100) : 0;
-    const color = acc >= 80 ? 'var(--green)' : acc >= 60 ? 'var(--blue)' : 'var(--orange)';
-    el.innerHTML += `
-      <div class="session-row">
-        <div class="session-dot" style="background:${color}"></div>
-        <div class="session-info">
-          <div class="session-topic">${escapeHtml(s.topic || 'Practice')}</div>
-          <div class="session-meta">${s.created_at ? new Date(s.created_at).toLocaleString('en-IN') : ''} · ${total} questions</div>
-        </div>
-        <div style="text-align:right">
-          <div class="session-score" style="color:${color}">${correct}/${total} (${acc}%)</div>
-          <div class="session-xp">+${s.xp_earned || 0} XP</div>
-        </div>
-      </div>`;
-  });
-}
-
-function buildHWHistory(rows) {
-  const el = document.getElementById('hwHistory');
-  if (!rows.length) {
-    el.innerHTML = emptyState('No homework submissions yet');
-    return;
-  }
-  el.innerHTML = '';
-  rows.forEach(h => {
-    const acc = h.total_questions ? Math.round((h.score / h.total_questions) * 100) : 0;
-    el.innerHTML += `
-      <div class="session-row">
-        <div class="session-dot" style="background:var(--green)"></div>
-        <div class="session-info">
-          <div class="session-topic">${escapeHtml(h.homework?.title || h.homework?.topic || 'Homework')}</div>
-          <div class="session-meta">${h.submitted_at ? new Date(h.submitted_at).toLocaleDateString('en-IN') : ''} · Graded</div>
-        </div>
-        <div style="text-align:right">
-          <div class="session-score" style="color:var(--green)">${h.score}/${h.total_questions} (${acc}%)</div>
-          <div class="session-xp">+${h.xp_awarded || 0} XP</div>
-        </div>
-      </div>`;
-  });
-}
-
-function topicColor(acc) {
-  if (acc >= 80) return { color:'var(--green)', hClass:'hm-green' };
-  if (acc >= 60) return { color:'var(--blue)', hClass:'hm-blue' };
-  if (acc >= 40) return { color:'var(--orange)', hClass:'hm-orange' };
-  if (acc > 0) return { color:'var(--red)', hClass:'hm-red' };
-  return { color:'var(--border)', hClass:'hm-gray' };
-}
-
-function computeWeeklyAccuracy(sessions) {
-  if (!sessions.length) return [];
-  const weeks = [];
-  for (let i = 7; i >= 0; i--) {
-    const end = new Date();
-    end.setDate(end.getDate() - i * 7);
-    const start = new Date(end);
-    start.setDate(start.getDate() - 7);
-    const inWeek = sessions.filter(s => {
-      const d = new Date(s.created_at);
-      return d >= start && d < end;
-    });
-    if (!inWeek.length) {
-      weeks.push(0);
-      continue;
-    }
-    const c = inWeek.reduce((a, s) => a + (s.score || 0), 0);
-    const t = inWeek.reduce((a, s) => a + (s.total_questions || 0), 0);
-    weeks.push(t ? Math.round((c / t) * 100) : 0);
-  }
-  return weeks.some(v => v > 0) ? weeks : [];
-}
-
-
-    // ── SUBSCRIPTION CHECK ─────────────────────────────────
-    async function checkSubscription(userId) {
-      const { data: subs } = await sb.from('subscriptions')
-        .select('id, expires_at, status')
-        .eq('student_id', userId)
-        .eq('status', 'active')
-        .order('expires_at', { ascending: false })
-        .limit(1);
-      const sub = subs?.[0];
-      if (!sub || new Date(sub.expires_at) < new Date()) {
-        window.location.href = 'subscription.html';
-        return false;
-      }
-      return true;
-    }
-
-    async function loadRealData() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) {
-    window.location.href = '../../login.html';
-    return;
-  }
-
-  const studentId = session.user.id;
-
-  const { data: profile } = await sb
-    .from('users')
-    .select('*')
-    .eq('id', studentId)
-    .single();
-
-  if (!profile || profile.role !== 'student') {
-    window.location.href = '../../login.html';
-
-    const active = await checkSubscription(session.user.id);
-    if (!active) return;
-    return;
-  }
-
-  const name = profile.full_name || 'Student';
-  document.getElementById('userAv').textContent = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-  document.getElementById('userName').textContent = name;
-
-  const xp = profile.xp_points ?? 0;
-  const streak = profile.streak_days ?? 0;
-  const belt = getBelt(xp);
-  const pct = belt.next ? Math.round(((xp - belt.minXP) / (belt.nextXP - belt.minXP)) * 100) : 100;
-  const programLabel = profile.program === 'vedic' ? 'Vedic Maths' : profile.program === 'abacus' ? 'Abacus' : 'Learning';
-  const level = profile.current_level ?? 1;
-
-  document.getElementById('xpTitle').textContent = `${programLabel} — Level ${level} · ${belt.name}`;
-  document.getElementById('xpSub').textContent = `${xp.toLocaleString()} XP total earned`;
-  document.getElementById('xpBadge').textContent = `${xp.toLocaleString()} XP`;
-  document.getElementById('streakBadge').textContent = `🔥 ${streak} days`;
-  document.getElementById('xpFill').style.width = Math.min(100, pct) + '%';
-  document.getElementById('xpCurrent').textContent = `${xp.toLocaleString()} / ${(belt.nextXP || xp).toLocaleString()} XP`;
-  document.getElementById('xpNext').textContent = belt.next
-    ? `${Math.max(0, belt.nextXP - xp).toLocaleString()} XP to ${belt.next}`
-    : 'Grand Master achieved!';
-  document.getElementById('beltName').textContent = belt.name;
-  document.getElementById('beltLevel').textContent = `Level ${level} of 10`;
-  document.getElementById('beltPct').textContent = Math.min(100, pct) + '%';
-  document.getElementById('beltProg').style.width = Math.min(100, pct) + '%';
-  document.getElementById('beltCircle').style.background = belt.color;
+  // XP bar — 500 XP per level band
+  const xpInBand = xp % 500;
+  const xpPct = Math.min(100, Math.round(xpInBand/500*100));
+  document.getElementById('xpTitle').textContent = 'Abacus — Level '+lv;
+  document.getElementById('xpSub').textContent = xp.toLocaleString('en-IN')+' XP total earned';
+  document.getElementById('xpBadge').textContent = xp.toLocaleString('en-IN')+' XP';
+  document.getElementById('xpFill').style.width = xpPct+'%';
+  document.getElementById('xpCurrent').textContent = xpInBand+' / 500 XP';
+  document.getElementById('xpNext').textContent = (500-xpInBand)+' XP to next milestone';
   document.getElementById('statStreak').textContent = streak;
-  document.getElementById('badgeXpStat').textContent = xp.toLocaleString();
 
-  buildBeltJourney(xp);
+  // Level progress (12 weeks per level)
+  const enrollDate = new Date(profile.created_at||Date.now());
+  const weeksIn = Math.min(12, Math.ceil((Date.now()-enrollDate)/604800000));
+  const levelPct = Math.max(8, Math.round(weeksIn/12*100));
+  document.getElementById('levelNum').textContent = lv;
+  document.getElementById('levelDesc').textContent = LEVEL_DESC[lv]||'';
+  document.getElementById('levelBar').style.width = levelPct+'%';
+  document.getElementById('levelWeek').textContent = 'Week '+weeksIn+' of 12';
+  const estDate = new Date(enrollDate); estDate.setDate(estDate.getDate()+84);
+  document.getElementById('levelEst').textContent = 'Est. completion: '+fmtDate(estDate.toISOString());
 
-  const monthStart = new Date();
-  monthStart.setDate(1);
+  // Practice sessions this week
+  const weekStart = getWeekStart();
+  const{data:sessions}=await sb.from('practice_sessions')
+    .select('correct_answers,total_questions,xp_earned,created_at')
+    .eq('student_id',uid)
+    .gte('created_at',weekStart)
+    .order('created_at',{ascending:false});
 
-  const [{ data: sessions }, { data: badges }, { data: weak }, { data: submissions }] = await Promise.all([
-    sb.from('practice_sessions').select('*').eq('student_id', studentId).order('created_at', { ascending: false }).limit(50),
-    sb.from('badges').select('*').eq('student_id', studentId).order('earned_at', { ascending: false }),
-    sb.from('student_weak_topics').select('*').eq('student_id', studentId).limit(20),
-    sb.from('submissions').select('*, homework(title, topic)').eq('student_id', studentId).order('submitted_at', { ascending: false }).limit(20),
-  ]);
+  const sessArr = sessions||[];
+  const weeklyXP = sessArr.reduce((s,r)=>s+(r.xp_earned||0),0);
+  const totalCorrect = sessArr.reduce((s,r)=>s+(r.correct_answers||0),0);
+  const totalQs = sessArr.reduce((s,r)=>s+(r.total_questions||0),0);
+  const accuracy = totalQs>0 ? Math.round(totalCorrect/totalQs*100)+'%' : '—';
 
-  const sessionList = sessions || [];
-  const monthSessions = sessionList.filter(s => new Date(s.created_at) >= monthStart);
-  document.getElementById('statSessions').textContent = monthSessions.length;
+  document.getElementById('statSessions').textContent = sessArr.length;
+  document.getElementById('statAccuracy').textContent = accuracy;
+  document.getElementById('statWeeklyXP').textContent = weeklyXP;
 
-  if (sessionList.length) {
-    const c = sessionList.reduce((a, s) => a + (s.score || 0), 0);
-    const t = sessionList.reduce((a, s) => a + (s.total_questions || 0), 0);
-    const acc = t ? Math.round((c / t) * 100) : 0;
-    document.getElementById('statAccuracy').textContent = `${acc}%`;
-    document.getElementById('statAccuracySub').textContent = 'all sessions';
+  // Badges count
+  const{data:badges}=await sb.from('badges').select('id').eq('student_id',uid);
+  document.getElementById('statBadges').textContent = badges?.length||0;
+
+  // Worksheets done this week
+  const{data:wsubs}=await sb.from('worksheet_responses')
+    .select('id').eq('student_id',uid).gte('submitted_at',weekStart);
+  document.getElementById('statWorksheets').textContent = wsubs?.length||0;
+}
+
+// ── LOAD BADGES ───────────────────────────────────────────
+async function loadBadges(uid){
+  const{data:earned}=await sb.from('badges')
+    .select('badge_type,earned_at')
+    .eq('student_id',uid)
+    .order('earned_at',{ascending:false});
+
+  const earnedMap={};
+  (earned||[]).forEach(b=>earnedMap[b.badge_type]=b.earned_at);
+
+  const earnedDefs = BADGE_DEFS.filter(b=>earnedMap[b.key]);
+  const lockedDefs = BADGE_DEFS.filter(b=>!earnedMap[b.key]);
+
+  const grid = document.getElementById('badgeGrid');
+  if(!earnedDefs.length){
+    grid.innerHTML = '<div class="empty">No badges yet — keep practising! 🌟</div>';
+  } else {
+    grid.innerHTML = earnedDefs.map(b=>`
+      <div class="badge-item earned">
+        <div class="badge-emoji">${b.emoji}</div>
+        <div class="badge-name">${b.name}</div>
+        <div class="badge-date">${fmtDate(earnedMap[b.key])}</div>
+      </div>`).join('');
   }
 
-  const earnedBadges = badges || [];
-  document.getElementById('statBadges').textContent = earnedBadges.length;
-  document.getElementById('statBadgesSub').textContent =
-    `${Math.max(0, BADGE_CATALOG.length - earnedBadges.length)} more to unlock`;
+  document.getElementById('lockedGrid').innerHTML = lockedDefs.map(b=>`
+    <div class="badge-item locked">
+      <div class="badge-emoji">${b.emoji}</div>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-date">${b.desc}</div>
+    </div>`).join('');
+}
 
-  const topics = (weak || []).map(t => {
-    const acc = Math.round(parseFloat(t.accuracy) || 0);
-    const style = topicColor(acc);
-    return {
-      name: t.topic,
-      acc,
-      sessions: t.attempt_count || t.sessions || 0,
-      color: style.color,
-      hClass: style.hClass,
-    };
-  });
+// ── LOAD LEADERBOARD ─────────────────────────────────────
+async function loadLeaderboard(){
+  const card = document.getElementById('lbCard');
+  if(!card) return;
+  card.innerHTML = '<div class="loader"><div class="spinner"></div>Loading...</div>';
 
-  buildTopics(topics);
-  buildBarChart(computeWeeklyAccuracy(sessionList));
-  buildBadgeGrid(earnedBadges);
-  buildSessionHistory(sessionList.slice(0, 10));
-  buildHWHistory(submissions || []);
+  try{
+    const{data:batchLinks}=await sb.from('batch_students')
+      .select('batch_id,batches!inner(name)')
+      .eq('student_id',currentUser.id);
 
-  // homework badge count for this student only
-  try {
-    const { data: batchLinks } = await sb.from('batch_students').select('batch_id').eq('student_id', studentId);
-    if (batchLinks?.length) {
-      const { data: hw } = await sb.from('homework').select('id, submissions(student_id)').in('batch_id', batchLinks.map(b => b.batch_id)).eq('is_active', true);
-      const pending = (hw || []).filter(h => !(h.submissions || []).some(s => s.student_id === studentId)).length;
-      const badge = document.getElementById('hwBadge');
-      if (pending > 0) {
-        badge.textContent = pending;
-        badge.style.display = 'inline-flex';
-      }
+    if(!batchLinks?.length){
+      card.innerHTML='<div class="empty">You are not assigned to a batch yet.</div>';
+      return;
     }
-  } catch { /* ignore */ }
+
+    const batchIds=batchLinks.map(b=>b.batch_id);
+    const batchName=batchLinks[0]?.batches?.name||'Your batch';
+
+    const{data:batchmates}=await sb.from('batch_students')
+      .select('student_id,users!inner(id,full_name,xp_points,streak_days,current_level)')
+      .in('batch_id',batchIds);
+
+    const seen=new Set();
+    const students=(batchmates||[])
+      .map(b=>b.users)
+      .filter(u=>u&&!seen.has(u.id)&&seen.add(u.id))
+      .sort((a,b)=>(b.xp_points||0)-(a.xp_points||0));
+
+    const myRank=students.findIndex(s=>s.id===currentUser.id)+1;
+    const topXP=students[0]?.xp_points||0;
+    const myXP=students.find(s=>s.id===currentUser.id)?.xp_points||0;
+
+    card.innerHTML=`
+      <div style="background:linear-gradient(135deg,#0D47A1,#1A237E);border-radius:12px;padding:14px;margin-bottom:14px;color:#fff;">
+        <div style="font-size:.72rem;opacity:.7;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">${batchName}</div>
+        <div style="font-size:1.1rem;font-weight:800;">You are <span style="color:#FFD600;">#${myRank}</span> of ${students.length} students</div>
+        <div style="font-size:.78rem;opacity:.75;margin-top:3px;">${myRank===1?'🏆 You are at the top! Defend your spot!':topXP-myXP+' XP behind #1 — keep going!'}</div>
+      </div>
+      ${students.map((s,i)=>`
+        <div class="lb-row" style="${s.id===currentUser.id?'background:var(--blue-lt);border-radius:8px;padding:10px 8px;margin:0 -8px;':''}">
+          <div class="lb-rank">${RANK_ICONS[i]||i+1}</div>
+          <div class="lb-name" style="color:${s.id===currentUser.id?'var(--blue-dk)':'var(--text)'}">${s.full_name}${s.id===currentUser.id?' (you)':''}</div>
+          <div style="text-align:right;">
+            <div class="lb-xp" style="color:${s.id===currentUser.id?'var(--blue-dk)':'var(--orange-dk)'}">${(s.xp_points||0).toLocaleString('en-IN')} XP</div>
+            <div class="lb-streak">🔥 ${s.streak_days||0}d · L${s.current_level||1}</div>
+          </div>
+        </div>`).join('')}`;
+  }catch(e){
+    card.innerHTML=`<div class="empty">Could not load leaderboard: ${e.message}</div>`;
+  }
 }
 
-function downloadReport() {
-  showToast('📄 Report download uses your own progress data only.', '');
+// ── LOAD HISTORY ─────────────────────────────────────────
+async function loadHistory(){
+  const histList = document.getElementById('historyList');
+  const wsHistList = document.getElementById('wsHistoryList');
+  if(!histList||!wsHistList) return;
+
+  try{
+    // Practice sessions
+    const{data:sessions}=await sb.from('practice_sessions')
+      .select('correct_answers,total_questions,xp_earned,session_type,created_at')
+      .eq('student_id',currentUser.id)
+      .order('created_at',{ascending:false})
+      .limit(20);
+
+    const sessArr=sessions||[];
+    if(!sessArr.length){
+      histList.innerHTML='<div class="empty">No practice sessions yet — start practising!</div>';
+    } else {
+      const typeIcons={practice:'⚡',puzzle:'🧩',quiz:'🏆',worksheet:'📋'};
+      const typeBgs={practice:'#E3F2FD',puzzle:'#F3E5F5',quiz:'#FFF3E0',worksheet:'#E8F5E9'};
+      histList.innerHTML=sessArr.map(s=>{
+        const type=s.session_type||'practice';
+        const total=s.total_questions||0;
+        const correct=s.correct_answers||0;
+        const pct=total>0?Math.round(correct/total*100):0;
+        return `<div class="hist-item">
+          <div class="hist-icon" style="background:${typeBgs[type]||'#F7F8FF'}">${typeIcons[type]||'⚡'}</div>
+          <div class="hist-info">
+            <div class="hist-title">${type.charAt(0).toUpperCase()+type.slice(1)} session</div>
+            <div class="hist-meta">${correct}/${total} correct (${pct}%) · ${fmtDateTime(s.created_at)}</div>
+          </div>
+          <div class="hist-xp">+${s.xp_earned||0} XP</div>
+        </div>`;
+      }).join('');
+    }
+
+    // Worksheet submissions
+    const{data:wsubs}=await sb.from('worksheet_responses')
+      .select('score,total,xp_earned,submitted_at,lx_worksheets!inner(title,level)')
+      .eq('student_id',currentUser.id)
+      .order('submitted_at',{ascending:false})
+      .limit(20);
+
+    const wsubArr=wsubs||[];
+    if(!wsubArr.length){
+      wsHistList.innerHTML='<div class="empty">No worksheets submitted yet.</div>';
+    } else {
+      wsHistList.innerHTML=wsubArr.map(w=>{
+        const pct=w.total>0?Math.round(w.score/w.total*100):0;
+        const ws=w.lx_worksheets;
+        return `<div class="hist-item">
+          <div class="hist-icon" style="background:#E8F5E9">📋</div>
+          <div class="hist-info">
+            <div class="hist-title">${ws?.title||'Worksheet'}</div>
+            <div class="hist-meta">Level ${ws?.level||'—'} · ${w.score}/${w.total} (${pct}%) · ${fmtDate(w.submitted_at)}</div>
+          </div>
+          <div class="hist-xp">+${w.xp_earned||0} XP</div>
+        </div>`;
+      }).join('');
+    }
+
+  }catch(e){
+    histList.innerHTML=`<div class="empty">Error: ${e.message}</div>`;
+    wsHistList.innerHTML='';
+  }
 }
 
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
-function showToast(msg, type='') {
-  const c = document.getElementById('toastContainer');
-  const t = document.createElement('div');
-  t.className = `toast${type?` toast-${type}`:''}`;
-  t.textContent = msg;
-  c.appendChild(t);
-  setTimeout(() => t.remove(), 3500);
-}
-async function logout() { await sb.auth.signOut(); window.location.href = '../../login.html'; }
+// ── INIT ─────────────────────────────────────────────────
+async function init(){
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    if(!session){window.location.href='../../login.html';return;}
 
-async function init() {
-  // Start every list empty — never bind demo history to a new user
-  document.getElementById('sessionHistory').innerHTML = emptyState('Loading your history...');
-  document.getElementById('hwHistory').innerHTML = emptyState('Loading your homework...');
-  document.getElementById('badgeGrid').innerHTML = emptyState('Loading badges...');
-  document.getElementById('attentionList').innerHTML = emptyState('Loading...');
-  document.getElementById('barChart').innerHTML = emptyState('Loading...');
-  try {
-    await loadRealData();
-  } catch (err) {
-    console.error(err);
-    window.location.href = '../../login.html';
+    const{data:profile}=await sb.from('users').select('*').eq('id',session.user.id).single();
+    if(!profile||profile.role!=='student'){window.location.href='../../login.html';return;}
+    currentUser={...profile,id:session.user.id};
+
+    const ok=await checkSubscription(session.user.id);
+    if(!ok) return;
+
+    // Load overview immediately
+    await loadOverview(session.user.id, profile);
+    // Load badges ready for when tab is tapped
+    await loadBadges(session.user.id);
+
+  }catch(err){
+    console.error('Progress init error:',err);
+    window.location.href='../../login.html';
   }
 }
 
 init();
-
-// ── LEADERBOARD ──────────────────────────────────────────────
-async function loadLeaderboard() {
-  const el = document.getElementById('leaderboardContent');
-  if (!el) return;
-  try {
-    // Get student's batches
-    const { data: batches } = await sb.from('batch_students')
-      .select('batch_id, batches(name)')
-      .eq('student_id', currentUser.id);
-
-    if (!batches?.length) {
-      el.innerHTML = '<div style="text-align:center;padding:40px;color:#9090B0;">You are not assigned to a batch yet. Ask your teacher!</div>';
-      return;
-    }
-
-    const batchIds = batches.map(b => b.batch_id);
-    const batchName = batches[0]?.batches?.name || 'Your batch';
-
-    // Get all students in same batches with their XP
-    const { data: batchmates } = await sb.from('batch_students')
-      .select('student_id, users!student_id(id, full_name, xp_points, streak_days, current_level)')
-      .in('batch_id', batchIds);
-
-    if (!batchmates?.length) {
-      el.innerHTML = '<div style="text-align:center;padding:40px;color:#9090B0;">No batchmates found yet.</div>';
-      return;
-    }
-
-    // Deduplicate and sort by XP
-    const seen = new Set();
-    const students = batchmates
-      .map(b => b.users)
-      .filter(u => u && !seen.has(u.id) && seen.add(u.id))
-      .sort((a, b) => (b.xp_points||0) - (a.xp_points||0));
-
-    const myRank = students.findIndex(s => s.id === currentUser.id) + 1;
-    const myXP   = students.find(s => s.id === currentUser.id)?.xp_points || 0;
-    const topXP  = students[0]?.xp_points || 0;
-
-    const rankIcons = ['🥇','🥈','🥉'];
-    const isChampions = (currentUser.age_group === 'champions') ||
-      (!currentUser.age_group && (currentUser.current_level||1) >= 5);
-
-    el.innerHTML = `
-      <div style="background:linear-gradient(135deg,#0D47A1,#1A237E);border-radius:16px;padding:16px;margin-bottom:14px;color:#fff;">
-        <div style="font-size:.72rem;opacity:.6;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">${batchName} · Weekly leaderboard</div>
-        <div style="font-size:1.1rem;font-weight:800;">You are <span style="color:#FFD600;">#${myRank}</span> out of ${students.length} students</div>
-        ${myRank > 1 ? `<div style="font-size:.78rem;opacity:.75;margin-top:4px;">${topXP - myXP} XP behind #1 — keep practising!</div>` : '<div style="font-size:.78rem;opacity:.75;margin-top:4px;">🏆 You are #1 this week! Defend your spot!</div>'}
-      </div>
-
-      <div style="background:#fff;border:2px solid #E8EAF6;border-radius:14px;overflow:hidden;margin-bottom:14px;">
-        ${students.map((s, i) => {
-          const isMe = s.id === currentUser.id;
-          const rank = i + 1;
-          return `<div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #E8EAF6;${isMe ? 'background:#E3F2FD;' : i % 2 === 0 ? 'background:#FAFAFA;' : ''}">
-            <div style="font-size:1.1rem;width:28px;text-align:center;flex-shrink:0;">${rankIcons[i] || rank}</div>
-            <div style="flex:1;">
-              <div style="font-size:.875rem;font-weight:${isMe?'800':'700'};color:${isMe?'#0D47A1':'#1A1A2E'}">${s.full_name}${isMe?' (you)':''}</div>
-              <div style="font-size:.72rem;color:#9090B0;margin-top:1px;">Level ${s.current_level||1} · 🔥 ${s.streak_days||0} day streak</div>
-            </div>
-            <div style="font-size:.875rem;font-weight:800;color:${isMe?'#0D47A1':'#E65100'}">${(s.xp_points||0).toLocaleString('en-IN')} XP</div>
-          </div>`;
-        }).join('')}
-      </div>
-
-      ${!isChampions ? `
-      <div style="background:#FFF3E0;border:2px solid #FF9800;border-radius:12px;padding:12px 14px;font-size:.82rem;color:#E65100;font-weight:700;">
-        🌟 Leaderboard competition unlocks at Level 5 (Champions). Keep levelling up!
-      </div>` : ''}
-    `;
-  } catch(e) {
-    el.innerHTML = `<div style="padding:20px;color:#E53935;">Could not load leaderboard: ${e.message}</div>`;
-  }
-}
-
 </script>
-
-<!-- Bottom nav (mobile) -->
-<nav class="bottom-nav">
-  <div class="bottom-nav-inner">
-    <a class="bnav-item " href="dashboard.html">
-      <span class="bnav-icon">🏠</span><span class="bnav-label">Home</span>
-    </a>
-    <a class="bnav-item " href="practice.html">
-      <span class="bnav-icon">⚡</span><span class="bnav-label">Practice</span>
-    </a>
-    <a class="bnav-item " href="lessons.html">
-      <span class="bnav-icon">▶️</span><span class="bnav-label">Lessons</span>
-    </a>
-    <a class="bnav-item " href="homework.html">
-      <span class="bnav-icon">📚</span><span class="bnav-label">Homework</span>
-    </a>
-    <a class="bnav-item active" href="progress.html">
-      <span class="bnav-icon">📊</span><span class="bnav-label">Progress</span>
-    </a>
-  </div>
-</nav>
 </body>
 </html>

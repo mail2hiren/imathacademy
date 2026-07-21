@@ -279,6 +279,27 @@
       .hamburger, .hamburger-btn { display:none !important; }
     }
   </style>
+<script>
+  // Sidebar functions defined early — before any onclick can fire
+  function toggleSidebar(){
+    var s=document.getElementById('sidebar');
+    var o=document.getElementById('sidebarOverlay');
+    if(!s)return;
+    if(s.classList.contains('open')){
+      s.classList.remove('open');
+      if(o)o.classList.remove('show');
+    } else {
+      s.classList.add('open');
+      if(o)o.classList.add('show');
+    }
+  }
+  function closeSidebar(){
+    var s=document.getElementById('sidebar');
+    var o=document.getElementById('sidebarOverlay');
+    if(s)s.classList.remove('open');
+    if(o)o.classList.remove('show');
+  }
+</script>
 </head>
 <body>
 <div class="portal">
@@ -717,7 +738,7 @@ async function loadTeacherData(userId) {
       if (!u) continue;
 
       const [{ data: sessions }, { data: weak }] = await Promise.all([
-        sb.from('practice_sessions').select('score, total_questions').eq('student_id', u.id).limit(50),
+        sb.from('practice_sessions').select('correct_answers, total_questions').eq('student_id', u.id).limit(50),
         sb.from('student_weak_topics').select('*').eq('student_id', u.id).limit(4),
       ]);
 

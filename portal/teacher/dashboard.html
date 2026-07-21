@@ -1635,6 +1635,19 @@ async function markTeacherNotifsRead() {
   <button class="icp-btn" style="background:#4eff91;color:#1B5E20" id="icpJoinBtn" onclick="joinCurrentClass()">Join Meet →</button>
   <button class="icp-btn" style="background:rgba(255,255,255,.2);color:#fff;margin-left:8px" onclick="endClass()">End class</button>
 </div>
+
+
+      <!-- ══ WORKSHEET RESULTS TAB ══ -->
+      <div id="tab-wsresults" class="tab-panel" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <div style="font-family:'Baloo 2',sans-serif;font-size:1.1rem;font-weight:800;">📊 Worksheet results</div>
+          <button onclick="loadWsResults()" style="padding:8px 16px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;font-size:.82rem;">🔄 Refresh</button>
+        </div>
+        <div id="wsResultsList">
+          <div style="text-align:center;padding:40px;color:var(--text3);">Click Refresh to see who submitted worksheets and their scores.</div>
+        </div>
+      </div>
+
 </body>
 </html>
 

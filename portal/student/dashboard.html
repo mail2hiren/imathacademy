@@ -1156,26 +1156,23 @@ async function loadDashboardBadges(userId) {
       wsCount = (allWs||[]).filter(w => !doneIds.has(w.id)).length;
     }
 
-    // Pending homework
-    // Pending homework = lx_worksheets not yet submitted
-    let hwCount = 0;
-    if (batchIds.length) {
-      const { data: _wsR } = await sb.from('worksheet_responses').select('worksheet_id').eq('student_id', userId);
-      const _doneIds = new Set((_wsR||[]).map(r => r.worksheet_id));
-      const { data: _allHw } = await sb.from('lx_worksheets').select('id').eq('is_active', true)
-        .or('student_id.eq.' + userId + ',batch_id.in.(' + batchIds.join(',') + ')');
-      hwCount = (_allHw||[]).filter(w => !_doneIds.has(w.id)).length;
-    if (wsBadge && wsCount > 0) { wsBadge.textContent = wsCount + ' new'; wsBadge.style.display = 'inline-block'; }
+
+    // Pending homework = lx_worksheets not yet submitted (same source as wsCount)
+    let hwCount = wsCount; // same pending worksheets = homework pending
+
+    // Update worksheet badge on dashboard
+    const wsBadge = document.getElementById('wsDashBadge');
+    if (wsBadge) { wsBadge.textContent = wsCount > 0 ? wsCount + ' new' : ''; wsBadge.style.display = wsCount > 0 ? 'inline-block' : 'none'; }
 
     // Update homework card on dashboard
     const hwBadge = document.getElementById('hwDashBadge');
-    if (hwBadge && hwCount > 0) { hwBadge.textContent = hwCount + ' due'; hwBadge.style.display = 'inline-block'; }
+    if (hwBadge) { hwBadge.textContent = hwCount > 0 ? hwCount + ' due' : ''; hwBadge.style.display = hwCount > 0 ? 'inline-block' : 'none'; }
 
     // Update bottom nav badges
     const wsBnav = document.getElementById('wsBnavBadge');
-    if (wsBnav && wsCount > 0) { wsBnav.textContent = wsCount; wsBnav.style.display = 'flex'; }
+    if (wsBnav) { wsBnav.textContent = wsCount; wsBnav.style.display = wsCount > 0 ? 'flex' : 'none'; }
     const hwBnav = document.getElementById('hwBnavBadge');
-    if (hwBnav && hwCount > 0) { hwBnav.textContent = hwCount; hwBnav.style.display = 'flex'; }
+    if (hwBnav) { hwBnav.textContent = hwCount; hwBnav.style.display = hwCount > 0 ? 'flex' : 'none'; }
 
   } catch(e) { console.error('loadDashboardBadges:', e); }
 }

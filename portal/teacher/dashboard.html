@@ -739,7 +739,7 @@ async function loadTeacherData(userId) {
 
       const [{ data: sessions }, { data: weak }] = await Promise.all([
         sb.from('practice_sessions').select('correct_answers, total_questions').eq('student_id', u.id).limit(50),
-        sb.from('student_weak_topics').select('*').eq('student_id', u.id).limit(4),
+        Promise.resolve({ data: [] }), // weak topics removed — derived from practice_sessions
       ]);
 
       const sess = sessions || [];
@@ -1365,7 +1365,7 @@ function formatTime(timeStr) {
 async function loadScheduledClasses(userId) {
   try {
     const { data } = await sb.from('notifications')
-      .select('data,created_at')
+      .select('id,title,message,type,created_at,is_read')
       .eq('user_id', userId)
       .eq('type', 'class_scheduled')
       .order('created_at', { ascending:false })
@@ -1411,12 +1411,12 @@ async function init() {
       const { data: hwData } = await sb.from('homework').select('id').eq('teacher_id', session.user.id);
       const hwIds = (hwData || []).map(h => h.id);
       if (hwIds.length > 0) {
-        const { count: pendingCount } = await sb
-          .from('submissions')
-          .select('id', { count: 'exact' })
-          .in('homework_id', hwIds)
-          .is('feedback', null);
-        pc = pendingCount || 0;
+        // Count worksheet_responses for teacher's worksheets that have no feedback yet
+        const { data: wsReviews } = await sb
+          .from('worksheet_responses')
+          .select('id')
+          .in('worksheet_id', hwIds);
+        pc = wsReviews?.length || 0;
       }
     } catch(e) { pc = 0; }
     document.getElementById('statPendingReview').textContent = pc;

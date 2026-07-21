@@ -1453,16 +1453,16 @@ async function loadSubmissions() {
 function exportScores() {
   const title = document.getElementById('submTitle')?.textContent || 'scores';
   const rows = document.querySelectorAll('#submList > div');
-  let csv = 'Name,Level,Score,Submitted
-';
+  let csv = 'Name,Level,Score,Submitted\n';
+
   rows.forEach(row => {
     const cells = row.querySelectorAll('div');
     if (cells.length >= 3) {
       const name  = cells[1]?.querySelector('div')?.textContent?.trim() || '';
       const level = cells[1]?.querySelectorAll('div')[1]?.textContent?.replace('Level ', '') || '';
       const score = cells[2]?.textContent?.trim() || '';
-      csv += `"${name}","${level}","${score}"
-`;
+      csv += '"' + name + '","' + level + '","' + score + '","\n';
+
     }
   });
   const a = document.createElement('a');

@@ -458,23 +458,19 @@
       
       <!-- ══ REVIEW TAB ══ -->
       <div id="tab-review" style="display:none">
-
-        <!-- HW selector -->
-        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-          <select class="form-sel" id="hwSelect" onchange="loadSubmissions()" style="max-width:340px">
-            <option value="hw1">Addition with carrying — Batch A</option>
-            <option value="hw2">Single digit addition — Batch A (complete)</option>
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+          <select class="form-sel" id="hwSelect" onchange="loadSubmissions()" style="flex:1;max-width:360px">
+            <option value="">Loading worksheets...</option>
           </select>
+          <button onclick="loadSubmissions()" style="padding:8px 14px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;font-size:.82rem;">🔄 Refresh</button>
         </div>
-
         <div class="section-card">
           <div class="section-title">
-            <span id="submTitle">Addition with carrying · 9 of 12 submitted · Avg score 74%</span>
-            <span class="section-link" onclick="exportScores()">Export scores →</span>
+            <span id="submTitle">Select a worksheet above to see submissions</span>
+            <span class="section-link" onclick="exportScores()" style="display:none" id="exportBtn">Export scores →</span>
           </div>
-          <div id="submList"></div>
+          <div id="submList"><div style="text-align:center;padding:30px;color:var(--text3);font-size:.875rem;">Select a worksheet above</div></div>
         </div>
-
       </div>
 
       <!-- ══ STUDENTS TAB ══ -->
@@ -484,9 +480,6 @@
           <input type="text" class="form-inp" placeholder="Search student..." id="studentSearch" oninput="filterStudents()" style="flex:1;max-width:300px">
           <select class="form-sel" id="filterBatch" onchange="filterStudents()" style="max-width:200px">
             <option value="">All batches</option>
-            <option value="A">Batch A</option>
-            <option value="B">Batch B</option>
-            <option value="C">Batch C</option>
           </select>
           <select class="form-sel" id="filterStatus" onchange="filterStudents()" style="max-width:200px">
             <option value="">All students</option>
@@ -582,9 +575,7 @@
 
         <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
           <select class="form-sel" id="attBatch" onchange="loadAttendance()" style="max-width:300px">
-            <option value="A">Batch A — Abacus Level 3</option>
-            <option value="B">Batch B — Vedic Maths M2</option>
-            <option value="C">Batch C — Abacus Level 1</option>
+            <option value="">Select batch...</option>
           </select>
           <input type="date" class="form-inp" id="attDate" style="max-width:180px">
           <span style="font-size:.82rem;color:var(--text2);font-weight:600">Class date</span>

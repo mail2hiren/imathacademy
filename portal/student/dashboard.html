@@ -999,12 +999,14 @@ async function loadStats(userId) {
     const batchIds = (batches || []).map(b => b.batch_id);
 
     if (batchIds.length) {
-      const { data: hw } = await sb
-        .from('homework')
-        .select('id')
-        .in('batch_id', batchIds)
-        .eq('is_active', true);
-      stats.homeworkPending = hw?.length || 0;
+      // Homework = pending lx_worksheets not yet submitted
+      const { data: wsResponses } = await sb
+        .from('worksheet_responses').select('worksheet_id').eq('student_id', userId);
+      const doneWsIds = new Set((wsResponses||[]).map(r => r.worksheet_id));
+      const { data: allHw } = await sb.from('lx_worksheets').select('id')
+        .eq('is_active', true)
+        .or('student_id.eq.' + userId + ',batch_id.in.(' + batchIds.join(',') + ')');
+      stats.homeworkPending = (allHw||[]).filter(w => !doneWsIds.has(w.id)).length;
     }
 
     // 2. Practice today — check practice_sessions

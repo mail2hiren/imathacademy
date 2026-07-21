@@ -476,9 +476,9 @@ function checkAnswer(wsId, qIdx, encodedAnswers){
   if(!val){input.focus();return;}
 
   // Check answer
-  const expected=(q.answer||'').toString().trim().replace(/[,\s]/g,'');
-  const given=val.replace(/[,\s]/g,'');
-  const isCorrect=expected&&(given===expected||parseFloat(given)===parseFloat(expected));
+  const expected = cleanAnswer(String(q.answer||''));
+  const given    = cleanAnswer(val.trim());
+  const isCorrect = expected && (given === expected || (!isNaN(parseFloat(given)) && !isNaN(parseFloat(expected)) && Math.abs(parseFloat(given)-parseFloat(expected)) < 0.001));
 
   input.classList.add(isCorrect?'correct':'wrong');
   fb.className=`feedback show ${isCorrect?'correct':'wrong'}`;

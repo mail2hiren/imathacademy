@@ -263,13 +263,29 @@
       .stats-row { grid-template-columns:repeat(2,1fr); }
       .step-inputs { flex-direction:column; }
     }
+  
+    /* ── MOBILE SIDEBAR ── */
+    .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:149; }
+    .sidebar-overlay.show { display:block; }
+    @media (max-width:768px) {
+      .sidebar { transform:translateX(-100%); transition:transform .25s ease; z-index:150; }
+      .sidebar.open { transform:translateX(0); box-shadow:4px 0 24px rgba(0,0,0,.18); }
+      .main, .body { margin-left:0 !important; }
+      .hamburger, .hamburger-btn { display:flex !important; }
+    }
+    @media (min-width:769px) {
+      .sidebar { transform:translateX(0) !important; }
+      .sidebar-overlay { display:none !important; }
+      .hamburger, .hamburger-btn { display:none !important; }
+    }
   </style>
 </head>
 <body>
 <div class="portal">
 
   <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div class="logo-icon">👨‍🏫</div>
       <img src="../../assets/logo.png" alt="iMathAcademy" style="height:32px;width:auto;object-fit:contain;">
@@ -778,6 +794,7 @@ function firstBatchKey() {
 
 // ── TAB SWITCHING ──────────────────────────────────────────
 function showTab(name, el) {
+  if (window.innerWidth <= 768) closeSidebar();
   ['dashboard','classes','assign','review','students','attendance','virtualclass'].forEach(t => {
     document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
   });
@@ -1130,7 +1147,7 @@ function joinMeet(batch) {
 }
 
 // ── UTILS ──────────────────────────────────────────────────
-function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
 function showToast(msg, type='') {
   const c = document.getElementById('toastContainer');
   const t = document.createElement('div');

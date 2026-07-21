@@ -815,6 +815,7 @@ function firstBatchKey() {
 
 // ── TAB SWITCHING ──────────────────────────────────────────
 function showTab(name, el) {
+  if(name === 'wsresults') setTimeout(loadWsResults, 100);
   if (window.innerWidth <= 768) closeSidebar();
   ['dashboard','classes','assign','review','students','attendance','virtualclass'].forEach(t => {
     document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';

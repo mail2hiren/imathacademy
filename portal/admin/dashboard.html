@@ -978,7 +978,6 @@ function statusPill(active) {
 
 // ── LOAD ALL DATA ───────────────────────────────────────────
 async function loadAll() {
-async function loadAll() {
   // Users and batches first — fees loaded separately to avoid breaking everything
   const [uRes, bRes] = await Promise.all([
     sb.from('users').select('*').order('created_at', { ascending: false }),
@@ -991,6 +990,7 @@ async function loadAll() {
       .select('*, users!student_id(full_name, email)').order('due_date', { ascending: false });
     if (!fErr) fRes = { data: fData || [] };
   } catch(e) { console.warn('fees table not ready:', e.message); }
+  allStudents = (uRes.data || []).filter(u => u.role === 'student');
   allTeachers = (uRes.data || []).filter(u => u.role === 'teacher');
   allParents  = (uRes.data || []).filter(u => u.role === 'parent');
   allBatches  = bRes.data || [];

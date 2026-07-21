@@ -352,10 +352,13 @@ function closePlayer(e) {
   try {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) return;
-    await sb.from('lesson_views').insert({
-      lesson_id:  lessonId,
-      student_id: session.user.id,
-      viewed_at:  new Date().toISOString(),
+    // Track lesson view as a practice session (lesson_views table not needed)
+    await sb.from('practice_sessions').insert({
+      student_id:      session.user.id,
+      session_type:    'lesson',
+      correct_answers: 0,
+      total_questions: 0,
+      xp_earned:       5,
     });
   } catch(e) { /* non-critical */ }
 }

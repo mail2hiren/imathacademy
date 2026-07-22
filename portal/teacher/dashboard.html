@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="version" content="v20260721125836">
+  <meta name="version" content="v20260722041812">
   <link rel="icon" type="image/png" href="/assets/favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Teacher Dashboard — iMathAcademy</title>
@@ -741,39 +741,39 @@ function firstBatchKey() {
 
 // ── TAB SWITCHING ──────────────────────────────────────────
 function showTab(name, el) {
-  if(window.innerWidth <= 768) closeSidebar();
-  if(name === 'wsresults')  setTimeout(loadWsResults, 100);
-  if(name === 'review')     setTimeout(populateReviewDropdown, 100);
-  if(name === 'students')   setTimeout(renderStudentList, 100);
-  if(name === 'attendance') setTimeout(() => {
-    populateAttBatches();
-    const d = document.getElementById('attDate');
-    if(d && !d.value) d.value = new Date().toISOString().split('T')[0];
-  }, 100);
+  if (window.innerWidth <= 768) closeSidebar();
+
+  // Show/hide panels
   ['dashboard','classes','assign','review','students','attendance','virtualclass','wsresults'].forEach(t => {
-    document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
+    const panel = document.getElementById('tab-' + t);
+    if (panel) panel.style.display = t === name ? 'block' : 'none';
   });
+
+  // Active nav highlight
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
   if (el) el.classList.add('active');
-  document.getElementById('topbarTitle').textContent = {
-    dashboard:'Teacher Dashboard', classes:'My Classes',
-    assign:'Assign Homework', review:'Review Submissions',
-    students:'Student Progress', attendance:'Attendance',
-    virtualclass:'Virtual Classes 📹'
-  }[name] || 'Teacher Dashboard';
 
-  const key = firstBatchKey();
-  if (name === 'classes') {
-    if (key) selectBatch(key, null);
-    else {
-      document.getElementById('rosterTitle').textContent = 'No batches assigned';
-      document.getElementById('rosterList').innerHTML = '<div style="padding:20px;color:var(--text3);font-weight:600">No students in your batches yet</div>';
-    }
-  }
-  if (name === 'review')       { loadSubmissions(); }
-  if (name === 'virtualclass') { populateVcBatch(); renderVcList(); }
-  if (name === 'students')   { renderAllStudents(Object.values(STUDENTS).flat()); }
-  if (name === 'attendance') { loadAttendance(); setDefaultDate(); }
+  // Topbar title
+  const titles = {
+    dashboard:'Teacher Dashboard', classes:'My Classes',
+    assign:'Assign Work', review:'Review Submissions',
+    students:'Student Progress', attendance:'Attendance',
+    virtualclass:'Virtual Classes', wsresults:'Worksheet Results'
+  };
+  const titleEl = document.getElementById('topbarTitle');
+  if (titleEl) titleEl.textContent = titles[name] || 'Teacher Dashboard';
+
+  // Tab-specific data load — all guarded so missing fn never crashes
+  setTimeout(() => {
+    try {
+      if (name === 'classes')     { const k = firstBatchKey(); if(k) selectBatch(k, null); }
+      if (name === 'review')      { populateReviewDropdown(); }
+      if (name === 'virtualclass'){ populateVcBatch(); renderVcList(); }
+      if (name === 'students')    { renderStudentList(); }
+      if (name === 'attendance')  { populateAttBatches(); const d=document.getElementById('attDate'); if(d&&!d.value) d.value=new Date().toISOString().split('T')[0]; }
+      if (name === 'wsresults')   { loadWsResults(); }
+    } catch(e) { console.error('showTab init error for', name, ':', e.message); }
+  }, 50);
 }
 
 // ── CLASSES ────────────────────────────────────────────────
@@ -1668,6 +1668,17 @@ async function loadWsResults() {
   }
 }
 
+
+// ── MISSING STUBS ─────────────────────────────────────────────
+function setDefaultDate() {
+  const d = document.getElementById('attDate');
+  if (d && !d.value) d.value = new Date().toISOString().split('T')[0];
+}
+
+function renderAllStudents(students) {
+  // Alias for renderStudentList — called from old showTab code
+  renderStudentList();
+}
 </script>
 <!-- IN-CLASS FLOATING BAR -->
 <div class="in-class-panel" id="inClassPanel">

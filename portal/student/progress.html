@@ -356,15 +356,15 @@ async function loadOverview(uid, profile){
   // Practice sessions this week
   const weekStart = getWeekStart();
   const{data:sessions}=await sb.from('practice_sessions')
-    .select('correct_answers,total_questions,xp_earned,created_at')
+    .select('questions_correct,questions_attempted,xp_earned,created_at')
     .eq('student_id',uid)
     .gte('created_at',weekStart)
     .order('created_at',{ascending:false});
 
   const sessArr = sessions||[];
-  const weeklyXP = sessArr.reduce((s,r)=>s+(r.xp_earned||0),0);
-  const totalCorrect = sessArr.reduce((s,r)=>s+(r.correct_answers||0),0);
-  const totalQs = sessArr.reduce((s,r)=>s+(r.total_questions||0),0);
+  const weeklyXP = sessArr.reduce((s,r)=>s+(r.xp_awarded||0),0);
+  const totalCorrect = sessArr.reduce((s,r)=>s+(r.questions_correct||0),0);
+  const totalQs = sessArr.reduce((s,r)=>s+(r.questions_attempted||0),0);
   const accuracy = totalQs>0 ? Math.round(totalCorrect/totalQs*100)+'%' : '—';
 
   document.getElementById('statSessions').textContent = sessArr.length;
@@ -476,7 +476,7 @@ async function loadHistory(){
   try{
     // Practice sessions
     const{data:sessions}=await sb.from('practice_sessions')
-      .select('correct_answers,total_questions,xp_earned,session_type,created_at')
+      .select('questions_correct,questions_attempted,xp_earned,session_type,created_at')
       .eq('student_id',currentUser.id)
       .order('created_at',{ascending:false})
       .limit(20);
@@ -488,9 +488,9 @@ async function loadHistory(){
       const typeIcons={practice:'⚡',puzzle:'🧩',quiz:'🏆',worksheet:'📋'};
       const typeBgs={practice:'#E3F2FD',puzzle:'#F3E5F5',quiz:'#FFF3E0',worksheet:'#E8F5E9'};
       histList.innerHTML=sessArr.map(s=>{
-        const type=s.session_type||'practice';
-        const total=s.total_questions||0;
-        const correct=s.correct_answers||0;
+        const type=s.topic||'practice';
+        const total=s.questions_attempted||0;
+        const correct=s.questions_correct||0;
         const pct=total>0?Math.round(correct/total*100):0;
         return `<div class="hist-item">
           <div class="hist-icon" style="background:${typeBgs[type]||'#F7F8FF'}">${typeIcons[type]||'⚡'}</div>
@@ -498,7 +498,7 @@ async function loadHistory(){
             <div class="hist-title">${type.charAt(0).toUpperCase()+type.slice(1)} session</div>
             <div class="hist-meta">${correct}/${total} correct (${pct}%) · ${fmtDateTime(s.created_at)}</div>
           </div>
-          <div class="hist-xp">+${s.xp_earned||0} XP</div>
+          <div class="hist-xp">+${s.xp_awarded||0} XP</div>
         </div>`;
       }).join('');
     }

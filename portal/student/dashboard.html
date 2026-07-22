@@ -376,74 +376,7 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-// ── VIRTUAL CLASS CARD ───────────────────────────────────────
-async function loadVirtualClassCard(userId) {
-  var cardEl = document.getElementById('vcDashCard');
-  if (!cardEl) return;
-  try {
-    var bsRes = await sb.from('batch_students').select('batch_id').eq('student_id', userId);
-    if (!bsRes.data || !bsRes.data.length) return;
-    var batchIds = bsRes.data.map(function(b) { return b.batch_id; });
-
-    var bRes = await sb.from('batches').select('id,name,schedule_json,meet_link').in('id', batchIds);
-    if (!bRes.data || !bRes.data.length) return;
-
-    var now = new Date();
-    var liveClass = null;
-    var nextClass = null;
-
-    bRes.data.forEach(function(batch) {
-      var sj = batch.schedule_json;
-      if (!sj) return;
-      var meetLink = sj.meet_link || batch.meet_link;
-      if (!meetLink) return;
-      var topic = sj.text || 'Virtual Class';
-
-      // If next_class date is set, use it; otherwise just show the schedule
-      if (sj.next_class) {
-        var classDate = new Date(sj.next_class + 'T00:00:00');
-        var diffHours = (classDate - now) / 3600000;
-        if (diffHours >= -2 && diffHours <= 2) {
-          // Within 2 hrs of class date — show as live
-          liveClass = { name: batch.name, topic: topic, meet_link: meetLink, date: classDate };
-        } else {
-          // Show as upcoming regardless of how far away — weekly class always visible
-          if (!nextClass || classDate < nextClass.date) {
-            nextClass = { name: batch.name, topic: topic, meet_link: meetLink, date: classDate };
-          }
-        }
-      } else {
-        // No specific date — show as a standing schedule
-        if (!nextClass) {
-          nextClass = { name: batch.name, topic: topic, meet_link: meetLink, date: null };
-        }
-      }
-    });
-
-    cardEl.style.display = 'block';
-
-    if (liveClass) {
-      cardEl.innerHTML = '<a href="' + liveClass.meet_link + '" target="_blank" class="vc-dashboard-card live">'
-        + '<div class="vc-icon">📹</div>'
-        + '<div class="vc-info">'
-        + '<div class="vc-title">🔴 Live now — ' + liveClass.topic + '</div>'
-        + '<div class="vc-meta">' + liveClass.name + ' · Class is happening now — tap to join!</div>'
-        + '</div><span class="vc-join">Join now →</span></a>';
-    } else if (nextClass) {
-      var dateStr = nextClass.date
-        ? nextClass.date.toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'short'})
-        : 'Scheduled';
-      cardEl.innerHTML = '<a href="' + nextClass.meet_link + '" target="_blank" class="vc-dashboard-card upcoming">'
-        + '<div class="vc-icon">📅</div>'
-        + '<div class="vc-info">'
-        + '<div class="vc-title">' + nextClass.topic + '</div>'
-        + '<div class="vc-meta">' + nextClass.name + ' · ' + dateStr + '</div>'
-        + '</div><span class="vc-join">Join →</span></a>';
-    }
-  } catch(e) { console.warn('VC card error:', e.message); }
-}
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
@@ -1326,6 +1259,73 @@ function injectWorksheetMission(count) {
   } else {
     slot.style.display = 'none';
   }
+}
+
+// ── VIRTUAL CLASS CARD ───────────────────────────────────────
+async function loadVirtualClassCard(userId) {
+  var cardEl = document.getElementById('vcDashCard');
+  if (!cardEl) return;
+  try {
+    var bsRes = await sb.from('batch_students').select('batch_id').eq('student_id', userId);
+    if (!bsRes.data || !bsRes.data.length) return;
+    var batchIds = bsRes.data.map(function(b) { return b.batch_id; });
+
+    var bRes = await sb.from('batches').select('id,name,schedule_json,meet_link').in('id', batchIds);
+    if (!bRes.data || !bRes.data.length) return;
+
+    var now = new Date();
+    var liveClass = null;
+    var nextClass = null;
+
+    bRes.data.forEach(function(batch) {
+      var sj = batch.schedule_json;
+      if (!sj) return;
+      var meetLink = sj.meet_link || batch.meet_link;
+      if (!meetLink) return;
+      var topic = sj.text || 'Virtual Class';
+
+      // If next_class date is set, use it; otherwise just show the schedule
+      if (sj.next_class) {
+        var classDate = new Date(sj.next_class + 'T00:00:00');
+        var diffHours = (classDate - now) / 3600000;
+        if (diffHours >= -2 && diffHours <= 2) {
+          // Within 2 hrs of class date — show as live
+          liveClass = { name: batch.name, topic: topic, meet_link: meetLink, date: classDate };
+        } else {
+          // Show as upcoming regardless of how far away — weekly class always visible
+          if (!nextClass || classDate < nextClass.date) {
+            nextClass = { name: batch.name, topic: topic, meet_link: meetLink, date: classDate };
+          }
+        }
+      } else {
+        // No specific date — show as a standing schedule
+        if (!nextClass) {
+          nextClass = { name: batch.name, topic: topic, meet_link: meetLink, date: null };
+        }
+      }
+    });
+
+    cardEl.style.display = 'block';
+
+    if (liveClass) {
+      cardEl.innerHTML = '<a href="' + liveClass.meet_link + '" target="_blank" class="vc-dashboard-card live">'
+        + '<div class="vc-icon">📹</div>'
+        + '<div class="vc-info">'
+        + '<div class="vc-title">🔴 Live now — ' + liveClass.topic + '</div>'
+        + '<div class="vc-meta">' + liveClass.name + ' · Class is happening now — tap to join!</div>'
+        + '</div><span class="vc-join">Join now →</span></a>';
+    } else if (nextClass) {
+      var dateStr = nextClass.date
+        ? nextClass.date.toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'short'})
+        : 'Scheduled';
+      cardEl.innerHTML = '<a href="' + nextClass.meet_link + '" target="_blank" class="vc-dashboard-card upcoming">'
+        + '<div class="vc-icon">📅</div>'
+        + '<div class="vc-info">'
+        + '<div class="vc-title">' + nextClass.topic + '</div>'
+        + '<div class="vc-meta">' + nextClass.name + ' · ' + dateStr + '</div>'
+        + '</div><span class="vc-join">Join →</span></a>';
+    }
+  } catch(e) { console.warn('VC card error:', e.message); }
 }
 </script>
 </body>

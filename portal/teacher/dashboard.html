@@ -572,6 +572,8 @@ async function loadData() {
 
   // Load batches
   var bRes = await sb.from('batches').select('id,name,current_level').eq('teacher_id', TEACHER_ID);
+  console.log('TEACHER_ID:', TEACHER_ID);
+  console.log('batches result:', JSON.stringify(bRes));
   BATCHES = [];
   if (bRes.data && bRes.data.length) {
     // Load students for each batch
@@ -580,6 +582,7 @@ async function loadData() {
       var bsRes = await sb.from('batch_students')
         .select('student_id, users!student_id(id,full_name,current_level,xp_points,streak_days)')
         .eq('batch_id', batch.id);
+      console.log('batch', batch.name, 'students result:', JSON.stringify(bsRes));
       var students = [];
       if (bsRes.data) {
         for (var j = 0; j < bsRes.data.length; j++) {

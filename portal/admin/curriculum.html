@@ -254,7 +254,7 @@ async function renderOverview() {
       if (!ops.length) ops = ['+', '−'];
       var updated = lv.updated_at ? new Date(lv.updated_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '—';
       var statusCls = {draft:'pill-draft',under_review:'pill-review',approved:'pill-approved',published:'pill-published',archived:'pill-archived'}[lv.status] || 'pill-draft';
-      html += '<tr>';
+      html += '<tr style="cursor:pointer;" onclick="configurLevel(\'' + lv.level_code + '\')">';
       html += '<td><strong>' + lv.level_code + '</strong></td>';
       html += '<td>' + (lv.level_name || '<span style="color:var(--text3)">Not set</span>') + '</td>';
       html += '<td style="max-width:160px;font-size:.78rem;">' + (lv.core_focus || '<span style="color:var(--text3)">Not set</span>') + '</td>';
@@ -277,7 +277,7 @@ async function renderOverview() {
   html += '</tbody></table></div></div>';
   html += '<div class="card"><div class="card-header"><div class="card-title">📖 How to use the Curriculum Designer</div></div>';
   html += '<div class="card-body" style="font-size:.875rem;line-height:1.8;color:var(--text2);">';
-  html += '<strong>Step 1:</strong> Click ⚙️ Configure on each level (L0 to L8).<br>';
+  html += '<strong>Step 1:</strong> Click ⚙️ Configure (or anywhere on the row) to configure each level. L0–L8 already exist — no need to add them.<br>';
   html += '<strong>Step 2:</strong> Fill in Level Definition — age group, digit range, allowed operations.<br>';
   html += '<strong>Step 3:</strong> Go to Concept Progression — mark each concept as Introduced / Practised / Mastered / Revision for this level.<br>';
   html += '<strong>Step 4:</strong> Go to Difficulty Rules — define what Easy, Medium and Hard means for this level.<br>';
@@ -702,14 +702,20 @@ async function updateStatus(code) {
 
 // ── ADD LEVEL ─────────────────────────────────────────────────
 async function addLevel() {
-  var code = prompt('Enter level code (e.g. L9):');
+  var code = prompt('Enter level code for the NEW level (e.g. L9):\nNote: L0-L8 already exist. Click Configure to edit them.');
   if (!code) return;
   code = code.trim().toUpperCase();
+  // Check if already exists
+  var existing = LEVELS.find(function(l) { return l.level_code === code; });
+  if (existing) {
+    toast(code + ' already exists — click Configure to edit it', 'error');
+    return;
+  }
   var res = await sb.from('curriculum_levels').insert({ level_code: code, status: 'draft' }).select().single();
   if (res.error) {
     toast('Error: ' + res.error.message, 'error');
   } else {
-    toast('Level ' + code + ' created!', 'success');
+    toast('Level ' + code + ' created! Click Configure to set it up.', 'success');
     await loadData();
   }
 }

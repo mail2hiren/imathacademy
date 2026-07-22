@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="version" content="v20260722044936">
+  <meta name="version" content="v20260722053308">
   <link rel="icon" type="image/png" href="/assets/favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Teacher Dashboard — iMathAcademy</title>
@@ -836,6 +836,8 @@ let STUDENTS = {};
 let SUBMISSIONS_HW1 = [];
 let ATT_DATA = {};
 let teacherId = null;
+let scheduledClasses = [];
+let activeClassId    = null;
 
 async function loadTeacherData(userId) {
   // Populate real batch dropdown for homework assignment
@@ -1114,8 +1116,6 @@ async function logout() { await sb.auth.signOut(); window.location.href = '../..
 
 // ── INIT ───────────────────────────────────────────────────
 // ── VIRTUAL CLASSES ───────────────────────────────────────
-let scheduledClasses = [];
-let activeClassId    = null;
 
 function generateMeetLink() {
   // Generate a Google Meet-style link opener

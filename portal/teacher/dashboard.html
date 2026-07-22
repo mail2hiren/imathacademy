@@ -571,9 +571,15 @@ async function loadData() {
   document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
 
   // Load batches
-  var bRes = await sb.from('batches').select('id,name,current_level').eq('teacher_id', TEACHER_ID);
+  // Query batches - select all that are visible to this authenticated teacher
+  var bRes = await sb.from('batches').select('id,name,current_level,teacher_id');
   console.log('TEACHER_ID:', TEACHER_ID);
   console.log('batches result:', JSON.stringify(bRes));
+  // Filter client-side to only this teacher's batches
+  if (bRes.data) {
+    bRes.data = bRes.data.filter(function(b) { return b.teacher_id === TEACHER_ID; });
+  }
+  if (bRes.error) { console.error('batches error:', JSON.stringify(bRes.error)); }
   BATCHES = [];
   if (bRes.data && bRes.data.length) {
     // Load students for each batch

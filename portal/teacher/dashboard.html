@@ -572,23 +572,19 @@ async function loadData() {
 
   // Load batches
   // Query batches - select all that are visible to this authenticated teacher
-  var bRes = await sb.from('batches').select('id,name,current_level,teacher_id');
-  console.log('TEACHER_ID:', TEACHER_ID);
-  console.log('batches result:', JSON.stringify(bRes));
+  var bRes = await sb.from('batches').select('id,name,teacher_id,is_active');
   // Filter client-side to only this teacher's batches
   if (bRes.data) {
     bRes.data = bRes.data.filter(function(b) { return b.teacher_id === TEACHER_ID; });
   }
-  if (bRes.error) { console.error('batches error:', JSON.stringify(bRes.error)); }
   BATCHES = [];
   if (bRes.data && bRes.data.length) {
     // Load students for each batch
     for (var i = 0; i < bRes.data.length; i++) {
       var batch = bRes.data[i];
       var bsRes = await sb.from('batch_students')
-        .select('student_id, users!student_id(id,full_name,current_level,xp_points,streak_days)')
+        .select('student_id, users!inner(id,full_name,current_level,xp_points,streak_days)')
         .eq('batch_id', batch.id);
-      console.log('batch', batch.name, 'students result:', JSON.stringify(bsRes));
       var students = [];
       if (bsRes.data) {
         for (var j = 0; j < bsRes.data.length; j++) {
@@ -608,7 +604,7 @@ async function loadData() {
           });
         }
       }
-      BATCHES.push({ id: batch.id, name: batch.name, level: batch.current_level, students: students });
+      BATCHES.push({ id: batch.id, name: batch.name, level: '', students: students });
     }
 
     // Load worksheet scores to calculate accuracy (teacher owns these — no RLS issue)
@@ -786,7 +782,7 @@ async function loadRecentSubmissions() {
       return;
     }
     var res = await sb.from('worksheet_responses')
-      .select('student_id,score,total,submitted_at,worksheet_id,users!student_id(full_name),lx_worksheets!worksheet_id(title)')
+      .select('student_id,score,total,submitted_at,worksheet_id,users!inner(full_name),lx_worksheets!worksheet_id(title)')
       .in('worksheet_id', wsIds)
       .order('submitted_at', {ascending: false}).limit(10);
 
@@ -820,7 +816,7 @@ function selectBatch(batch, btn) {
   document.querySelectorAll('.batch-btn').forEach(function(b) { b.classList.remove('active'); });
   if (btn) btn.classList.add('active');
   var title = document.getElementById('rosterTitle');
-  if (title) title.textContent = batch.name + ' · Level ' + (batch.level || '?') + ' · ' + batch.students.length + ' students';
+  if (title) title.textContent = batch.name + ' · Level ' + ('' || '?') + ' · ' + batch.students.length + ' students';
   renderRoster(batch.students);
   var d = document.getElementById('profileDrawer');
   if (d) { d.classList.remove('show'); d.innerHTML = ''; }
@@ -885,7 +881,7 @@ async function populateReviewDropdown() {
   if (!sel) return;
   try {
     var res = await sb.from('lx_worksheets')
-      .select('id,title,level,created_at,batch_id,batches!batch_id(name)')
+      .select('id,title,level,created_at,batch_id,batches!inner(name)')
       .eq('created_by', TEACHER_ID).eq('is_active', true)
       .order('created_at', {ascending: false}).limit(30);
     if (!res.data || !res.data.length) {
@@ -918,7 +914,7 @@ async function loadSubmissions() {
   }
   body.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
   try {
-    var wsRes = await sb.from('lx_worksheets').select('title,batch_id,student_id,batches!batch_id(name)').eq('id', wsId).single();
+    var wsRes = await sb.from('lx_worksheets').select('title,batch_id,student_id,batches!inner(name)').eq('id', wsId).single();
     var ws = wsRes.data;
     var students = [];
     if (ws && ws.batch_id) {
@@ -1172,7 +1168,7 @@ async function loadWsResults() {
   el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
   try {
     var myWs = await sb.from('lx_worksheets')
-      .select('id,title,level,created_at,batch_id,batches!batch_id(name)')
+      .select('id,title,level,created_at,batch_id,batches!inner(name)')
       .eq('created_by', TEACHER_ID).eq('is_active', true)
       .order('created_at', {ascending: false}).limit(20);
     if (!myWs.data || !myWs.data.length) {
@@ -1181,7 +1177,7 @@ async function loadWsResults() {
     }
     var wsIds = myWs.data.map(function(w) { return w.id; });
     var respRes = await sb.from('worksheet_responses')
-      .select('worksheet_id,student_id,score,total,xp_earned,submitted_at,users!student_id(full_name)')
+      .select('worksheet_id,student_id,score,total,xp_earned,submitted_at,users!inner(full_name)')
       .in('worksheet_id', wsIds)
       .order('submitted_at', {ascending: false});
     var byWs = {};

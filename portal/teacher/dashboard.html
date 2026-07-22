@@ -241,13 +241,16 @@
       </button>
     </nav>
     <div class="sb-footer">
-      <div class="sb-user">
+      <div class="sb-user" style="margin-bottom:10px;">
         <div class="sb-av" id="sbAv">T</div>
         <div>
           <div class="sb-uname" id="sbName">Teacher</div>
           <div class="sb-urole">Teacher</div>
         </div>
       </div>
+      <button onclick="logout()" style="width:100%;padding:8px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);border-radius:10px;color:#fff;font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer;text-align:center;">
+        🚪 Log out
+      </button>
     </div>
   </aside>
 
@@ -1222,6 +1225,11 @@ async function loadWsResults() {
 }
 
 // ── INIT ──────────────────────────────────────────────────────
+async function logout() {
+  await sb.auth.signOut();
+  window.location.href = '../../login.html';
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'});
   loadData().catch(function(e) {

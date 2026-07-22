@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="version" content="v20260722061939">
+  <meta name="version" content="v20260722072311">
   <link rel="icon" type="image/png" href="/assets/favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Teacher Dashboard — iMathAcademy</title>
@@ -663,23 +663,23 @@ async function loadTeacherData(userId) {
     const students = [];
     const batchUserIds = (links||[]).map(l => l.users?.id).filter(Boolean);
 
-    // Fetch worksheet scores for accuracy (teacher owns these, no RLS issue)
-    // practice_sessions needs a separate RLS policy — use ws scores as proxy for now
-    let sessMap = {};
+    // Accuracy from worksheet_responses for this teacher's worksheets
     let wsScoreMap = {};
     try {
-      if (batchUserIds.length) {
-        const { data: wsScores } = await sb
-          .from('worksheet_responses')
+      const { data: myWs } = await sb.from('lx_worksheets')
+        .select('id').eq('created_by', teacherId);
+      const wsIds = (myWs||[]).map(w=>w.id);
+      if (wsIds.length) {
+        const { data: wsScores } = await sb.from('worksheet_responses')
           .select('student_id,score,total')
-          .in('student_id', batchUserIds);
-        (wsScores || []).forEach(r => {
-          if (!wsScoreMap[r.student_id]) wsScoreMap[r.student_id] = { correct: 0, total: 0 };
-          wsScoreMap[r.student_id].correct += r.score || 0;
-          wsScoreMap[r.student_id].total   += r.total  || 0;
+          .in('worksheet_id', wsIds);
+        (wsScores||[]).forEach(r => {
+          if (!wsScoreMap[r.student_id]) wsScoreMap[r.student_id] = {correct:0,total:0};
+          wsScoreMap[r.student_id].correct += r.score||0;
+          wsScoreMap[r.student_id].total   += r.total||0;
         });
       }
-    } catch(e) { console.warn('worksheet scores fetch failed:', e.message); }
+    } catch(e) { console.warn('wsScore fetch:', e.message); }
 
     for (const link of (links || [])) {
       const u = link.users;

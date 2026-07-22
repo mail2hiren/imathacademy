@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="version" content="v20260722060339">
+  <meta name="version" content="v20260722061216">
   <link rel="icon" type="image/png" href="/assets/favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Teacher Dashboard — iMathAcademy</title>
@@ -663,19 +663,25 @@ async function loadTeacherData(userId) {
     const students = [];
     const batchUserIds = (links||[]).map(l => l.users?.id).filter(Boolean);
 
-    // Fetch all practice sessions for this batch in one query (avoids per-student RLS issues)
+    // Fetch all practice sessions for this batch in one query
     let sessMap = {};
-    if (batchUserIds.length) {
-      const { data: allSess } = await sb
-        .from('practice_sessions')
-        .select('student_id,correct_answers,total_questions')
-        .in('student_id', batchUserIds)
-        .limit(500);
-      (allSess || []).forEach(s => {
-        if (!sessMap[s.student_id]) sessMap[s.student_id] = [];
-        sessMap[s.student_id].push(s);
-      });
-    }
+    try {
+      if (batchUserIds.length) {
+        const { data: allSess, error: sessErr } = await sb
+          .from('practice_sessions')
+          .select('student_id,correct_answers,total_questions')
+          .in('student_id', batchUserIds)
+          .limit(500);
+        if (!sessErr) {
+          (allSess || []).forEach(s => {
+            if (!sessMap[s.student_id]) sessMap[s.student_id] = [];
+            sessMap[s.student_id].push(s);
+          });
+        } else {
+          console.warn('practice_sessions RLS blocked — accuracy will show 0. Run the SQL policy fix.');
+        }
+      }
+    } catch(e) { console.warn('practice_sessions fetch failed:', e.message); }
 
     for (const link of (links || [])) {
       const u = link.users;
@@ -701,10 +707,7 @@ async function loadTeacherData(userId) {
         mode: u.mode || 'online',
         avClass: 'av-g',
         risk: acc > 0 && acc < 50,
-        topics: (weak || []).map(t => {
-          const a = Math.round(parseFloat(t.accuracy) || 0);
-          const c = a >= 75 ? 'var(--green)' : a >= 55 ? 'var(--blue)' : a >= 35 ? 'var(--orange)' : 'var(--red)';
-          return { n: t.topic, acc: a, c };
+        topics: [],
         }),
         batchId: batch.id,
         batchName: batch.name,

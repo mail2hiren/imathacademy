@@ -355,10 +355,10 @@ function closePlayer(e) {
     // Track lesson view as a practice session (lesson_views table not needed)
     await sb.from('practice_sessions').insert({
       student_id:      session.user.id,
-      session_type:    'lesson',
-      correct_answers: 0,
-      total_questions: 0,
-      xp_earned:       5,
+      topic:    'lesson',
+      questions_correct: 0,
+      questions_attempted: 0,
+      xp_awarded:       5,
     });
   } catch(e) { /* non-critical */ }
 }

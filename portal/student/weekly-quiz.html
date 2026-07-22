@@ -471,7 +471,7 @@ async function loadLeaderboard() {
 
     const week=getWeekNumber();
     const{data:results}=await sb.from('quiz_results')
-      .select('student_id, score, total, pct, time_taken, users!student_id(full_name)')
+      .select('student_id, score, total, pct, time_taken, users(full_name)')
       .in('student_id',studentIds)
       .eq('week_number',week)
       .order('pct',{ascending:false})

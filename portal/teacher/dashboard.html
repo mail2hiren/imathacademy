@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="version" content="v20260722054639">
+  <meta name="version" content="v20260722060339">
   <link rel="icon" type="image/png" href="/assets/favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Teacher Dashboard — iMathAcademy</title>
@@ -661,16 +661,27 @@ async function loadTeacherData(userId) {
       .eq('batch_id', batch.id);
 
     const students = [];
+    const batchUserIds = (links||[]).map(l => l.users?.id).filter(Boolean);
+
+    // Fetch all practice sessions for this batch in one query (avoids per-student RLS issues)
+    let sessMap = {};
+    if (batchUserIds.length) {
+      const { data: allSess } = await sb
+        .from('practice_sessions')
+        .select('student_id,correct_answers,total_questions')
+        .in('student_id', batchUserIds)
+        .limit(500);
+      (allSess || []).forEach(s => {
+        if (!sessMap[s.student_id]) sessMap[s.student_id] = [];
+        sessMap[s.student_id].push(s);
+      });
+    }
+
     for (const link of (links || [])) {
       const u = link.users;
       if (!u) continue;
 
-      const [{ data: sessions }, { data: weak }] = await Promise.all([
-        sb.from('practice_sessions').select('correct_answers,total_questions').eq('student_id', u.id).limit(50),
-        Promise.resolve({ data: [] }), // weak topics removed — derived from practice_sessions
-      ]);
-
-      const sess = sessions || [];
+      const sess  = sessMap[u.id] || [];
       const totalC = sess.reduce((a, s) => a + (s.correct_answers || 0), 0);
       const totalQ = sess.reduce((a, s) => a + (s.total_questions || 0), 0);
       const acc = totalQ ? Math.round((totalC / totalQ) * 100) : 0;

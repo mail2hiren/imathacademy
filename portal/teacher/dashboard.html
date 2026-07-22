@@ -2,1331 +2,1223 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="version" content="v20260722072704">
-  <link rel="icon" type="image/png" href="/assets/favicon.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Teacher Dashboard — iMathAcademy</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; min-height: 100vh; }
-    :root {
-      --green:#43A047; --green-dk:#1B5E20; --green-lt:#E8F5E9; --green-md:#2E7D32;
-      --orange:#FB8C00; --orange-dk:#E65100; --orange-lt:#FFF3E0;
-      --blue:#1E88E5; --blue-dk:#0D47A1; --blue-lt:#E3F2FD;
-      --purple:#8E24AA; --purple-dk:#4A148C; --purple-lt:#F3E5F5;
-      --red:#E53935; --red-dk:#B71C1C; --red-lt:#FFEBEE;
-      --yellow:#F9A825; --yellow-lt:#FFFDE7; --yellow-dk:#F57F17;
-      --teal:#00897B; --teal-lt:#E0F2F1; --teal-dk:#004D40;
-      --bg:#FFFFFF; --bg2:#F7F8FF; --border:#E8EAF6;
-      --text2:#4A4A6A; --text3:#9090B0;
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    body{font-family:'Nunito',sans-serif;background:#F0F2FF;color:#1A1A2E;min-height:100vh;}
+    :root{
+      --green:#2E7D32;--green-lt:#E8F5E9;--green-dk:#1B5E20;
+      --blue:#1565C0;--blue-lt:#E3F2FD;--blue-dk:#0D47A1;
+      --orange:#E65100;--orange-lt:#FFF3E0;
+      --red:#C62828;--red-lt:#FFEBEE;
+      --purple:#6A1B9A;--purple-lt:#F3E5F5;
+      --bg:#fff;--bg2:#F0F2FF;--border:#DEE2F5;
+      --text:#1A1A2E;--text2:#4A4A6A;--text3:#8888AA;
     }
 
     /* ── LAYOUT ── */
-    .portal { display:flex; min-height:100vh; }
-    .sidebar {
-      width:220px; flex-shrink:0; background:var(--bg);
-      border-right:2px solid var(--border); display:flex;
-      flex-direction:column; position:fixed; top:0; left:0;
-      height:100vh; overflow-y:auto; z-index:300; transition:transform .3s;
-    }
-    .sidebar-logo {
-      padding:20px 16px; border-bottom:2px solid var(--border);
-      font-family:'Baloo 2',sans-serif; font-size:1.2rem; font-weight:800;
-      color:var(--blue-dk); display:flex; align-items:center; gap:10px;
-    }
-    .sidebar-logo span { color:var(--orange-dk); }
-    .logo-icon { width:34px; height:34px; background:var(--blue); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
-    .sidebar-nav { flex:1; padding:12px 0; }
-    .nav-section { font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.8px; color:var(--text3); padding:8px 16px 3px; margin-top:6px; }
-    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 16px; font-size:.875rem; font-weight:700; color:var(--text2); cursor:pointer; border-left:3px solid transparent; transition:all .12s; text-decoration:none; }
-    .nav-item:hover { color:var(--text); background:var(--bg2); }
-    .nav-item.active { color:var(--blue-dk); background:var(--blue-lt); border-left-color:var(--blue); }
-    .nav-icon { width:20px; text-align:center; font-size:1rem; }
-    .nav-badge { margin-left:auto; background:var(--red); color:#fff; font-size:.62rem; font-weight:800; padding:2px 6px; border-radius:20px; min-width:18px; text-align:center; }
-    .sidebar-user { padding:14px 16px; border-top:2px solid var(--border); display:flex; align-items:center; gap:10px; }
-    .user-av { width:36px; height:36px; border-radius:50%; background:var(--blue-lt); border:2px solid var(--blue); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:800; color:var(--blue-dk); flex-shrink:0; }
-    .user-name { font-size:.82rem; font-weight:800; color:var(--text); }
-    .user-role { font-size:.7rem; color:var(--text3); font-weight:600; }
-    .logout-btn { margin-left:auto; background:none; border:none; font-size:.85rem; cursor:pointer; color:var(--text3); }
-    .logout-btn:hover { color:var(--red); }
-    .main { flex:1; margin-left:220px; display:flex; flex-direction:column; }
-    .topbar {
-      height:62px; background:var(--bg); border-bottom:2px solid var(--border);
-      display:flex; align-items:center; justify-content:space-between;
-      padding:0 24px; position:sticky; top:0; z-index:50;
-      box-shadow:0 2px 8px rgba(0,0,0,.05);
-    }
-    .topbar-left { display:flex; align-items:center; gap:12px; }
-    .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; background:none; border:none; padding:8px; min-width:44px; min-height:44px; align-items:center; justify-content:center; }
-    .hamburger span { width:22px; height:2.5px; background:#1A1A2E; border-radius:3px; display:block; }
-    .topbar-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; }
-    .topbar-right { display:flex; align-items:center; gap:10px; }
-    .notif-btn { position:relative; width:38px; height:38px; border-radius:50%; background:var(--bg2); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1rem; }
-    .notif-dot { position:absolute; top:-2px; right:-2px; width:14px; height:14px; background:var(--red); border-radius:50%; border:2px solid var(--bg); font-size:.55rem; font-weight:800; color:#fff; display:flex; align-items:center; justify-content:center; }
-    .body { padding:24px; }
+    .portal{display:flex;height:100vh;overflow:hidden;}
 
-    /* ── PAGE TABS ── */
-    .page-tabs { display:flex; gap:0; background:var(--bg); border:2px solid var(--border); border-radius:30px; overflow:hidden; margin-bottom:24px; width:fit-content; flex-wrap:wrap; }
-    .page-tab { padding:9px 20px; font-size:.85rem; font-weight:800; cursor:pointer; transition:all .15s; color:var(--text2); border:none; background:transparent; font-family:'Nunito',sans-serif; }
-    .page-tab.active { background:var(--blue); color:#fff; }
+    /* ── SIDEBAR ── */
+    .sidebar{width:230px;flex-shrink:0;background:#0D47A1;display:flex;flex-direction:column;
+      position:fixed;top:0;left:0;height:100vh;z-index:300;overflow-y:auto;
+      transform:translateX(0);transition:transform .25s ease;}
+    .sb-logo{padding:16px;border-bottom:1px solid rgba(255,255,255,.15);display:flex;align-items:center;gap:10px;}
+    .sb-logo img{height:32px;width:auto;}
+    .sb-logo-text{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;color:#fff;}
+    .sb-nav{flex:1;padding:8px 0;}
+    .sb-section{font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;
+      color:rgba(255,255,255,.45);padding:10px 16px 4px;}
+    .sb-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:.875rem;
+      font-weight:700;color:rgba(255,255,255,.75);cursor:pointer;border:none;background:none;
+      width:100%;text-align:left;border-left:3px solid transparent;transition:all .12s;font-family:inherit;}
+    .sb-item:hover{background:rgba(255,255,255,.1);color:#fff;}
+    .sb-item.active{background:rgba(255,255,255,.15);color:#fff;border-left-color:#64B5F6;}
+    .sb-icon{width:20px;text-align:center;font-size:.95rem;}
+    .sb-badge{margin-left:auto;background:#EF5350;color:#fff;font-size:.6rem;font-weight:800;
+      padding:2px 6px;border-radius:10px;min-width:18px;text-align:center;}
+    .sb-footer{padding:12px 16px;border-top:1px solid rgba(255,255,255,.15);}
+    .sb-user{display:flex;align-items:center;gap:10px;}
+    .sb-av{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.2);
+      display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;color:#fff;}
+    .sb-uname{font-size:.82rem;font-weight:700;color:#fff;}
+    .sb-urole{font-size:.68rem;color:rgba(255,255,255,.55);}
 
-    /* ── STATS ── */
-    .stats-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:20px; }
-    .stat-card { background:var(--bg); border:2px solid var(--border); border-radius:16px; padding:14px; text-align:center; transition:all .2s; }
-    .stat-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.08); }
-    .stat-n { font-family:'Baloo 2',sans-serif; font-size:1.7rem; font-weight:800; line-height:1.1; margin-bottom:3px; }
-    .stat-l { font-size:.75rem; font-weight:700; color:var(--text2); }
-    .stat-s { font-size:.68rem; color:var(--text3); margin-top:2px; }
+    /* ── OVERLAY ── */
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;}
+    .overlay.show{display:block;}
+
+    /* ── MAIN ── */
+    .main{flex:1;margin-left:230px;display:flex;flex-direction:column;min-width:0;height:100vh;overflow:hidden;}
+
+    /* ── TOPBAR ── */
+    .topbar{height:58px;background:#fff;border-bottom:2px solid var(--border);display:flex;
+      align-items:center;gap:12px;padding:0 20px;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+    .hamburger{display:none;background:none;border:none;cursor:pointer;padding:8px;
+      flex-direction:column;gap:5px;align-items:center;justify-content:center;}
+    .hamburger span{display:block;width:22px;height:2.5px;background:#1A1A2E;border-radius:3px;}
+    .topbar-title{font-family:'Baloo 2',sans-serif;font-size:1.05rem;font-weight:800;flex:1;}
+    .topbar-date{font-size:.78rem;color:var(--text3);font-weight:600;}
+    .notif-btn{position:relative;width:38px;height:38px;border-radius:50%;background:var(--bg2);
+      border:2px solid var(--border);display:flex;align-items:center;justify-content:center;
+      cursor:pointer;font-size:1rem;flex-shrink:0;}
+    .notif-dot{position:absolute;top:-2px;right:-2px;width:16px;height:16px;background:#EF5350;
+      border-radius:50%;border:2px solid #fff;font-size:.55rem;font-weight:800;color:#fff;
+      display:flex;align-items:center;justify-content:center;}
+
+    /* ── BODY / CONTENT ── */
+    .body{flex:1;overflow-y:auto;padding:16px;background:var(--bg2);}
+
+    /* ── TAB PANELS ── */
+    .tab-panel{display:none;}
+    .tab-panel.active{display:block;}
+
+    /* ── CARDS ── */
+    .card{background:#fff;border:2px solid var(--border);border-radius:14px;margin-bottom:14px;}
+    .card-header{padding:12px 16px;border-bottom:2px solid var(--border);display:flex;
+      align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+    .card-title{font-size:.875rem;font-weight:800;}
+    .card-body{padding:14px 16px;}
+
+    /* ── STATS ROW ── */
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+    .stat-card{background:#fff;border:2px solid var(--border);border-radius:14px;padding:14px;text-align:center;}
+    .stat-n{font-size:1.6rem;font-weight:900;margin-bottom:2px;}
+    .stat-l{font-size:.7rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
+
+    /* ── BUTTONS ── */
+    .btn{padding:8px 16px;border-radius:10px;font-family:inherit;font-size:.82rem;font-weight:700;
+      cursor:pointer;border:2px solid transparent;transition:all .12s;white-space:nowrap;}
+    .btn-blue{background:var(--blue);color:#fff;border-color:var(--blue);}
+    .btn-blue:hover{background:var(--blue-dk);}
+    .btn-outline{background:#fff;color:var(--blue);border-color:var(--blue);}
+    .btn-green{background:var(--green);color:#fff;border-color:var(--green);}
+    .btn-sm{padding:5px 12px;font-size:.75rem;}
+
+    /* ── FORM ELEMENTS ── */
+    .form-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+    .form-group{flex:1;min-width:140px;}
+    .form-label{font-size:.72rem;font-weight:800;color:var(--text3);text-transform:uppercase;
+      letter-spacing:.4px;margin-bottom:4px;display:block;}
+    .form-input{width:100%;padding:9px 12px;border:2px solid var(--border);border-radius:10px;
+      font-family:inherit;font-size:.875rem;font-weight:600;outline:none;transition:border .12s;}
+    .form-input:focus{border-color:var(--blue);}
+    select.form-input{cursor:pointer;}
+
+    /* ── ROSTER ── */
+    .roster-row{display:flex;align-items:center;gap:12px;padding:10px 0;
+      border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+    .roster-row:last-child{border-bottom:none;}
+    .roster-row:hover{background:#F7F8FF;margin:0 -16px;padding:10px 16px;}
+    .av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;
+      justify-content:center;font-weight:800;font-size:.82rem;flex-shrink:0;
+      background:var(--blue-lt);color:var(--blue-dk);}
+    .av.risk{background:var(--red-lt);color:var(--red);}
+    .r-name{font-size:.875rem;font-weight:700;}
+    .r-meta{font-size:.72rem;color:var(--text3);margin-top:1px;}
+    .pill{font-size:.68rem;font-weight:800;padding:3px 10px;border-radius:20px;}
+    .pill-g{background:var(--green-lt);color:var(--green-dk);}
+    .pill-o{background:var(--orange-lt);color:var(--orange);}
+    .pill-r{background:var(--red-lt);color:var(--red);}
+
+    /* ── BATCH BUTTONS ── */
+    .batch-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+    .batch-btn{padding:7px 14px;border-radius:20px;border:2px solid var(--border);background:#fff;
+      font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .12s;}
+    .batch-btn.active{background:var(--blue-lt);border-color:var(--blue);color:var(--blue-dk);}
+
+    /* ── STUDENT PROFILE DRAWER ── */
+    .profile-drawer{display:none;background:#fff;border:2px solid var(--border);border-radius:14px;
+      padding:16px;margin-top:14px;}
+    .profile-drawer.show{display:block;}
+    .pd-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+    .pd-av{width:48px;height:48px;border-radius:50%;background:var(--blue-lt);
+      display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;
+      color:var(--blue-dk);flex-shrink:0;}
+    .pd-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
+    .pd-stat{text-align:center;padding:10px;background:var(--bg2);border-radius:10px;}
+    .pd-stat-n{font-size:1.1rem;font-weight:800;}
+    .pd-stat-l{font-size:.65rem;color:var(--text3);font-weight:700;}
 
     /* ── ALERTS ── */
-    .alert { display:flex; gap:10px; padding:12px 16px; border-radius:14px; border:2px solid; margin-bottom:10px; }
-    .alert-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:3px; }
-    .alert-body { flex:1; }
-    .alert-title { font-size:.875rem; font-weight:800; line-height:1.4; }
-    .alert-sub   { font-size:.78rem; font-weight:600; margin-top:2px; }
-    .alert-btn { flex-shrink:0; padding:6px 14px; border-radius:20px; font-size:.75rem; font-weight:800; border:none; cursor:pointer; font-family:'Nunito',sans-serif; align-self:center; }
-    .alert-warn { background:var(--orange-lt); border-color:#FFCC80; }
-    .alert-warn .alert-dot { background:var(--orange); }
-    .alert-warn .alert-title { color:var(--orange-dk); }
-    .alert-warn .alert-sub   { color:var(--orange-dk); opacity:.8; }
-    .alert-err  { background:var(--red-lt); border-color:#FFCDD2; }
-    .alert-err .alert-dot { background:var(--red); }
-    .alert-err .alert-title { color:var(--red-dk); }
-    .alert-err .alert-sub   { color:var(--red-dk); opacity:.8; }
-    .alert-info { background:var(--blue-lt); border-color:#90CAF9; }
-    .alert-info .alert-dot { background:var(--blue); }
-    .alert-info .alert-title { color:var(--blue-dk); }
-    .alert-info .alert-sub   { color:var(--blue-dk); opacity:.8; }
+    .alert{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;
+      margin-bottom:8px;border:2px solid;}
+    .alert-err{background:var(--red-lt);border-color:#EF9A9A;}
+    .alert-warn{background:var(--orange-lt);border-color:#FFCC80;}
+    .alert-info{background:var(--blue-lt);border-color:#90CAF9;}
+    .alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+    .alert-err .alert-dot{background:var(--red);}
+    .alert-warn .alert-dot{background:var(--orange);}
+    .alert-info .alert-dot{background:var(--blue);}
+    .alert-body{flex:1;}
+    .alert-title{font-size:.82rem;font-weight:800;}
+    .alert-sub{font-size:.72rem;color:var(--text2);margin-top:2px;}
+    .alert-btn{padding:5px 12px;border-radius:8px;border:none;font-family:inherit;
+      font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;}
 
-    /* ── SECTION CARD ── */
-    .section-card { background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:20px; margin-bottom:16px; }
-    .section-title { font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:var(--text3); margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
-    .section-link { font-size:.72rem; font-weight:700; color:var(--blue); text-transform:none; letter-spacing:0; cursor:pointer; }
+    /* ── VC CARD ── */
+    .vc-card{background:#fff;border:2px solid var(--border);border-radius:14px;
+      padding:14px 16px;margin-bottom:10px;}
+    .vc-card.live{border-color:var(--green);}
 
-    /* ── CLASS / SCHEDULE CARDS ── */
-    .class-card {
-      display:flex; align-items:center; gap:14px;
-      padding:14px 16px; border-radius:14px; border:2px solid var(--border);
-      margin-bottom:10px; transition:all .15s;
+    /* ── TOAST ── */
+    .toast-wrap{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;
+      flex-direction:column;gap:8px;pointer-events:none;}
+    .toast{background:#1A1A2E;color:#fff;padding:10px 16px;border-radius:12px;
+      font-size:.82rem;font-weight:700;opacity:0;transform:translateY(10px);
+      transition:all .25s;pointer-events:none;max-width:320px;}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.success{background:var(--green);}
+    .toast.error{background:var(--red);}
+
+    /* ── MOBILE ── */
+    @media(max-width:768px){
+      .sidebar{transform:translateX(-100%);}
+      .sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.2);}
+      .main{margin-left:0;}
+      .hamburger{display:flex;}
+      .stats-row{grid-template-columns:repeat(2,1fr);}
+      .body{padding:12px;}
     }
-    .class-card.live-now { border-color:var(--green); background:var(--green-lt); }
-    .class-card.upcoming { border-color:var(--border); background:var(--bg); }
-    .class-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
-    .dot-live { background:var(--green); animation:pulse 1.2s infinite; }
-    .dot-soon { background:var(--orange); }
-    .dot-later{ background:var(--text3); }
-    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
-    .class-info { flex:1; }
-    .class-name { font-size:.9rem; font-weight:800; color:var(--text); margin-bottom:2px; }
-    .class-meta { font-size:.75rem; color:var(--text3); font-weight:600; }
-    .class-btn { padding:8px 18px; border-radius:20px; font-family:'Nunito',sans-serif; font-size:.8rem; font-weight:800; border:none; cursor:pointer; transition:all .15s; white-space:nowrap; }
-    .btn-green-sm { background:var(--green); color:#fff; }
-    .btn-ghost-sm { background:var(--bg2); color:var(--text2); border:2px solid var(--border); }
-
-    /* ── STUDENT ROSTER ── */
-    .roster-header { display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--bg2); border-radius:10px; margin-bottom:8px; font-size:.72rem; font-weight:800; color:var(--text3); text-transform:uppercase; letter-spacing:.3px; }
-    .roster-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg); border:2px solid var(--border); border-radius:12px; margin-bottom:6px; transition:all .12s; cursor:pointer; }
-    .roster-row:hover { box-shadow:0 2px 8px rgba(0,0,0,.06); }
-    .roster-row.at-risk { border-color:#FFCDD2; background:var(--red-lt); }
-    .roster-row.offline { border-color:#FFCC80; background:var(--orange-lt); }
-    .av { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:800; flex-shrink:0; }
-    .av-g { background:var(--green-lt); color:var(--green-dk); }
-    .av-b { background:var(--blue-lt);  color:var(--blue-dk);  }
-    .av-o { background:var(--orange-lt);color:var(--orange-dk);}
-    .av-p { background:var(--purple-lt);color:var(--purple-dk);}
-    .r-name { font-size:.875rem; font-weight:800; color:var(--text); }
-    .r-meta { font-size:.72rem; color:var(--text3); font-weight:600; }
-    .pill { font-size:.7rem; font-weight:800; padding:3px 10px; border-radius:20px; white-space:nowrap; }
-    .pill-g { background:var(--green-lt); color:var(--green-dk); border:1.5px solid #A5D6A7; }
-    .pill-o { background:var(--orange-lt);color:var(--orange-dk);border:1.5px solid #FFCC80; }
-    .pill-r { background:var(--red-lt);  color:var(--red-dk);  border:1.5px solid #FFCDD2; }
-    .pill-b { background:var(--blue-lt); color:var(--blue-dk); border:1.5px solid #90CAF9; }
-    .pill-gray { background:var(--bg2); color:var(--text3); border:1.5px solid var(--border); }
-
-    /* ── ONLINE/OFFLINE TOGGLE ── */
-    .mode-toggle { display:inline-flex; border:2px solid var(--border); border-radius:20px; overflow:hidden; }
-    .mt { padding:4px 10px; font-size:.68rem; font-weight:800; cursor:pointer; color:var(--text2); background:transparent; border:none; font-family:'Nunito',sans-serif; transition:all .12s; }
-    .mt.on-online  { background:var(--green);  color:#fff; }
-    .mt.on-offline { background:var(--orange); color:#fff; }
-
-    /* ── ASSIGN HOMEWORK ── */
-    .assign-box { background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:22px; margin-bottom:16px; }
-    .assign-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; margin-bottom:6px; }
-    .assign-sub { font-size:.82rem; color:var(--text2); font-weight:500; margin-bottom:20px; }
-    .assign-step { display:flex; gap:12px; margin-bottom:16px; align-items:flex-start; }
-    .step-circle { width:28px; height:28px; border-radius:50%; background:var(--blue); color:#fff; font-size:.82rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
-    .step-body { flex:1; }
-    .step-label { font-size:.875rem; font-weight:800; color:var(--text); margin-bottom:6px; }
-    .step-inputs { display:flex; gap:8px; flex-wrap:wrap; }
-    .form-sel, .form-inp {
-      padding:10px 12px; border:2px solid var(--border); border-radius:12px;
-      font-family:'Nunito',sans-serif; font-size:.875rem; font-weight:600;
-      color:var(--text); background:var(--bg); outline:none; transition:border-color .15s;
+    @media(min-width:769px){
+      .overlay{display:none!important;}
     }
-    .form-sel:focus, .form-inp:focus { border-color:var(--blue); }
-    .form-sel { flex:1; min-width:120px; }
-    .assign-preview {
-      background:var(--blue-lt); border:2px solid #90CAF9;
-      border-radius:12px; padding:12px 16px; margin-bottom:16px;
-      font-size:.82rem; color:var(--blue-dk); font-weight:600; display:none;
-    }
-    .assign-preview.show { display:block; }
-    .assign-btn {
-      width:100%; padding:13px; background:var(--blue); color:#fff;
-      border:none; border-radius:30px; font-family:'Nunito',sans-serif;
-      font-size:.95rem; font-weight:800; cursor:pointer; transition:all .15s;
-    }
-    .assign-btn:hover { background:var(--blue-dk); transform:translateY(-1px); }
 
-    /* ── SUBMISSIONS REVIEW ── */
-    .sub-row { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg); border:2px solid var(--border); border-radius:12px; margin-bottom:6px; }
-    .sub-row.not-sub { background:var(--red-lt); border-color:#FFCDD2; }
-    .sub-name { font-size:.875rem; font-weight:800; color:var(--text); flex:1; }
-    .sub-meta { font-size:.72rem; color:var(--text3); }
-    .feedback-input { flex:1; padding:7px 12px; border:2px solid var(--border); border-radius:10px; font-family:'Nunito',sans-serif; font-size:.82rem; font-weight:600; outline:none; }
-    .feedback-input:focus { border-color:var(--blue); }
+    /* ── EMPTY STATE ── */
+    .empty{text-align:center;padding:40px 20px;color:var(--text3);}
+    .empty-icon{font-size:2.5rem;margin-bottom:8px;}
+    .empty-text{font-size:.875rem;line-height:1.6;}
 
-    /* ── ATTENDANCE ── */
-    .att-row { display:flex; align-items:center; gap:10px; padding:9px 12px; border-bottom:1px solid var(--border); }
-    .att-row:last-child { border-bottom:none; }
-    .att-toggle { display:flex; gap:0; border:2px solid var(--border); border-radius:20px; overflow:hidden; }
-    .att-btn { padding:5px 12px; font-size:.72rem; font-weight:800; cursor:pointer; border:none; background:transparent; font-family:'Nunito',sans-serif; color:var(--text2); transition:all .12s; }
-    .att-btn.present { background:var(--green); color:#fff; }
-    .att-btn.absent  { background:var(--red);   color:#fff; }
-
-    /* ── STUDENT PROFILE ── */
-    .student-profile { background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:20px; display:none; }
-    .student-profile.show { display:block; }
-    .sp-header { display:flex; align-items:center; gap:14px; margin-bottom:16px; }
-    .sp-av { width:52px; height:52px; border-radius:50%; background:var(--green-lt); border:3px solid var(--green); display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:800; color:var(--green-dk); }
-    .sp-name { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; }
-    .sp-meta { font-size:.82rem; color:var(--text2); font-weight:600; }
-    .topic-row { display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--border); }
-    .topic-row:last-child { border-bottom:none; }
-    .topic-name { flex:1; font-size:.82rem; font-weight:600; }
-    .topic-bar  { width:100px; height:8px; background:var(--bg2); border-radius:4px; overflow:hidden; }
-    .topic-fill { height:100%; border-radius:4px; }
-    .topic-pct  { font-size:.78rem; font-weight:800; width:34px; text-align:right; }
-
-    /* ── BTN ── */
-    .btn { padding:10px 20px; border-radius:30px; font-family:'Nunito',sans-serif; font-size:.875rem; font-weight:800; border:none; cursor:pointer; transition:all .15s; }
-    .btn-blue   { background:var(--blue);   color:#fff; }
-    .btn-green  { background:var(--green);  color:#fff; }
-    .btn-orange { background:var(--orange); color:#fff; }
-    .btn-ghost  { background:var(--bg2);    color:var(--text2); border:2px solid var(--border); }
-    .btn:hover { opacity:.88; transform:translateY(-1px); }
-
-    /* ── SUCCESS TOAST ── */
-    .toast-container { position:fixed; bottom:24px; right:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
-    .toast { background:var(--text); color:#fff; padding:10px 18px; border-radius:12px; font-size:.875rem; font-weight:700; box-shadow:0 4px 16px rgba(0,0,0,.2); animation:slideIn .3s ease; }
-    .toast-success { background:var(--green-dk); }
-    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
-
-    /* ── VIRTUAL CLASSES ── */
-    .vc-card { background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:20px; margin-bottom:14px; display:flex; align-items:center; gap:16px; transition:all .15s; }
-    .vc-card.live { border-color:var(--green); background:var(--green-lt); }
-    .vc-card.upcoming { border-color:var(--blue); background:var(--blue-lt); }
-    .vc-dot { width:14px; height:14px; border-radius:50%; flex-shrink:0; }
-    .vc-dot.live { background:var(--green); animation:pulse 1.2s infinite; }
-    .vc-dot.upcoming { background:var(--blue); }
-    .vc-dot.past { background:var(--text3); }
-    .vc-info { flex:1; }
-    .vc-title { font-size:.95rem; font-weight:800; margin-bottom:3px; }
-    .vc-meta  { font-size:.75rem; color:var(--text2); font-weight:600; }
-    .vc-btn { padding:9px 20px; border-radius:20px; font-family:'Nunito',sans-serif; font-size:.82rem; font-weight:800; border:none; cursor:pointer; white-space:nowrap; transition:all .15s; }
-    .vc-btn:hover { opacity:.88; transform:translateY(-1px); }
-    .vc-btn-green  { background:var(--green); color:#fff; }
-    .vc-btn-blue   { background:var(--blue);  color:#fff; }
-    .vc-btn-ghost  { background:var(--bg2);   color:var(--text2); border:2px solid var(--border); }
-    .vc-btn-red    { background:var(--red);   color:#fff; }
-    .schedule-form { background:var(--bg); border:2px solid var(--border); border-radius:18px; padding:22px; margin-bottom:16px; }
-    .sf-title { font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:800; margin-bottom:4px; }
-    .sf-sub   { font-size:.82rem; color:var(--text2); margin-bottom:18px; }
-    .sf-row   { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:flex-end; }
-    .sf-label { font-size:.75rem; font-weight:800; color:var(--text2); margin-bottom:5px; text-transform:uppercase; letter-spacing:.4px; }
-    .sf-field { display:flex; flex-direction:column; flex:1; min-width:140px; }
-    .in-class-panel { position:fixed; bottom:0; left:0; right:0; background:var(--green-dk); color:#fff; padding:14px 24px; display:flex; align-items:center; gap:14px; z-index:200; transform:translateY(100%); transition:transform .3s; }
-    .in-class-panel.show { transform:translateY(0); }
-    .icp-dot { width:12px; height:12px; border-radius:50%; background:#4eff91; animation:pulse 1.2s infinite; flex-shrink:0; }
-    .icp-text { flex:1; font-weight:700; font-size:.9rem; }
-    .icp-btn { padding:8px 18px; border-radius:20px; font-family:'Nunito',sans-serif; font-size:.82rem; font-weight:800; border:none; cursor:pointer; }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width:768px) {
-      .sidebar { transform:translateX(-100%); }
-      .sidebar.open { transform:translateX(0); }
-      .main { margin-left:0; }
-      .hamburger { display:flex; }
-      .body { padding:16px; }
-      .stats-row { grid-template-columns:repeat(2,1fr); }
-      .step-inputs { flex-direction:column; }
-    }
-  
-    /* ── MOBILE SIDEBAR ── */
-    .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:149; }
-    .sidebar-overlay.show { display:block; }
-    @media (max-width:768px) {
-      .sidebar { transform:translateX(-100%); transition:transform .25s ease; z-index:150; }
-      .sidebar.open { transform:translateX(0); box-shadow:4px 0 24px rgba(0,0,0,.18); }
-      .main, .body { margin-left:0 !important; }
-      .hamburger, .hamburger-btn { display:flex !important; }
-    }
-    @media (min-width:769px) {
-      .sidebar { transform:translateX(0) !important; }
-      .sidebar-overlay { display:none !important; }
-      .hamburger, .hamburger-btn { display:none !important; }
-    }
+    /* ── LOADER ── */
+    .loader{text-align:center;padding:30px;}
+    .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--blue);
+      border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 10px;}
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
-<script>
-  // Sidebar functions defined early — before any onclick can fire
-  function toggleSidebar(){
-    var s=document.getElementById('sidebar');
-    var o=document.getElementById('sidebarOverlay');
-    if(!s)return;
-    if(s.classList.contains('open')){
-      s.classList.remove('open');
-      if(o)o.classList.remove('show');
-    } else {
-      s.classList.add('open');
-      if(o)o.classList.add('show');
-    }
-  }
-  function closeSidebar(){
-    var s=document.getElementById('sidebar');
-    var o=document.getElementById('sidebarOverlay');
-    if(s)s.classList.remove('open');
-    if(o)o.classList.remove('show');
-  }
-</script>
 </head>
 <body>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
 <div class="portal">
 
-  <!-- SIDEBAR -->
-  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-<aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-icon">👨‍🏫</div>
-      <img src="../../assets/logo.png" alt="iMathAcademy" style="height:32px;width:auto;object-fit:contain;">
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <img src="../../assets/logo.png" alt="iMathAcademy">
     </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section">Overview</div>
-      <a class="nav-item active" href="#" onclick="showTab('dashboard',this)"><span class="nav-icon">🏠</span> Dashboard</a>
-      <a class="nav-item" href="#" onclick="showTab('classes',this)"><span class="nav-icon">👥</span> My classes</a>
-      <div class="nav-section">Homework</div>
-      <a class="nav-item" href="#" onclick="showTab('assign',this)"><span class="nav-icon">✏️</span> Assign<span class="nav-badge" id="pendingBadge" style="display:none">0</span></a>
-      <a class="nav-item" href="#" onclick="showTab('review',this)"><span class="nav-icon">📝</span> Review submissions</a>
-      <div class="nav-section">Classes</div>
-      <a class="nav-item" href="#" onclick="showTab('virtualclass',this)"><span class="nav-icon">📹</span> Virtual Classes<span class="nav-badge" id="liveClassBadge" style="display:none;background:var(--green)">LIVE</span></a>
-      <div class="nav-section">Students</div>
-      <a class="nav-item" href="#" onclick="showTab('students',this)"><span class="nav-icon">📊</span> Student progress</a>
-      <a class="nav-item" href="#" onclick="showTab('attendance',this)"><span class="nav-icon">✅</span> Attendance</a>
-      <div class="nav-sec">Tools</div>
-      <a class="nav-item" href="lx-designer.html"><span class="nav-icon">✨</span> LX Designer</a>
-      <a class="nav-item" onclick="showTab('wsresults',this)"><span class="nav-icon">📊</span> Worksheet results</a>
+    <nav class="sb-nav">
+      <div class="sb-section">Overview</div>
+      <button class="sb-item active" id="nav-dashboard" onclick="showTab('dashboard',this)">
+        <span class="sb-icon">📊</span> Dashboard
+      </button>
+      <div class="sb-section">Teaching</div>
+      <button class="sb-item" id="nav-classes" onclick="showTab('classes',this)">
+        <span class="sb-icon">👥</span> My Classes
+      </button>
+      <button class="sb-item" id="nav-assign" onclick="showTab('assign',this)">
+        <span class="sb-icon">✏️</span> Assign Work
+      </button>
+      <button class="sb-item" id="nav-review" onclick="showTab('review',this)">
+        <span class="sb-icon">📝</span> Review Submissions
+        <span class="sb-badge" id="reviewBadge" style="display:none">0</span>
+      </button>
+      <div class="sb-section">Students</div>
+      <button class="sb-item" id="nav-students" onclick="showTab('students',this)">
+        <span class="sb-icon">📈</span> Student Progress
+      </button>
+      <button class="sb-item" id="nav-attendance" onclick="showTab('attendance',this)">
+        <span class="sb-icon">✅</span> Attendance
+      </button>
+      <div class="sb-section">Tools</div>
+      <button class="sb-item" id="nav-virtualclass" onclick="showTab('virtualclass',this)">
+        <span class="sb-icon">📹</span> Virtual Classes
+      </button>
+      <button class="sb-item" id="nav-wsresults" onclick="showTab('wsresults',this)">
+        <span class="sb-icon">📊</span> Worksheet Results
+      </button>
     </nav>
-    <div class="sidebar-user">
-      <div class="user-av" id="userAv">MP</div>
-      <div>
-        <div class="user-name" id="userName">Loading...</div>
-        <div class="user-role">Teacher</div>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-av" id="sbAv">T</div>
+        <div>
+          <div class="sb-uname" id="sbName">Teacher</div>
+          <div class="sb-urole">Teacher</div>
+        </div>
       </div>
-      <button class="logout-btn" onclick="logout()">⇥</button>
     </div>
   </aside>
 
-  <!-- MAIN -->
+  <!-- ══ MAIN ══ -->
   <div class="main">
+
+    <!-- Topbar -->
     <div class="topbar">
-      <div class="topbar-left">
-        <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
-        <div class="topbar-title" id="topbarTitle">Teacher Dashboard</div>
-      </div>
-      <div class="topbar-right">
-        <div style="font-size:.8rem;font-weight:600;color:var(--text3)" id="topbarDate"></div>
-        <div class="notif-btn" id="notifBtn" onclick="toggleTeacherNotif()" style="cursor:pointer;">🔔<div class="notif-dot" id="notifDot" style="display:none;">0</div></div>
+      <button class="hamburger" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-date" id="topbarDate"></div>
+      <div class="notif-btn" id="notifBtn" onclick="toggleNotif()">
+        🔔<div class="notif-dot" id="notifDot" style="display:none">0</div>
       </div>
     </div>
 
+    <!-- Body -->
     <div class="body">
 
       <!-- ══ DASHBOARD TAB ══ -->
-      <div id="tab-dashboard">
-
+      <div class="tab-panel active" id="tab-dashboard">
         <div class="stats-row">
-          <div class="stat-card"><div class="stat-n" style="color:var(--blue)" id="statTotalStudents">—</div><div class="stat-l">Total students</div><div class="stat-s" id="statBatchCount">Loading...</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--red)" id="statPendingReview">—</div><div class="stat-l">Pending review</div><div class="stat-s">homework submissions</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--orange)" id="statAtRisk">—</div><div class="stat-l">At-risk students</div><div class="stat-s">accuracy below 55%</div></div>
-          <div class="stat-card"><div class="stat-n" style="color:var(--green)">84%</div><div class="stat-l">Class avg accuracy</div><div class="stat-s">↑ +5% this week</div></div>
-        </div>
-
-        <!-- Alerts -->
-        <div class="section-card">
-          <div class="section-title">Alerts requiring attention</div>
-          <div id="alertsContainer">
-            <div style="padding:16px;color:var(--text3);font-weight:600;text-align:center">Loading alerts...</div>
+          <div class="stat-card">
+            <div class="stat-n" id="statStudents" style="color:var(--blue)">—</div>
+            <div class="stat-l">Total students</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-n" id="statBatches" style="color:var(--purple)">—</div>
+            <div class="stat-l">Batches</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-n" id="statRisk" style="color:var(--red)">—</div>
+            <div class="stat-l">Need attention</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-n" id="statSubmissions" style="color:var(--green)">—</div>
+            <div class="stat-l">Submissions today</div>
           </div>
         </div>
-
-        <!-- Today's schedule — dynamically loaded from batches -->
-        <div class="section-card">
-          <div class="section-title">Today's schedule</div>
-          <div id="scheduleContainer">
-            <div style="padding:16px;color:var(--text3);font-weight:600;text-align:center">Loading your batches...</div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">⚠️ Alerts</div></div>
+          <div class="card-body" id="alertsBody">
+            <div class="loader"><div class="spinner"></div></div>
           </div>
         </div>
-
-        <!-- Quick actions -->
-        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
-          <button class="btn btn-blue" onclick="showTab('assign',null)" style="padding:14px">✏️ Assign homework</button>
-          <button class="btn btn-green" onclick="showTab('attendance',null)" style="padding:14px">✅ Mark attendance</button>
-          <button class="btn btn-orange" onclick="showTab('review',null)" style="padding:14px">📝 Review submissions</button>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📋 Recent worksheet submissions</div>
+            <button class="btn btn-outline btn-sm" onclick="showTab('wsresults', document.getElementById('nav-wsresults'))">View all →</button>
+          </div>
+          <div class="card-body" id="recentSubs">
+            <div class="loader"><div class="spinner"></div></div>
+          </div>
         </div>
-
       </div>
 
       <!-- ══ CLASSES TAB ══ -->
-      <div id="tab-classes" style="display:none">
-
-        <!-- Batch selector -->
-        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-          <button class="btn btn-blue" onclick="selectBatch('A',this)" id="batchBtnA">Batch A — Abacus L3 (12)</button>
-          <button class="btn btn-ghost" onclick="selectBatch('B',this)" id="batchBtnB">Batch B — Vedic M2 (9)</button>
-          <button class="btn btn-ghost" onclick="selectBatch('C',this)" id="batchBtnC">Batch C — Abacus L1 (7)</button>
-        </div>
-
-        <div class="section-card">
-          <div class="section-title">
-            <span id="rosterTitle">Batch A — Abacus Level 3 · 12 students</span>
-            <span class="section-link" onclick="exportRoster()">Export CSV →</span>
+      <div class="tab-panel" id="tab-classes">
+        <div class="batch-btns" id="batchBtns"></div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title" id="rosterTitle">Select a batch above</div>
+            <button class="btn btn-outline btn-sm" onclick="exportRoster()">Export CSV →</button>
           </div>
-
-          <div class="roster-header">
-            <div style="width:32px"></div>
-            <div style="flex:1">Student</div>
-            <div style="width:65px;text-align:center">Accuracy</div>
-            <div style="width:55px;text-align:center">Mode</div>
-            <div style="width:65px;text-align:center">Last active</div>
-            <div style="width:70px;text-align:center">Streak</div>
-          </div>
-
-          <div id="rosterList"></div>
-        </div>
-
-        <!-- Student profile (shown when row clicked) -->
-        <div class="student-profile" id="studentProfile">
-          <button onclick="closeProfile()" style="float:right;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text3)">✕</button>
-          <div class="sp-header">
-            <div class="sp-av" id="spAv">AR</div>
-            <div>
-              <div class="sp-name" id="spName">Arjun Rao</div>
-              <div class="sp-meta" id="spMeta">Abacus Level 3 · Batch A · Online</div>
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px">
-            <div class="stat-card"><div class="stat-n" style="font-size:1.3rem;color:var(--blue)" id="spAcc">71%</div><div class="stat-l">Accuracy</div></div>
-            <div class="stat-card"><div class="stat-n" style="font-size:1.3rem;color:var(--green)" id="spHW">85%</div><div class="stat-l">HW completion</div></div>
-            <div class="stat-card"><div class="stat-n" style="font-size:1.3rem;color:var(--teal)" id="spAtt">92%</div><div class="stat-l">Attendance</div></div>
-          </div>
-          <div class="section-title" style="margin-bottom:8px">Topic performance</div>
-          <div id="spTopics"></div>
-          <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
-            <button class="btn btn-orange" onclick="assignRevision()" style="font-size:.82rem;padding:8px 16px">Assign revision HW</button>
-            <button class="btn btn-ghost" style="font-size:.82rem;padding:8px 16px">Send message</button>
+          <div class="card-body" id="rosterBody">
+            <div class="empty"><div class="empty-icon">👥</div><div class="empty-text">Select a batch to see students</div></div>
           </div>
         </div>
-
+        <div class="profile-drawer" id="profileDrawer"></div>
       </div>
 
-      <!-- ══ ASSIGN HOMEWORK TAB ══ -->
-      <div id="tab-assign" class="tab-panel" style="display:none">
-
-        <!-- Homework merged into LX Designer -->
-        <div style="text-align:center;padding:40px 20px;">
-          <div style="font-size:3rem;margin-bottom:12px;">✏️</div>
-          <div style="font-family:'Baloo 2',sans-serif;font-size:1.2rem;font-weight:800;margin-bottom:8px;">Assign Work via LX Designer</div>
-          <div style="font-size:.875rem;color:var(--text2);line-height:1.7;margin-bottom:20px;max-width:400px;margin-left:auto;margin-right:auto;">
-            Homework and worksheets are now one system. Use <strong>LX Designer</strong> to generate AI-powered questions and assign them directly to students or batches.
+      <!-- ══ ASSIGN TAB ══ -->
+      <div class="tab-panel" id="tab-assign">
+        <div class="card">
+          <div class="card-header"><div class="card-title">✏️ Assign Work</div></div>
+          <div class="card-body" style="text-align:center;padding:40px 20px;">
+            <div style="font-size:3rem;margin-bottom:12px;">✨</div>
+            <div style="font-family:'Baloo 2',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:8px;">Use LX Designer to assign worksheets</div>
+            <div style="font-size:.875rem;color:var(--text2);line-height:1.7;margin-bottom:20px;max-width:400px;margin-left:auto;margin-right:auto;">
+              LX Designer uses AI to generate questions based on the student's level and concept, then assigns them directly to the student app.
+            </div>
+            <a href="lx-designer.html" class="btn btn-blue" style="text-decoration:none;display:inline-block;">
+              Open LX Designer →
+            </a>
           </div>
-          <a href="lx-designer.html" style="display:inline-block;padding:12px 28px;background:var(--blue);color:#fff;border-radius:12px;font-weight:800;text-decoration:none;font-size:.875rem;">
-            ✨ Open LX Designer →
-          </a>
         </div>
+      </div>
 
-      
       <!-- ══ REVIEW TAB ══ -->
-      <div id="tab-review" style="display:none">
-        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
-          <select class="form-sel" id="hwSelect" onchange="loadSubmissions()" style="flex:1;max-width:360px">
-            <option value="">Loading worksheets...</option>
-          </select>
-          <button onclick="loadSubmissions()" style="padding:8px 14px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-family:inherit;font-weight:700;cursor:pointer;font-size:.82rem;">🔄 Refresh</button>
-        </div>
-        <div class="section-card">
-          <div class="section-title">
-            <span id="submTitle">Select a worksheet above to see submissions</span>
-            <span class="section-link" onclick="exportScores()" style="display:none" id="exportBtn">Export scores →</span>
+      <div class="tab-panel" id="tab-review">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📝 Review Submissions</div>
+            <button class="btn btn-outline btn-sm" id="exportBtn" style="display:none" onclick="exportScores()">Export CSV →</button>
           </div>
-          <div id="submList"><div style="text-align:center;padding:30px;color:var(--text3);font-size:.875rem;">Select a worksheet above</div></div>
+          <div class="card-body">
+            <div class="form-row" style="margin-bottom:14px;">
+              <div class="form-group">
+                <label class="form-label">Select worksheet</label>
+                <select class="form-input" id="hwSelect" onchange="loadSubmissions()">
+                  <option value="">Loading...</option>
+                </select>
+              </div>
+            </div>
+            <div style="font-size:.82rem;color:var(--text3);margin-bottom:10px;" id="submTitle"></div>
+            <div id="submBody"><div class="empty"><div class="empty-text">Select a worksheet above</div></div></div>
+          </div>
         </div>
       </div>
 
       <!-- ══ STUDENTS TAB ══ -->
-      <div id="tab-students" style="display:none">
-
-        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
-          <input type="text" class="form-inp" placeholder="Search student..." id="studentSearch" oninput="filterStudents()" style="flex:1;max-width:300px">
-          <select class="form-sel" id="filterBatch" onchange="filterStudents()" style="max-width:200px">
-            <option value="">All batches</option>
-          </select>
-          <select class="form-sel" id="filterStatus" onchange="filterStudents()" style="max-width:200px">
-            <option value="">All students</option>
-            <option value="risk">At risk only</option>
-            <option value="online">Online only</option>
-            <option value="offline">Offline only</option>
-          </select>
-        </div>
-
-        <div class="section-card">
-          <div class="section-title">All students — progress overview</div>
-        <div class="section-card"><div id="studentList"><div style="text-align:center;padding:30px;color:var(--text3);">Loading students...</div></div></div>
-          <div class="roster-header">
-            <div style="width:32px"></div>
-            <div style="flex:1">Student</div>
-            <div style="width:70px;text-align:center">Accuracy</div>
-            <div style="width:55px;text-align:center">Mode</div>
-            <div style="width:80px;text-align:center">HW done</div>
-            <div style="width:70px;text-align:center">Last seen</div>
+      <div class="tab-panel" id="tab-students">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📈 Student Progress</div>
           </div>
-          <div id="allStudentsList"></div>
-        </div>
-
-      </div>
-
-      <!-- ══ VIRTUAL CLASSES TAB ══ -->
-      <div id="tab-virtualclass" style="display:none">
-
-        <!-- Schedule new class form -->
-        <div class="schedule-form">
-          <div class="sf-title">📹 Schedule a virtual class</div>
-          <div class="sf-sub">Set the details and share the Google Meet link directly with your students</div>
-
-          <div class="sf-row">
-            <div class="sf-field">
-              <div class="sf-label">Batch</div>
-              <select class="form-sel" id="vcBatch">
-                <option value="">Select batch</option>
+          <div class="card-body">
+            <div class="form-row" style="margin-bottom:12px;">
+              <input type="text" class="form-input" id="studentSearch" placeholder="Search by name..." oninput="filterStudents()" style="flex:1;max-width:280px;">
+              <select class="form-input" id="filterBatch" onchange="filterStudents()" style="flex:1;max-width:200px;">
+                <option value="">All batches</option>
+              </select>
+              <select class="form-input" id="filterStatus" onchange="filterStudents()" style="flex:1;max-width:180px;">
+                <option value="">All students</option>
+                <option value="risk">Needs attention</option>
+                <option value="ok">On track</option>
               </select>
             </div>
-            <div class="sf-field">
-              <div class="sf-label">Topic</div>
-              <input type="text" class="form-inp" id="vcTopic" placeholder="e.g. Big Friends Addition" style="flex:1">
-            </div>
-          </div>
-
-          <div class="sf-row">
-            <div class="sf-field">
-              <div class="sf-label">Date</div>
-              <input type="date" class="form-inp" id="vcDate">
-            </div>
-            <div class="sf-field">
-              <div class="sf-label">Start time</div>
-              <input type="time" class="form-inp" id="vcStart">
-            </div>
-            <div class="sf-field">
-              <div class="sf-label">Duration</div>
-              <select class="form-sel" id="vcDuration">
-                <option value="30">30 minutes</option>
-                <option value="45">45 minutes</option>
-                <option value="60" selected>1 hour</option>
-                <option value="90">1.5 hours</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="sf-row" style="margin-bottom:0">
-            <div class="sf-field" style="flex:3">
-              <div class="sf-label">Google Meet link <span style="font-weight:500;text-transform:none;letter-spacing:0">(paste your Meet link or generate one)</span></div>
-              <input type="url" class="form-inp" id="vcMeetLink" placeholder="https://meet.google.com/xxx-xxxx-xxx">
-            </div>
-            <div style="padding-top:22px">
-              <button class="btn btn-ghost" onclick="generateMeetLink()" style="white-space:nowrap">🔗 Generate link</button>
-            </div>
-          </div>
-
-          <div style="margin-top:16px;display:flex;gap:10px">
-            <button class="btn btn-blue" onclick="scheduleClass()" style="flex:1;padding:13px">Schedule class &amp; notify students 🚀</button>
+            <div id="studentsBody"><div class="loader"><div class="spinner"></div></div></div>
           </div>
         </div>
-
-        <!-- Upcoming & past classes -->
-        <div class="section-card">
-          <div class="section-title">Your scheduled classes</div>
-          <div id="vcList">
-            <div style="padding:20px;text-align:center;color:var(--text3);font-weight:600">No classes scheduled yet</div>
-          </div>
-        </div>
-
       </div>
 
       <!-- ══ ATTENDANCE TAB ══ -->
-      <div id="tab-attendance" style="display:none">
-
-        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
-          <select class="form-sel" id="attBatch" onchange="loadAttendance()" style="max-width:300px">
-            <option value="">Select batch...</option>
-          </select>
-          <input type="date" class="form-inp" id="attDate" style="max-width:180px">
-          <span style="font-size:.82rem;color:var(--text2);font-weight:600">Class date</span>
-        </div>
-
-        <div class="section-card">
-          <div class="section-title">
-            <span id="attTitle">Batch A — Mark attendance</span>
-            <span class="section-link" onclick="markAllPresent()">Mark all present</span>
+      <div class="tab-panel" id="tab-attendance">
+        <div class="card">
+          <div class="card-header"><div class="card-title">✅ Attendance</div></div>
+          <div class="card-body">
+            <div class="form-row" style="margin-bottom:14px;">
+              <div class="form-group">
+                <label class="form-label">Batch</label>
+                <select class="form-input" id="attBatch" onchange="loadAttendance()">
+                  <option value="">Select batch...</option>
+                </select>
+              </div>
+              <div class="form-group" style="max-width:180px;">
+                <label class="form-label">Date</label>
+                <input type="date" class="form-input" id="attDate" onchange="loadAttendance()">
+              </div>
+            </div>
+            <div id="attBody"><div class="empty"><div class="empty-text">Select a batch and date</div></div></div>
+            <div id="attSaveRow" style="display:none;margin-top:14px;">
+              <button class="btn btn-green" onclick="saveAttendance()">Save attendance</button>
+            </div>
           </div>
-          <div id="attList"></div>
-          <div style="margin-top:14px;display:flex;gap:10px">
-            <button class="btn btn-green" onclick="saveAttendance()">Save attendance ✓</button>
-            <button class="btn btn-ghost" onclick="exportAttendance()">Export report</button>
-          </div>
         </div>
-
-        <!-- Attendance summary -->
-        <div class="section-card">
-          <div class="section-title">Attendance summary — this month</div>
-          <div id="attSummary"></div>
-        </div>
-
       </div>
 
-    </div>
-  </div>
-</div>
+      <!-- ══ VIRTUAL CLASS TAB ══ -->
+      <div class="tab-panel" id="tab-virtualclass">
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card-header"><div class="card-title">📹 Schedule a Virtual Class</div></div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Batch</label>
+                <select class="form-input" id="vcBatch">
+                  <option value="">Select batch</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Topic</label>
+                <input type="text" class="form-input" id="vcTopic" placeholder="e.g. Big Friends Addition">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="max-width:160px;">
+                <label class="form-label">Date</label>
+                <input type="date" class="form-input" id="vcDate">
+              </div>
+              <div class="form-group" style="max-width:140px;">
+                <label class="form-label">Start time</label>
+                <input type="time" class="form-input" id="vcStart">
+              </div>
+              <div class="form-group" style="max-width:140px;">
+                <label class="form-label">Duration (min)</label>
+                <select class="form-input" id="vcDuration">
+                  <option value="30">30 min</option>
+                  <option value="45">45 min</option>
+                  <option value="60" selected>60 min</option>
+                  <option value="90">90 min</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Google Meet link</label>
+                <input type="url" class="form-input" id="vcMeetLink" placeholder="https://meet.google.com/xxx-xxxx-xxx">
+              </div>
+            </div>
+            <button class="btn btn-blue" onclick="scheduleClass()">📅 Schedule and notify students</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Scheduled classes</div></div>
+          <div class="card-body" id="vcList">
+            <div class="empty"><div class="empty-text">No classes scheduled yet</div></div>
+          </div>
+        </div>
+      </div>
 
-<div class="toast-container" id="toastContainer"></div>
+      <!-- ══ WORKSHEET RESULTS TAB ══ -->
+      <div class="tab-panel" id="tab-wsresults">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📊 Worksheet Results</div>
+            <button class="btn btn-outline btn-sm" onclick="loadWsResults()">🔄 Refresh</button>
+          </div>
+          <div class="card-body" id="wsResultsBody">
+            <div class="loader"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /body -->
+  </div><!-- /main -->
+</div><!-- /portal -->
+
+<!-- Notification panel (injected by JS) -->
+<div class="toast-wrap" id="toastWrap"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+const SURL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+const sb = supabase.createClient(SURL, SKEY);
 
-// ── STUDENT DATA (scoped to logged-in teacher's batches only) ─
-let STUDENTS = {};
-let SUBMISSIONS_HW1 = [];
-let ATT_DATA = {};
-let teacherId = null;
-let scheduledClasses = [];
-let activeClassId    = null;
+// ── GLOBAL STATE ──────────────────────────────────────────────
+let TEACHER_ID = null;
+let TEACHER_NAME = '';
+let BATCHES = [];        // [{id, name, students:[{id,name,initials,xp,streak,level,acc,risk}]}]
+let SCHED = [];          // scheduled classes
+let CURRENT_BATCH = null;
 
-async function loadTeacherData(userId) {
-  // Populate real batch dropdown for homework assignment
-  const { data: teacherBatches } = await sb
-    .from('batches')
-    .select('id, name, batch_students(student_id)')
-    .eq('teacher_id', userId);
-
-  const batchSel = document.getElementById('aBatch');
-  if (batchSel && teacherBatches?.length) {
-    batchSel.innerHTML = '<option value="">Select batch</option>' +
-      teacherBatches.map(b =>
-        `<option value="${b.id}">${b.name} (${b.batch_students?.length || 0} students)</option>`
-      ).join('');
-  }
-
-  
-  teacherId = userId;
-  STUDENTS = {};
-  ATT_DATA = {};
-  SUBMISSIONS_HW1 = [];
-
-  const { data: batches } = await sb
-    .from('batches')
-    .select('id, name')
-    .eq('teacher_id', userId)
-    .eq('is_active', true);
-
-  if (!batches?.length) return;
-
-  for (const batch of batches) {
-    const key = batch.id;
-    const { data: links } = await sb
-      .from('batch_students')
-      .select('student_id, users!student_id(*)')
-      .eq('batch_id', batch.id);
-
-    const students = [];
-    const batchUserIds = (links||[]).map(l => l.users?.id).filter(Boolean);
-
-    // Accuracy from worksheet_responses for this teacher's worksheets
-    let wsScoreMap = {};
-    try {
-      const { data: myWs } = await sb.from('lx_worksheets')
-        .select('id').eq('created_by', teacherId);
-      const wsIds = (myWs||[]).map(w=>w.id);
-      if (wsIds.length) {
-        const { data: wsScores } = await sb.from('worksheet_responses')
-          .select('student_id,score,total')
-          .in('worksheet_id', wsIds);
-        (wsScores||[]).forEach(r => {
-          if (!wsScoreMap[r.student_id]) wsScoreMap[r.student_id] = {correct:0,total:0};
-          wsScoreMap[r.student_id].correct += r.score||0;
-          wsScoreMap[r.student_id].total   += r.total||0;
-        });
-      }
-    } catch(e) { console.warn('wsScore fetch:', e.message); }
-
-    for (const link of (links || [])) {
-      const u = link.users;
-      if (!u) continue;
-
-      const wsScore = wsScoreMap[u.id] || { correct: 0, total: 0 };
-      const acc = wsScore.total ? Math.round((wsScore.correct / wsScore.total) * 100) : 0;
-      const initials = (u.full_name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-      const xp = u.xp_points ?? 0;
-
-      students.push({
-        id: u.id,
-        initials,
-        name: u.full_name || 'Student',
-        meta: `L${u.current_level ?? 1} · ${xp.toLocaleString()} XP · 🔥${u.streak_days ?? 0}`,
-        acc,
-        hw: 0,
-        att: 0,
-        lastSeen: u.last_active || '—',
-        streak: u.streak_days ?? 0,
-        mode: u.mode || 'online',
-        avClass: 'av-g',
-        risk: acc > 0 && acc < 50,
-        topics: [],
-        batchId: batch.id,
-        batchName: batch.name,
-      });
-    }
-
-    STUDENTS[key] = students;
-    ATT_DATA[key] = students.map(s => ({
-      id: s.id,
-      name: s.name,
-      initials: s.initials,
-      avClass: s.avClass,
-      present: true,
-    }));
-  }
-
-  // Sync batch dropdowns to this teacher's batches only
-  const options = Object.entries(STUDENTS).map(([id, students]) => {
-    const label = students[0]?.batchName || 'Batch';
-    return `<option value="${id}">${label} (${students.length})</option>`;
-  }).join('') || '<option value="">No batches</option>';
-
-  ['attBatch', 'aBatch'].forEach(id => {
-    const sel = document.getElementById(id);
-    if (sel) sel.innerHTML = options;
-  });
-
-  const batchBtns = document.getElementById('batchBtnRow') || document.querySelector('#tab-classes .btn-row, #tab-classes .batch-btns');
-  // Prefer explicit container if present; otherwise update known buttons
-  const keys = Object.keys(STUDENTS);
-  const btnA = document.getElementById('batchBtnA');
-  if (btnA) {
-    if (keys[0]) {
-      const s = STUDENTS[keys[0]] || [];
-      btnA.textContent = `${s[0]?.batchName || 'Batch'} (${s.length})`;
-      btnA.onclick = function() { selectBatch(keys[0], this); };
-    } else {
-      btnA.textContent = 'No batches';
-      btnA.onclick = null;
-    }
-  }
+// ── SIDEBAR ───────────────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
 }
 
-function firstBatchKey() {
-  return Object.keys(STUDENTS)[0] || null;
-}
+// ── TAB SWITCHING ─────────────────────────────────────────────
+const TAB_TITLES = {
+  dashboard: 'Dashboard',
+  classes: 'My Classes',
+  assign: 'Assign Work',
+  review: 'Review Submissions',
+  students: 'Student Progress',
+  attendance: 'Attendance',
+  virtualclass: 'Virtual Classes',
+  wsresults: 'Worksheet Results',
+};
 
-// ── TAB SWITCHING ──────────────────────────────────────────
 function showTab(name, el) {
   if (window.innerWidth <= 768) closeSidebar();
-
-  // Show/hide panels
-  ['dashboard','classes','assign','review','students','attendance','virtualclass','wsresults'].forEach(t => {
-    const panel = document.getElementById('tab-' + t);
-    if (panel) panel.style.display = t === name ? 'block' : 'none';
-  });
-
-  // Active nav highlight
-  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.sb-item').forEach(function(b) { b.classList.remove('active'); });
+  var panel = document.getElementById('tab-' + name);
+  if (panel) panel.classList.add('active');
   if (el) el.classList.add('active');
+  var t = document.getElementById('topbarTitle');
+  if (t) t.textContent = TAB_TITLES[name] || name;
 
-  // Topbar title
-  const titles = {
-    dashboard:'Teacher Dashboard', classes:'My Classes',
-    assign:'Assign Work', review:'Review Submissions',
-    students:'Student Progress', attendance:'Attendance',
-    virtualclass:'Virtual Classes', wsresults:'Worksheet Results'
-  };
-  const titleEl = document.getElementById('topbarTitle');
-  if (titleEl) titleEl.textContent = titles[name] || 'Teacher Dashboard';
-
-  // Tab-specific data load — all guarded so missing fn never crashes
-  setTimeout(() => {
-    try {
-      if (name === 'classes')     { const k = firstBatchKey(); if(k) selectBatch(k, null); }
-      if (name === 'review')      { populateReviewDropdown(); }
-      if (name === 'virtualclass'){ populateVcBatch(); renderVcList(); }
-      if (name === 'students')    { renderStudentList(); }
-      if (name === 'attendance')  { populateAttBatches(); const d=document.getElementById('attDate'); if(d&&!d.value) d.value=new Date().toISOString().split('T')[0]; }
-      if (name === 'wsresults')   { loadWsResults(); }
-    } catch(e) { console.error('showTab init error for', name, ':', e.message); }
-  }, 50);
+  if (name === 'review')      populateReviewDropdown();
+  if (name === 'students')    renderStudents();
+  if (name === 'attendance')  populateAttBatches();
+  if (name === 'virtualclass') populateVcBatch();
+  if (name === 'wsresults')   loadWsResults();
 }
 
-// ── CLASSES ────────────────────────────────────────────────
-let currentBatch = null;
+// ── TOAST ─────────────────────────────────────────────────────
+function toast(msg, type) {
+  var wrap = document.getElementById('toastWrap');
+  var t = document.createElement('div');
+  t.className = 'toast' + (type ? ' ' + type : '');
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(function() { t.classList.add('show'); }, 10);
+  setTimeout(function() { t.classList.remove('show'); setTimeout(function() { t.remove(); }, 300); }, 3000);
+}
+
+// ── FORMAT HELPERS ────────────────────────────────────────────
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'});
+}
+function fmtDateTime(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-IN', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+function initials(name) {
+  return (name || '?').split(' ').map(function(n) { return n[0]; }).join('').toUpperCase().slice(0,2);
+}
+
+// ── LOAD ALL DATA ─────────────────────────────────────────────
+async function loadData() {
+  var sess = await sb.auth.getSession();
+  if (!sess.data.session) { window.location.href = '../../login.html'; return; }
+  TEACHER_ID = sess.data.session.user.id;
+
+  var prof = await sb.from('users').select('full_name,role').eq('id', TEACHER_ID).single();
+  if (!prof.data || prof.data.role !== 'teacher') { window.location.href = '../../login.html'; return; }
+  TEACHER_NAME = prof.data.full_name || 'Teacher';
+  document.getElementById('sbAv').textContent = initials(TEACHER_NAME);
+  document.getElementById('sbName').textContent = TEACHER_NAME;
+  document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+
+  // Load batches
+  var bRes = await sb.from('batches').select('id,name,current_level').eq('teacher_id', TEACHER_ID);
+  BATCHES = [];
+  if (bRes.data && bRes.data.length) {
+    // Load students for each batch
+    for (var i = 0; i < bRes.data.length; i++) {
+      var batch = bRes.data[i];
+      var bsRes = await sb.from('batch_students')
+        .select('student_id, users!student_id(id,full_name,current_level,xp_points,streak_days)')
+        .eq('batch_id', batch.id);
+      var students = [];
+      if (bsRes.data) {
+        for (var j = 0; j < bsRes.data.length; j++) {
+          var u = bsRes.data[j].users;
+          if (!u) continue;
+          students.push({
+            id: u.id,
+            name: u.full_name || 'Student',
+            initials: initials(u.full_name),
+            level: u.current_level || 1,
+            xp: u.xp_points || 0,
+            streak: u.streak_days || 0,
+            acc: 0,
+            risk: false,
+            batchId: batch.id,
+            batchName: batch.name,
+          });
+        }
+      }
+      BATCHES.push({ id: batch.id, name: batch.name, level: batch.current_level, students: students });
+    }
+
+    // Load worksheet scores to calculate accuracy (teacher owns these — no RLS issue)
+    var myWs = await sb.from('lx_worksheets').select('id').eq('created_by', TEACHER_ID);
+    if (myWs.data && myWs.data.length) {
+      var wsIds = myWs.data.map(function(w) { return w.id; });
+      var wsScores = await sb.from('worksheet_responses').select('student_id,score,total').in('worksheet_id', wsIds);
+      var scoreMap = {};
+      if (wsScores.data) {
+        wsScores.data.forEach(function(r) {
+          if (!scoreMap[r.student_id]) scoreMap[r.student_id] = {c:0,t:0};
+          scoreMap[r.student_id].c += r.score || 0;
+          scoreMap[r.student_id].t += r.total || 0;
+        });
+      }
+      BATCHES.forEach(function(batch) {
+        batch.students.forEach(function(s) {
+          var sc = scoreMap[s.id];
+          if (sc && sc.t) { s.acc = Math.round(sc.c / sc.t * 100); }
+          s.risk = s.acc > 0 && s.acc < 50;
+        });
+      });
+    }
+  }
+
+  // Load notifications
+  loadNotifications();
+
+  // Render dashboard
+  renderDashboard();
+
+  // Populate all dropdowns
+  populateBatchDropdowns();
+}
+
+// ── NOTIFICATIONS ─────────────────────────────────────────────
+async function loadNotifications() {
+  var res = await sb.from('notifications')
+    .select('id,title,message,type,created_at,is_read')
+    .eq('user_id', TEACHER_ID).eq('is_read', false)
+    .order('created_at', {ascending: false}).limit(20);
+  var count = res.data ? res.data.length : 0;
+  var dot = document.getElementById('notifDot');
+  var badge = document.getElementById('reviewBadge');
+  if (dot) { dot.textContent = count; dot.style.display = count > 0 ? 'flex' : 'none'; }
+  if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'flex' : 'none'; }
+  window._notifs = res.data || [];
+}
+
+function toggleNotif() {
+  var existing = document.getElementById('notifPanel');
+  if (existing) { existing.remove(); return; }
+  var notifs = window._notifs || [];
+  var panel = document.createElement('div');
+  panel.id = 'notifPanel';
+  panel.style.cssText = 'position:fixed;top:62px;right:12px;width:320px;max-width:calc(100vw - 24px);background:#fff;border:2px solid var(--border);border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:9999;overflow:hidden;max-height:400px;overflow-y:auto;';
+  var html = '<div style="padding:12px 16px;border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between;"><div style="font-size:.875rem;font-weight:800;">Notifications</div><button onclick="markNotifsRead()" style="font-size:.72rem;font-weight:700;color:var(--blue);background:none;border:none;cursor:pointer;">Mark all read</button></div>';
+  if (!notifs.length) {
+    html += '<div style="padding:24px;text-align:center;color:var(--text3);font-size:.82rem;">No new notifications</div>';
+  } else {
+    notifs.forEach(function(n) {
+      var icon = n.type === 'submission' ? '📊' : n.type === 'class_scheduled' ? '📹' : '🔔';
+      html += '<div style="padding:11px 16px;border-bottom:1px solid var(--border);">';
+      html += '<div style="display:flex;gap:10px;align-items:flex-start;">';
+      html += '<div style="font-size:1rem;flex-shrink:0;">' + icon + '</div>';
+      html += '<div><div style="font-size:.82rem;font-weight:700;">' + (n.title || '') + '</div>';
+      html += '<div style="font-size:.72rem;color:var(--text3);margin-top:2px;">' + (n.message || '') + '</div>';
+      html += '<div style="font-size:.65rem;color:var(--text3);margin-top:3px;">' + fmtDateTime(n.created_at) + '</div></div></div></div>';
+    });
+  }
+  panel.innerHTML = html;
+  document.body.appendChild(panel);
+  markNotifsRead();
+  setTimeout(function() {
+    document.addEventListener('click', function closePanel(e) {
+      if (!panel.contains(e.target) && e.target.id !== 'notifBtn') {
+        panel.remove();
+        document.removeEventListener('click', closePanel);
+      }
+    });
+  }, 100);
+}
+
+async function markNotifsRead() {
+  await sb.from('notifications').update({is_read: true}).eq('user_id', TEACHER_ID).eq('is_read', false);
+  var dot = document.getElementById('notifDot');
+  var badge = document.getElementById('reviewBadge');
+  if (dot) dot.style.display = 'none';
+  if (badge) badge.style.display = 'none';
+  window._notifs = [];
+}
+
+// ── POPULATE DROPDOWNS ────────────────────────────────────────
+function populateBatchDropdowns() {
+  // Batch buttons for Classes tab
+  var btnsEl = document.getElementById('batchBtns');
+  if (btnsEl) {
+    btnsEl.innerHTML = '';
+    BATCHES.forEach(function(batch, i) {
+      var btn = document.createElement('button');
+      btn.className = 'batch-btn' + (i === 0 ? ' active' : '');
+      btn.textContent = batch.name + ' (' + batch.students.length + ')';
+      btn.onclick = (function(b, btn) { return function() { selectBatch(b, btn); }; })(batch, btn);
+      btnsEl.appendChild(btn);
+    });
+    if (BATCHES.length) selectBatch(BATCHES[0], btnsEl.firstChild);
+  }
+  // Attendance batch
+  var attBatch = document.getElementById('attBatch');
+  if (attBatch) {
+    attBatch.innerHTML = '<option value="">Select batch...</option>';
+    BATCHES.forEach(function(b) {
+      attBatch.innerHTML += '<option value="' + b.id + '">' + b.name + '</option>';
+    });
+  }
+  // VC batch
+  var vcBatch = document.getElementById('vcBatch');
+  if (vcBatch) {
+    vcBatch.innerHTML = '<option value="">Select batch</option>';
+    BATCHES.forEach(function(b) {
+      vcBatch.innerHTML += '<option value="' + b.id + '">' + b.name + ' (' + b.students.length + ' students)</option>';
+    });
+  }
+  // Filter batch
+  var filterBatch = document.getElementById('filterBatch');
+  if (filterBatch) {
+    filterBatch.innerHTML = '<option value="">All batches</option>';
+    BATCHES.forEach(function(b) {
+      filterBatch.innerHTML += '<option value="' + b.id + '">' + b.name + '</option>';
+    });
+  }
+}
+
+// ── DASHBOARD TAB ─────────────────────────────────────────────
+function renderDashboard() {
+  var allStudents = [];
+  BATCHES.forEach(function(b) { allStudents = allStudents.concat(b.students); });
+  var atRisk = allStudents.filter(function(s) { return s.risk; });
+
+  document.getElementById('statStudents').textContent = allStudents.length;
+  document.getElementById('statBatches').textContent = BATCHES.length;
+  document.getElementById('statRisk').textContent = atRisk.length;
+  document.getElementById('statSubmissions').textContent = '—';
+
+  // Load today's submissions count
+  var today = new Date(); today.setHours(0,0,0,0);
+  sb.from('worksheet_responses').select('id', {count:'exact'})
+    .in('worksheet_id', []).then(function() {}); // placeholder
+
+  // Alerts
+  var alertsEl = document.getElementById('alertsBody');
+  var html = '';
+  if (!BATCHES.length) {
+    html = '<div class="empty"><div class="empty-text">No batches assigned yet. Ask your admin to assign you a batch.</div></div>';
+  } else if (!atRisk.length) {
+    html = '<div class="alert alert-info"><div class="alert-dot"></div><div class="alert-body"><div class="alert-title">All students on track ✅</div><div class="alert-sub">No students need immediate attention</div></div></div>';
+  } else {
+    atRisk.slice(0,5).forEach(function(s) {
+      html += '<div class="alert alert-warn"><div class="alert-dot"></div><div class="alert-body"><div class="alert-title">' + s.name + ' — accuracy ' + s.acc + '%</div><div class="alert-sub">' + s.batchName + ' · Level ' + s.level + '</div></div><button class="alert-btn" style="background:var(--orange);color:#fff;" onclick="showTab(\'students\',document.getElementById(\'nav-students\'))">View →</button></div>';
+    });
+  }
+  alertsEl.innerHTML = html;
+
+  // Recent submissions
+  loadRecentSubmissions();
+}
+
+async function loadRecentSubmissions() {
+  var el = document.getElementById('recentSubs');
+  try {
+    var myWs = await sb.from('lx_worksheets').select('id').eq('created_by', TEACHER_ID);
+    var wsIds = (myWs.data || []).map(function(w) { return w.id; });
+    if (!wsIds.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-text">No worksheets assigned yet</div></div>';
+      return;
+    }
+    var res = await sb.from('worksheet_responses')
+      .select('student_id,score,total,submitted_at,worksheet_id,users!student_id(full_name),lx_worksheets!worksheet_id(title)')
+      .in('worksheet_id', wsIds)
+      .order('submitted_at', {ascending: false}).limit(10);
+
+    // Update today's count
+    var today = new Date(); today.setHours(0,0,0,0);
+    var todaySubs = (res.data || []).filter(function(r) { return new Date(r.submitted_at) >= today; });
+    document.getElementById('statSubmissions').textContent = todaySubs.length;
+
+    if (!res.data || !res.data.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-text">No submissions yet</div></div>';
+      return;
+    }
+    var html = '';
+    res.data.forEach(function(r) {
+      var pct = r.total ? Math.round(r.score / r.total * 100) : 0;
+      var col = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--orange)' : 'var(--red)';
+      html += '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);">';
+      html += '<div style="flex:1;min-width:0;"><div style="font-size:.875rem;font-weight:700;">' + (r.users ? r.users.full_name : 'Student') + '</div>';
+      html += '<div style="font-size:.72rem;color:var(--text3);">' + (r.lx_worksheets ? r.lx_worksheets.title : 'Worksheet') + ' · ' + fmtDateTime(r.submitted_at) + '</div></div>';
+      html += '<div style="font-weight:800;color:' + col + ';">' + r.score + '/' + r.total + ' (' + pct + '%)</div></div>';
+    });
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = '<div style="padding:14px;color:var(--red);font-size:.82rem;">Error: ' + e.message + '</div>';
+  }
+}
+
+// ── CLASSES TAB ───────────────────────────────────────────────
 function selectBatch(batch, btn) {
-  currentBatch = batch;
-  document.querySelectorAll('[id^="batchBtn"]').forEach(b => b.className = 'btn btn-ghost');
-  if (btn) btn.className = 'btn btn-blue';
-  const s = STUDENTS[batch] || [];
-  document.getElementById('rosterTitle').textContent = `${s[0]?.batchName || 'Batch'} · ${s.length} students`;
-  renderRoster(s);
-  document.getElementById('studentProfile').classList.remove('show');
+  CURRENT_BATCH = batch;
+  document.querySelectorAll('.batch-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  var title = document.getElementById('rosterTitle');
+  if (title) title.textContent = batch.name + ' · Level ' + (batch.level || '?') + ' · ' + batch.students.length + ' students';
+  renderRoster(batch.students);
+  var d = document.getElementById('profileDrawer');
+  if (d) { d.classList.remove('show'); d.innerHTML = ''; }
 }
 
 function renderRoster(students) {
-  const el = document.getElementById('rosterList');
-  el.innerHTML = '';
-  students.forEach(s => {
-    const accColor = s.acc >= 75 ? 'pill-g' : s.acc >= 55 ? 'pill-o' : 'pill-r';
-    const row = document.createElement('div');
-    row.className = 'roster-row' + (s.risk ? ' at-risk' : '') + (s.mode==='offline' ? ' offline' : '');
-    row.onclick = () => viewStudent(s.id);
-    row.innerHTML = `
-      <div class="av ${s.avClass}">${s.initials}</div>
-      <div style="flex:1"><div class="r-name">${s.name}</div><div class="r-meta">${s.meta}</div></div>
-      <div style="width:65px;text-align:center"><span class="pill ${accColor}">${s.acc}%</span></div>
-      <div style="width:55px;text-align:center">
-        <div class="mode-toggle">
-          <button class="mt ${s.mode==='online'?'on-online':''}" onclick="event.stopPropagation();toggleMode(this,'${s.id}','online')">On</button>
-          <button class="mt ${s.mode==='offline'?'on-offline':''}" onclick="event.stopPropagation();toggleMode(this,'${s.id}','offline')">Off</button>
-        </div>
-      </div>
-      <div style="width:65px;text-align:center;font-size:.75rem;color:var(--text2);font-weight:600">${s.lastSeen}</div>
-      <div style="width:70px;text-align:center;font-size:.75rem;font-weight:700;color:${s.streak>0?'var(--orange)':'var(--text3)'}">🔥${s.streak}d</div>
-    `;
-    el.appendChild(row);
+  var el = document.getElementById('rosterBody');
+  if (!students || !students.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-text">No students in this batch yet</div></div>';
+    return;
+  }
+  var html = '';
+  students.forEach(function(s) {
+    var accColor = s.acc >= 75 ? 'pill-g' : s.acc >= 50 ? 'pill-o' : s.acc > 0 ? 'pill-r' : '';
+    html += '<div class="roster-row" onclick="viewStudent(\'' + s.id + '\')">';
+    html += '<div class="av ' + (s.risk ? 'risk' : '') + '">' + s.initials + '</div>';
+    html += '<div style="flex:1;min-width:0;"><div class="r-name">' + s.name + '</div>';
+    html += '<div class="r-meta">Level ' + s.level + ' · ' + s.xp.toLocaleString('en-IN') + ' XP · 🔥' + s.streak + 'd</div></div>';
+    html += '<div style="display:flex;align-items:center;gap:8px;">';
+    if (s.acc > 0) html += '<span class="pill ' + accColor + '">' + s.acc + '%</span>';
+    if (s.risk) html += '<span style="font-size:.72rem;color:var(--red);font-weight:700;">⚠️ Needs attention</span>';
+    html += '</div></div>';
   });
-}
-
-function toggleMode(btn, studentId, mode) {
-  const grp = btn.parentElement;
-  grp.querySelectorAll('.mt').forEach(b => b.className = 'mt');
-  btn.classList.add(mode === 'online' ? 'on-online' : 'on-offline');
-  showToast(`${studentId} switched to ${mode} mode`, 'success');
+  el.innerHTML = html;
 }
 
 function viewStudent(id) {
-  const all = Object.values(STUDENTS).flat();
-  const s   = all.find(x => x.id === id);
+  var allStudents = [];
+  BATCHES.forEach(function(b) { allStudents = allStudents.concat(b.students); });
+  var s = allStudents.find(function(x) { return x.id === id; });
   if (!s) return;
-  document.getElementById('studentProfile').classList.add('show');
-  document.getElementById('spAv').textContent   = s.initials;
-  document.getElementById('spName').textContent  = s.name;
-  document.getElementById('spMeta').textContent  = s.meta;
-  document.getElementById('spAcc').textContent   = s.acc + '%';
-  document.getElementById('spHW').textContent    = s.hw + '%';
-  document.getElementById('spAtt').textContent   = s.att + '%';
-  const tp = document.getElementById('spTopics');
-  tp.innerHTML = '';
-  if (s.topics && s.topics.length > 0) {
-    s.topics.forEach(t => {
-      tp.innerHTML += `<div class="topic-row"><span class="topic-name">${t.n}</span><div class="topic-bar"><div class="topic-fill" style="background:${t.c};width:${t.acc}%"></div></div><span class="topic-pct" style="color:${t.c}">${t.acc}%</span></div>`;
-    });
-  } else {
-    tp.innerHTML = '<div style="color:var(--text3);font-size:.82rem;padding:8px 0">No practice data yet</div>';
-  }
-  document.getElementById('studentProfile').scrollIntoView({ behavior:'smooth', block:'nearest' });
+  var drawer = document.getElementById('profileDrawer');
+  var html = '<button onclick="document.getElementById(\'profileDrawer\').classList.remove(\'show\')" style="float:right;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--text3);">✕</button>';
+  html += '<div class="pd-header"><div class="pd-av">' + s.initials + '</div><div><div style="font-size:1rem;font-weight:800;">' + s.name + '</div><div style="font-size:.78rem;color:var(--text3);">' + s.batchName + ' · Level ' + s.level + '</div></div></div>';
+  html += '<div class="pd-stats">';
+  html += '<div class="pd-stat"><div class="pd-stat-n" style="color:var(--blue);">' + s.xp.toLocaleString('en-IN') + '</div><div class="pd-stat-l">XP</div></div>';
+  html += '<div class="pd-stat"><div class="pd-stat-n" style="color:var(--orange);">' + s.streak + 'd</div><div class="pd-stat-l">Streak</div></div>';
+  html += '<div class="pd-stat"><div class="pd-stat-n" style="color:' + (s.acc >= 75 ? 'var(--green)' : s.acc >= 50 ? 'var(--orange)' : 'var(--red)') + ';">' + (s.acc || '—') + (s.acc ? '%' : '') + '</div><div class="pd-stat-l">Accuracy</div></div>';
+  html += '</div>';
+  html += '<button class="btn btn-blue btn-sm" onclick="showTab(\'review\',document.getElementById(\'nav-review\'))">View worksheet results →</button>';
+  drawer.innerHTML = html;
+  drawer.classList.add('show');
+  drawer.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
-function closeProfile() { document.getElementById('studentProfile').classList.remove('show'); }
-function assignRevision() { showToast('Revision homework assigned successfully!', 'success'); }
-function exportRoster()   { showToast('Roster exported as CSV — check your downloads!', 'success'); }
-
-// ── ASSIGN HOMEWORK ────────────────────────────────────────
-function updatePreview() {
-  const batch = document.getElementById('aBatch').value;
-  const topic = document.getElementById('aTopic').value;
-  const diff  = document.getElementById('aDiff').value;
-  const count = document.getElementById('aCount').value;
-  const due   = document.getElementById('aDue').value;
-  const prev  = document.getElementById('assignPreview');
-  if (batch && topic && due) {
-    const students = STUDENTS[batch]?.filter(s => s.mode === 'online') || [];
-    prev.classList.add('show');
-    prev.innerHTML = `
-      ✅ Ready to assign:<br>
-      <strong>${topic}</strong> · ${count} questions · ${diff} difficulty<br>
-      Batch ${batch} · ${students.length} online students will receive this<br>
-      Due: ${new Date(due).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})} · Students will be notified by email immediately
-    `;
-  } else {
-    prev.classList.remove('show');
-  }
+function exportRoster() {
+  if (!CURRENT_BATCH) { toast('Select a batch first', ''); return; }
+  var csv = 'Name,Level,XP,Streak,Accuracy\n';
+  CURRENT_BATCH.students.forEach(function(s) {
+    csv += '"' + s.name + '",' + s.level + ',' + s.xp + ',' + s.streak + ',' + s.acc + '\n';
+  });
+  var a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = (CURRENT_BATCH.name || 'batch') + '-roster.csv';
+  a.click();
+  toast('Roster exported!', 'success');
 }
 
-async function assignHomework() {
-  // Homework merged into LX Designer worksheets (option 2 decision)
-  // Redirect teacher to LX Designer to assign work
-  toast('Use LX Designer to assign worksheets as homework — it generates AI questions automatically!', 'info');
-  setTimeout(() => { window.location.href = 'lx-designer.html'; }, 1800);
-}
-
-function exportAttendance() { showToast('Attendance report exported!', 'success'); }
-
-// ── SCHEDULE ───────────────────────────────────────────────
-function joinMeet(batch) {
-  showToast('Opening Google Meet for Batch A...', 'success');
-  window.open('https://meet.google.com', '_blank');
-}
-
-// ── UTILS ──────────────────────────────────────────────────
-
-function showToast(msg, type='') {
-  const c = document.getElementById('toastContainer');
-  const t = document.createElement('div');
-  t.className = `toast${type ? ' toast-'+type : ''}`;
-  t.textContent = msg;
-  c.appendChild(t);
-  setTimeout(() => t.remove(), 3500);
-}
-async function logout() { await sb.auth.signOut(); window.location.href = '../../login.html'; }
-
-// ── INIT ───────────────────────────────────────────────────
-// ── VIRTUAL CLASSES ───────────────────────────────────────
-
-function generateMeetLink() {
-  // Generate a Google Meet-style link opener
-  // Opens Google Meet new meeting page
-  const url = 'https://meet.google.com/new';
-  const win = window.open(url, '_blank');
-  showToast('Copy the Meet link from the new tab and paste it here!', '');
-  // Listen for manual paste
-  document.getElementById('vcMeetLink').placeholder = 'Paste your Meet link here after creating it';
-  document.getElementById('vcMeetLink').focus();
-}
-
-function populateVcBatch() {
-  const sel = document.getElementById('vcBatch');
+// ── REVIEW TAB ────────────────────────────────────────────────
+async function populateReviewDropdown() {
+  var sel = document.getElementById('hwSelect');
   if (!sel) return;
+  try {
+    var res = await sb.from('lx_worksheets')
+      .select('id,title,level,created_at,batch_id,batches!batch_id(name)')
+      .eq('created_by', TEACHER_ID).eq('is_active', true)
+      .order('created_at', {ascending: false}).limit(30);
+    if (!res.data || !res.data.length) {
+      sel.innerHTML = '<option value="">No worksheets yet — use LX Designer to assign work</option>';
+      document.getElementById('submBody').innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No worksheets assigned yet.<br>Use LX Designer to create and assign worksheets.</div></div>';
+      return;
+    }
+    sel.innerHTML = '<option value="">Select a worksheet...</option>';
+    res.data.forEach(function(w) {
+      sel.innerHTML += '<option value="' + w.id + '">' + w.title + ' — ' + (w.batches ? w.batches.name : 'Individual') + ' · L' + (w.level || '?') + '</option>';
+    });
+    sel.value = res.data[0].id;
+    loadSubmissions();
+  } catch(e) {
+    sel.innerHTML = '<option value="">Error loading worksheets</option>';
+  }
+}
+
+async function loadSubmissions() {
+  var wsId = document.getElementById('hwSelect') ? document.getElementById('hwSelect').value : '';
+  var body = document.getElementById('submBody');
+  var titleEl = document.getElementById('submTitle');
+  var expBtn = document.getElementById('exportBtn');
+  if (!body) return;
+  if (!wsId) {
+    body.innerHTML = '<div class="empty"><div class="empty-text">Select a worksheet above</div></div>';
+    if (titleEl) titleEl.textContent = '';
+    if (expBtn) expBtn.style.display = 'none';
+    return;
+  }
+  body.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+  try {
+    var wsRes = await sb.from('lx_worksheets').select('title,batch_id,student_id,batches!batch_id(name)').eq('id', wsId).single();
+    var ws = wsRes.data;
+    var students = [];
+    if (ws && ws.batch_id) {
+      var batch = BATCHES.find(function(b) { return b.id === ws.batch_id; });
+      if (batch) students = batch.students;
+    } else {
+      var allS = [];
+      BATCHES.forEach(function(b) { allS = allS.concat(b.students); });
+      if (ws && ws.student_id) students = allS.filter(function(s) { return s.id === ws.student_id; });
+      else students = allS;
+    }
+    var respRes = await sb.from('worksheet_responses').select('student_id,score,total,xp_earned,submitted_at').eq('worksheet_id', wsId);
+    var respMap = {};
+    (respRes.data || []).forEach(function(r) { respMap[r.student_id] = r; });
+    var submitted = students.filter(function(s) { return respMap[s.id]; });
+    var avg = submitted.length ? Math.round(submitted.reduce(function(sum, s) { return sum + (respMap[s.id].score / respMap[s.id].total * 100); }, 0) / submitted.length) : 0;
+    if (titleEl) titleEl.textContent = (ws ? ws.title : 'Worksheet') + ' · ' + submitted.length + '/' + students.length + ' submitted · Avg ' + avg + '%';
+    if (expBtn) expBtn.style.display = submitted.length ? 'inline-block' : 'none';
+    if (!students.length) {
+      body.innerHTML = '<div class="empty"><div class="empty-text">No students found for this worksheet</div></div>';
+      return;
+    }
+    var html = '';
+    students.forEach(function(s) {
+      var r = respMap[s.id];
+      var pct = r ? Math.round(r.score / r.total * 100) : null;
+      var col = pct === null ? 'var(--text3)' : pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--orange)' : 'var(--red)';
+      html += '<div class="roster-row" style="cursor:default;">';
+      html += '<div class="av">' + s.initials + '</div>';
+      html += '<div style="flex:1;min-width:0;"><div class="r-name">' + s.name + '</div><div class="r-meta">Level ' + s.level + '</div></div>';
+      html += '<div style="font-weight:800;color:' + col + ';font-size:.9rem;">';
+      if (r) {
+        html += r.score + '/' + r.total + ' (' + pct + '%)';
+        html += '<div style="font-size:.65rem;color:var(--text3);font-weight:600;">' + fmtDate(r.submitted_at) + '</div>';
+      } else {
+        html += '<span style="font-size:.78rem;font-weight:600;color:var(--text3);">Pending</span>';
+      }
+      html += '</div></div>';
+    });
+    body.innerHTML = html;
+  } catch(e) {
+    body.innerHTML = '<div style="padding:14px;color:var(--red);font-size:.82rem;">Error: ' + e.message + '</div>';
+  }
+}
+
+function exportScores() {
+  var csv = 'Student,Level,Score,Submitted\n';
+  document.querySelectorAll('#submBody .roster-row').forEach(function(row) {
+    var name = row.querySelector('.r-name') ? row.querySelector('.r-name').textContent : '';
+    var level = row.querySelector('.r-meta') ? row.querySelector('.r-meta').textContent : '';
+    var score = row.querySelector('[style*="font-weight:800"]') ? row.querySelector('[style*="font-weight:800"]').textContent.trim() : '';
+    csv += '"' + name + '","' + level + '","' + score.replace(/\n/g,' ') + '"\n';
+  });
+  var a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'scores.csv';
+  a.click();
+}
+
+// ── STUDENTS TAB ──────────────────────────────────────────────
+function renderStudents() {
+  var el = document.getElementById('studentsBody');
+  if (!el) return;
+  var all = [];
+  BATCHES.forEach(function(b) { all = all.concat(b.students); });
+  if (!all.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-text">No students in your batches yet</div></div>';
+    return;
+  }
+  var html = '';
+  all.forEach(function(s) {
+    var col = s.risk ? 'var(--red)' : 'var(--green)';
+    html += '<div class="roster-row student-row" data-name="' + s.name.toLowerCase() + '" data-batch="' + s.batchId + '" data-risk="' + (s.risk ? '1' : '0') + '" onclick="viewStudent(\'' + s.id + '\')">';
+    html += '<div class="av ' + (s.risk ? 'risk' : '') + '">' + s.initials + '</div>';
+    html += '<div style="flex:1;min-width:0;"><div class="r-name">' + s.name + '</div><div class="r-meta">' + s.batchName + ' · Level ' + s.level + ' · 🔥' + s.streak + 'd</div></div>';
+    html += '<div style="text-align:right;flex-shrink:0;">';
+    html += '<div style="font-size:.82rem;font-weight:700;color:' + col + ';">' + (s.risk ? '⚠️ Needs attention' : '✅ On track') + '</div>';
+    html += '<div style="font-size:.68rem;color:var(--text3);">Accuracy: ' + (s.acc || '—') + (s.acc ? '%' : '') + '</div>';
+    html += '</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+function filterStudents() {
+  var search = (document.getElementById('studentSearch') ? document.getElementById('studentSearch').value : '').toLowerCase();
+  var batch  = document.getElementById('filterBatch') ? document.getElementById('filterBatch').value : '';
+  var status = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : '';
+  document.querySelectorAll('.student-row').forEach(function(row) {
+    var nameOk   = !search || row.dataset.name.includes(search);
+    var batchOk  = !batch  || row.dataset.batch === batch;
+    var statusOk = !status || (status === 'risk' && row.dataset.risk === '1') || (status === 'ok' && row.dataset.risk === '0');
+    row.style.display = nameOk && batchOk && statusOk ? '' : 'none';
+  });
+}
+
+// ── ATTENDANCE TAB ────────────────────────────────────────────
+function populateAttBatches() {
+  var sel = document.getElementById('attBatch');
+  if (!sel || sel.options.length > 1) return;
+  sel.innerHTML = '<option value="">Select batch...</option>';
+  BATCHES.forEach(function(b) {
+    sel.innerHTML += '<option value="' + b.id + '">' + b.name + '</option>';
+  });
+  var dateEl = document.getElementById('attDate');
+  if (dateEl && !dateEl.value) dateEl.value = new Date().toISOString().split('T')[0];
+}
+
+function loadAttendance() {
+  var batchId = document.getElementById('attBatch') ? document.getElementById('attBatch').value : '';
+  var date    = document.getElementById('attDate') ? document.getElementById('attDate').value : '';
+  var body    = document.getElementById('attBody');
+  var saveRow = document.getElementById('attSaveRow');
+  if (!body) return;
+  if (!batchId) {
+    body.innerHTML = '<div class="empty"><div class="empty-text">Select a batch above</div></div>';
+    if (saveRow) saveRow.style.display = 'none';
+    return;
+  }
+  var batch = BATCHES.find(function(b) { return b.id === batchId; });
+  if (!batch || !batch.students.length) {
+    body.innerHTML = '<div class="empty"><div class="empty-text">No students in this batch</div></div>';
+    return;
+  }
+  var displayDate = date ? new Date(date + 'T00:00:00').toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'}) : 'today';
+  var html = '<div style="font-size:.78rem;font-weight:700;color:var(--text3);margin-bottom:12px;">Attendance for ' + displayDate + '</div>';
+  batch.students.forEach(function(s) {
+    html += '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">';
+    html += '<div class="av">' + s.initials + '</div>';
+    html += '<div style="flex:1;font-size:.875rem;font-weight:700;">' + s.name + '</div>';
+    html += '<div style="display:flex;gap:8px;">';
+    html += '<label style="display:flex;align-items:center;gap:4px;font-size:.82rem;font-weight:700;cursor:pointer;"><input type="radio" name="att-' + s.id + '" value="present" checked style="accent-color:var(--green);"> Present</label>';
+    html += '<label style="display:flex;align-items:center;gap:4px;font-size:.82rem;font-weight:700;cursor:pointer;"><input type="radio" name="att-' + s.id + '" value="absent" style="accent-color:var(--red);"> Absent</label>';
+    html += '</div></div>';
+  });
+  body.innerHTML = html;
+  if (saveRow) saveRow.style.display = 'block';
+}
+
+function saveAttendance() {
+  var batchId = document.getElementById('attBatch') ? document.getElementById('attBatch').value : '';
+  if (!batchId) { toast('Select a batch first', ''); return; }
+  var batch = BATCHES.find(function(b) { return b.id === batchId; });
+  if (!batch) return;
+  var present = 0, absent = 0;
+  batch.students.forEach(function(s) {
+    var checked = document.querySelector('input[name="att-' + s.id + '"]:checked');
+    if (checked && checked.value === 'present') present++;
+    else absent++;
+  });
+  toast('Attendance saved — ' + present + ' present, ' + absent + ' absent', 'success');
+}
+
+// ── VIRTUAL CLASSES TAB ───────────────────────────────────────
+function populateVcBatch() {
+  var sel = document.getElementById('vcBatch');
+  if (!sel || sel.options.length > 1) return;
   sel.innerHTML = '<option value="">Select batch</option>';
-  Object.entries(STUDENTS).forEach(([id, students]) => {
-    const name = students[0]?.batchName || 'Batch';
-    const opt  = document.createElement('option');
-    opt.value       = id;
-    opt.textContent = `${name} (${students.length} students)`;
-    sel.appendChild(opt);
+  BATCHES.forEach(function(b) {
+    sel.innerHTML += '<option value="' + b.id + '">' + b.name + ' (' + b.students.length + ' students)</option>';
   });
 }
 
 async function scheduleClass() {
-  const batchId  = document.getElementById('vcBatch')?.value;
-  const topic    = document.getElementById('vcTopic')?.value.trim();
-  const date     = document.getElementById('vcDate')?.value;
-  const start    = document.getElementById('vcStart')?.value;
-  const duration = parseInt(document.getElementById('vcDuration')?.value || '60');
-  const meetLink = document.getElementById('vcMeetLink')?.value.trim();
+  var batchId  = document.getElementById('vcBatch') ? document.getElementById('vcBatch').value : '';
+  var topic    = document.getElementById('vcTopic') ? document.getElementById('vcTopic').value.trim() : '';
+  var date     = document.getElementById('vcDate') ? document.getElementById('vcDate').value : '';
+  var startT   = document.getElementById('vcStart') ? document.getElementById('vcStart').value : '';
+  var duration = document.getElementById('vcDuration') ? parseInt(document.getElementById('vcDuration').value) : 60;
+  var meetLink = document.getElementById('vcMeetLink') ? document.getElementById('vcMeetLink').value.trim() : '';
 
-  if (!batchId || !topic || !date || !start || !meetLink) {
-    showToast('Please fill all fields including the Meet link!', ''); return;
+  if (!batchId || !topic || !date || !startT || !meetLink) {
+    toast('Please fill all fields including the Meet link', ''); return;
   }
   if (!meetLink.includes('meet.google.com')) {
-    showToast('Please enter a valid Google Meet link', ''); return;
+    toast('Please enter a valid Google Meet link (meet.google.com/...)', ''); return;
   }
 
   try {
-    const { data: { session } } = await sb.auth.getSession();
-    const batchStudents = STUDENTS[batchId] || [];
-    const startDT = new Date(date + 'T' + start);
-
-    const classRecord = {
-      id:          Date.now().toString(),
-      batch_id:    batchId,
-      batch_name:  batchStudents[0]?.batchName || 'Batch',
-      topic,
-      date,
-      start_time:  start,
-      duration,
-      meet_link:   meetLink,
-      teacher_id:  session.user.id,
+    var batch = BATCHES.find(function(b) { return b.id === batchId; });
+    var cls = {
+      id: Date.now().toString(),
+      batch_id: batchId,
+      batch_name: batch ? batch.name : 'Batch',
+      topic: topic,
+      date: date,
+      start_time: startT,
+      duration: duration,
+      meet_link: meetLink,
     };
 
-    // Save to batches table as schedule_json
-    await sb.from('batches').update({
-      schedule_json: { text: topic + ' · ' + formatClassTime(startDT), next_class: date, meet_link: meetLink }
-    }).eq('id', batchId);
-
     // Notify students
-    if (batchStudents.length) {
-      await sb.from('notifications').insert(
-        batchStudents.map(s => ({
+    if (batch && batch.students.length) {
+      var notifs = batch.students.map(function(s) {
+        return {
           user_id: s.id,
           type: 'class_scheduled',
-          title: '📹 Virtual class scheduled: ' + topic,
-          message: 'Date: ' + new Date(date).toLocaleDateString('en-IN', {day:'numeric',month:'short'}) + ' at ' + start + ' · ' + meetLink,
-        }))
-      );
+          title: '📹 Virtual class: ' + topic,
+          message: new Date(date).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) + ' at ' + startT + ' · ' + meetLink,
+        };
+      });
+      await sb.from('notifications').insert(notifs);
     }
 
-    scheduledClasses.unshift(classRecord);
+    SCHED.unshift(cls);
     renderVcList();
-    showToast('Class scheduled! ' + batchStudents.length + ' students notified 🚀', 'success');
+    toast('Class scheduled! ' + (batch ? batch.students.length : 0) + ' students notified 🚀', 'success');
 
     // Clear form
-    ['vcTopic','vcDate','vcStart','vcMeetLink'].forEach(id => {
-      const el = document.getElementById(id);
+    ['vcTopic','vcDate','vcStart','vcMeetLink'].forEach(function(id) {
+      var el = document.getElementById(id);
       if (el) el.value = '';
     });
   } catch(e) {
-    showToast('Error scheduling class: ' + e.message, '');
+    toast('Error: ' + e.message, 'error');
   }
-}
-
-function formatClassTime(dt) {
-  return dt.toLocaleDateString('en-IN', {day:'numeric',month:'short'}) + ' ' +
-         dt.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'});
 }
 
 function renderVcList() {
-  const el = document.getElementById('vcList');
+  var el = document.getElementById('vcList');
   if (!el) return;
-  if (!scheduledClasses.length) {
-    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-weight:600">No classes scheduled yet — fill the form above to schedule one</div>';
+  if (!SCHED.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-text">No classes scheduled yet — fill the form above</div></div>';
     return;
   }
-  const now = new Date();
-  el.innerHTML = scheduledClasses.map(cls => {
-    const startDT = new Date(cls.date + 'T' + cls.start_time);
-    const endDT   = new Date(startDT.getTime() + (cls.duration||60)*60000);
-    const isLive  = now >= startDT && now <= endDT;
-    const isPast  = now > endDT;
-    const status  = isLive ? 'live' : isPast ? 'past' : 'upcoming';
-    const statusColor = isLive ? 'var(--green)' : isPast ? 'var(--text3)' : 'var(--blue)';
-    const statusLabel = isLive ? '🔴 LIVE NOW' : isPast ? 'Completed' : '📅 Upcoming';
-    return '<div style="background:var(--bg);border:2px solid ' + (isLive ? 'var(--green)' : 'var(--border)') + ';border-radius:14px;padding:14px 16px;margin-bottom:10px;">'
-      + '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">'
-        + '<div>'
-          + '<div style="font-size:.9rem;font-weight:800;">' + (cls.batch_name||'Batch') + ' — ' + (cls.topic||'Class') + '</div>'
-          + '<div style="font-size:.75rem;color:var(--text3);margin-top:3px;">'
-            + new Date(cls.date).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})
-            + ' · ' + (cls.start_time||'') + ' · ' + (cls.duration||60) + ' min'
-          + '</div>'
-        + '</div>'
-        + '<div style="font-size:.78rem;font-weight:800;color:' + statusColor + ';">' + statusLabel + '</div>'
-      + '</div>'
-      + (cls.meet_link ? '<a href="' + cls.meet_link + '" target="_blank" style="display:inline-block;margin-top:10px;padding:8px 16px;background:var(--blue);color:#fff;border-radius:10px;font-size:.82rem;font-weight:700;text-decoration:none;">📹 Join Meet</a>' : '')
-      + '</div>';
-  }).join('');
+  var now = new Date();
+  var html = '';
+  SCHED.forEach(function(cls) {
+    var startDT = new Date(cls.date + 'T' + cls.start_time);
+    var endDT   = new Date(startDT.getTime() + (cls.duration || 60) * 60000);
+    var isLive  = now >= startDT && now <= endDT;
+    var isPast  = now > endDT;
+    var statusLabel = isLive ? '🔴 LIVE NOW' : isPast ? 'Completed' : '📅 Upcoming';
+    var statusColor = isLive ? 'var(--green)' : isPast ? 'var(--text3)' : 'var(--blue)';
+    html += '<div class="vc-card' + (isLive ? ' live' : '') + '">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">';
+    html += '<div><div style="font-size:.9rem;font-weight:800;">' + (cls.batch_name || 'Batch') + ' — ' + (cls.topic || 'Class') + '</div>';
+    html += '<div style="font-size:.75rem;color:var(--text3);margin-top:3px;">' + new Date(cls.date).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'}) + ' · ' + (cls.start_time || '') + ' · ' + (cls.duration || 60) + ' min</div></div>';
+    html += '<div style="font-size:.78rem;font-weight:800;color:' + statusColor + ';">' + statusLabel + '</div></div>';
+    if (cls.meet_link) {
+      html += '<a href="' + cls.meet_link + '" target="_blank" class="btn btn-blue btn-sm" style="display:inline-block;margin-top:10px;text-decoration:none;">📹 Join Meet</a>';
+    }
+    html += '</div>';
+  });
+  el.innerHTML = html;
 }
 
-
-// ══ REVIEW TAB ════════════════════════════════════════════════
-// ══ STUDENTS TAB ══════════════════════════════════════════════
-// ══ ATTENDANCE TAB ════════════════════════════════════════════
-
-// ══ WORKSHEET RESULTS TAB ════════════════════════════════════
+// ── WORKSHEET RESULTS TAB ─────────────────────────────────────
 async function loadWsResults() {
-  const list = document.getElementById('wsResultsList');
-  if (!list) return;
-  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">Loading...</div>';
+  var el = document.getElementById('wsResultsBody');
+  if (!el) return;
+  el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
   try {
-    const { data: { session } } = await sb.auth.getSession();
-    const { data: worksheets } = await sb.from('lx_worksheets')
-      .select('id, title, level, created_at, batch_id, batches!batch_id(name)')
-      .eq('created_by', session.user.id)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
-      .limit(20);
-
-    if (!worksheets?.length) {
-      list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">No worksheets assigned yet. Use LX Designer to create and assign worksheets.</div>';
-      return;
-    }
-
-    const wsIds = worksheets.map(w => w.id);
-    const { data: responses } = await sb.from('worksheet_responses')
-      .select('worksheet_id, student_id, score, total, xp_earned, submitted_at, users!student_id(full_name)')
-      .in('worksheet_id', wsIds)
-      .order('submitted_at', { ascending: false });
-
-    const respByWs = {};
-    (responses || []).forEach(r => {
-      if (!respByWs[r.worksheet_id]) respByWs[r.worksheet_id] = [];
-      respByWs[r.worksheet_id].push(r);
-    });
-
-    const totalSubmissions = (responses || []).length;
-    if (!totalSubmissions) {
-      list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">No submissions yet. Share worksheets with students and they will appear here.</div>';
-      return;
-    }
-
-    list.innerHTML = worksheets.filter(w => respByWs[w.id]?.length).map(w => {
-      const resps = respByWs[w.id] || [];
-      const avg   = resps.length ? Math.round(resps.reduce((s,r) => s + (r.score/r.total*100), 0) / resps.length) : 0;
-      return `<div style="background:var(--bg);border:2px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;">
-        <div style="padding:12px 16px;background:var(--bg2);border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
-          <div>
-            <div style="font-size:.9rem;font-weight:800;">${w.title}</div>
-            <div style="font-size:.72rem;color:var(--text3);margin-top:2px;">Level ${w.level || '?'} · ${w.batches?.name || 'Individual'} · ${new Date(w.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:.9rem;font-weight:800;color:${avg>=80?'var(--green)':avg>=50?'var(--orange)':'var(--red)'};">${avg}% avg</div>
-            <div style="font-size:.72rem;color:var(--text3);">${resps.length} submission${resps.length!==1?'s':''}</div>
-          </div>
-        </div>
-        ${resps.map(r => {
-          const pct = Math.round(r.score/r.total*100);
-          return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--border);">
-            <div style="flex:1;font-size:.875rem;font-weight:700;">${r.users?.full_name || 'Student'}</div>
-            <div style="font-size:.82rem;color:var(--text3);">${new Date(r.submitted_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
-            <div style="font-weight:800;font-size:.9rem;color:${pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)'};">${r.score}/${r.total} (${pct}%)</div>
-          </div>`;
-        }).join('')}
-      </div>`;
-    }).join('') || '<div style="text-align:center;padding:30px;color:var(--text3);">No submissions found.</div>';
-
-  } catch(e) {
-    list.innerHTML = `<div style="padding:20px;color:var(--red);">Error loading results: ${e.message}</div>`;
-  }
-}
-
-
-// ── MISSING STUBS ─────────────────────────────────────────────
-// ══ REVIEW SUBMISSIONS ════════════════════════════════════════
-async function populateReviewDropdown() {
-  const sel = document.getElementById('hwSelect');
-  if (!sel) return;
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    const { data: wsList } = await sb.from('lx_worksheets')
+    var myWs = await sb.from('lx_worksheets')
       .select('id,title,level,created_at,batch_id,batches!batch_id(name)')
-      .eq('created_by', session.user.id).eq('is_active', true)
-      .order('created_at', { ascending: false }).limit(30);
-    if (!wsList?.length) {
-      sel.innerHTML = '<option value="">No worksheets yet — use LX Designer</option>';
-      document.getElementById('submList').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">No worksheets found. Create one in LX Designer first.</div>';
+      .eq('created_by', TEACHER_ID).eq('is_active', true)
+      .order('created_at', {ascending: false}).limit(20);
+    if (!myWs.data || !myWs.data.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No worksheets assigned yet.<br>Use LX Designer to create and assign worksheets.</div></div>';
       return;
     }
-    sel.innerHTML = '<option value="">Select a worksheet...</option>' +
-      wsList.map(w => `<option value="${w.id}">${w.title} — ${w.batches?.name||'Individual'} · L${w.level||'?'}</option>`).join('');
-    sel.value = wsList[0].id;
-    loadSubmissions();
-  } catch(e) { console.error('populateReviewDropdown:', e.message); }
-}
-
-async function loadSubmissions() {
-  const wsId = document.getElementById('hwSelect')?.value;
-  const list  = document.getElementById('submList');
-  const titleEl = document.getElementById('submTitle');
-  if (!list) return;
-  if (!wsId) {
-    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Select a worksheet above</div>';
-    return;
-  }
-  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">Loading...</div>';
-  try {
-    const { data: ws } = await sb.from('lx_worksheets')
-      .select('title,batch_id,student_id,batches!batch_id(name)').eq('id', wsId).single();
-    let students = ws?.batch_id && STUDENTS[ws.batch_id] ? STUDENTS[ws.batch_id]
-      : ws?.student_id ? Object.values(STUDENTS).flat().filter(s => s.id === ws.student_id)
-      : Object.values(STUDENTS).flat();
-    const { data: responses } = await sb.from('worksheet_responses')
-      .select('student_id,score,total,xp_earned,submitted_at').eq('worksheet_id', wsId);
-    const respMap = {};
-    (responses||[]).forEach(r => respMap[r.student_id] = r);
-    const submitted = students.filter(s => respMap[s.id]);
-    const avg = submitted.length ? Math.round(submitted.reduce((sum,s)=>sum+(respMap[s.id].score/respMap[s.id].total*100),0)/submitted.length) : 0;
-    if (titleEl) titleEl.textContent = `${ws?.title||'Worksheet'} · ${submitted.length}/${students.length} submitted · Avg ${avg}%`;
-    const expBtn = document.getElementById('exportBtn');
-    if (expBtn) expBtn.style.display = submitted.length ? 'inline' : 'none';
-    if (!students.length) { list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">No students found.</div>'; return; }
-    list.innerHTML = students.map(s => {
-      const r = respMap[s.id];
-      const pct = r ? Math.round(r.score/r.total*100) : null;
-      const col = pct===null?'var(--text3)':pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)';
-      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
-        <div style="width:36px;height:36px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;">${s.initials}</div>
-        <div style="flex:1"><div style="font-size:.875rem;font-weight:700;">${s.name}</div><div style="font-size:.72rem;color:var(--text3);">${s.meta}</div></div>
-        <div style="font-weight:800;color:${col};">${r ? `${r.score}/${r.total} (${pct}%)` : '<span style="color:var(--text3);font-size:.82rem;">Pending</span>'}</div>
-      </div>`;
-    }).join('');
-  } catch(e) { list.innerHTML = `<div style="padding:20px;color:var(--red);">Error: ${e.message}</div>`; }
-}
-
-function exportScores() {
-  const rows = document.querySelectorAll('#submList > div');
-  let csv = 'Name,Score\n';
-  rows.forEach(row => {
-    const divs = row.querySelectorAll('div');
-    if (divs.length >= 3) csv += '"'+(divs[1]?.querySelector('div')?.textContent?.trim()||'')+'","'+(divs[2]?.textContent?.trim()||'')+'"\n';
-  });
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'scores.csv'; a.click();
-}
-
-// ══ STUDENT PROGRESS ══════════════════════════════════════════
-function renderStudentList() {
-  const list = document.getElementById('studentList');
-  if (!list) return;
-  const all = Object.values(STUDENTS).flat();
-  if (!all.length) { list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">No students in your batches yet.</div>'; return; }
-  const filterBatch = document.getElementById('filterBatch');
-  if (filterBatch && filterBatch.options.length <= 1) {
-    filterBatch.innerHTML = '<option value="">All batches</option>' +
-      Object.entries(STUDENTS).map(([id,s]) => `<option value="${id}">${s[0]?.batchName||'Batch'} (${s.length})</option>`).join('');
-  }
-  list.innerHTML = all.map(s => {
-    const isRisk = s.risk || s.acc < 50;
-    return `<div class="student-row" data-name="${(s.name||'').toLowerCase()}" data-batch="${s.batchId}" data-risk="${isRisk?1:0}"
-      style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;"
-      onclick="viewStudent('${s.id}')">
-      <div style="width:38px;height:38px;border-radius:50%;background:${isRisk?'#FFEBEE':'var(--blue-lt)'};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.875rem;color:${isRisk?'var(--red)':'var(--blue-dk)'};">${s.initials}</div>
-      <div style="flex:1;min-width:0;"><div style="font-size:.875rem;font-weight:700;">${s.name}</div><div style="font-size:.72rem;color:var(--text3);">${s.meta}</div></div>
-      <div style="text-align:right;flex-shrink:0;">
-        <div style="font-size:.82rem;font-weight:700;color:${isRisk?'var(--red)':'var(--green)'};">${isRisk?'⚠️ Needs attention':'✅ On track'}</div>
-        <div style="font-size:.68rem;color:var(--text3);">Accuracy: ${s.acc}% · 🔥${s.streak}d</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function filterStudents() {
-  const search = (document.getElementById('studentSearch')?.value||'').toLowerCase();
-  const batch  = document.getElementById('filterBatch')?.value||'';
-  const status = document.getElementById('filterStatus')?.value||'';
-  document.querySelectorAll('#studentList .student-row').forEach(row => {
-    const ok = (!search || row.dataset.name.includes(search))
-            && (!batch  || row.dataset.batch === batch)
-            && (!status || (status==='risk' && row.dataset.risk==='1'));
-    row.style.display = ok ? '' : 'none';
-  });
-}
-
-// ══ ATTENDANCE ════════════════════════════════════════════════
-function populateAttBatches() {
-  const sel = document.getElementById('attBatch');
-  if (!sel) return;
-  const batches = Object.entries(STUDENTS);
-  if (!batches.length) { sel.innerHTML = '<option value="">No batches found</option>'; return; }
-  if (sel.options.length <= 1) {
-    sel.innerHTML = '<option value="">Select batch...</option>' +
-      batches.map(([id,s]) => `<option value="${id}">${s[0]?.batchName||'Batch'}</option>`).join('');
-  }
-}
-
-function loadAttendance() {
-  const batchId = document.getElementById('attBatch')?.value;
-  const date    = document.getElementById('attDate')?.value;
-  const list    = document.getElementById('attList');
-  if (!list) return;
-  if (!batchId) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">Select a batch above</div>'; return; }
-  const students = STUDENTS[batchId] || [];
-  if (!students.length) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">No students in this batch.</div>'; return; }
-  const titleEl = document.getElementById('attTitle');
-  if (titleEl && date) titleEl.textContent = 'Attendance for ' + new Date(date+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
-  list.innerHTML = students.map(s =>
-    `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
-      <div style="width:36px;height:36px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;">${s.initials}</div>
-      <div style="flex:1;font-size:.875rem;font-weight:700;">${s.name}</div>
-      <div style="display:flex;gap:8px;">
-        <label style="display:flex;align-items:center;gap:4px;font-size:.82rem;font-weight:700;cursor:pointer;"><input type="radio" name="att-${s.id}" value="present" checked style="accent-color:var(--green);"> Present</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:.82rem;font-weight:700;cursor:pointer;"><input type="radio" name="att-${s.id}" value="absent" style="accent-color:var(--red);"> Absent</label>
-      </div>
-    </div>`
-  ).join('');
-}
-
-function saveAttendance() {
-  const batchId = document.getElementById('attBatch')?.value;
-  if (!batchId) { showToast('Select a batch first',''); return; }
-  const students = STUDENTS[batchId]||[];
-  let present=0, absent=0;
-  students.forEach(s => {
-    if (document.querySelector(`input[name="att-${s.id}"]:checked`)?.value === 'present') present++;
-    else absent++;
-  });
-  showToast(`Attendance saved — ${present} present, ${absent} absent`, 'success');
-}
-
-function setDefaultDate() {
-  const d = document.getElementById('attDate');
-  if (d && !d.value) d.value = new Date().toISOString().split('T')[0];
-}
-
-function renderAllStudents() { renderStudentList(); }
-
-// ══ WORKSHEET RESULTS ═════════════════════════════════════════
-async function loadWsResults() {
-  const list = document.getElementById('wsResultsList');
-  if (!list) return;
-  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">Loading...</div>';
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    const { data: worksheets } = await sb.from('lx_worksheets')
-      .select('id,title,level,created_at,batch_id,batches!batch_id(name)')
-      .eq('created_by', session.user.id).eq('is_active', true)
-      .order('created_at', { ascending: false }).limit(20);
-    if (!worksheets?.length) {
-      list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">No worksheets assigned yet. Use LX Designer to create and assign worksheets.</div>';
-      return;
-    }
-    const { data: responses } = await sb.from('worksheet_responses')
+    var wsIds = myWs.data.map(function(w) { return w.id; });
+    var respRes = await sb.from('worksheet_responses')
       .select('worksheet_id,student_id,score,total,xp_earned,submitted_at,users!student_id(full_name)')
-      .in('worksheet_id', worksheets.map(w=>w.id))
-      .order('submitted_at', { ascending: false });
-    const byWs = {};
-    (responses||[]).forEach(r => { if(!byWs[r.worksheet_id]) byWs[r.worksheet_id]=[]; byWs[r.worksheet_id].push(r); });
-    const withSubs = worksheets.filter(w => byWs[w.id]?.length);
+      .in('worksheet_id', wsIds)
+      .order('submitted_at', {ascending: false});
+    var byWs = {};
+    (respRes.data || []).forEach(function(r) {
+      if (!byWs[r.worksheet_id]) byWs[r.worksheet_id] = [];
+      byWs[r.worksheet_id].push(r);
+    });
+    var withSubs = myWs.data.filter(function(w) { return byWs[w.id] && byWs[w.id].length; });
     if (!withSubs.length) {
-      list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">No submissions yet.</div>';
+      el.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><div class="empty-text">No submissions yet.<br>Students will appear here once they submit worksheets.</div></div>';
       return;
     }
-    list.innerHTML = withSubs.map(w => {
-      const resps = byWs[w.id]||[];
-      const avg = Math.round(resps.reduce((s,r)=>s+(r.score/r.total*100),0)/resps.length);
-      const col = avg>=80?'var(--green)':avg>=50?'var(--orange)':'var(--red)';
-      return `<div style="background:var(--bg);border:2px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;">
-        <div style="padding:12px 16px;background:var(--bg2);border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
-          <div>
-            <div style="font-size:.9rem;font-weight:800;">${w.title}</div>
-            <div style="font-size:.72rem;color:var(--text3);">Level ${w.level||'?'} · ${w.batches?.name||'Individual'} · ${new Date(w.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:.9rem;font-weight:800;color:${col};">${avg}% avg</div>
-            <div style="font-size:.72rem;color:var(--text3);">${resps.length} submission${resps.length!==1?'s':''}</div>
-          </div>
-        </div>
-        ${resps.map(r => {
-          const pct = Math.round(r.score/r.total*100);
-          const rc = pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)';
-          return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--border);">
-            <div style="flex:1;font-size:.875rem;font-weight:700;">${r.users?.full_name||'Student'}</div>
-            <div style="font-size:.78rem;color:var(--text3);">${new Date(r.submitted_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
-            <div style="font-weight:800;color:${rc};">${r.score}/${r.total} (${pct}%)</div>
-          </div>`;
-        }).join('')}
-      </div>`;
-    }).join('');
-  } catch(e) { list.innerHTML = `<div style="padding:20px;color:var(--red);">Error: ${e.message}</div>`; }
+    var html = '';
+    withSubs.forEach(function(w) {
+      var resps = byWs[w.id];
+      var avg = Math.round(resps.reduce(function(s, r) { return s + (r.score / r.total * 100); }, 0) / resps.length);
+      var avgCol = avg >= 80 ? 'var(--green)' : avg >= 50 ? 'var(--orange)' : 'var(--red)';
+      html += '<div class="card" style="margin-bottom:12px;">';
+      html += '<div class="card-header"><div class="card-title">' + w.title + '</div>';
+      html += '<div style="text-align:right;"><div style="font-size:.9rem;font-weight:800;color:' + avgCol + ';">' + avg + '% avg</div>';
+      html += '<div style="font-size:.72rem;color:var(--text3);">Level ' + (w.level || '?') + ' · ' + (w.batches ? w.batches.name : 'Individual') + ' · ' + resps.length + ' submission' + (resps.length !== 1 ? 's' : '') + '</div></div></div>';
+      html += '<div class="card-body">';
+      resps.forEach(function(r) {
+        var pct = Math.round(r.score / r.total * 100);
+        var col = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--orange)' : 'var(--red)';
+        html += '<div class="roster-row" style="cursor:default;">';
+        html += '<div style="flex:1;font-size:.875rem;font-weight:700;">' + (r.users ? r.users.full_name : 'Student') + '</div>';
+        html += '<div style="font-size:.78rem;color:var(--text3);margin-right:12px;">' + fmtDate(r.submitted_at) + '</div>';
+        html += '<div style="font-weight:800;color:' + col + ';">' + r.score + '/' + r.total + ' (' + pct + '%)</div></div>';
+      });
+      html += '</div></div>';
+    });
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = '<div style="padding:14px;color:var(--red);font-size:.82rem;">Error: ' + e.message + '</div>';
+  }
 }
 
+// ── INIT ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'});
+  loadData().catch(function(e) {
+    console.error('Init error:', e);
+    toast('Error loading dashboard: ' + e.message, 'error');
+  });
+});
 </script>
 </body>
 </html>

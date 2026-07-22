@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="version" content="v20260722053308">
+  <meta name="version" content="v20260722053706">
   <link rel="icon" type="image/png" href="/assets/favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Teacher Dashboard — iMathAcademy</title>
@@ -609,222 +609,7 @@
 
 <div class="toast-container" id="toastContainer"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-// ══ REVIEW SUBMISSIONS — uses STUDENTS data ═══════════════════
-async function populateReviewDropdown() {
-  const sel = document.getElementById('hwSelect');
-  if (!sel) return;
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    const { data: wsList } = await sb.from('lx_worksheets')
-      .select('id, title, level, created_at, batch_id, batches!batch_id(name)')
-      .eq('created_by', session.user.id).eq('is_active', true)
-      .order('created_at', { ascending: false }).limit(30);
-    if (!wsList?.length) {
-      sel.innerHTML = '<option value="">No worksheets assigned yet — use LX Designer</option>';
-      document.getElementById('submList').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">No worksheets found. Use LX Designer to create and assign worksheets.</div>';
-      return;
-    }
-    sel.innerHTML = '<option value="">Select a worksheet...</option>' +
-      wsList.map(w => '<option value="'+w.id+'">'+w.title+' — '+(w.batches?.name||'Individual')+' · L'+(w.level||'?')+'</option>').join('');
-    // Auto-load first worksheet
-    sel.value = wsList[0].id;
-    loadSubmissions();
-  } catch(e) { console.error('populateReviewDropdown:', e.message); }
-}
-
-async function loadSubmissions() {
-  const wsId = document.getElementById('hwSelect')?.value;
-  const list  = document.getElementById('submList');
-  const title = document.getElementById('submTitle');
-  if (!list) return;
-  if (!wsId) { list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Select a worksheet above</div>'; return; }
-  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">Loading...</div>';
-  try {
-    const { data: wsData } = await sb.from('lx_worksheets')
-      .select('title, batch_id, student_id, batches!batch_id(name)').eq('id', wsId).single();
-    let allStudents = [];
-    if (wsData?.batch_id && STUDENTS[wsData.batch_id]) {
-      allStudents = STUDENTS[wsData.batch_id];
-    } else {
-      const allFlat = Object.values(STUDENTS).flat();
-      if (wsData?.student_id) allStudents = allFlat.filter(s => s.id === wsData.student_id);
-      else allStudents = allFlat;
-    }
-    const { data: responses } = await sb.from('worksheet_responses')
-      .select('student_id, score, total, xp_earned, submitted_at').eq('worksheet_id', wsId);
-    const respMap = {};
-    (responses||[]).forEach(r => respMap[r.student_id] = r);
-    const submitted = allStudents.filter(s => respMap[s.id]);
-    const pending   = allStudents.filter(s => !respMap[s.id]);
-    const avg = submitted.length ? Math.round(submitted.reduce((sum,s) => sum + (respMap[s.id].score/respMap[s.id].total*100), 0) / submitted.length) : 0;
-    if (title) title.textContent = (wsData?.title||'Worksheet')+' · '+submitted.length+'/'+allStudents.length+' submitted · Avg '+avg+'%';
-    document.getElementById('exportBtn') && (document.getElementById('exportBtn').style.display = submitted.length ? 'inline' : 'none');
-    if (!allStudents.length) { list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">No students found for this worksheet.</div>'; return; }
-    list.innerHTML = allStudents.map(s => {
-      const r = respMap[s.id];
-      const pct = r ? Math.round(r.score/r.total*100) : null;
-      const col = pct===null?'var(--text3)':pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)';
-      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">'
-        +'<div style="width:36px;height:36px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;flex-shrink:0;">'+s.initials+'</div>'
-        +'<div style="flex:1"><div style="font-size:.875rem;font-weight:700;">'+s.name+'</div><div style="font-size:.72rem;color:var(--text3);">'+s.meta+'</div></div>'
-        +'<div style="font-weight:800;font-size:.9rem;color:'+col+';">'+(r ? r.score+'/'+r.total+' ('+pct+'%)' : '<span style="color:var(--text3);font-size:.82rem;">Pending</span>')+'</div>'
-        +'</div>';
-    }).join('');
-  } catch(e) { list.innerHTML = '<div style="padding:20px;color:var(--red);">Error: '+e.message+'</div>'; }
-}
-
-// ══ STUDENT PROGRESS — uses STUDENTS data ════════════════════
-function renderStudentList() {
-  const list = document.getElementById('studentList');
-  if (!list) return;
-  const allStudents = Object.values(STUDENTS).flat();
-  if (!allStudents.length) {
-    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">No students in your batches yet.</div>';
-    return;
-  }
-  // Populate batch filter
-  const filterBatch = document.getElementById('filterBatch');
-  if (filterBatch) {
-    filterBatch.innerHTML = '<option value="">All batches</option>' +
-      Object.entries(STUDENTS).map(([id, studs]) =>
-        '<option value="'+id+'">'+(studs[0]?.batchName||'Batch')+' ('+studs.length+')</option>'
-      ).join('');
-  }
-  list.innerHTML = allStudents.map(s => {
-    const isRisk = s.risk || s.acc < 50;
-    return '<div class="student-row" data-name="'+(s.name||'').toLowerCase()+'" data-batch="'+s.batchId+'" data-risk="'+(isRisk?1:0)+'"'
-      +' style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;"'
-      +' onclick="viewStudent(''+s.id+'')">'
-      +'<div style="width:38px;height:38px;border-radius:50%;background:'+(isRisk?'#FFEBEE':'var(--blue-lt)')+';display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.875rem;color:'+(isRisk?'var(--red)':'var(--blue-dk)')+';flex-shrink:0;">'+s.initials+'</div>'
-      +'<div style="flex:1;min-width:0;"><div style="font-size:.875rem;font-weight:700;">'+s.name+'</div><div style="font-size:.72rem;color:var(--text3);">'+s.meta+'</div></div>'
-      +'<div style="text-align:right;flex-shrink:0;">'
-        +'<div style="font-size:.82rem;font-weight:700;color:'+(isRisk?'var(--red)':'var(--green)')+';">'+(isRisk?'⚠️ Needs attention':'✅ On track')+'</div>'
-        +'<div style="font-size:.68rem;color:var(--text3);">Accuracy: '+s.acc+'% · 🔥'+s.streak+'d</div>'
-      +'</div></div>';
-  }).join('');
-}
-
-function filterStudents() {
-  const search = (document.getElementById('studentSearch')?.value||'').toLowerCase();
-  const batch  = document.getElementById('filterBatch')?.value||'';
-  const status = document.getElementById('filterStatus')?.value||'';
-  document.querySelectorAll('#studentList .student-row').forEach(row => {
-    const nameMatch   = !search || (row.dataset.name||'').includes(search);
-    const batchMatch  = !batch  || row.dataset.batch === batch;
-    const statusMatch = !status || (status==='risk' && row.dataset.risk==='1');
-    row.style.display = nameMatch && batchMatch && statusMatch ? '' : 'none';
-  });
-}
-
-// ══ ATTENDANCE — uses STUDENTS data ═══════════════════════════
-function populateAttBatches() {
-  const sel = document.getElementById('attBatch');
-  if (!sel) return;
-  const batches = Object.entries(STUDENTS);
-  if (!batches.length) { sel.innerHTML = '<option value="">No batches found</option>'; return; }
-  sel.innerHTML = '<option value="">Select batch...</option>' +
-    batches.map(([id, studs]) => '<option value="'+id+'">'+(studs[0]?.batchName||'Batch')+'</option>').join('');
-}
-
-function loadAttendance() {
-  const batchId = document.getElementById('attBatch')?.value;
-  const date    = document.getElementById('attDate')?.value;
-  const list    = document.getElementById('attList');
-  if (!list) return;
-  if (!batchId) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">Select a batch above</div>'; return; }
-  const students = STUDENTS[batchId] || [];
-  if (!students.length) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">No students in this batch.</div>'; return; }
-  const title = document.getElementById('attTitle');
-  if (title && date) title.textContent = 'Attendance for '+new Date(date+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
-  list.innerHTML = students.map(s =>
-    '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">'
-    +'<div style="width:36px;height:36px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;flex-shrink:0;">'+s.initials+'</div>'
-    +'<div style="flex:1;font-size:.875rem;font-weight:700;">'+s.name+'</div>'
-    +'<div style="display:flex;gap:8px;">'
-      +'<label style="display:flex;align-items:center;gap:4px;font-size:.82rem;font-weight:700;cursor:pointer;"><input type="radio" name="att-'+s.id+'" value="present" checked style="accent-color:var(--green);"> Present</label>'
-      +'<label style="display:flex;align-items:center;gap:4px;font-size:.82rem;font-weight:700;cursor:pointer;"><input type="radio" name="att-'+s.id+'" value="absent" style="accent-color:var(--red);"> Absent</label>'
-    +'</div></div>'
-  ).join('');
-}
-
-function saveAttendance() {
-  const batchId = document.getElementById('attBatch')?.value;
-  const date    = document.getElementById('attDate')?.value;
-  if (!batchId || !date) { showToast('Select batch and date first', ''); return; }
-  const students = STUDENTS[batchId] || [];
-  let present=0, absent=0;
-  students.forEach(s => {
-    const val = document.querySelector('input[name="att-'+s.id+'"]:checked')?.value;
-    if (val==='present') present++; else absent++;
-  });
-  showToast('Attendance saved — '+present+' present, '+absent+' absent', 'success');
-}
-
-// ══ WORKSHEET RESULTS — async, uses DB ═══════════════════════
-async function loadWsResults() {
-  const list = document.getElementById('wsResultsList');
-  if (!list) return;
-  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">Loading...</div>';
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    const { data: worksheets } = await sb.from('lx_worksheets')
-      .select('id, title, level, created_at, batch_id, batches!batch_id(name)')
-      .eq('created_by', session.user.id).eq('is_active', true)
-      .order('created_at', { ascending: false }).limit(20);
-    if (!worksheets?.length) {
-      list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">No worksheets assigned yet. Use LX Designer to create and assign worksheets.</div>';
-      return;
-    }
-    const { data: responses } = await sb.from('worksheet_responses')
-      .select('worksheet_id, student_id, score, total, xp_earned, submitted_at, users!student_id(full_name)')
-      .in('worksheet_id', worksheets.map(w => w.id))
-      .order('submitted_at', { ascending: false });
-    const respByWs = {};
-    (responses||[]).forEach(r => { if(!respByWs[r.worksheet_id]) respByWs[r.worksheet_id]=[]; respByWs[r.worksheet_id].push(r); });
-    const withSubs = worksheets.filter(w => respByWs[w.id]?.length);
-    if (!withSubs.length) {
-      list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">No submissions yet — students have not submitted any worksheets.</div>';
-      return;
-    }
-    list.innerHTML = withSubs.map(w => {
-      const resps = respByWs[w.id]||[];
-      const avg = Math.round(resps.reduce((s,r)=>s+(r.score/r.total*100),0)/resps.length);
-      const avgCol = avg>=80?'var(--green)':avg>=50?'var(--orange)':'var(--red)';
-      return '<div style="background:var(--bg);border:2px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;">'
-        +'<div style="padding:12px 16px;background:var(--bg2);border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">'
-          +'<div><div style="font-size:.9rem;font-weight:800;">'+w.title+'</div>'
-          +'<div style="font-size:.72rem;color:var(--text3);margin-top:2px;">Level '+(w.level||'?')+' · '+(w.batches?.name||'Individual')+' · '+new Date(w.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})+'</div></div>'
-          +'<div style="text-align:right;"><div style="font-size:.9rem;font-weight:800;color:'+avgCol+';">'+avg+'% avg</div>'
-          +'<div style="font-size:.72rem;color:var(--text3);">'+resps.length+' submission'+(resps.length!==1?'s':'')+'</div></div></div>'
-        +resps.map(r=>{
-          const pct=Math.round(r.score/r.total*100);
-          const col=pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)';
-          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--border);">'
-            +'<div style="flex:1;font-size:.875rem;font-weight:700;">'+(r.users?.full_name||'Student')+'</div>'
-            +'<div style="font-size:.78rem;color:var(--text3);">'+new Date(r.submitted_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})+'</div>'
-            +'<div style="font-weight:800;color:'+col+';">'+r.score+'/'+r.total+' ('+pct+'%)</div></div>';
-        }).join('')+'</div>';
-    }).join('');
-  } catch(e) { list.innerHTML = '<div style="padding:20px;color:var(--red);">Error: '+e.message+'</div>'; }
-}
-
-function setDefaultDate() {
-  const d = document.getElementById('attDate');
-  if (d && !d.value) d.value = new Date().toISOString().split('T')[0];
-}
-function renderAllStudents() { renderStudentList(); }
-function exportScores() {
-  const rows = document.querySelectorAll('#submList > div');
-  let csv = 'Name,Accuracy,Score\n';
-  rows.forEach(row => {
-    const divs = row.querySelectorAll('div');
-    if (divs.length >= 3) csv += '"'+( divs[1]?.querySelector('div')?.textContent?.trim()||'')+'","'+(divs[2]?.textContent?.trim()||'')+'"\n';
-  });
-  const a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download = 'scores.csv'; a.click();
-}
-
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
@@ -1093,7 +878,6 @@ async function assignHomework() {
   setTimeout(() => { window.location.href = 'lx-designer.html'; }, 1800);
 }
 
-async
 function exportAttendance() { showToast('Attendance report exported!', 'success'); }
 
 // ── SCHEDULE ───────────────────────────────────────────────
@@ -1562,6 +1346,225 @@ async function loadWsResults() {
 
 
 // ── MISSING STUBS ─────────────────────────────────────────────
+// ══ REVIEW SUBMISSIONS ════════════════════════════════════════
+async function populateReviewDropdown() {
+  const sel = document.getElementById('hwSelect');
+  if (!sel) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const { data: wsList } = await sb.from('lx_worksheets')
+      .select('id,title,level,created_at,batch_id,batches!batch_id(name)')
+      .eq('created_by', session.user.id).eq('is_active', true)
+      .order('created_at', { ascending: false }).limit(30);
+    if (!wsList?.length) {
+      sel.innerHTML = '<option value="">No worksheets yet — use LX Designer</option>';
+      document.getElementById('submList').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">No worksheets found. Create one in LX Designer first.</div>';
+      return;
+    }
+    sel.innerHTML = '<option value="">Select a worksheet...</option>' +
+      wsList.map(w => `<option value="${w.id}">${w.title} — ${w.batches?.name||'Individual'} · L${w.level||'?'}</option>`).join('');
+    sel.value = wsList[0].id;
+    loadSubmissions();
+  } catch(e) { console.error('populateReviewDropdown:', e.message); }
+}
+
+async function loadSubmissions() {
+  const wsId = document.getElementById('hwSelect')?.value;
+  const list  = document.getElementById('submList');
+  const titleEl = document.getElementById('submTitle');
+  if (!list) return;
+  if (!wsId) {
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">Select a worksheet above</div>';
+    return;
+  }
+  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">Loading...</div>';
+  try {
+    const { data: ws } = await sb.from('lx_worksheets')
+      .select('title,batch_id,student_id,batches!batch_id(name)').eq('id', wsId).single();
+    let students = ws?.batch_id && STUDENTS[ws.batch_id] ? STUDENTS[ws.batch_id]
+      : ws?.student_id ? Object.values(STUDENTS).flat().filter(s => s.id === ws.student_id)
+      : Object.values(STUDENTS).flat();
+    const { data: responses } = await sb.from('worksheet_responses')
+      .select('student_id,score,total,xp_earned,submitted_at').eq('worksheet_id', wsId);
+    const respMap = {};
+    (responses||[]).forEach(r => respMap[r.student_id] = r);
+    const submitted = students.filter(s => respMap[s.id]);
+    const avg = submitted.length ? Math.round(submitted.reduce((sum,s)=>sum+(respMap[s.id].score/respMap[s.id].total*100),0)/submitted.length) : 0;
+    if (titleEl) titleEl.textContent = `${ws?.title||'Worksheet'} · ${submitted.length}/${students.length} submitted · Avg ${avg}%`;
+    const expBtn = document.getElementById('exportBtn');
+    if (expBtn) expBtn.style.display = submitted.length ? 'inline' : 'none';
+    if (!students.length) { list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">No students found.</div>'; return; }
+    list.innerHTML = students.map(s => {
+      const r = respMap[s.id];
+      const pct = r ? Math.round(r.score/r.total*100) : null;
+      const col = pct===null?'var(--text3)':pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)';
+      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;">${s.initials}</div>
+        <div style="flex:1"><div style="font-size:.875rem;font-weight:700;">${s.name}</div><div style="font-size:.72rem;color:var(--text3);">${s.meta}</div></div>
+        <div style="font-weight:800;color:${col};">${r ? `${r.score}/${r.total} (${pct}%)` : '<span style="color:var(--text3);font-size:.82rem;">Pending</span>'}</div>
+      </div>`;
+    }).join('');
+  } catch(e) { list.innerHTML = `<div style="padding:20px;color:var(--red);">Error: ${e.message}</div>`; }
+}
+
+function exportScores() {
+  const rows = document.querySelectorAll('#submList > div');
+  let csv = 'Name,Score\n';
+  rows.forEach(row => {
+    const divs = row.querySelectorAll('div');
+    if (divs.length >= 3) csv += '"'+(divs[1]?.querySelector('div')?.textContent?.trim()||'')+'","'+(divs[2]?.textContent?.trim()||'')+'"\n';
+  });
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'scores.csv'; a.click();
+}
+
+// ══ STUDENT PROGRESS ══════════════════════════════════════════
+function renderStudentList() {
+  const list = document.getElementById('studentList');
+  if (!list) return;
+  const all = Object.values(STUDENTS).flat();
+  if (!all.length) { list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);">No students in your batches yet.</div>'; return; }
+  const filterBatch = document.getElementById('filterBatch');
+  if (filterBatch && filterBatch.options.length <= 1) {
+    filterBatch.innerHTML = '<option value="">All batches</option>' +
+      Object.entries(STUDENTS).map(([id,s]) => `<option value="${id}">${s[0]?.batchName||'Batch'} (${s.length})</option>`).join('');
+  }
+  list.innerHTML = all.map(s => {
+    const isRisk = s.risk || s.acc < 50;
+    return `<div class="student-row" data-name="${(s.name||'').toLowerCase()}" data-batch="${s.batchId}" data-risk="${isRisk?1:0}"
+      style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;"
+      onclick="viewStudent('${s.id}')">
+      <div style="width:38px;height:38px;border-radius:50%;background:${isRisk?'#FFEBEE':'var(--blue-lt)'};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.875rem;color:${isRisk?'var(--red)':'var(--blue-dk)'};">${s.initials}</div>
+      <div style="flex:1;min-width:0;"><div style="font-size:.875rem;font-weight:700;">${s.name}</div><div style="font-size:.72rem;color:var(--text3);">${s.meta}</div></div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-size:.82rem;font-weight:700;color:${isRisk?'var(--red)':'var(--green)'};">${isRisk?'⚠️ Needs attention':'✅ On track'}</div>
+        <div style="font-size:.68rem;color:var(--text3);">Accuracy: ${s.acc}% · 🔥${s.streak}d</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterStudents() {
+  const search = (document.getElementById('studentSearch')?.value||'').toLowerCase();
+  const batch  = document.getElementById('filterBatch')?.value||'';
+  const status = document.getElementById('filterStatus')?.value||'';
+  document.querySelectorAll('#studentList .student-row').forEach(row => {
+    const ok = (!search || row.dataset.name.includes(search))
+            && (!batch  || row.dataset.batch === batch)
+            && (!status || (status==='risk' && row.dataset.risk==='1'));
+    row.style.display = ok ? '' : 'none';
+  });
+}
+
+// ══ ATTENDANCE ════════════════════════════════════════════════
+function populateAttBatches() {
+  const sel = document.getElementById('attBatch');
+  if (!sel) return;
+  const batches = Object.entries(STUDENTS);
+  if (!batches.length) { sel.innerHTML = '<option value="">No batches found</option>'; return; }
+  if (sel.options.length <= 1) {
+    sel.innerHTML = '<option value="">Select batch...</option>' +
+      batches.map(([id,s]) => `<option value="${id}">${s[0]?.batchName||'Batch'}</option>`).join('');
+  }
+}
+
+function loadAttendance() {
+  const batchId = document.getElementById('attBatch')?.value;
+  const date    = document.getElementById('attDate')?.value;
+  const list    = document.getElementById('attList');
+  if (!list) return;
+  if (!batchId) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">Select a batch above</div>'; return; }
+  const students = STUDENTS[batchId] || [];
+  if (!students.length) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">No students in this batch.</div>'; return; }
+  const titleEl = document.getElementById('attTitle');
+  if (titleEl && date) titleEl.textContent = 'Attendance for ' + new Date(date+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  list.innerHTML = students.map(s =>
+    `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;">${s.initials}</div>
+      <div style="flex:1;font-size:.875rem;font-weight:700;">${s.name}</div>
+      <div style="display:flex;gap:8px;">
+        <label style="display:flex;align-items:center;gap:4px;font-size:.82rem;font-weight:700;cursor:pointer;"><input type="radio" name="att-${s.id}" value="present" checked style="accent-color:var(--green);"> Present</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:.82rem;font-weight:700;cursor:pointer;"><input type="radio" name="att-${s.id}" value="absent" style="accent-color:var(--red);"> Absent</label>
+      </div>
+    </div>`
+  ).join('');
+}
+
+function saveAttendance() {
+  const batchId = document.getElementById('attBatch')?.value;
+  if (!batchId) { showToast('Select a batch first',''); return; }
+  const students = STUDENTS[batchId]||[];
+  let present=0, absent=0;
+  students.forEach(s => {
+    if (document.querySelector(`input[name="att-${s.id}"]:checked`)?.value === 'present') present++;
+    else absent++;
+  });
+  showToast(`Attendance saved — ${present} present, ${absent} absent`, 'success');
+}
+
+function setDefaultDate() {
+  const d = document.getElementById('attDate');
+  if (d && !d.value) d.value = new Date().toISOString().split('T')[0];
+}
+
+function renderAllStudents() { renderStudentList(); }
+
+// ══ WORKSHEET RESULTS ═════════════════════════════════════════
+async function loadWsResults() {
+  const list = document.getElementById('wsResultsList');
+  if (!list) return;
+  list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);">Loading...</div>';
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const { data: worksheets } = await sb.from('lx_worksheets')
+      .select('id,title,level,created_at,batch_id,batches!batch_id(name)')
+      .eq('created_by', session.user.id).eq('is_active', true)
+      .order('created_at', { ascending: false }).limit(20);
+    if (!worksheets?.length) {
+      list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">No worksheets assigned yet. Use LX Designer to create and assign worksheets.</div>';
+      return;
+    }
+    const { data: responses } = await sb.from('worksheet_responses')
+      .select('worksheet_id,student_id,score,total,xp_earned,submitted_at,users!student_id(full_name)')
+      .in('worksheet_id', worksheets.map(w=>w.id))
+      .order('submitted_at', { ascending: false });
+    const byWs = {};
+    (responses||[]).forEach(r => { if(!byWs[r.worksheet_id]) byWs[r.worksheet_id]=[]; byWs[r.worksheet_id].push(r); });
+    const withSubs = worksheets.filter(w => byWs[w.id]?.length);
+    if (!withSubs.length) {
+      list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);">No submissions yet.</div>';
+      return;
+    }
+    list.innerHTML = withSubs.map(w => {
+      const resps = byWs[w.id]||[];
+      const avg = Math.round(resps.reduce((s,r)=>s+(r.score/r.total*100),0)/resps.length);
+      const col = avg>=80?'var(--green)':avg>=50?'var(--orange)':'var(--red)';
+      return `<div style="background:var(--bg);border:2px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;">
+        <div style="padding:12px 16px;background:var(--bg2);border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+          <div>
+            <div style="font-size:.9rem;font-weight:800;">${w.title}</div>
+            <div style="font-size:.72rem;color:var(--text3);">Level ${w.level||'?'} · ${w.batches?.name||'Individual'} · ${new Date(w.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:.9rem;font-weight:800;color:${col};">${avg}% avg</div>
+            <div style="font-size:.72rem;color:var(--text3);">${resps.length} submission${resps.length!==1?'s':''}</div>
+          </div>
+        </div>
+        ${resps.map(r => {
+          const pct = Math.round(r.score/r.total*100);
+          const rc = pct>=80?'var(--green)':pct>=50?'var(--orange)':'var(--red)';
+          return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--border);">
+            <div style="flex:1;font-size:.875rem;font-weight:700;">${r.users?.full_name||'Student'}</div>
+            <div style="font-size:.78rem;color:var(--text3);">${new Date(r.submitted_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</div>
+            <div style="font-weight:800;color:${rc};">${r.score}/${r.total} (${pct}%)</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('');
+  } catch(e) { list.innerHTML = `<div style="padding:20px;color:var(--red);">Error: ${e.message}</div>`; }
+}
+
 </script>
 </body>
 </html>

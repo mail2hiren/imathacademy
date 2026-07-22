@@ -583,7 +583,7 @@ async function loadData() {
     for (var i = 0; i < bRes.data.length; i++) {
       var batch = bRes.data[i];
       var bsRes = await sb.from('batch_students')
-        .select('student_id, users!inner(id,full_name,current_level,xp_points,streak_days)')
+        .select('student_id, users(id,full_name,current_level,xp_points,streak_days)')
         .eq('batch_id', batch.id);
       var students = [];
       if (bsRes.data) {
@@ -782,7 +782,7 @@ async function loadRecentSubmissions() {
       return;
     }
     var res = await sb.from('worksheet_responses')
-      .select('student_id,score,total,submitted_at,worksheet_id,users!inner(full_name),lx_worksheets!worksheet_id(title)')
+      .select('student_id,score,total,submitted_at,worksheet_id')
       .in('worksheet_id', wsIds)
       .order('submitted_at', {ascending: false}).limit(10);
 
@@ -800,7 +800,7 @@ async function loadRecentSubmissions() {
       var pct = r.total ? Math.round(r.score / r.total * 100) : 0;
       var col = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--orange)' : 'var(--red)';
       html += '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);">';
-      html += '<div style="flex:1;min-width:0;"><div style="font-size:.875rem;font-weight:700;">' + (r.users ? r.users.full_name : 'Student') + '</div>';
+      html += '<div style="flex:1;min-width:0;"><div style="font-size:.875rem;font-weight:700;">' + (function(){var allS=[];BATCHES.forEach(function(b){allS=allS.concat(b.students);});var found=allS.find(function(s){return s.id===r.student_id;});return found?found.name:'Student';})() + '</div>';
       html += '<div style="font-size:.72rem;color:var(--text3);">' + (r.lx_worksheets ? r.lx_worksheets.title : 'Worksheet') + ' · ' + fmtDateTime(r.submitted_at) + '</div></div>';
       html += '<div style="font-weight:800;color:' + col + ';">' + r.score + '/' + r.total + ' (' + pct + '%)</div></div>';
     });
@@ -881,7 +881,7 @@ async function populateReviewDropdown() {
   if (!sel) return;
   try {
     var res = await sb.from('lx_worksheets')
-      .select('id,title,level,created_at,batch_id,batches!inner(name)')
+      .select('id,title,level,created_at,batch_id')
       .eq('created_by', TEACHER_ID).eq('is_active', true)
       .order('created_at', {ascending: false}).limit(30);
     if (!res.data || !res.data.length) {
@@ -891,7 +891,12 @@ async function populateReviewDropdown() {
     }
     sel.innerHTML = '<option value="">Select a worksheet...</option>';
     res.data.forEach(function(w) {
-      sel.innerHTML += '<option value="' + w.id + '">' + w.title + ' — ' + (w.batches ? w.batches.name : 'Individual') + ' · L' + (w.level || '?') + '</option>';
+      var batchName = '';
+      var foundB = BATCHES.find(function(b) { return b.id === w.batch_id; });
+      if (foundB) batchName = foundB.name;
+      else if (w.batch_id) batchName = 'Batch';
+      else batchName = 'Individual';
+      sel.innerHTML += '<option value="' + w.id + '">' + w.title + ' — ' + batchName + ' · L' + (w.level || '?') + '</option>';
     });
     sel.value = res.data[0].id;
     loadSubmissions();
@@ -914,7 +919,7 @@ async function loadSubmissions() {
   }
   body.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
   try {
-    var wsRes = await sb.from('lx_worksheets').select('title,batch_id,student_id,batches!inner(name)').eq('id', wsId).single();
+    var wsRes = await sb.from('lx_worksheets').select('title,batch_id,student_id').eq('id', wsId).single();
     var ws = wsRes.data;
     var students = [];
     if (ws && ws.batch_id) {
@@ -1168,7 +1173,7 @@ async function loadWsResults() {
   el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
   try {
     var myWs = await sb.from('lx_worksheets')
-      .select('id,title,level,created_at,batch_id,batches!inner(name)')
+      .select('id,title,level,created_at,batch_id')
       .eq('created_by', TEACHER_ID).eq('is_active', true)
       .order('created_at', {ascending: false}).limit(20);
     if (!myWs.data || !myWs.data.length) {
@@ -1177,7 +1182,7 @@ async function loadWsResults() {
     }
     var wsIds = myWs.data.map(function(w) { return w.id; });
     var respRes = await sb.from('worksheet_responses')
-      .select('worksheet_id,student_id,score,total,xp_earned,submitted_at,users!inner(full_name)')
+      .select('worksheet_id,student_id,score,total,xp_earned,submitted_at')
       .in('worksheet_id', wsIds)
       .order('submitted_at', {ascending: false});
     var byWs = {};
@@ -1198,13 +1203,13 @@ async function loadWsResults() {
       html += '<div class="card" style="margin-bottom:12px;">';
       html += '<div class="card-header"><div class="card-title">' + w.title + '</div>';
       html += '<div style="text-align:right;"><div style="font-size:.9rem;font-weight:800;color:' + avgCol + ';">' + avg + '% avg</div>';
-      html += '<div style="font-size:.72rem;color:var(--text3);">Level ' + (w.level || '?') + ' · ' + (w.batches ? w.batches.name : 'Individual') + ' · ' + resps.length + ' submission' + (resps.length !== 1 ? 's' : '') + '</div></div></div>';
+      html += '<div style="font-size:.72rem;color:var(--text3);">Level ' + (w.level || '?') + ' · ' + (BATCHES.find(function(b){return b.id===w.batch_id;}) ? BATCHES.find(function(b){return b.id===w.batch_id;}).name : 'Individual') + ' · ' + resps.length + ' submission' + (resps.length !== 1 ? 's' : '') + '</div></div></div>';
       html += '<div class="card-body">';
       resps.forEach(function(r) {
         var pct = Math.round(r.score / r.total * 100);
         var col = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--orange)' : 'var(--red)';
         html += '<div class="roster-row" style="cursor:default;">';
-        html += '<div style="flex:1;font-size:.875rem;font-weight:700;">' + (r.users ? r.users.full_name : 'Student') + '</div>';
+        html += '<div style="flex:1;font-size:.875rem;font-weight:700;">' + (function(){var allS=[];BATCHES.forEach(function(b){allS=allS.concat(b.students);});var found=allS.find(function(s){return s.id===r.student_id;});return found?found.name:'Student';})() + '</div>';
         html += '<div style="font-size:.78rem;color:var(--text3);margin-right:12px;">' + fmtDate(r.submitted_at) + '</div>';
         html += '<div style="font-weight:800;color:' + col + ';">' + r.score + '/' + r.total + ' (' + pct + '%)</div></div>';
       });

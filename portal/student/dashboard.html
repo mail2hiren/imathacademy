@@ -1034,7 +1034,7 @@ async function loadStats(userId) {
     weekStart.setHours(0,0,0,0);
     const { data: weekSessions } = await sb
       .from('practice_sessions')
-      .select('xp_earned')
+      .select('xp_awarded')
       .eq('student_id', userId)
       .gte('created_at', weekStart.toISOString());
     stats.weeklyXP = (weekSessions || []).reduce((s,r) => s + (r.xp_awarded||0), 0);
@@ -1060,12 +1060,12 @@ async function loadStats(userId) {
     // 7. In-session correct answer streak + total questions today
     const { data: todaySessions } = await sb
       .from('practice_sessions')
-      .select('questions_correct,questions_attempted, session_type')
+      .select('questions_correct,questions_attempted,topic')
       .eq('student_id', userId)
       .gte('created_at', todayStart.toISOString())
       .order('created_at', { ascending: false });
     if (todaySessions?.length) {
-      stats.streakInSession = todaySessions[0].correct_answers || 0;
+      stats.streakInSession = todaySessions[0].questions_correct || 0;
       stats.questionsToday = todaySessions.reduce((s,r) => s + (r.questions_attempted||0), 0);
       stats.worksheetsToday = todaySessions.filter(r => r.topic==='worksheet').length;
     }

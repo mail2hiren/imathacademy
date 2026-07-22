@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="version" content="v20260722072311">
+  <meta name="version" content="v20260722072704">
   <link rel="icon" type="image/png" href="/assets/favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Teacher Dashboard — iMathAcademy</title>
@@ -935,350 +935,103 @@ function populateVcBatch() {
 }
 
 async function scheduleClass() {
-  const batchId  = document.getElementById('vcBatch').value;
-  const topic    = document.getElementById('vcTopic').value.trim();
-  const date     = document.getElementById('vcDate').value;
-  const start    = document.getElementById('vcStart').value;
-  const duration = document.getElementById('vcDuration').value;
-  const meetLink = document.getElementById('vcMeetLink').value.trim();
+  const batchId  = document.getElementById('vcBatch')?.value;
+  const topic    = document.getElementById('vcTopic')?.value.trim();
+  const date     = document.getElementById('vcDate')?.value;
+  const start    = document.getElementById('vcStart')?.value;
+  const duration = parseInt(document.getElementById('vcDuration')?.value || '60');
+  const meetLink = document.getElementById('vcMeetLink')?.value.trim();
 
   if (!batchId || !topic || !date || !start || !meetLink) {
     showToast('Please fill all fields including the Meet link!', ''); return;
   }
   if (!meetLink.includes('meet.google.com')) {
-    showToast('Please enter a valid Google Meet link!', ''); return;
+    showToast('Please enter a valid Google Meet link', ''); return;
   }
 
-  const startDT  = new Date(`${date}T${start}`);
-  const endDT    = new Date(startDT.getTime() + duration*60000);
-  const batchStudents = STUDENTS[batchId] || [];
-
-  // Save to Supabase — store in batches.meet_link and schedule_json
   try {
-    const { data:{ session } } = await sb.auth.getSession();
-    if (!session) return;
+    const { data: { session } } = await sb.auth.getSession();
+    const batchStudents = STUDENTS[batchId] || [];
+    const startDT = new Date(date + 'T' + start);
 
-    // Save class record to notifications for students
     const classRecord = {
-      batch_id:   batchId,
-      batch_name: batchStudents[0]?.batchName || 'Batch',
+      id:          Date.now().toString(),
+      batch_id:    batchId,
+      batch_name:  batchStudents[0]?.batchName || 'Batch',
       topic,
       date,
-      start_time: start,
-      duration:   parseInt(duration),
-      meet_link:  meetLink,
-      teacher_id: session.user.id,
-      scheduled_at: new Date().toISOString(),
-      id: Date.now().toString(),
+      start_time:  start,
+      duration,
+      meet_link:   meetLink,
+      teacher_id:  session.user.id,
     };
 
-    // Update batch with latest meet link
+    // Save to batches table as schedule_json
     await sb.from('batches').update({
-      meet_link:     meetLink,
-      schedule_json: { text: `${topic} · ${formatClassTime(startDT)}`, next_class: date }
+      schedule_json: { text: topic + ' · ' + formatClassTime(startDT), next_class: date, meet_link: meetLink }
     }).eq('id', batchId);
 
-    // Notify all students in batch
-    const notifs = batchStudents.map(s => ({
-      user_id: s.id,
-      type:    'class_scheduled',
-      title:   `📹 Virtual class scheduled: ${topic}`,
-      message: JSON.stringify(classRecord),
-    }));
-    if (notifs.length) await sb.from('notifications').insert(notifs);
+    // Notify students
+    if (batchStudents.length) {
+      await sb.from('notifications').insert(
+        batchStudents.map(s => ({
+          user_id: s.id,
+          type: 'class_scheduled',
+          title: '📹 Virtual class scheduled: ' + topic,
+          message: 'Date: ' + new Date(date).toLocaleDateString('en-IN', {day:'numeric',month:'short'}) + ' at ' + start + ' · ' + meetLink,
+        }))
+      );
+    }
 
     scheduledClasses.unshift(classRecord);
     renderVcList();
+    showToast('Class scheduled! ' + batchStudents.length + ' students notified 🚀', 'success');
 
     // Clear form
-    ['vcTopic','vcDate','vcStart','vcMeetLink'].forEach(id => { document.getElementById(id).value=''; });
-    document.getElementById('vcBatch').value = '';
-
-    showToast(`Class scheduled! ${batchStudents.length} students notified 🚀`, 'success');
-
+    ['vcTopic','vcDate','vcStart','vcMeetLink'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
   } catch(e) {
-    console.error(e);
-    showToast('Error saving class — please try again', '');
+    showToast('Error scheduling class: ' + e.message, '');
   }
+}
+
+function formatClassTime(dt) {
+  return dt.toLocaleDateString('en-IN', {day:'numeric',month:'short'}) + ' ' +
+         dt.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'});
 }
 
 function renderVcList() {
   const el = document.getElementById('vcList');
+  if (!el) return;
   if (!scheduledClasses.length) {
-    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-weight:600">No classes scheduled yet</div>';
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-weight:600">No classes scheduled yet — fill the form above to schedule one</div>';
     return;
   }
-  el.innerHTML = '';
   const now = new Date();
-  scheduledClasses.forEach(cls => {
-    const startDT = new Date(`${cls.date}T${cls.start_time}`);
-    const endDT   = new Date(startDT.getTime() + cls.duration*60000);
+  el.innerHTML = scheduledClasses.map(cls => {
+    const startDT = new Date(cls.date + 'T' + cls.start_time);
+    const endDT   = new Date(startDT.getTime() + (cls.duration||60)*60000);
     const isLive  = now >= startDT && now <= endDT;
     const isPast  = now > endDT;
     const status  = isLive ? 'live' : isPast ? 'past' : 'upcoming';
-
-    const card = document.createElement('div');
-    card.className = `vc-card ${status === 'live' ? 'live' : status === 'upcoming' ? 'upcoming' : ''}`;
-    card.innerHTML = `
-      <div class="vc-dot ${status}"></div>
-      <div class="vc-info">
-        <div class="vc-title">${cls.batch_name} — ${cls.topic}</div>
-        <div class="vc-meta">
-          ${new Date(cls.date).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})} · 
-          ${formatTime(cls.start_time)} · ${cls.duration} min
-          ${isLive ? ' · <strong style="color:var(--green-dk)">LIVE NOW</strong>' : ''}
-        </div>
-      </div>
-      ${isLive ? `
-        <button class="vc-btn vc-btn-green" onclick="startLiveClass('${cls.id}','${cls.meet_link}','${cls.topic}')">Start class →</button>
-      ` : isPast ? `
-        <span style="font-size:.75rem;color:var(--text3);font-weight:600">Completed</span>
-      ` : `
-        <button class="vc-btn vc-btn-blue"  onclick="window.open('${cls.meet_link}','_blank')">Open Meet</button>
-        <button class="vc-btn vc-btn-ghost" onclick="cancelClass('${cls.id}')" style="margin-left:6px">Cancel</button>
-      `}
-    `;
-    el.appendChild(card);
-  });
-
-  // Show live badge in nav if any live class
-  const hasLive = scheduledClasses.some(cls => {
-    const s = new Date(`${cls.date}T${cls.start_time}`);
-    const e = new Date(s.getTime() + cls.duration*60000);
-    return new Date() >= s && new Date() <= e;
-  });
-  const badge = document.getElementById('liveClassBadge');
-  if (badge) badge.style.display = hasLive ? '' : 'none';
-}
-
-function startLiveClass(id, meetLink, topic) {
-  activeClassId = id;
-  document.getElementById('icpText').textContent  = `Live: ${topic}`;
-  document.getElementById('icpJoinBtn').onclick   = () => joinCurrentClass();
-  document.getElementById('inClassPanel').classList.add('show');
-  window.open(meetLink, '_blank');
-  showToast('Class started! Students can now join from their dashboard 🟢', 'success');
-}
-
-function joinCurrentClass() {
-  const cls = scheduledClasses.find(c => c.id === activeClassId);
-  if (cls) window.open(cls.meet_link, '_blank');
-}
-
-function endClass() {
-  activeClassId = null;
-  document.getElementById('inClassPanel').classList.remove('show');
-  showToast('Class ended', '');
-}
-
-function cancelClass(id) {
-  scheduledClasses = scheduledClasses.filter(c => c.id !== id);
-  renderVcList();
-  showToast('Class cancelled', '');
-}
-
-function formatClassTime(dt) {
-  return dt.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'}) + ' at ' + dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-}
-function formatTime(timeStr) {
-  if (!timeStr) return '';
-  const [h,m] = timeStr.split(':');
-  const d = new Date(); d.setHours(h,m);
-  return d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-}
-
-// Load scheduled classes from notifications on init
-async function loadScheduledClasses(userId) {
-  try {
-    const { data } = await sb.from('notifications')
-      .select('id,title,message,type,created_at,is_read')
-      .eq('user_id', userId)
-      .eq('type', 'class_scheduled')
-      .order('created_at', { ascending:false })
-      .limit(20);
-    // Teacher sees classes they scheduled (stored in batch student notifications)
-    // Load from batches meet_link instead
-    const batchKeys = Object.keys(STUDENTS);
-    scheduledClasses = [];
-    // Will be populated from batch data if schedule_json exists
-    renderVcList();
-  } catch(e) { console.error(e); }
-}
-
-async function init() {
-  document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) { window.location.href = '../../login.html'; return; }
-
-    const { data: profile } = await sb.from('users').select('full_name, role').eq('id', session.user.id).single();
-    if (!profile || profile.role !== 'teacher') { window.location.href = '../../login.html'; return; }
-
-    // ── Real name from DB ──
-    const name = profile.full_name || 'Teacher';
-    loadTeacherNotifications(session.user.id);
-    document.getElementById('userAv').textContent   = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-    document.getElementById('userName').textContent = name;
-
-    await loadTeacherData(session.user.id);
-    populateVcBatch();
-    await loadScheduledClasses(session.user.id);
-
-    // ── Populate real stats ──
-    const all = Object.values(STUDENTS).flat();
-    const batchCount = Object.keys(STUDENTS).length;
-    document.getElementById('statTotalStudents').textContent = all.length || '0';
-    document.getElementById('statBatchCount').textContent    = `${batchCount} batch${batchCount !== 1 ? 'es' : ''}`;
-    document.getElementById('statAtRisk').textContent        = all.filter(s => s.risk).length;
-
-    // ── Pending submissions count ──
-    let pc = 0;
-    try {
-      const { data: hwData } = await sb.from('lx_worksheets').select('id').eq('created_by', session.user.id).eq('is_active', true);
-      const hwIds = (hwData || []).map(h => h.id);
-      if (hwIds.length > 0) {
-        // Count worksheet_responses for teacher's worksheets that have no feedback yet
-        const { data: wsReviews } = await sb
-          .from('worksheet_responses')
-          .select('id')
-          .in('worksheet_id', hwIds);
-        pc = wsReviews?.length || 0;
-      }
-    } catch(e) { pc = 0; }
-    document.getElementById('statPendingReview').textContent = pc;
-    const badge = document.getElementById('pendingBadge');
-    if (pc > 0) { badge.textContent = pc; badge.style.display = ''; }
-
-    // ── Dynamic alerts ──
-    const alertsEl = document.getElementById('alertsContainer');
-    const alerts = [];
-    const atRisk = all.filter(s => s.risk);
-    if (atRisk.length > 0) {
-      alerts.push(`<div class="alert alert-err">
-        <div class="alert-dot"></div>
-        <div class="alert-body">
-          <div class="alert-title">${atRisk.length} student${atRisk.length>1?'s':''} — accuracy below 55%</div>
-          <div class="alert-sub">${atRisk.map(s=>s.name).join(', ')} · Review their progress</div>
-        </div>
-        <button class="alert-btn" style="background:var(--red);color:#fff" onclick="showTab('students',null)">View →</button>
-      </div>`);
-    }
-    // Inactive students (no login for 4+ days)
-    const cutoff = new Date(Date.now() - 4*24*60*60*1000).toISOString().split('T')[0];
-    const inactive = all.filter(s => s.lastSeen && s.lastSeen !== '—' && s.lastSeen < cutoff);
-    inactive.forEach(s => {
-      alerts.push(`<div class="alert alert-warn">
-        <div class="alert-dot"></div>
-        <div class="alert-body">
-          <div class="alert-title">${s.name} has not logged in recently</div>
-          <div class="alert-sub">Consider reaching out to re-engage this student</div>
-        </div>
-        <button class="alert-btn" style="background:var(--orange);color:#fff" onclick="showTab('students',null)">View →</button>
-      </div>`);
-    });
-    if (pc > 0) {
-      alerts.push(`<div class="alert alert-info">
-        <div class="alert-dot"></div>
-        <div class="alert-body">
-          <div class="alert-title">${pc} homework submission${pc>1?'s':''} waiting for your review</div>
-          <div class="alert-sub">Students are waiting for feedback</div>
-        </div>
-        <button class="alert-btn" style="background:var(--blue);color:#fff" onclick="showTab('review',null)">Review →</button>
-      </div>`);
-    }
-    alertsEl.innerHTML = alerts.length
-      ? alerts.join('')
-      : '<div style="padding:16px;color:var(--green-dk);font-weight:700;text-align:center">✅ No alerts — all students are on track!</div>';
-
-    // ── Dynamic schedule from teacher batches ──
-    const scheduleEl = document.getElementById('scheduleContainer');
-    const batchKeys  = Object.keys(STUDENTS);
-    if (!batchKeys.length) {
-      scheduleEl.innerHTML = '<div style="padding:16px;color:var(--text3);font-weight:600">No batches assigned yet</div>';
-    } else {
-      scheduleEl.innerHTML = batchKeys.map(key => {
-        const s = STUDENTS[key] || [];
-        const batchName = s[0]?.batchName || 'Batch';
-        return `<div class="class-card upcoming">
-          <div class="class-dot dot-later"></div>
-          <div class="class-info">
-            <div class="class-name">${batchName}</div>
-            <div class="class-meta">${s.length} student${s.length!==1?'s':''}</div>
-          </div>
-          <button class="class-btn btn-ghost-sm" onclick="showTab('classes',null)">View →</button>
-        </div>`;
-      }).join('');
-    }
-
-  } catch (err) {
-    console.error('Dashboard init error:', err);
-    // Only redirect on auth errors, not general errors
-    if (err?.message?.includes('not authenticated') || err?.status === 401) {
-      window.location.href = '../../login.html';
-    }
-  }
-}
-
-init();
-
-// ── WORKSHEET RESULTS ────────────────────────────────────────
-function toggleWsResult(id) {
-  const el = document.getElementById(id);
-  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
-
-// Call loadWsResults when tab is shown
-const _origShowTab = typeof showTab === 'function' ? showTab : null;
-
-// ── TEACHER NOTIFICATIONS ─────────────────────────────────────
-async function loadTeacherNotifications(userId) {
-  try {
-    const { data: notifs } = await sb.from('notifications')
-      .select('*').eq('user_id', userId).eq('is_read', false)
-      .order('created_at', { ascending: false }).limit(20);
-    const count = notifs?.length || 0;
-    const dot = document.getElementById('notifDot');
-    if (dot) { dot.textContent = count; dot.style.display = count > 0 ? 'flex' : 'none'; }
-    window._teacherNotifs = notifs || [];
-  } catch(e) { console.error('Teacher notifs:', e); }
-}
-
-function toggleTeacherNotif() {
-  let panel = document.getElementById('teacherNotifPanel');
-  if (panel) { panel.remove(); return; }
-  const notifs = window._teacherNotifs || [];
-  panel = document.createElement('div');
-  panel.id = 'teacherNotifPanel';
-  panel.style.cssText = 'position:fixed;top:60px;right:12px;width:320px;max-width:calc(100vw - 24px);background:#fff;border:2px solid #E8EAF6;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,.12);z-index:9999;overflow:hidden;max-height:400px;overflow-y:auto;';
-  panel.innerHTML = `<div style="padding:12px 16px;border-bottom:2px solid #E8EAF6;display:flex;align-items:center;justify-content:space-between;">
-    <div style="font-size:.875rem;font-weight:800;">Notifications</div>
-    <button onclick="markTeacherNotifsRead()" style="font-size:.72rem;font-weight:700;color:#1E88E5;background:none;border:none;cursor:pointer;">Mark all read</button>
-  </div>` + (notifs.length === 0
-    ? '<div style="padding:24px;text-align:center;color:#9090B0;font-size:.82rem;">No new notifications</div>'
-    : notifs.map(n => `<div style="padding:11px 16px;border-bottom:1px solid #F0F0F8;display:flex;gap:10px;align-items:flex-start;background:#F7F8FF;">
-        <div style="font-size:1rem;flex-shrink:0;margin-top:2px;">${n.type==='submission'?'📊':n.type==='homework'?'📚':'🔔'}</div>
-        <div style="flex:1;">
-          <div style="font-size:.82rem;font-weight:700;color:#1A1A2E;">${n.title||''}</div>
-          <div style="font-size:.75rem;color:#9090B0;margin-top:2px;">${n.message||''}</div>
-          <div style="font-size:.68rem;color:#B0B0C8;margin-top:3px;">${n.created_at ? new Date(n.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : ''}</div>
-        </div>
-      </div>`).join(''));
-  document.body.appendChild(panel);
-  markTeacherNotifsRead();
-  setTimeout(() => {
-    document.addEventListener('click', function close(e) {
-      if (!panel.contains(e.target) && e.target.id !== 'notifBtn') { panel.remove(); document.removeEventListener('click', close); }
-    });
-  }, 100);
-}
-
-async function markTeacherNotifsRead() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (!session) return;
-  await sb.from('notifications').update({ is_read: true }).eq('user_id', session.user.id).eq('is_read', false);
-  const dot = document.getElementById('notifDot');
-  if (dot) { dot.style.display = 'none'; }
-  window._teacherNotifs = [];
+    const statusColor = isLive ? 'var(--green)' : isPast ? 'var(--text3)' : 'var(--blue)';
+    const statusLabel = isLive ? '🔴 LIVE NOW' : isPast ? 'Completed' : '📅 Upcoming';
+    return '<div style="background:var(--bg);border:2px solid ' + (isLive ? 'var(--green)' : 'var(--border)') + ';border-radius:14px;padding:14px 16px;margin-bottom:10px;">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">'
+        + '<div>'
+          + '<div style="font-size:.9rem;font-weight:800;">' + (cls.batch_name||'Batch') + ' — ' + (cls.topic||'Class') + '</div>'
+          + '<div style="font-size:.75rem;color:var(--text3);margin-top:3px;">'
+            + new Date(cls.date).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})
+            + ' · ' + (cls.start_time||'') + ' · ' + (cls.duration||60) + ' min'
+          + '</div>'
+        + '</div>'
+        + '<div style="font-size:.78rem;font-weight:800;color:' + statusColor + ';">' + statusLabel + '</div>'
+      + '</div>'
+      + (cls.meet_link ? '<a href="' + cls.meet_link + '" target="_blank" style="display:inline-block;margin-top:10px;padding:8px 16px;background:var(--blue);color:#fff;border-radius:10px;font-size:.82rem;font-weight:700;text-decoration:none;">📹 Join Meet</a>' : '')
+      + '</div>';
+  }).join('');
 }
 
 

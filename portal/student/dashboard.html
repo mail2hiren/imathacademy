@@ -1037,7 +1037,7 @@ async function loadStats(userId) {
       .select('xp_earned')
       .eq('student_id', userId)
       .gte('created_at', weekStart.toISOString());
-    stats.weeklyXP = (weekSessions || []).reduce((s,r) => s + (r.xp_earned||0), 0);
+    stats.weeklyXP = (weekSessions || []).reduce((s,r) => s + (r.xp_awarded||0), 0);
 
     // 5. Leaderboard — top students in same batch by XP this week
     if (batchIds.length) {
@@ -1060,14 +1060,14 @@ async function loadStats(userId) {
     // 7. In-session correct answer streak + total questions today
     const { data: todaySessions } = await sb
       .from('practice_sessions')
-      .select('correct_answers, total_questions, session_type')
+      .select('questions_correct,questions_attempted, session_type')
       .eq('student_id', userId)
       .gte('created_at', todayStart.toISOString())
       .order('created_at', { ascending: false });
     if (todaySessions?.length) {
       stats.streakInSession = todaySessions[0].correct_answers || 0;
-      stats.questionsToday = todaySessions.reduce((s,r) => s + (r.total_questions||0), 0);
-      stats.worksheetsToday = todaySessions.filter(r => r.session_type==='worksheet').length;
+      stats.questionsToday = todaySessions.reduce((s,r) => s + (r.questions_attempted||0), 0);
+      stats.worksheetsToday = todaySessions.filter(r => r.topic==='worksheet').length;
     }
 
     // 8. Quiz done this week

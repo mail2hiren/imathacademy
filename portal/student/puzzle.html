@@ -291,7 +291,7 @@ async function showComplete(xp, title, sub) {
       const earned = new Set((ex||[]).map(b=>b.badge_type));
       if (!earned.has('puzzle_pro')) {
         const { data: ps } = await sb.from('badges').select('id').eq('student_id', session.user.id).eq('badge_type','puzzle_pro');
-        const count = (await sb.from('practice_sessions').select('id').eq('student_id', session.user.id).eq('session_type','puzzle')).data?.length || 0;
+        const count = (await sb.from('practice_sessions').select('id').eq('student_id', session.user.id).eq('topic','puzzle')).data?.length || 0;
         if (count >= 4) await sb.from('badges').insert({ student_id: session.user.id, badge_type: 'puzzle_pro' });
       }
       await sb.from('practice_sessions').insert({ student_id: session.user.id, questions_correct:1, questions_attempted:1, xp_awarded:xp, topic:'puzzle' });

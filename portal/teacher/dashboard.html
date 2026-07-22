@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="version" content="v20260722053706">
+  <meta name="version" content="v20260722054639">
   <link rel="icon" type="image/png" href="/assets/favicon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Teacher Dashboard — iMathAcademy</title>
@@ -666,7 +666,7 @@ async function loadTeacherData(userId) {
       if (!u) continue;
 
       const [{ data: sessions }, { data: weak }] = await Promise.all([
-        sb.from('practice_sessions').select('correct_answers, total_questions').eq('student_id', u.id).limit(50),
+        sb.from('practice_sessions').select('correct_answers,total_questions').eq('student_id', u.id).limit(50),
         Promise.resolve({ data: [] }), // weak topics removed — derived from practice_sessions
       ]);
 
@@ -1276,7 +1276,7 @@ async function markTeacherNotifsRead() {
 // ══ REVIEW TAB ════════════════════════════════════════════════
 // ══ STUDENTS TAB ══════════════════════════════════════════════
 // ══ ATTENDANCE TAB ════════════════════════════════════════════
-async
+
 // ══ WORKSHEET RESULTS TAB ════════════════════════════════════
 async function loadWsResults() {
   const list = document.getElementById('wsResultsList');

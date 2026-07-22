@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curriculum Designer — iMathAcademy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Nunito',sans-serif;background:#F0F2FF;color:#1A1A2E;min-height:100vh;}
+    :root{
+      --blue:#1565C0;--blue-lt:#E3F2FD;--blue-dk:#0D47A1;
+      --green:#2E7D32;--green-lt:#E8F5E9;
+      --orange:#E65100;--orange-lt:#FFF3E0;
+      --red:#C62828;--red-lt:#FFEBEE;
+      --purple:#6A1B9A;--purple-lt:#F3E5F5;
+      --grey:#607D8B;--grey-lt:#ECEFF1;
+      --border:#DEE2F5;--bg:#fff;--bg2:#F0F2FF;
+      --text:#1A1A2E;--text2:#4A4A6A;--text3:#8888AA;
+    }
+
+    /* ── LAYOUT ── */
+    .portal{display:flex;height:100vh;overflow:hidden;}
+    .sidebar{width:220px;flex-shrink:0;background:#1A237E;display:flex;flex-direction:column;height:100vh;overflow-y:auto;}
+    .sb-logo{padding:16px;border-bottom:1px solid rgba(255,255,255,.15);font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:800;color:#fff;}
+    .sb-logo span{display:block;font-size:.7rem;font-weight:600;opacity:.6;font-family:'Nunito',sans-serif;margin-top:2px;}
+    .sb-nav{flex:1;padding:8px 0;}
+    .sb-section{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.4);padding:10px 16px 4px;}
+    .sb-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:.82rem;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer;border:none;background:none;width:100%;text-align:left;border-left:3px solid transparent;font-family:inherit;}
+    .sb-item:hover{background:rgba(255,255,255,.08);color:#fff;}
+    .sb-item.active{background:rgba(255,255,255,.15);color:#fff;border-left-color:#90CAF9;}
+    .sb-footer{padding:12px 16px;border-top:1px solid rgba(255,255,255,.15);}
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+    .topbar{height:56px;background:#fff;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 20px;flex-shrink:0;}
+    .topbar-title{font-family:'Baloo 2',sans-serif;font-size:1.05rem;font-weight:800;flex:1;}
+    .body{flex:1;overflow-y:auto;padding:20px;}
+
+    /* ── CARDS ── */
+    .card{background:#fff;border:2px solid var(--border);border-radius:14px;margin-bottom:16px;}
+    .card-header{padding:14px 18px;border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+    .card-title{font-size:.95rem;font-weight:800;}
+    .card-body{padding:16px 18px;}
+
+    /* ── BUTTONS ── */
+    .btn{padding:8px 16px;border-radius:10px;font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer;border:2px solid transparent;transition:all .12s;white-space:nowrap;text-decoration:none;display:inline-block;}
+    .btn-blue{background:var(--blue);color:#fff;border-color:var(--blue);}
+    .btn-blue:hover{background:var(--blue-dk);}
+    .btn-outline{background:#fff;color:var(--blue);border-color:var(--blue);}
+    .btn-outline:hover{background:var(--blue-lt);}
+    .btn-green{background:var(--green);color:#fff;}
+    .btn-red{background:var(--red-lt);color:var(--red);border-color:var(--red);}
+    .btn-sm{padding:5px 12px;font-size:.75rem;}
+    .btn-ghost{background:var(--bg2);color:var(--text2);border-color:var(--border);}
+
+    /* ── FORMS ── */
+    .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:16px;}
+    .form-group{display:flex;flex-direction:column;gap:4px;}
+    .form-group.full{grid-column:1/-1;}
+    label{font-size:.72rem;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;}
+    input[type=text],input[type=number],select,textarea{width:100%;padding:9px 12px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:.875rem;font-weight:600;outline:none;transition:border .12s;background:#fff;}
+    input:focus,select:focus,textarea:focus{border-color:var(--blue);}
+    textarea{resize:vertical;min-height:80px;}
+    .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
+    .toggle-row:last-child{border-bottom:none;}
+    .toggle-label{font-size:.875rem;font-weight:700;}
+    .toggle-sub{font-size:.72rem;color:var(--text3);margin-top:2px;}
+    .toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
+    .toggle input{opacity:0;width:0;height:0;}
+    .toggle-slider{position:absolute;inset:0;background:#ccc;border-radius:24px;cursor:pointer;transition:.2s;}
+    .toggle-slider:before{position:absolute;content:'';height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;}
+    .toggle input:checked + .toggle-slider{background:var(--blue);}
+    .toggle input:checked + .toggle-slider:before{transform:translateX(20px);}
+
+    /* ── LEVEL TABLE ── */
+    .level-table{width:100%;border-collapse:collapse;}
+    .level-table th{padding:10px 14px;text-align:left;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);border-bottom:2px solid var(--border);background:var(--bg2);}
+    .level-table td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:.875rem;vertical-align:middle;}
+    .level-table tr:last-child td{border-bottom:none;}
+    .level-table tr:hover td{background:#F7F8FF;}
+
+    /* ── STATUS PILLS ── */
+    .pill{font-size:.68rem;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+    .pill-draft{background:#F3E5F5;color:#6A1B9A;}
+    .pill-review{background:#FFF3E0;color:#E65100;}
+    .pill-approved{background:#E3F2FD;color:#1565C0;}
+    .pill-published{background:#E8F5E9;color:#2E7D32;}
+    .pill-archived{background:var(--grey-lt);color:var(--grey);}
+
+    /* ── TABS ── */
+    .tabs{display:flex;gap:2px;border-bottom:2px solid var(--border);margin-bottom:20px;flex-wrap:wrap;}
+    .tab-btn{padding:10px 16px;font-family:inherit;font-size:.82rem;font-weight:700;border:none;background:none;cursor:pointer;color:var(--text3);border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .12s;}
+    .tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
+    .tab-btn:hover{color:var(--text);}
+    .tab-pane{display:none;}
+    .tab-pane.active{display:block;}
+
+    /* ── CONCEPT MATRIX ── */
+    .concept-matrix{width:100%;border-collapse:collapse;font-size:.82rem;}
+    .concept-matrix th{padding:8px 10px;text-align:center;font-size:.68rem;font-weight:800;text-transform:uppercase;color:var(--text3);border-bottom:2px solid var(--border);border-right:1px solid var(--border);background:var(--bg2);white-space:nowrap;}
+    .concept-matrix th:first-child{text-align:left;min-width:160px;}
+    .concept-matrix td{padding:6px 8px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);text-align:center;vertical-align:middle;}
+    .concept-matrix td:first-child{text-align:left;font-weight:700;font-size:.82rem;background:var(--bg2);}
+    .concept-matrix tr:last-child td{border-bottom:none;}
+    .status-sel{padding:4px 6px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.7rem;font-weight:700;width:100%;min-width:90px;background:#fff;cursor:pointer;}
+    .status-sel.I{background:#E8F5E9;border-color:#81C784;color:#2E7D32;}
+    .status-sel.P{background:#E3F2FD;border-color:#64B5F6;color:#1565C0;}
+    .status-sel.M{background:#F3E5F5;border-color:#BA68C8;color:#6A1B9A;}
+    .status-sel.R{background:#FFF3E0;border-color:#FFB74D;color:#E65100;}
+    .status-sel.N{background:var(--grey-lt);border-color:#B0BEC5;color:var(--grey);}
+
+    /* ── DIFFICULTY CARD ── */
+    .diff-card{border:2px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
+    .diff-title{font-size:.875rem;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+
+    /* ── FORMULA ROW ── */
+    .formula-row{background:var(--bg2);border:2px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;}
+    .formula-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    .formula-name{font-size:.875rem;font-weight:800;}
+
+    /* ── TOAST ── */
+    .toast-wrap{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+    .toast{background:#1A1A2E;color:#fff;padding:10px 16px;border-radius:12px;font-size:.82rem;font-weight:700;opacity:0;transform:translateY(10px);transition:all .25s;max-width:320px;}
+    .toast.show{opacity:1;transform:translateY(0);}
+    .toast.success{background:var(--green);}
+    .toast.error{background:var(--red);}
+
+    /* ── SECTION DIVIDER ── */
+    .section-title{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin:20px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--border);}
+
+    /* ── BACK BUTTON ── */
+    .back-btn{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;font-weight:700;color:var(--text2);background:none;border:none;cursor:pointer;padding:4px 0;margin-bottom:16px;font-family:inherit;}
+    .back-btn:hover{color:var(--blue);}
+
+    /* ── EMPTY ── */
+    .empty{text-align:center;padding:40px;color:var(--text3);}
+    .empty-icon{font-size:2.5rem;margin-bottom:8px;}
+    .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;margin:20px auto;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+
+<div class="portal">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      🎓 iMathAcademy
+      <span>Curriculum Designer</span>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section">Curriculum</div>
+      <button class="sb-item active" id="nav-overview" onclick="showScreen('overview',this)">
+        📋 Level Overview
+      </button>
+      <button class="sb-item" id="nav-concepts" onclick="showScreen('concepts',this)">
+        💡 Concept Master
+      </button>
+      <div class="sb-section">Tools</div>
+      <button class="sb-item" onclick="window.location.href='../admin/dashboard.html'">
+        ← Back to Admin
+      </button>
+    </nav>
+    <div class="sb-footer">
+      <div style="font-size:.72rem;color:rgba(255,255,255,.5);font-weight:700;">Curriculum Designer v1.0</div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Level Overview</div>
+      <div id="topbarActions"></div>
+    </div>
+    <div class="body" id="mainBody">
+      <div class="spinner"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SURL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+const sb = supabase.createClient(SURL, SKEY);
+
+var LEVELS   = [];
+var CONCEPTS = [];
+var CURRENT_LEVEL = null;
+
+// ── TOAST ─────────────────────────────────────────────────────
+function toast(msg, type) {
+  var wrap = document.getElementById('toastWrap');
+  var t = document.createElement('div');
+  t.className = 'toast' + (type ? ' ' + type : '');
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(function() { t.classList.add('show'); }, 10);
+  setTimeout(function() { t.classList.remove('show'); setTimeout(function() { t.remove(); }, 300); }, 3000);
+}
+
+// ── NAV ───────────────────────────────────────────────────────
+function showScreen(name, el) {
+  document.querySelectorAll('.sb-item').forEach(function(b) { b.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  var titles = { overview: 'Level Overview', concepts: 'Concept Master' };
+  document.getElementById('topbarTitle').textContent = titles[name] || name;
+  document.getElementById('topbarActions').innerHTML = '';
+  if (name === 'overview')  renderOverview();
+  if (name === 'concepts')  renderConcepts();
+}
+
+// ── LOAD DATA ─────────────────────────────────────────────────
+async function loadData() {
+  var lRes = await sb.from('curriculum_levels').select('*').order('level_code');
+  LEVELS = lRes.data || [];
+  var cRes = await sb.from('curriculum_concepts').select('*').order('concept_name');
+  CONCEPTS = cRes.data || [];
+  renderOverview();
+}
+
+// ── OVERVIEW SCREEN ───────────────────────────────────────────
+async function renderOverview() {
+  document.getElementById('topbarTitle').textContent = 'Level Overview';
+  CURRENT_LEVEL = null;
+
+  var body = document.getElementById('mainBody');
+  body.innerHTML = '<div class="spinner"></div>';
+
+  var lRes = await sb.from('curriculum_levels').select('*').order('level_code');
+  LEVELS = lRes.data || [];
+
+  var actionsHtml = '<button class="btn btn-blue btn-sm" onclick="addLevel()">+ Add Level</button>';
+  document.getElementById('topbarActions').innerHTML = actionsHtml;
+
+  var html = '<div class="card"><div class="card-body" style="padding:0;overflow-x:auto;">';
+  html += '<table class="level-table">';
+  html += '<thead><tr>';
+  var cols = ['Level','Name','Core Focus','Age','Digits','Operations','Anzan','Mult','Div','Status','Updated','Actions'];
+  cols.forEach(function(c) { html += '<th>' + c + '</th>'; });
+  html += '</tr></thead><tbody>';
+
+  if (!LEVELS.length) {
+    html += '<tr><td colspan="12"><div class="empty"><div class="empty-icon">📚</div><div>No levels found. Click "+ Add Level" to get started.</div></div></td></tr>';
+  } else {
+    LEVELS.forEach(function(lv) {
+      var ops = [];
+      if (lv.multiplication_allowed) ops.push('×');
+      if (lv.division_allowed) ops.push('÷');
+      if (lv.decimals_allowed) ops.push('.');
+      if (lv.negative_numbers_allowed) ops.push('−');
+      if (!ops.length) ops = ['+', '−'];
+      var updated = lv.updated_at ? new Date(lv.updated_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '—';
+      var statusCls = {draft:'pill-draft',under_review:'pill-review',approved:'pill-approved',published:'pill-published',archived:'pill-archived'}[lv.status] || 'pill-draft';
+      html += '<tr>';
+      html += '<td><strong>' + lv.level_code + '</strong></td>';
+      html += '<td>' + (lv.level_name || '<span style="color:var(--text3)">Not set</span>') + '</td>';
+      html += '<td style="max-width:160px;font-size:.78rem;">' + (lv.core_focus || '<span style="color:var(--text3)">Not set</span>') + '</td>';
+      html += '<td style="white-space:nowrap;">' + (lv.age_min ? lv.age_min + '–' + lv.age_max + ' yrs' : '<span style="color:var(--text3)">—</span>') + '</td>';
+      html += '<td style="white-space:nowrap;">' + (lv.min_digits ? lv.min_digits + '–' + lv.max_digits + ' dig' : '<span style="color:var(--text3)">—</span>') + '</td>';
+      html += '<td>' + ops.join(' ') + '</td>';
+      html += '<td style="text-align:center;">' + (lv.anzan_allowed ? '✅' : '—') + '</td>';
+      html += '<td style="text-align:center;">' + (lv.multiplication_allowed ? '✅' : '—') + '</td>';
+      html += '<td style="text-align:center;">' + (lv.division_allowed ? '✅' : '—') + '</td>';
+      html += '<td><span class="pill ' + statusCls + '">' + (lv.status || 'draft') + '</span></td>';
+      html += '<td style="font-size:.75rem;color:var(--text3);">' + updated + '</td>';
+      html += '<td><div style="display:flex;gap:6px;flex-wrap:wrap;">';
+      html += '<button class="btn btn-blue btn-sm" onclick="configurLevel(\'' + lv.level_code + '\')">⚙️ Configure</button>';
+      html += '<button class="btn btn-ghost btn-sm" onclick="duplicateLevel(\'' + lv.level_code + '\')">📋 Duplicate</button>';
+      html += '</div></td>';
+      html += '</tr>';
+    });
+  }
+
+  html += '</tbody></table></div></div>';
+  html += '<div class="card"><div class="card-header"><div class="card-title">📖 How to use the Curriculum Designer</div></div>';
+  html += '<div class="card-body" style="font-size:.875rem;line-height:1.8;color:var(--text2);">';
+  html += '<strong>Step 1:</strong> Click ⚙️ Configure on each level (L0 to L8).<br>';
+  html += '<strong>Step 2:</strong> Fill in Level Definition — age group, digit range, allowed operations.<br>';
+  html += '<strong>Step 3:</strong> Go to Concept Progression — mark each concept as Introduced / Practised / Mastered / Revision for this level.<br>';
+  html += '<strong>Step 4:</strong> Go to Difficulty Rules — define what Easy, Medium and Hard means for this level.<br>';
+  html += '<strong>Step 5:</strong> Go to Formula Master — enter the actual Abacus rules and formulas you teach.<br>';
+  html += '<strong>Step 6:</strong> Set status to <strong>Published</strong> when a level is ready. The LX Designer will use these rules automatically.<br>';
+  html += '</div></div>';
+
+  body.innerHTML = html;
+}
+
+// ── CONFIGURE LEVEL ───────────────────────────────────────────
+async function configurLevel(code) {
+  var lv = LEVELS.find(function(l) { return l.level_code === code; });
+  if (!lv) return;
+  CURRENT_LEVEL = lv;
+
+  document.getElementById('topbarTitle').textContent = 'Configure ' + code;
+  document.getElementById('topbarActions').innerHTML =
+    '<button class="btn btn-ghost btn-sm" onclick="renderOverview();document.getElementById(\'nav-overview\').classList.add(\'active\')">← Back to Overview</button>';
+
+  var body = document.getElementById('mainBody');
+  body.innerHTML = '<div class="spinner"></div>';
+
+  // Load level concepts
+  var lcRes = await sb.from('curriculum_level_concepts')
+    .select('concept_id,status,notes')
+    .eq('level_code', code);
+  var lcMap = {};
+  (lcRes.data || []).forEach(function(lc) { lcMap[lc.concept_id] = lc; });
+
+  // Load difficulty rules
+  var drRes = await sb.from('curriculum_difficulty_rules')
+    .select('*').eq('level_code', code);
+  var drMap = {};
+  (drRes.data || []).forEach(function(dr) { drMap[dr.difficulty] = dr; });
+
+  // Load formulas
+  var fRes = await sb.from('curriculum_formulas')
+    .select('*,curriculum_concepts(concept_name)')
+    .eq('level_code', code)
+    .eq('is_active', true);
+  var formulas = fRes.data || [];
+
+  var html = '';
+
+  // Back button
+  html += '<button class="back-btn" onclick="renderOverview()">← Back to Level Overview</button>';
+
+  // Status bar
+  var statusCls = {draft:'pill-draft',under_review:'pill-review',approved:'pill-approved',published:'pill-published',archived:'pill-archived'}[lv.status] || 'pill-draft';
+  html += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">';
+  html += '<div style="font-family:\'Baloo 2\',sans-serif;font-size:1.3rem;font-weight:800;">' + code + ' — ' + (lv.level_name || 'Unnamed Level') + '</div>';
+  html += '<span class="pill ' + statusCls + '">' + (lv.status || 'draft') + '</span>';
+  html += '<select id="statusSel" style="padding:6px 10px;border:2px solid var(--border);border-radius:10px;font-family:inherit;font-size:.78rem;font-weight:700;" onchange="updateStatus(\'' + code + '\')">';
+  ['draft','under_review','approved','published','archived'].forEach(function(s) {
+    html += '<option value="' + s + '"' + (lv.status === s ? ' selected' : '') + '>' + s.replace('_',' ') + '</option>';
+  });
+  html += '</select></div>';
+
+  // Tabs
+  html += '<div class="tabs">';
+  ['Level Definition','Concept Progression','Difficulty Rules','Formula Master','Guardrails'].forEach(function(t, i) {
+    html += '<button class="tab-btn' + (i===0?' active':'') + '" onclick="switchTab(this,\'tab' + i + '\')">' + t + '</button>';
+  });
+  html += '</div>';
+
+  // ── TAB 0: LEVEL DEFINITION ──────────────────────────────
+  html += '<div class="tab-pane active" id="tab0">';
+  html += '<div class="card"><div class="card-header"><div class="card-title">Identity</div></div><div class="card-body">';
+  html += '<div class="form-grid">';
+  html += formField('Level Code', 'f_code', lv.level_code, 'text', true);
+  html += formField('Level Name', 'f_name', lv.level_name, 'text');
+  html += formField('Core Focus', 'f_focus', lv.core_focus, 'text');
+  html += '</div>';
+  html += '<div class="form-grid"><div class="form-group full"><label>Description</label><textarea id="f_desc" placeholder="Describe what this level covers...">' + (lv.description || '') + '</textarea></div></div>';
+  html += '</div></div>';
+
+  html += '<div class="card"><div class="card-header"><div class="card-title">Age Range</div></div><div class="card-body">';
+  html += '<div class="form-grid">';
+  html += formField('Min Age (years)', 'f_age_min', lv.age_min, 'number');
+  html += formField('Max Age (years)', 'f_age_max', lv.age_max, 'number');
+  html += '</div></div></div>';
+
+  html += '<div class="card"><div class="card-header"><div class="card-title">Number Rules</div></div><div class="card-body">';
+  html += '<div class="form-grid">';
+  html += formField('Min Digits', 'f_min_digits', lv.min_digits, 'number');
+  html += formField('Max Digits', 'f_max_digits', lv.max_digits, 'number');
+  html += formField('Min Number', 'f_min_number', lv.min_number, 'number');
+  html += formField('Max Number', 'f_max_number', lv.max_number, 'number');
+  html += formField('Min Rows', 'f_min_rows', lv.min_rows, 'number');
+  html += formField('Max Rows', 'f_max_rows', lv.max_rows, 'number');
+  html += '</div>';
+  html += toggleRow('Allow Zero', 'f_allow_zero', lv.allow_zero !== false, 'Can questions include zero?');
+  html += '</div></div>';
+
+  html += '<div class="card"><div class="card-header"><div class="card-title">Abacus Mode &amp; Operations</div></div><div class="card-body">';
+  html += '<div class="form-grid">';
+  html += '<div class="form-group"><label>Physical Abacus</label><select id="f_physical_abacus">';
+  ['required','optional','not_used'].forEach(function(v) {
+    html += '<option value="' + v + '"' + (lv.physical_abacus === v ? ' selected' : '') + '>' + v.replace('_',' ') + '</option>';
+  });
+  html += '</select></div></div>';
+  html += toggleRow('Anzan (Mental Abacus) Allowed', 'f_anzan', lv.anzan_allowed, 'Students can solve mentally without physical abacus');
+  html += toggleRow('Multiplication Allowed', 'f_mult', lv.multiplication_allowed, 'Multiplication questions can appear at this level');
+  html += toggleRow('Division Allowed', 'f_div', lv.division_allowed, 'Division questions can appear at this level');
+  html += toggleRow('Decimals Allowed', 'f_dec', lv.decimals_allowed, 'Decimal numbers can appear at this level');
+  html += toggleRow('Negative Numbers Allowed', 'f_neg', lv.negative_numbers_allowed, 'Negative numbers can appear at this level');
+  html += '</div></div>';
+
+  html += '<div style="display:flex;gap:10px;margin-top:4px;">';
+  html += '<button class="btn btn-blue" onclick="saveLevelDefinition(\'' + code + '\')">💾 Save Level Definition</button>';
+  html += '</div></div>';
+
+  // ── TAB 1: CONCEPT PROGRESSION ───────────────────────────
+  html += '<div class="tab-pane" id="tab1">';
+  html += '<div class="card"><div class="card-header"><div class="card-title">Concept Progression for ' + code + '</div>';
+  html += '<button class="btn btn-blue btn-sm" onclick="saveConceptProgression(\'' + code + '\')">💾 Save Progression</button>';
+  html += '</div><div class="card-body" style="padding:0;overflow-x:auto;">';
+  html += '<table class="concept-matrix"><thead><tr>';
+  html += '<th>Concept</th><th>Status at ' + code + '</th><th>Notes</th>';
+  html += '</tr></thead><tbody>';
+
+  CONCEPTS.forEach(function(c) {
+    var lc = lcMap[c.id] || { status: 'N' };
+    var statusVal = lc.status || 'N';
+    html += '<tr>';
+    html += '<td><div style="font-weight:700;">' + c.concept_name + '</div><div style="font-size:.68rem;color:var(--text3);">' + (c.category || '') + '</div></td>';
+    html += '<td style="min-width:140px;">';
+    html += '<select class="status-sel ' + statusVal + '" data-concept="' + c.id + '" onchange="colorStatusSel(this)">';
+    var statuses = [
+      {v:'I',l:'Introduced'},
+      {v:'P',l:'Practised'},
+      {v:'M',l:'Mastered'},
+      {v:'R',l:'Revision'},
+      {v:'N',l:'Not Applicable'},
+    ];
+    statuses.forEach(function(s) {
+      html += '<option value="' + s.v + '"' + (statusVal === s.v ? ' selected' : '') + '>' + s.l + '</option>';
+    });
+    html += '</select></td>';
+    html += '<td><input type="text" placeholder="Optional notes..." value="' + (lc.notes || '') + '" data-concept-note="' + c.id + '" style="padding:5px 8px;font-size:.78rem;border:1.5px solid var(--border);border-radius:8px;width:100%;min-width:160px;"></td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  html += '<div style="padding:12px 16px;font-size:.72rem;color:var(--text3);">';
+  html += '<strong>I</strong> = Introduced (first time taught) &nbsp;';
+  html += '<strong>P</strong> = Practised (building fluency) &nbsp;';
+  html += '<strong>M</strong> = Mastered (expected competency) &nbsp;';
+  html += '<strong>R</strong> = Revision (revisited) &nbsp;';
+  html += '<strong>N</strong> = Not Applicable';
+  html += '</div></div></div></div>';
+
+  // ── TAB 2: DIFFICULTY RULES ──────────────────────────────
+  html += '<div class="tab-pane" id="tab2">';
+  html += '<div style="margin-bottom:12px;font-size:.82rem;color:var(--text2);">Define what Easy, Medium and Hard means specifically for ' + code + '. Hard must stay within ' + code + ' boundaries — it must never introduce concepts from the next level.</div>';
+  ['easy','medium','hard'].forEach(function(diff) {
+    var dr = drMap[diff] || {};
+    var colors = {easy:'var(--green)',medium:'var(--orange)',hard:'var(--red)'};
+    html += '<div class="diff-card">';
+    html += '<div class="diff-title"><span style="width:10px;height:10px;background:' + colors[diff] + ';border-radius:50%;display:inline-block;"></span>' + diff.charAt(0).toUpperCase() + diff.slice(1) + '</div>';
+    html += '<div class="form-grid">';
+    html += formField('Min Digits', 'dr_' + diff + '_min_digits', dr.min_digits, 'number');
+    html += formField('Max Digits', 'dr_' + diff + '_max_digits', dr.max_digits, 'number');
+    html += formField('Min Rows', 'dr_' + diff + '_min_rows', dr.min_rows, 'number');
+    html += formField('Max Rows', 'dr_' + diff + '_max_rows', dr.max_rows, 'number');
+    html += formField('Min Number', 'dr_' + diff + '_min_number', dr.min_number, 'number');
+    html += formField('Max Number', 'dr_' + diff + '_max_number', dr.max_number, 'number');
+    html += '</div>';
+    html += toggleRow('Mixed Concepts Allowed', 'dr_' + diff + '_mixed', dr.mixed_concepts_allowed, 'Can questions mix multiple concepts at this difficulty?');
+    html += '<div class="form-group" style="margin-top:10px;"><label>Notes / Rules</label>';
+    html += '<textarea id="dr_' + diff + '_notes" placeholder="Describe what ' + diff + ' means for ' + code + '..." rows="2">' + (dr.notes || '') + '</textarea></div>';
+    html += '</div>';
+  });
+  html += '<button class="btn btn-blue" onclick="saveDifficultyRules(\'' + code + '\')">💾 Save Difficulty Rules</button>';
+  html += '</div>';
+
+  // ── TAB 3: FORMULA MASTER ────────────────────────────────
+  html += '<div class="tab-pane" id="tab3">';
+  html += '<div style="margin-bottom:12px;font-size:.82rem;color:var(--text2);">Enter the actual Abacus rules and formulas you teach at ' + code + '. These become the academic authority for worksheet generation.</div>';
+  html += '<div id="formulaList">';
+
+  if (!formulas.length) {
+    html += '<div class="empty" style="padding:20px;"><div class="empty-icon">📐</div><div>No formulas yet. Add the Abacus rules you teach at this level.</div></div>';
+  } else {
+    formulas.forEach(function(f, i) {
+      html += renderFormulaCard(f, i);
+    });
+  }
+
+  html += '</div>';
+  html += '<button class="btn btn-blue btn-sm" onclick="addFormulaCard(\'' + code + '\')">+ Add Formula / Rule</button>';
+  html += '</div>';
+
+  // ── TAB 4: GUARDRAILS ────────────────────────────────────
+  html += '<div class="tab-pane" id="tab4">';
+  html += '<div style="margin-bottom:12px;font-size:.82rem;color:var(--text2);">Define what is absolutely forbidden at ' + code + '. These rules override everything else including AI suggestions.</div>';
+  html += '<div class="card"><div class="card-header"><div class="card-title">Forbidden at ' + code + '</div></div><div class="card-body">';
+  html += toggleRow('No numbers above max_number', 'g_max_num', true, 'Strictly enforce the maximum number defined in Level Definition');
+  html += toggleRow('No concepts from higher levels', 'g_future', true, 'Hard difficulty must NOT introduce concepts from ' + (code.replace('L', '') < 8 ? 'L' + (parseInt(code.replace('L',''))+1) : 'any higher level'));
+  html += toggleRow('No operations not in allowed list', 'g_ops', true, 'Only operations explicitly allowed in Level Definition are permitted');
+  html += '<div class="form-group" style="margin-top:16px;"><label>Additional Guardrail Notes</label><textarea id="g_notes" placeholder="Any other strict rules for this level..." rows="3"></textarea></div>';
+  html += '<button class="btn btn-blue" style="margin-top:12px;" onclick="toast(\'Guardrails saved!\',\'success\')">💾 Save Guardrails</button>';
+  html += '</div></div></div>';
+
+  body.innerHTML = html;
+}
+
+// ── HELPER: form field ────────────────────────────────────────
+function formField(label, id, val, type, disabled) {
+  var html = '<div class="form-group"><label>' + label + '</label>';
+  html += '<input type="' + (type||'text') + '" id="' + id + '" value="' + (val !== null && val !== undefined ? val : '') + '"' + (disabled ? ' disabled style="background:var(--bg2);color:var(--text3);"' : '') + ' placeholder="' + label + '">';
+  html += '</div>';
+  return html;
+}
+
+// ── HELPER: toggle row ────────────────────────────────────────
+function toggleRow(label, id, checked, sub) {
+  var html = '<div class="toggle-row">';
+  html += '<div><div class="toggle-label">' + label + '</div>';
+  if (sub) html += '<div class="toggle-sub">' + sub + '</div>';
+  html += '</div>';
+  html += '<label class="toggle"><input type="checkbox" id="' + id + '"' + (checked ? ' checked' : '') + '><span class="toggle-slider"></span></label>';
+  html += '</div>';
+  return html;
+}
+
+// ── HELPER: formula card ──────────────────────────────────────
+function renderFormulaCard(f, i) {
+  var html = '<div class="formula-row" id="fc-' + (f.id || i) + '">';
+  html += '<div class="formula-header">';
+  html += '<div class="formula-name">' + (f.formula_name || 'Formula ' + (i+1)) + '</div>';
+  html += '<button class="btn btn-red btn-sm" onclick="deleteFormula(\'' + (f.id || '') + '\',this)">✕ Delete</button>';
+  html += '</div><div class="form-grid">';
+  html += '<div class="form-group"><label>Formula Name</label><input type="text" value="' + (f.formula_name || '') + '" data-fid="' + (f.id || '') + '" class="fn-name" placeholder="e.g. Big Friend of 1"></div>';
+  html += '<div class="form-group"><label>Concept</label><select class="fn-concept" data-fid="' + (f.id || '') + '">';
+  CONCEPTS.forEach(function(c) {
+    html += '<option value="' + c.id + '"' + (f.concept_id === c.id ? ' selected' : '') + '>' + c.concept_name + '</option>';
+  });
+  html += '</select></div>';
+  html += '</div>';
+  html += '<div class="form-group" style="margin-bottom:10px;"><label>Method / Rule Description</label><textarea class="fn-method" data-fid="' + (f.id || '') + '" placeholder="Describe how this formula works, step by step..." rows="3">' + (f.method || '') + '</textarea></div>';
+  html += '<div class="form-group"><label>Example</label><input type="text" class="fn-example" data-fid="' + (f.id || '') + '" value="' + (f.example || '') + '" placeholder="e.g. 4 + 7 = 4 + (10 - 3) = 11"></div>';
+  html += '<button class="btn btn-green btn-sm" style="margin-top:10px;" onclick="saveFormula(this,\'' + (f.id || '') + '\')">💾 Save</button>';
+  html += '</div>';
+  return html;
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────────
+function switchTab(btn, id) {
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
+  btn.classList.add('active');
+  var pane = document.getElementById(id);
+  if (pane) pane.classList.add('active');
+}
+
+// ── STATUS SELECT COLOUR ──────────────────────────────────────
+function colorStatusSel(sel) {
+  sel.className = 'status-sel ' + sel.value;
+}
+
+// ── SAVE LEVEL DEFINITION ─────────────────────────────────────
+async function saveLevelDefinition(code) {
+  var g = function(id) { var el = document.getElementById(id); return el ? el.value : null; };
+  var tb = function(id) { var el = document.getElementById(id); return el ? el.checked : false; };
+
+  var data = {
+    level_name:              g('f_name') || null,
+    description:             g('f_desc') || null,
+    core_focus:              g('f_focus') || null,
+    age_min:                 parseInt(g('f_age_min')) || null,
+    age_max:                 parseInt(g('f_age_max')) || null,
+    min_digits:              parseInt(g('f_min_digits')) || null,
+    max_digits:              parseInt(g('f_max_digits')) || null,
+    min_number:              parseInt(g('f_min_number')) || null,
+    max_number:              parseInt(g('f_max_number')) || null,
+    min_rows:                parseInt(g('f_min_rows')) || null,
+    max_rows:                parseInt(g('f_max_rows')) || null,
+    allow_zero:              tb('f_allow_zero'),
+    physical_abacus:         g('f_physical_abacus') || 'required',
+    anzan_allowed:           tb('f_anzan'),
+    multiplication_allowed:  tb('f_mult'),
+    division_allowed:        tb('f_div'),
+    decimals_allowed:        tb('f_dec'),
+    negative_numbers_allowed: tb('f_neg'),
+    updated_at:              new Date().toISOString(),
+  };
+
+  var res = await sb.from('curriculum_levels').update(data).eq('level_code', code);
+  if (res.error) {
+    toast('Error saving: ' + res.error.message, 'error');
+  } else {
+    toast('Level Definition saved! ✅', 'success');
+    // Update local cache
+    var idx = LEVELS.findIndex(function(l) { return l.level_code === code; });
+    if (idx > -1) Object.assign(LEVELS[idx], data);
+  }
+}
+
+// ── SAVE CONCEPT PROGRESSION ──────────────────────────────────
+async function saveConceptProgression(code) {
+  var sels = document.querySelectorAll('.status-sel[data-concept]');
+  var upserts = [];
+  sels.forEach(function(sel) {
+    var conceptId = sel.dataset.concept;
+    var status = sel.value;
+    var noteEl = document.querySelector('input[data-concept-note="' + conceptId + '"]');
+    var notes = noteEl ? noteEl.value : '';
+    upserts.push({ level_code: code, concept_id: conceptId, status: status, notes: notes });
+  });
+
+  var res = await sb.from('curriculum_level_concepts').upsert(upserts, { onConflict: 'level_code,concept_id' });
+  if (res.error) {
+    toast('Error saving: ' + res.error.message, 'error');
+  } else {
+    toast('Concept Progression saved! ✅', 'success');
+  }
+}
+
+// ── SAVE DIFFICULTY RULES ─────────────────────────────────────
+async function saveDifficultyRules(code) {
+  var g = function(id) { var el = document.getElementById(id); return el ? el.value : null; };
+  var tb = function(id) { var el = document.getElementById(id); return el ? el.checked : false; };
+  var upserts = [];
+
+  ['easy','medium','hard'].forEach(function(diff) {
+    upserts.push({
+      level_code:   code,
+      difficulty:   diff,
+      min_digits:   parseInt(g('dr_' + diff + '_min_digits')) || null,
+      max_digits:   parseInt(g('dr_' + diff + '_max_digits')) || null,
+      min_rows:     parseInt(g('dr_' + diff + '_min_rows')) || null,
+      max_rows:     parseInt(g('dr_' + diff + '_max_rows')) || null,
+      min_number:   parseInt(g('dr_' + diff + '_min_number')) || null,
+      max_number:   parseInt(g('dr_' + diff + '_max_number')) || null,
+      mixed_concepts_allowed: tb('dr_' + diff + '_mixed'),
+      notes:        g('dr_' + diff + '_notes') || null,
+    });
+  });
+
+  var res = await sb.from('curriculum_difficulty_rules').upsert(upserts, { onConflict: 'level_code,difficulty' });
+  if (res.error) {
+    toast('Error saving: ' + res.error.message, 'error');
+  } else {
+    toast('Difficulty Rules saved! ✅', 'success');
+  }
+}
+
+// ── ADD FORMULA CARD ──────────────────────────────────────────
+function addFormulaCard(code) {
+  var list = document.getElementById('formulaList');
+  var emptyDiv = list.querySelector('.empty');
+  if (emptyDiv) emptyDiv.remove();
+  var div = document.createElement('div');
+  var tempId = 'new_' + Date.now();
+  div.innerHTML = renderFormulaCard({ id: tempId, level_code: code }, list.children.length);
+  list.appendChild(div.firstChild);
+}
+
+// ── SAVE FORMULA ──────────────────────────────────────────────
+async function saveFormula(btn, existingId) {
+  var card = btn.closest('.formula-row');
+  var name    = card.querySelector('.fn-name').value.trim();
+  var concept = card.querySelector('.fn-concept').value;
+  var method  = card.querySelector('.fn-method').value.trim();
+  var example = card.querySelector('.fn-example').value.trim();
+
+  if (!name) { toast('Please enter a formula name', 'error'); return; }
+
+  var data = {
+    level_code:  CURRENT_LEVEL ? CURRENT_LEVEL.level_code : '',
+    formula_name: name,
+    concept_id:  concept || null,
+    method:      method || null,
+    example:     example || null,
+    is_active:   true,
+  };
+
+  var res;
+  if (existingId && !existingId.startsWith('new_')) {
+    res = await sb.from('curriculum_formulas').update(data).eq('id', existingId);
+  } else {
+    res = await sb.from('curriculum_formulas').insert(data).select().single();
+    if (res.data) {
+      card.id = 'fc-' + res.data.id;
+      card.querySelectorAll('[data-fid]').forEach(function(el) { el.dataset.fid = res.data.id; });
+      btn.setAttribute('onclick', 'saveFormula(this,\'' + res.data.id + '\')');
+    }
+  }
+
+  if (res.error) {
+    toast('Error: ' + res.error.message, 'error');
+  } else {
+    card.querySelector('.formula-name').textContent = name;
+    toast('Formula saved! ✅', 'success');
+  }
+}
+
+// ── DELETE FORMULA ────────────────────────────────────────────
+async function deleteFormula(id, btn) {
+  if (!confirm('Delete this formula?')) return;
+  if (id && !id.startsWith('new_')) {
+    await sb.from('curriculum_formulas').delete().eq('id', id);
+  }
+  btn.closest('.formula-row').remove();
+  toast('Formula deleted', '');
+}
+
+// ── UPDATE STATUS ─────────────────────────────────────────────
+async function updateStatus(code) {
+  var status = document.getElementById('statusSel').value;
+  var res = await sb.from('curriculum_levels').update({ status: status, updated_at: new Date().toISOString() }).eq('level_code', code);
+  if (res.error) {
+    toast('Error: ' + res.error.message, 'error');
+  } else {
+    toast('Status updated to: ' + status, 'success');
+    var lv = LEVELS.find(function(l) { return l.level_code === code; });
+    if (lv) lv.status = status;
+  }
+}
+
+// ── ADD LEVEL ─────────────────────────────────────────────────
+async function addLevel() {
+  var code = prompt('Enter level code (e.g. L9):');
+  if (!code) return;
+  code = code.trim().toUpperCase();
+  var res = await sb.from('curriculum_levels').insert({ level_code: code, status: 'draft' }).select().single();
+  if (res.error) {
+    toast('Error: ' + res.error.message, 'error');
+  } else {
+    toast('Level ' + code + ' created!', 'success');
+    await loadData();
+  }
+}
+
+// ── DUPLICATE LEVEL ───────────────────────────────────────────
+async function duplicateLevel(code) {
+  var newCode = prompt('Enter code for the duplicate level (e.g. L9):');
+  if (!newCode) return;
+  newCode = newCode.trim().toUpperCase();
+  var lv = LEVELS.find(function(l) { return l.level_code === code; });
+  if (!lv) return;
+  var dup = Object.assign({}, lv);
+  delete dup.id; delete dup.created_at; delete dup.updated_at;
+  dup.level_code = newCode;
+  dup.level_name = (dup.level_name || code) + ' (copy)';
+  dup.status = 'draft';
+  var res = await sb.from('curriculum_levels').insert(dup).select().single();
+  if (res.error) {
+    toast('Error: ' + res.error.message, 'error');
+  } else {
+    toast('Duplicated to ' + newCode + '!', 'success');
+    await loadData();
+  }
+}
+
+// ── CONCEPT MASTER SCREEN ─────────────────────────────────────
+async function renderConcepts() {
+  document.getElementById('topbarTitle').textContent = 'Concept Master';
+  document.getElementById('topbarActions').innerHTML =
+    '<button class="btn btn-blue btn-sm" onclick="addConcept()">+ Add Concept</button>';
+
+  var body = document.getElementById('mainBody');
+  body.innerHTML = '<div class="spinner"></div>';
+
+  var res = await sb.from('curriculum_concepts').select('*').order('category').order('concept_name');
+  CONCEPTS = res.data || [];
+
+  if (!CONCEPTS.length) {
+    body.innerHTML = '<div class="empty"><div class="empty-icon">💡</div><div>No concepts found.</div></div>';
+    return;
+  }
+
+  var html = '<div class="card"><div class="card-body" style="padding:0;overflow-x:auto;">';
+  html += '<table class="level-table"><thead><tr>';
+  ['Concept Name','Code','Category','Active','Actions'].forEach(function(h) { html += '<th>' + h + '</th>'; });
+  html += '</tr></thead><tbody>';
+
+  CONCEPTS.forEach(function(c) {
+    html += '<tr>';
+    html += '<td><strong>' + c.concept_name + '</strong></td>';
+    html += '<td style="font-size:.78rem;color:var(--text3);">' + c.concept_code + '</td>';
+    html += '<td><span class="pill" style="background:var(--blue-lt);color:var(--blue-dk);">' + (c.category || '—') + '</span></td>';
+    html += '<td>' + (c.is_active ? '✅' : '❌') + '</td>';
+    html += '<td><div style="display:flex;gap:6px;">';
+    html += '<button class="btn btn-outline btn-sm" onclick="editConcept(\'' + c.id + '\')">✏️ Edit</button>';
+    html += '<button class="btn btn-red btn-sm" onclick="toggleConcept(\'' + c.id + '\',' + c.is_active + ')">'+  (c.is_active ? 'Deactivate' : 'Activate') + '</button>';
+    html += '</div></td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div></div>';
+  body.innerHTML = html;
+}
+
+// ── ADD / EDIT CONCEPT ────────────────────────────────────────
+function addConcept() {
+  showConceptForm(null);
+}
+
+function editConcept(id) {
+  var c = CONCEPTS.find(function(x) { return x.id === id; });
+  if (c) showConceptForm(c);
+}
+
+function showConceptForm(c) {
+  var body = document.getElementById('mainBody');
+  var isNew = !c;
+  var html = '<button class="back-btn" onclick="renderConcepts()">← Back to Concepts</button>';
+  html += '<div class="card"><div class="card-header"><div class="card-title">' + (isNew ? '+ New Concept' : 'Edit: ' + c.concept_name) + '</div></div>';
+  html += '<div class="card-body"><div class="form-grid">';
+  html += formField('Concept Name', 'cf_name', c ? c.concept_name : '', 'text');
+  html += formField('Concept Code', 'cf_code', c ? c.concept_code : '', 'text');
+  html += '<div class="form-group"><label>Category</label><select id="cf_cat">';
+  ['foundation','core','formula','advanced','revision'].forEach(function(cat) {
+    html += '<option value="' + cat + '"' + (c && c.category === cat ? ' selected' : '') + '>' + cat + '</option>';
+  });
+  html += '</select></div>';
+  html += '</div>';
+  html += '<div class="form-group" style="margin-top:10px;"><label>Description</label><textarea id="cf_desc" rows="3" placeholder="Describe this concept...">' + (c ? c.description || '' : '') + '</textarea></div>';
+  html += '<div style="display:flex;gap:10px;margin-top:16px;">';
+  html += '<button class="btn btn-blue" onclick="saveConcept(\'' + (c ? c.id : '') + '\')">' + (isNew ? '+ Create Concept' : '💾 Save Changes') + '</button>';
+  html += '<button class="btn btn-ghost" onclick="renderConcepts()">Cancel</button>';
+  html += '</div></div></div>';
+  body.innerHTML = html;
+}
+
+async function saveConcept(existingId) {
+  var name = document.getElementById('cf_name').value.trim();
+  var code = document.getElementById('cf_code').value.trim();
+  var cat  = document.getElementById('cf_cat').value;
+  var desc = document.getElementById('cf_desc').value.trim();
+  if (!name || !code) { toast('Name and Code are required', 'error'); return; }
+  var data = { concept_name: name, concept_code: code, category: cat, description: desc || null, is_active: true };
+  var res;
+  if (existingId) {
+    res = await sb.from('curriculum_concepts').update(data).eq('id', existingId);
+  } else {
+    res = await sb.from('curriculum_concepts').insert(data);
+  }
+  if (res.error) {
+    toast('Error: ' + res.error.message, 'error');
+  } else {
+    toast((existingId ? 'Concept updated' : 'Concept created') + '! ✅', 'success');
+    await loadData();
+    renderConcepts();
+  }
+}
+
+async function toggleConcept(id, currentActive) {
+  var res = await sb.from('curriculum_concepts').update({ is_active: !currentActive }).eq('id', id);
+  if (!res.error) {
+    toast((currentActive ? 'Deactivated' : 'Activated') + ' successfully', 'success');
+    renderConcepts();
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  sb.auth.getSession().then(function(r) {
+    if (!r.data.session) { window.location.href = '../../login.html'; return; }
+    loadData();
+  });
+});
+</script>
+</body>
+</html>

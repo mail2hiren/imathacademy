@@ -605,8 +605,8 @@ async function submitWorksheet(wsId, qs){
       submitted_at:new Date().toISOString()
     });
     await sb.from('practice_sessions').insert({
-      student_id:session.user.id, correct_answers:score,
-      total_questions:total, xp_earned:xp, session_type:'worksheet'
+      student_id:session.user.id, questions_correct:score,
+      questions_attempted:total, xp_awarded:xp, topic:'worksheet'
     });
     await sb.from('users').update({xp_points:(currentUser.xp_points||0)+xp}).eq('id',session.user.id);
     currentUser.xp_points=(currentUser.xp_points||0)+xp;

@@ -408,12 +408,12 @@ async function submitQuiz(timedOut) {
       student_id: session.user.id,
       level: currentUser.current_level||1,
       score, total: questions.length,
-      pct, xp_earned: xp, time_taken: timeTaken,
+      pct, xp_awarded: xp, time_taken: timeTaken,
       week_number: getWeekNumber()
     });
     await sb.from('practice_sessions').insert({
-      student_id: session.user.id, correct_answers: score,
-      total_questions: questions.length, xp_earned: xp, session_type: 'quiz'
+      student_id: session.user.id, questions_correct: score,
+      questions_attempted: questions.length, xp_awarded: xp, topic: 'quiz'
     });
     await sb.from('users').update({xp_points:(currentUser.xp_points||0)+xp}).eq('id',session.user.id);
     currentUser.xp_points = (currentUser.xp_points||0)+xp;

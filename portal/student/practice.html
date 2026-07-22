@@ -903,10 +903,10 @@ function endSession() {
   try {
     await sb.from('practice_sessions').insert({
       student_id:       session.user.id,
-      correct_answers:  correctCount,
-      total_questions:  questions.length,
-      xp_earned:        sessionXP,
-      session_type:     'flashcard',
+      questions_correct:  correctCount,
+      questions_attempted:  questions.length,
+      xp_awarded:        sessionXP,
+      topic:     'flashcard',
     });
     // Update XP on profile
     await sb.from('users').update({

@@ -560,14 +560,14 @@ function buildPrompt(preview=false) {
   const student = document.getElementById('studentSel').options[document.getElementById('studentSel').selectedIndex];
   const studentName = student?.value ? student.text : 'the entire batch';
   const difficulty = document.getElementById('difficulty').value.replace('_',' ');
-  const qCount = preview ? 2 : document.getElementById('questionCount').value;
+  const qCount = preview ? 2 : parseInt(document.getElementById('questionCount').value);
   const timeLimit = document.getElementById('timeLimit').value;
   const theme = document.getElementById('theme').value;
-  const mascot = document.getElementById('mascot').value || 'no mascot';
+  const mascot = document.getElementById('mascot').value || 'none';
   const language = document.getElementById('language').value.replace('_',' ');
-  const special = document.getElementById('specialInstructions').value;
+  const special = document.getElementById('specialInstructions').value.trim();
 
-  // Determine age group from selected student
+  // Age group
   const selOpt = document.getElementById('studentSel').options[document.getElementById('studentSel').selectedIndex];
   const dob = selOpt?.dataset?.dob || '';
   let ageGroup = selOpt?.dataset?.group || '';
@@ -579,96 +579,116 @@ function buildPrompt(preview=false) {
     ageGroup = age<=7?'tiny':age<=10?'rising':'champions';
   }
   if (!ageGroup) ageGroup = selectedLevel<=1?'tiny':selectedLevel<=4?'rising':'champions';
-
-  const ageDesc = {tiny:'5–7 year old (Tiny Champs)',rising:'8–10 year old (Rising Stars)',champions:'11–12 year old (Champions)'}[ageGroup];
+  const ageDesc = {tiny:'5-7 years (Tiny Champs)',rising:'8-10 years (Rising Stars)',champions:'11-12 years (Champions)'}[ageGroup];
 
   const wantWorksheet = document.getElementById('out-worksheet').checked;
   const wantAnswerKey = document.getElementById('out-answerkey').checked;
   const wantHints     = document.getElementById('out-hints').checked;
   const wantLesson    = document.getElementById('out-lessonplan').checked;
   const wantParent    = document.getElementById('out-parentnote').checked;
-  const wantFlash     = document.getElementById('out-flashcards').checked;
 
-  const conceptMap = {
-    add_sub:'addition and subtraction at Level '+selectedLevel+' difficulty',
-    big_friends:'Big Friends rule (add 10, subtract complement)',
-    small_friends:'Small Friends rule (add 5, subtract complement)',
-    combination:'Combination / Family Formula concept',
-    multiplication:'Multiplication at Level '+selectedLevel+' ('+  (selectedLevel===5?'2×1 and 3×1':selectedLevel===6?'2×1 and 3×1':selectedLevel===7?'4×1, 2×2':'appropriate type')+')',
-    division:'Division at Level '+selectedLevel+' ('+(selectedLevel===6?'2÷1':selectedLevel===7?'4÷1':'appropriate type')+')',
-    anzan:'Anzan — mental abacus (no physical abacus)',
-    revision:'Full revision of all Level '+selectedLevel+' concepts',
+  // Concept labels
+  const conceptLabels = {
+    add_sub:'Direct Addition and Subtraction',
+    big_friends:'Big Friends (complement to 10)',
+    small_friends:'Small Friends (complement to 5)',
+    combination:'Combination / Family Formula',
+    multiplication:'Multiplication',
+    division:'Division',
+    anzan:'Anzan — Mental Abacus',
+    revision:'Full Revision of all Level '+selectedLevel+' concepts',
   };
 
-  const actMap = {
-    flashcards:'Flash cards',picture_sums:'Visual picture sums with emoji/object illustrations',
-    story_problems:'Story problems / word problems',fill_blank:'Fill in the blank',
-    match_pairs:'Match the pairs (sum on left, answer on right)',
-    speed_challenge:'Speed challenge (timed)',colour_answer:'Colour by answer',mixed:'Mixed variety',
+  // Activity labels
+  const actLabels = {
+    flashcards:'Flash Cards',
+    picture_sums:'Visual Picture Sums',
+    story_problems:'Story Problems',
+    fill_blank:'Fill in the Blank',
+    match_pairs:'Match the Pairs',
+    speed_challenge:'Speed Challenge',
+    colour_answer:'Colour by Answer',
+    mixed:'Mixed Variety',
   };
 
-  return `You are an expert Abacus maths teacher at iMathAcademy India creating a student worksheet.
+  const conceptLabel  = conceptLabels[selectedConcept] || selectedConcept;
+  const actLabel      = actLabels[selectedActivity]    || selectedActivity;
 
-━━━ ASSIGNMENT ━━━
-STUDENT: ${studentName} from ${batch}
-AGE GROUP: ${ageDesc}
-ABACUS LEVEL: Level ${selectedLevel}
-LEVEL DESCRIPTION: ${LEVEL_SUMMARIES[selectedLevel]}
+  // Build the worksheet specification object — this is the source of truth
+  const spec = {
+    student:         studentName,
+    batch:           batch,
+    age_group:       ageDesc,
+    level:           selectedLevel,
+    concept:         conceptLabel,
+    activity_type:   actLabel,
+    difficulty:      difficulty,
+    question_count:  qCount,
+    time_limit:      timeLimit + ' minutes',
+    theme:           theme,
+    mascot:          mascot,
+    language:        language,
+    special_instructions: special || 'none',
+    outputs_requested: [
+      wantWorksheet ? 'QUESTIONS' : null,
+      wantAnswerKey ? 'ANSWER_KEY' : null,
+      wantHints     ? 'HINT_BOX'   : null,
+      wantLesson    ? 'LESSON_PLAN': null,
+      wantParent    ? 'PARENT_NOTE': null,
+    ].filter(Boolean),
+  };
 
-━━━ WHAT TO TEACH — FOLLOW THIS EXACTLY ━━━
-CONCEPT: ${conceptMap[selectedConcept]||selectedConcept}
-ACTIVITY: ${actMap[selectedActivity]||selectedActivity}
-DIFFICULTY: ${difficulty}
-QUESTIONS: ${qCount}
-THEME: ${theme}
-LANGUAGE: ${language}
-${special ? 'SPECIAL INSTRUCTIONS: ' + special : ''}
-
-━━━ STRICT RULES — DO NOT BREAK THESE ━━━
-1. ALL ${qCount} questions MUST be about: ${conceptMap[selectedConcept]||selectedConcept}
-   - If concept is Multiplication: every question is a multiplication question. No addition. No subtraction.
-   - If concept is Division: every question is a division question. No other operations.
-   - If concept is Big Friends: every question uses the Big Friends rule (complement to 10).
-   - If concept is Small Friends: every question uses the Small Friends rule (complement to 5).
-   - If concept is Anzan: questions are mental maths only — no written working.
-   - If concept is Addition and subtraction: questions use only addition and subtraction.
-   - If concept is Full revision: mix all concepts taught at Level ${selectedLevel}.
-2. All maths must be 100% correct — verify every answer before writing it.
-3. Use ONLY Level ${selectedLevel} number ranges — do not use numbers too big or too small for this level.
-4. Indian context: use Indian names (Aryan, Priya, Ravi, Meera, Rohan, Ananya) and Indian settings (cricket, festivals, rupees, mangoes, chai).
-5. Age-appropriate tone:
-   - Tiny Champs (5–7): Big emojis on every question, very simple language, short sentences, encouraging words, mascot ${mascot !== 'no mascot' ? '(' + mascot + ')' : ''} reacts to answers.
-   - Rising Stars (8–10): Friendly but challenging, mention XP and badges as motivation.
-   - Champions (11–12): Exam-style, include time challenge, competitive language.
-
-━━━ OUTPUT FORMAT ━━━
-${wantWorksheet ? `## QUESTIONS
-Return a valid JSON array of exactly ${qCount} objects. Each object:
-{
-  "question": "full question text here",
-  "answer": "correct answer as string",
-  "emoji": "one relevant emoji",
-  "type": "calculation|fill_blank|story|visual"
+  return 'SYSTEM: You are the iMathAcademy Worksheet Generation Engine.\n\n' +
+    'The Worksheet Specification below contains MANDATORY constraints supplied by the teacher.\n' +
+    'Every single parameter in the specification is MANDATORY.\n' +
+    'You MUST NOT prioritise some parameters over others.\n' +
+    'You MUST NOT silently ignore, substitute, weaken or reinterpret any parameter.\n' +
+    'You MUST NOT use your own judgement to decide which parameters are "more important".\n' +
+    'Every supplied parameter is equally important and MUST be applied simultaneously.\n' +
+    'The Concept selected defines WHAT mathematics is in the worksheet.\n' +
+    'The Activity Type defines HOW the questions are presented.\n' +
+    'The Difficulty defines the complexity WITHIN the selected level only.\n' +
+    'The Level defines the mathematical boundary — do NOT exceed it.\n' +
+    'If you cannot satisfy all constraints simultaneously, return exactly this text:\n' +
+    'GENERATION_CONFLICT: [explain which parameters conflict]\n' +
+    'Do NOT attempt to partially satisfy constraints.\n\n' +
+    '--- WORKSHEET SPECIFICATION ---\n' +
+    JSON.stringify(spec, null, 2) + '\n' +
+    '--- END SPECIFICATION ---\n\n' +
+    'MANDATORY CONCEPT RULE:\n' +
+    'The concept is: ' + conceptLabel + '\n' +
+    'Every single one of the ' + qCount + ' questions MUST test this concept and ONLY this concept.\n' +
+    'Do not add any other mathematical concept unless the concept is "Full Revision".\n' +
+    'Do not mix in concepts the teacher did not select.\n\n' +
+    'MANDATORY ACTIVITY RULE:\n' +
+    'The activity type is: ' + actLabel + '\n' +
+    'Every question MUST use this presentation format.\n' +
+    'Do not change the format mid-worksheet.\n\n' +
+    'MANDATORY DIFFICULTY RULE:\n' +
+    'Difficulty is: ' + difficulty + '\n' +
+    'Difficulty determines complexity WITHIN Level ' + selectedLevel + ' only.\n' +
+    'Hard difficulty at Level ' + selectedLevel + ' must NOT introduce concepts from Level ' + (selectedLevel+1) + ' or above.\n' +
+    'Stay within Level ' + selectedLevel + ' mathematical boundaries regardless of difficulty.\n\n' +
+    'MANDATORY QUESTION COUNT RULE:\n' +
+    'Generate EXACTLY ' + qCount + ' questions. Not more. Not fewer.\n\n' +
+    'MANDATORY LANGUAGE RULE:\n' +
+    'All questions, instructions and text must be in: ' + language + '\n\n' +
+    (special ? 'MANDATORY SPECIAL INSTRUCTIONS (apply these — they are constraints, not suggestions):\n' + special + '\n\n' : '') +
+    'CONTEXT AND PRESENTATION:\n' +
+    'Use Indian context: Indian names (Aryan, Priya, Ravi, Meera, Rohan, Ananya), Indian settings (cricket, festivals, rupees, mangoes, chai).\n' +
+    'Age group: ' + ageDesc + '\n' +
+    (mascot !== 'none' ? 'Mascot: ' + mascot + ' — include this mascot as a character in the worksheet.\n' : '') +
+    'Theme: ' + theme + '\n' +
+    'Mathematical accuracy: verify every answer before writing it. A wrong answer in a children\'s worksheet is unacceptable.\n\n' +
+    'OUTPUT FORMAT — produce only the sections requested:\n' +
+    (wantWorksheet ? '## QUESTIONS\nReturn a valid JSON array of EXACTLY ' + qCount + ' objects.\nEach object must have these exact keys:\n{"question":"full question text","answer":"correct answer as a string","emoji":"one relevant emoji","type":"calculation|fill_blank|story|visual"}\nReturn the JSON array FIRST before any other text. Valid JSON only. No markdown code fences around the JSON.\n\n' : '') +
+    (wantAnswerKey ? '## ANSWER KEY\nList each question number, the answer, and one line showing the method.\n\n' : '') +
+    (wantHints     ? '## HINT BOX\nWrite the key rule for ' + conceptLabel + ' in simple words a child can memorise. Maximum 3 lines.\n\n' : '') +
+    (wantLesson    ? '## LESSON PLAN\n5 steps: (1) Warm-up (2) Concept introduction (3) Guided practice (4) Independent work (5) Wrap-up. 2 sentences each.\n\n' : '') +
+    (wantParent    ? '## PARENT NOTE\n3 sentences: what was practised today, one activity to try at home tonight, one word of encouragement.\n\n' : '');
 }
 
-IMPORTANT: Return ONLY the JSON array first, no other text before it. Valid JSON only.
-Then after the JSON, on a new line, add the other sections below.` : ''}
 
-${wantAnswerKey ? `## ANSWER KEY
-List each question number with the answer and one line of working.` : ''}
-
-${wantHints ? `## HINT BOX
-Write the key formula or rule for ${conceptMap[selectedConcept]||selectedConcept} in simple words a student can remember. Max 3 lines.` : ''}
-
-${wantLesson ? `## LESSON PLAN
-5 steps: (1) Warm-up (2) Concept intro (3) Guided practice (4) Independent work (5) Wrap-up. 2 sentences each.` : ''}
-
-${wantParent ? `## PARENT NOTE
-3 sentences for parents: what was practised today, one thing to try at home tonight, one encouragement.` : ''}
-`
-}
-
-// ── GENERATE ─────────────────────────────────────────────────
 async function generateWorksheet() {
   const btn = document.getElementById('genBtn');
   btn.disabled = true;

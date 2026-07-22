@@ -422,7 +422,7 @@ async function loadLeaderboard(){
 
   try{
     const{data:batchLinks}=await sb.from('batch_students')
-      .select('batch_id,batches!inner(name)')
+      .select('batch_id,batches(name)')
       .eq('student_id',currentUser.id);
 
     if(!batchLinks?.length){
@@ -505,7 +505,7 @@ async function loadHistory(){
 
     // Worksheet submissions
     const{data:wsubs}=await sb.from('worksheet_responses')
-      .select('score,total,xp_earned,submitted_at,lx_worksheets!inner(title,level)')
+      .select('score,total,xp_earned,submitted_at,lx_worksheets(title,level)')
       .eq('student_id',currentUser.id)
       .order('submitted_at',{ascending:false})
       .limit(20);

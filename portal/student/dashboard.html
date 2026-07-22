@@ -268,6 +268,18 @@
     /* ── HAMBURGER (mobile) ── */
     .hamburger-btn { display: none !important; }
     @media (max-width: 768px) { .hamburger-btn { display: none !important; } }
+  
+    /* ── VIRTUAL CLASS CARD ── */
+    .vc-dashboard-card { border-radius:16px; padding:16px; margin-bottom:14px; display:flex; align-items:center; gap:14px; text-decoration:none; }
+    .vc-dashboard-card.live { background:linear-gradient(135deg,#B71C1C,#E53935); color:#fff; animation:pulse-border 2s infinite; }
+    .vc-dashboard-card.upcoming { background:linear-gradient(135deg,#0D47A1,#1565C0); color:#fff; }
+    .vc-dashboard-card.none { background:var(--bg); border:2px solid var(--border); color:var(--text2); }
+    @keyframes pulse-border { 0%,100%{box-shadow:0 0 0 0 rgba(229,57,53,.4);} 50%{box-shadow:0 0 0 8px rgba(229,57,53,0);} }
+    .vc-icon { font-size:2rem; flex-shrink:0; }
+    .vc-info { flex:1; min-width:0; }
+    .vc-title { font-size:.95rem; font-weight:800; margin-bottom:3px; }
+    .vc-meta { font-size:.75rem; opacity:.85; }
+    .vc-join { background:rgba(255,255,255,.2); border:2px solid rgba(255,255,255,.4); color:#fff; padding:8px 16px; border-radius:10px; font-family:inherit; font-size:.82rem; font-weight:800; cursor:pointer; white-space:nowrap; text-decoration:none; flex-shrink:0; }
   </style>
 </head>
 <body>
@@ -364,7 +376,64 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+// ── VIRTUAL CLASS CARD ───────────────────────────────────────
+async function loadVirtualClassCard(userId) {
+  var cardEl = document.getElementById('vcDashCard');
+  if (!cardEl) return;
+  try {
+    // Get student's batches
+    var bsRes = await sb.from('batch_students').select('batch_id').eq('student_id', userId);
+    if (!bsRes.data || !bsRes.data.length) return;
+    var batchIds = bsRes.data.map(function(b) { return b.batch_id; });
+
+    // Get batch schedule_json and meet_link
+    var bRes = await sb.from('batches').select('id,name,schedule_json,meet_link').in('id', batchIds);
+    if (!bRes.data || !bRes.data.length) return;
+
+    var now = new Date();
+    var liveClass = null;
+    var upcomingClass = null;
+
+    bRes.data.forEach(function(batch) {
+      var sj = batch.schedule_json;
+      if (!sj || !sj.next_class) return;
+      var meetLink = sj.meet_link || batch.meet_link;
+      if (!meetLink) return;
+
+      // Parse the date — next_class is YYYY-MM-DD
+      // We need time too — store as ISO or just show the date
+      var classDate = new Date(sj.next_class + 'T00:00:00');
+      var diffHours = (classDate - now) / 3600000;
+
+      if (diffHours >= -2 && diffHours <= 1) {
+        // Within 1 hour past start or up to 1hr before — treat as live
+        liveClass = { name: batch.name, topic: sj.text || 'Virtual Class', meet_link: meetLink, date: classDate };
+      } else if (diffHours > 0 && diffHours <= 24) {
+        // Upcoming within next 24 hours
+        upcomingClass = { name: batch.name, topic: sj.text || 'Virtual Class', meet_link: meetLink, date: classDate };
+      }
+    });
+
+    if (liveClass) {
+      cardEl.style.display = 'block';
+      cardEl.innerHTML = '<a href="' + liveClass.meet_link + '" target="_blank" class="vc-dashboard-card live">'
+        + '<div class="vc-icon">📹</div>'
+        + '<div class="vc-info"><div class="vc-title">🔴 Live now — ' + liveClass.topic + '</div>'
+        + '<div class="vc-meta">' + liveClass.name + ' · Tap to join!</div></div>'
+        + '<span class="vc-join">Join now →</span></a>';
+    } else if (upcomingClass) {
+      var timeStr = upcomingClass.date.toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'});
+      cardEl.style.display = 'block';
+      cardEl.innerHTML = '<a href="' + upcomingClass.meet_link + '" target="_blank" class="vc-dashboard-card upcoming">'
+        + '<div class="vc-icon">📅</div>'
+        + '<div class="vc-info"><div class="vc-title">Upcoming class — ' + upcomingClass.topic + '</div>'
+        + '<div class="vc-meta">' + upcomingClass.name + ' · ' + timeStr + '</div></div>'
+        + '<span class="vc-join">Join →</span></a>';
+    }
+  } catch(e) { console.warn('VC card error:', e.message); }
+}
+</script>
 <script>
 const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
@@ -683,6 +752,8 @@ function buildDashboard(profile, stats, group, session_user_id) {
       </div>
 
       <!-- Daily missions -->
+      <div id="vcDashCard" style="display:none;margin-bottom:14px;"></div>
+
       <div class="mission-card">
         <div class="mission-header">
           <div class="mission-title">🎯 Today's missions</div>
@@ -1127,6 +1198,7 @@ async function init() {
     // Build dashboard — pass session user id for leaderboard highlight
     buildDashboard(profile, stats, group, session.user.id);
     injectWorksheetMission(stats.newWorksheets || 0);
+    loadVirtualClassCard(session.user.id);
 
   } catch(err) {
     console.error('Dashboard init error:', err);

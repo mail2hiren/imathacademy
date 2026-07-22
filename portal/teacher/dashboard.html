@@ -484,7 +484,63 @@
 <!-- Notification panel (injected by JS) -->
 <div class="toast-wrap" id="toastWrap"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+function editClass(idx) {
+  var cls = SCHED[idx];
+  if (!cls) return;
+  // Pre-fill the schedule form with this class's data
+  var vcBatch = document.getElementById('vcBatch');
+  var vcTopic = document.getElementById('vcTopic');
+  var vcDate  = document.getElementById('vcDate');
+  var vcStart = document.getElementById('vcStart');
+  var vcDuration = document.getElementById('vcDuration');
+  var vcMeetLink = document.getElementById('vcMeetLink');
+  if (vcBatch) vcBatch.value = cls.batch_id || '';
+  if (vcTopic) vcTopic.value = cls.topic || '';
+  if (vcDate)  vcDate.value  = cls.date || '';
+  if (vcStart) vcStart.value = cls.start_time || '';
+  if (vcDuration) vcDuration.value = cls.duration || 60;
+  if (vcMeetLink) vcMeetLink.value = cls.meet_link || '';
+  // Remove old entry so re-scheduling replaces it
+  SCHED.splice(idx, 1);
+  renderVcList();
+  // Scroll to form
+  var form = document.querySelector('#tab-virtualclass .card');
+  if (form) form.scrollIntoView({behavior:'smooth', block:'start'});
+  toast('Edit the details above and click Schedule to save changes', '');
+}
+
+async function cancelClass(idx) {
+  var cls = SCHED[idx];
+  if (!cls) return;
+  if (!confirm('Cancel "' + (cls.topic || 'this class') + '" on ' + new Date(cls.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) + '? Students will be notified.')) return;
+  try {
+    // Notify students of cancellation
+    var batch = BATCHES.find(function(b) { return b.id === cls.batch_id; });
+    if (batch && batch.students.length) {
+      await sb.from('notifications').insert(
+        batch.students.map(function(s) {
+          return {
+            user_id: s.id,
+            type: 'class_cancelled',
+            title: '❌ Class cancelled: ' + (cls.topic || 'Virtual Class'),
+            message: 'The class scheduled for ' + new Date(cls.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) + ' has been cancelled.',
+          };
+        })
+      );
+    }
+    // Clear schedule_json from batch
+    await sb.from('batches').update({ schedule_json: null }).eq('id', cls.batch_id);
+    // Remove from local list
+    SCHED.splice(idx, 1);
+    renderVcList();
+    toast('Class cancelled — ' + (batch ? batch.students.length : 0) + ' students notified', 'success');
+  } catch(e) {
+    toast('Error cancelling class: ' + e.message, 'error');
+  }
+}
+
+</script>
 <script>
 const SURL = 'https://bhullfoajenhkxlkiubs.supabase.co';
 const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
@@ -1149,22 +1205,30 @@ function renderVcList() {
   }
   var now = new Date();
   var html = '';
-  SCHED.forEach(function(cls) {
+  SCHED.forEach(function(cls, idx) {
     var startDT = new Date(cls.date + 'T' + cls.start_time);
     var endDT   = new Date(startDT.getTime() + (cls.duration || 60) * 60000);
     var isLive  = now >= startDT && now <= endDT;
     var isPast  = now > endDT;
     var statusLabel = isLive ? '🔴 LIVE NOW' : isPast ? 'Completed' : '📅 Upcoming';
     var statusColor = isLive ? 'var(--green)' : isPast ? 'var(--text3)' : 'var(--blue)';
-    html += '<div class="vc-card' + (isLive ? ' live' : '') + '">';
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">';
+    html += '<div class="vc-card' + (isLive ? ' live' : '') + '" id="vc-card-' + idx + '">';
+    html += '<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;">';
     html += '<div><div style="font-size:.9rem;font-weight:800;">' + (cls.batch_name || 'Batch') + ' — ' + (cls.topic || 'Class') + '</div>';
-    html += '<div style="font-size:.75rem;color:var(--text3);margin-top:3px;">' + new Date(cls.date).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'}) + ' · ' + (cls.start_time || '') + ' · ' + (cls.duration || 60) + ' min</div></div>';
-    html += '<div style="font-size:.78rem;font-weight:800;color:' + statusColor + ';">' + statusLabel + '</div></div>';
-    if (cls.meet_link) {
-      html += '<a href="' + cls.meet_link + '" target="_blank" class="btn btn-blue btn-sm" style="display:inline-block;margin-top:10px;text-decoration:none;">📹 Join Meet</a>';
-    }
+    html += '<div style="font-size:.75rem;color:var(--text3);margin-top:3px;">' + new Date(cls.date).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'}) + ' · ' + (cls.start_time || '') + ' · ' + (cls.duration || 60) + ' min</div>';
+    if (cls.meet_link) html += '<div style="font-size:.72rem;color:var(--text3);margin-top:2px;">🔗 ' + cls.meet_link.replace('https://','') + '</div>';
     html += '</div>';
+    html += '<div style="font-size:.78rem;font-weight:800;color:' + statusColor + ';">' + statusLabel + '</div></div>';
+    // Action buttons row
+    html += '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">';
+    if (cls.meet_link) {
+      html += '<a href="' + cls.meet_link + '" target="_blank" class="btn btn-blue btn-sm" style="text-decoration:none;">📹 Join Meet</a>';
+    }
+    if (!isPast) {
+      html += '<button class="btn btn-outline btn-sm" onclick="editClass(' + idx + ')">✏️ Edit</button>';
+      html += '<button class="btn btn-sm" style="background:var(--red-lt);color:var(--red);border-color:var(--red);" onclick="cancelClass(' + idx + ')">✕ Cancel</button>';
+    }
+    html += '</div></div>';
   });
   el.innerHTML = html;
 }

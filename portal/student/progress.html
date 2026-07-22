@@ -356,7 +356,7 @@ async function loadOverview(uid, profile){
   // Practice sessions this week
   const weekStart = getWeekStart();
   const{data:sessions}=await sb.from('practice_sessions')
-    .select('questions_correct,questions_attempted,xp_earned,created_at')
+    .select('questions_correct,questions_attempted,xp_awarded,created_at')
     .eq('student_id',uid)
     .gte('created_at',weekStart)
     .order('created_at',{ascending:false});
@@ -476,7 +476,7 @@ async function loadHistory(){
   try{
     // Practice sessions
     const{data:sessions}=await sb.from('practice_sessions')
-      .select('questions_correct,questions_attempted,xp_earned,session_type,created_at')
+      .select('questions_correct,questions_attempted,xp_awarded,topic,created_at')
       .eq('student_id',currentUser.id)
       .order('created_at',{ascending:false})
       .limit(20);

@@ -276,7 +276,10 @@ function closeFullScreen() {
     var w = allWs.find(function(x){ return x.id === fsCurrentWsId; });
     if (w) {
       var card = document.getElementById('card-' + fsCurrentWsId);
-      if (card) card.outerHTML = renderCard(w);
+      if (card) {
+    var newCard = renderCard(w);
+    card.parentNode.replaceChild(newCard, card);
+  }
     }
   }
   fsCurrentWsId = null;
@@ -631,34 +634,38 @@ function renderList(){
   list.innerHTML=items.map(ws=>renderCard(ws)).join('');
 }
 
-function renderCard(ws){
-  const status=getStatus(ws);
-  const qs=parseQuestions(ws.content||'');
-  const r=responses[ws.id]||{};
-  const iconBg=LEVEL_ICONS[ws.level||1];
-  const pill=status==='done'?'<span class="ws-pill pill-done">✅ Done</span>':status==='inprogress'?'<span class="ws-pill pill-inprogress">✏️ In progress</span>':'<span class="ws-pill pill-new">🆕 New</span>';
-
-  return `<div class="ws-card ${status==='new'?'is-new':''}" id="card-${ws.id}">
-    <div class="ws-header" onclick="toggleCard('${ws.id}')">
-      <div class="ws-icon" style="background:#E3F2FD;">${iconBg}</div>
-      <div class="ws-info">
-        <div class="ws-title">${ws.title}</div>
-        <div class="ws-meta">
-          <span>Level ${ws.level||'—'}</span><span>·</span>
-          <span>${qs.length} question${qs.length!==1?'s':''}</span><span>·</span>
-          <span>${new Date(ws.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>
-        </div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-        ${pill}
-        ${r.score!==undefined?`<span style="font-size:.72rem;font-weight:800;color:${r.pct>=80?'var(--green-dk)':'var(--orange-dk)'};">${r.score}/${qs.length}</span>`:''}
-      </div>
-    </div>
-    <div class="solver" id="solver-${ws.id}">
-      ${renderSolver(ws,qs,r,status)}
-    </div>
-  </div>`;
+function renderCard(w){
+  var status = getStatus(w);
+  var qs = parseQuestions(w.content||'');
+  var r  = responses[w.id]||{};
+  var iconBg = LEVEL_ICONS[w.level||1]||'📋';
+  var statusLabel = status==='done'?'✅ Done':status==='inprogress'?'✏️ In progress':'🆕 New';
+  var statusColor = status==='done'?'var(--green-dk)':status==='inprogress'?'var(--orange-dk)':'var(--blue-dk)';
+  var dateStr = w.created_at ? new Date(w.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '';
+  var div = document.createElement('div');
+  div.className = 'ws-card' + (status==='new'?' is-new':'');
+  div.id = 'card-' + w.id;
+  div.addEventListener('click', function(){ openFullScreen(w.id); });
+  div.innerHTML =
+    '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;">'
+    + '<div class="ws-icon" style="background:#E3F2FD;">'+iconBg+'</div>'
+    + '<div style="flex:1;min-width:0;">'
+      + '<div class="ws-title">'+w.title+'</div>'
+      + '<div class="ws-meta">'
+        + '<span>Level '+(w.level||1)+'</span><span>·</span>'
+        + '<span>'+qs.length+' questions</span>'
+        + (dateStr?'<span>·</span><span>'+dateStr+'</span>':'')
+      + '</div>'
+    + '</div>'
+    + '<div style="text-align:right;flex-shrink:0;">'
+      + '<div style="font-size:.72rem;font-weight:800;color:'+statusColor+';">'+statusLabel+'</div>'
+      + (r.score!==undefined?'<div style="font-size:.72rem;font-weight:700;color:var(--text3);">'+r.score+'/'+qs.length+'</div>':'')
+      + '<div style="font-size:1.3rem;color:var(--text3);">›</div>'
+    + '</div>'
+    + '</div>';
+  return div;
 }
+
 
 function renderSolver(ws,qs,r,status){
   if(status==='done') return renderResult(ws,qs,r);
@@ -889,6 +896,13 @@ async function init(){
       wsData=data||[];
     }
     allWs=wsData;
+
+    // Check if opened with worksheet ID in URL hash
+    var hash = window.location.hash.replace('#','');
+    if (hash && allWs) {
+      var targetWs = allWs.find(function(w){ return w.id === hash; });
+      if (targetWs) setTimeout(function(){ openFullScreen(hash); }, 300);
+    }
 
     // Load submitted responses
     const{data:subs}=await sb.from('worksheet_responses').select('*').eq('student_id',session.user.id);

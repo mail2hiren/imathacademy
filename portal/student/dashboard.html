@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; min-height: 100vh; overflow-x: hidden; }
+    body { font-family: 'Nunito', sans-serif; background: #F7F8FF; color: #1A1A2E; min-height: 100vh; overflow-x: hidden; box-sizing: border-box; }
     :root {
       --green: #43A047; --green-dk: #1B5E20; --green-lt: #E8F5E9;
       --blue: #1E88E5; --blue-dk: #0D47A1; --blue-lt: #E3F2FD;
@@ -180,10 +180,21 @@
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
       .sidebar { display: none; }
-      .main { margin-left: 0; padding-bottom: var(--bottom-nav-h); }
-      .topbar { height: 52px; padding: 0 14px; }
-      .content { padding: 12px; }
+      .main { margin-left: 0 !important; padding-bottom: var(--bottom-nav-h); }
+      .topbar { height: 52px; padding: 0 12px; }
+      .topbar-title { font-size: .82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+      .content { padding: 10px; }
       .bottom-nav { display: block; }
+      /* Prevent overflow on all cards */
+      .hero, .card, .section-card { box-sizing: border-box; width: 100%; max-width: 100%; }
+      /* Power bar blocks wrap instead of overflow */
+      .power-blocks, .xp-blocks { flex-wrap: wrap; }
+      /* Actions grid full width */
+      .actions-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .action-btn { min-height: 80px; padding: 12px 10px; }
+      /* Ensure nothing overflows viewport */
+      * { max-width: 100vw; }
+      img, video { max-width: 100%; }
       .notif-panel { width: 100vw; border-left: none; border-radius: 0; }
 
       /* Hero adjustments */

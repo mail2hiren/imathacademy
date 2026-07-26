@@ -43,7 +43,7 @@
 
     /* ── MAZE ── */
     .maze-wrap { display: flex; justify-content: center; margin-bottom: 16px; }
-    .maze-canvas { border: 3px solid var(--blue-dk); border-radius: 12px; touch-action: none; cursor: crosshair; display: block; background: var(--bg); }
+    .maze-canvas { border: 3px solid var(--blue-dk); border-radius: 12px; touch-action: none; cursor: crosshair; display: block; background: var(--bg);  max-width: 100%; display: block; margin: 0 auto; touch-action: none; }
     .maze-hint { text-align: center; font-size: .78rem; color: var(--text3); font-weight: 600; margin-bottom: 12px; }
     .maze-controls { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
     .maze-dir-btn { width: 56px; height: 56px; border: 2px solid var(--border); border-radius: 14px; background: var(--bg); font-size: 1.3rem; cursor: pointer; touch-action: manipulation; display: flex; align-items: center; justify-content: center; transition: all .1s; }
@@ -310,7 +310,7 @@ function newPuzzle() {
 // ════════════════════════════════════════════════════════════
 let mazeGrid = [], mazePlayerPos = {x:0,y:0}, mazeSize = 7, mazeEnd = {x:6,y:6};
 let mazePath = [], mazeCanvas = null, mazeCtx = null;
-const CELL = 44; // px per cell — good for touch
+const CELL = 44; // px per cell — good for touch (overridden by dynamic calc)
 
 function buildTinyPuzzle() {
   puzzleType = 'maze';
@@ -362,7 +362,7 @@ function buildTinyPuzzle() {
   // Setup canvas
   setTimeout(() => {
     mazeCanvas = document.getElementById('mazeCanvas');
-    const size = Math.min(window.innerWidth - 40, 340);
+    const size = Math.min(window.innerWidth - 32, window.innerHeight - 280, 320);
     const cellPx = Math.floor(size / mazeSize);
     mazeCanvas.width  = cellPx * mazeSize;
     mazeCanvas.height = cellPx * mazeSize;

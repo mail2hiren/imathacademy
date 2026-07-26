@@ -244,7 +244,158 @@
   <a class="bnav-item active" href="worksheets.html"><span class="bnav-icon">📋</span><span class="bnav-label">Worksheets</span></a>
 </div></nav>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+// ── FULL SCREEN WORKSHEET SOLVER ─────────────────────────
+var fsCurrentWsId = null;
+var fsCurrentQIdx = 0;
+var fsQuestions   = [];
+
+function openFullScreen(wsId) {
+  var worksheet = allWs.find(function(w){ return w.id === wsId; });
+  if (!worksheet) return;
+  fsCurrentWsId = wsId;
+  fsQuestions   = parseQuestions(worksheet.content || '');
+  if (!responses[wsId]) responses[wsId] = {answers:{}, correct:{}, currentQ:0};
+  fsCurrentQIdx = responses[wsId].currentQ || 0;
+
+  document.getElementById('fsTitle').textContent = worksheet.title || 'Worksheet';
+  document.getElementById('fsSolver').classList.add('show');
+
+  if (getStatus(worksheet) === 'done') {
+    showFsResult(fsQuestions, responses[wsId]);
+  } else {
+    showFsQuestion();
+  }
+  setTimeout(function(){ var inp=document.getElementById('fsInput'); if(inp) inp.focus(); }, 200);
+}
+
+function closeFullScreen() {
+  document.getElementById('fsSolver').classList.remove('show');
+  if (fsCurrentWsId) {
+    var w = allWs.find(function(x){ return x.id === fsCurrentWsId; });
+    if (w) {
+      var card = document.getElementById('card-' + fsCurrentWsId);
+      if (card) card.outerHTML = renderCard(w);
+    }
+  }
+  fsCurrentWsId = null;
+}
+
+function showFsQuestion() {
+  if (!fsQuestions.length) return;
+  var q     = fsQuestions[fsCurrentQIdx];
+  var total = fsQuestions.length;
+  var pct   = Math.round((fsCurrentQIdx / total) * 100);
+  var group = getGroup();
+  var fsize = group === 'tiny' ? '1.2rem' : '1rem';
+
+  document.getElementById('fsCounter').textContent = (fsCurrentQIdx+1) + ' of ' + total;
+  document.getElementById('fsProgress').style.width = pct + '%';
+
+  var prevBtn = fsCurrentQIdx > 0
+    ? '<button class="fs-btn-skip" onclick="fsNav(-1)">← Previous</button>'
+    : '';
+
+  document.getElementById('fsBody').innerHTML =
+    '<div class="fs-question-wrap">' +
+      '<div class="fs-emoji">' + (q.emoji || '🧮') + '</div>' +
+      '<div class="fs-question" style="font-size:' + fsize + ';">' + q.question + '</div>' +
+      '<div class="fs-input-wrap">' +
+        '<input class="fs-input" id="fsInput" type="text" inputmode="numeric" ' +
+          'placeholder="Your answer..." autocomplete="off" ' +
+          'onkeydown="if(event.key==='Enter')fsTryAnswer()">' +
+        '<div class="fs-feedback" id="fsFeedback"></div>' +
+        '<button class="fs-btn" onclick="fsTryAnswer()">✅ Check answer</button>' +
+        prevBtn +
+      '</div>' +
+    '</div>';
+}
+
+function fsTryAnswer() {
+  var input    = document.getElementById('fsInput');
+  var feedback = document.getElementById('fsFeedback');
+  if (!input || !feedback) return;
+  var val = input.value.trim();
+  if (!val) { input.focus(); return; }
+
+  var q        = fsQuestions[fsCurrentQIdx];
+  var expected = cleanAnswer(String(q.answer || ''));
+  var given    = cleanAnswer(val);
+  var isCorrect = expected && (
+    given === expected ||
+    (!isNaN(parseFloat(given)) && !isNaN(parseFloat(expected)) &&
+     Math.abs(parseFloat(given) - parseFloat(expected)) < 0.001)
+  );
+
+  if (!responses[fsCurrentWsId]) responses[fsCurrentWsId] = {answers:{},correct:{},currentQ:0};
+  responses[fsCurrentWsId].answers[fsCurrentQIdx] = val;
+  responses[fsCurrentWsId].correct[fsCurrentQIdx] = isCorrect;
+  responses[fsCurrentWsId].currentQ = fsCurrentQIdx;
+
+  input.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  if (isCorrect) {
+    feedback.className = 'fs-feedback correct';
+    var cheers = ['Correct!','Brilliant!','Amazing!','Perfect!','Excellent!'];
+    feedback.textContent = cheers[Math.floor(Math.random()*cheers.length)];
+    input.classList.add('celebrate');
+    setTimeout(function(){ fsNav(1); }, 800);
+  } else {
+    feedback.className = 'fs-feedback wrong';
+    feedback.textContent = 'Not quite — try again!';
+    input.classList.add('shake');
+    setTimeout(function(){
+      input.classList.remove('shake','wrong');
+      feedback.textContent = '';
+      feedback.className = 'fs-feedback';
+      input.value = '';
+      input.focus();
+    }, 700);
+  }
+}
+
+function fsNav(dir) {
+  var next = fsCurrentQIdx + dir;
+  if (next >= fsQuestions.length) {
+    var r     = responses[fsCurrentWsId] || {};
+    var score = Object.values(r.correct||{}).filter(Boolean).length;
+    var total = fsQuestions.length;
+    var pct   = Math.round(score/total*100);
+    var xp    = Math.max(5, Math.round(pct/100*25));
+    responses[fsCurrentWsId] = Object.assign({}, r, {submitted:true,score:score,pct:pct,xp:xp});
+    submitWorksheet(fsCurrentWsId, fsQuestions);
+    showFsResult(fsQuestions, responses[fsCurrentWsId]);
+    return;
+  }
+  if (next < 0) return;
+  fsCurrentQIdx = next;
+  responses[fsCurrentWsId].currentQ = next;
+  showFsQuestion();
+  setTimeout(function(){ var inp=document.getElementById('fsInput'); if(inp) inp.focus(); }, 100);
+}
+
+function showFsResult(qs, r) {
+  var score  = r.score || 0;
+  var total  = qs.length;
+  var pct    = r.pct || Math.round(score/total*100);
+  var xp     = r.xp  || Math.max(5, Math.round(pct/100*25));
+  var trophy = pct>=80?'🏆':pct>=50?'⭐':'💪';
+  var msg    = pct>=80?'Excellent work!':pct>=50?'Good effort!':'Keep practising!';
+  var color  = pct>=80?'var(--green-dk)':pct>=50?'var(--orange-dk)':'var(--red-dk)';
+
+  document.getElementById('fsCounter').textContent = '';
+  document.getElementById('fsProgress').style.width = '100%';
+  document.getElementById('fsBody').innerHTML =
+    '<div class="fs-result">' +
+      '<div class="fs-trophy">' + trophy + '</div>' +
+      '<div class="fs-score-big" style="color:'+color+';">' + score + ' / ' + total + '</div>' +
+      '<div class="fs-score-msg" style="color:'+color+';">' + msg + '</div>' +
+      '<div class="fs-xp">+' + xp + ' XP earned! ⚡</div>' +
+      '<button class="fs-btn" onclick="closeFullScreen()">Back to worksheets</button>' +
+    '</div>';
+}
+
+</script>
 <script>
 const SUPABASE_URL='https://bhullfoajenhkxlkiubs.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';

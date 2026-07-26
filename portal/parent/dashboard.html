@@ -1157,36 +1157,127 @@ function buildVoiceScript(child, stats) {
   return parts.join(' ');
 }
 
-function speakText(text, langCode) {
-  if (!speechSynth) { alert('Voice not supported on this browser'); return; }
-  speechSynth.cancel();
-  var utter = new SpeechSynthesisUtterance(text);
-  utter.lang = langCode;
-  utter.rate = 0.88;
-  utter.pitch = 1.0;
+// Fallback chain: if requested voice not available, try alternatives
+var VOICE_FALLBACKS = {
+  'gu-IN': ['gu-IN', 'hi-IN', 'en-IN'],
+  'mr-IN': ['mr-IN', 'hi-IN', 'en-IN'],
+  'ta-IN': ['ta-IN', 'en-IN'],
+  'te-IN': ['te-IN', 'hi-IN', 'en-IN'],
+  'hi-IN': ['hi-IN', 'en-IN'],
+  'en-IN': ['en-IN', 'en-US', 'en-GB'],
+};
 
-  var btn = document.getElementById('voicePlayBtn');
-  if (btn) {
-    btn.classList.add('speaking');
-    btn.textContent = t('stopBtn');
+// Install instructions for missing voices
+var VOICE_INSTALL = {
+  'gu-IN': {
+    en: 'Gujarati voice not found on this phone. To hear in Gujarati: Settings → Accessibility → Spoken Content → Voices → add Gujarati. For now, playing in Hindi.',
+    hi: 'इस फोन पर गुजराती आवाज़ नहीं है। अभी हिंदी में सुनाया जाएगा।',
+    gu: 'આ ફોન પર ગુજરાતી voice નથી. Settings → Accessibility → Spoken Content → Voices → Gujarati ઉમેરો. અત્યારે Hindi માં સંભળાશે.',
+  },
+  'mr-IN': {
+    en: 'Marathi voice not found. Playing in Hindi instead. To add Marathi: Settings → Accessibility → Spoken Content → Voices.',
+    hi: 'इस फोन पर मराठी आवाज़ नहीं है। अभी हिंदी में सुनाया जाएगा।',
+    mr: 'या फोनवर मराठी voice नाही. Settings → Accessibility → Spoken Content → Voices → Marathi जोडा. आत्ता Hindi मध्ये ऐकले जाईल.',
+  },
+};
+
+function getBestVoice(langCode) {
+  var available = speechSynth.getVoices();
+  var fallbacks = VOICE_FALLBACKS[langCode] || [langCode, 'en-IN'];
+  for (var i = 0; i < fallbacks.length; i++) {
+    var code = fallbacks[i];
+    // Try exact match first
+    var voice = available.find(function(v) { return v.lang === code; });
+    if (!voice) {
+      // Try prefix match e.g. hi-IN matches hi
+      var prefix = code.split('-')[0];
+      voice = available.find(function(v) { return v.lang.startsWith(prefix); });
+    }
+    if (voice) return { voice: voice, usedCode: code };
+  }
+  // Last resort — any voice
+  return available.length ? { voice: available[0], usedCode: available[0].lang } : null;
+}
+
+function showVoiceNotice(langCode) {
+  var info = VOICE_INSTALL[langCode];
+  if (!info) return;
+  var msg = info[currentLang] || info.en;
+  var notice = document.getElementById('voiceNotice');
+  if (!notice) {
+    notice = document.createElement('div');
+    notice.id = 'voiceNotice';
+    notice.style.cssText = 'background:#FFF3E0;border:1.5px solid #FFB300;border-radius:10px;padding:10px 12px;margin-top:10px;font-size:.75rem;font-weight:700;color:#E65100;line-height:1.6;';
+    var vc = document.getElementById('voiceCard');
+    if (vc) vc.appendChild(notice);
+  }
+  notice.textContent = '⚠️ ' + msg;
+  notice.style.display = 'block';
+  setTimeout(function() { if (notice) notice.style.display = 'none'; }, 8000);
+}
+
+function speakText(text, langCode) {
+  if (!speechSynth) {
+    alert('Voice is not supported on this browser. Please try Chrome or Safari.');
+    return;
+  }
+  speechSynth.cancel();
+
+  // Wait for voices to load (needed on some browsers)
+  function doSpeak() {
+    var result = getBestVoice(langCode);
+    if (!result) {
+      alert('No voice available on this device.');
+      return;
+    }
+
+    // Notify if we had to use a fallback
+    if (result.usedCode !== langCode) {
+      showVoiceNotice(langCode);
+    }
+
+    var utter = new SpeechSynthesisUtterance(text);
+    utter.voice = result.voice;
+    utter.lang  = result.usedCode;
+    utter.rate  = 0.88;
+    utter.pitch = 1.0;
+
+    var btn = document.getElementById('voicePlayBtn');
+    if (btn) {
+      btn.classList.add('speaking');
+      btn.textContent = t('stopBtn');
+    }
+
+    utter.onend = function() {
+      if (btn) {
+        btn.classList.remove('speaking');
+        btn.innerHTML = '<span class="voice-icon">🔊</span> ' + t('listenBtn');
+      }
+      currentUtterance = null;
+    };
+    utter.onerror = function(e) {
+      console.warn('Speech error:', e);
+      if (btn) {
+        btn.classList.remove('speaking');
+        btn.innerHTML = '<span class="voice-icon">🔊</span> ' + t('listenBtn');
+      }
+    };
+
+    currentUtterance = utter;
+    speechSynth.speak(utter);
   }
 
-  utter.onend = function() {
-    if (btn) {
-      btn.classList.remove('speaking');
-      btn.innerHTML = '<span class="voice-icon">🔊</span> ' + t('listenBtn');
-    }
-    currentUtterance = null;
-  };
-  utter.onerror = function() {
-    if (btn) {
-      btn.classList.remove('speaking');
-      btn.innerHTML = '<span class="voice-icon">🔊</span> ' + t('listenBtn');
-    }
-  };
-
-  currentUtterance = utter;
-  speechSynth.speak(utter);
+  // Voices may not be loaded yet on page load
+  if (speechSynth.getVoices().length > 0) {
+    doSpeak();
+  } else {
+    speechSynth.addEventListener('voiceschanged', function onVoicesLoaded() {
+      speechSynth.removeEventListener('voiceschanged', onVoicesLoaded);
+      doSpeak();
+    });
+    // Fallback if voiceschanged never fires
+    setTimeout(doSpeak, 1000);
+  }
 }
 
 function toggleVoice() {

@@ -705,38 +705,37 @@ function selectLevelByValue(lv) {
 
 // ── BUILD PROMPT ─────────────────────────────────────────────
 function buildPrompt(preview=false) {
-  const batch = document.getElementById('batchSel').options[document.getElementById('batchSel').selectedIndex]?.text || 'selected batch';
-  const student = document.getElementById('studentSel').options[document.getElementById('studentSel').selectedIndex];
-  const studentName = student?.value ? student.text : 'the entire batch';
-  const difficulty = document.getElementById('difficulty').value.replace('_',' ');
-  const qCount = preview ? 2 : parseInt(document.getElementById('questionCount').value);
-  const timeLimit = document.getElementById('timeLimit').value;
-  const theme = document.getElementById('theme').value;
-  const mascot = document.getElementById('mascot').value || 'none';
-  const language = document.getElementById('language').value.replace('_',' ');
-  const special = document.getElementById('specialInstructions').value.trim();
+  const batchName   = document.getElementById('batchSel').options[document.getElementById('batchSel').selectedIndex]?.text || 'the batch';
+  const studentOpt  = document.getElementById('studentSel').options[document.getElementById('studentSel').selectedIndex];
+  const studentName = studentOpt?.value ? studentOpt.text : 'the entire batch';
+  const difficulty  = document.getElementById('difficulty').value;
+  const qCount      = preview ? 2 : parseInt(document.getElementById('questionCount').value);
+  const timeLimit   = document.getElementById('timeLimit').value;
+  const theme       = document.getElementById('theme').value;
+  const mascot      = document.getElementById('mascot').value || '';
+  const language    = document.getElementById('language').value.replace('_',' ');
+  const special     = document.getElementById('specialInstructions').value.trim();
 
-  // Age group
-  const selOpt = document.getElementById('studentSel').options[document.getElementById('studentSel').selectedIndex];
-  const dob = selOpt?.dataset?.dob || '';
-  let ageGroup = selOpt?.dataset?.group || '';
-  if (!ageGroup && dob) {
-    const d = new Date(dob), today = new Date();
-    let age = today.getFullYear()-d.getFullYear();
-    const m = today.getMonth()-d.getMonth();
-    if (m<0||(m===0&&today.getDate()<d.getDate())) age--;
-    ageGroup = age<=7?'tiny':age<=10?'rising':'champions';
-  }
-  if (!ageGroup) ageGroup = selectedLevel<=1?'tiny':selectedLevel<=4?'rising':'champions';
-  const ageDesc = {tiny:'5-7 years (Tiny Champs)',rising:'8-10 years (Rising Stars)',champions:'11-12 years (Champions)'}[ageGroup];
-
+  // Outputs requested
   const wantWorksheet = document.getElementById('out-worksheet').checked;
   const wantAnswerKey = document.getElementById('out-answerkey').checked;
   const wantHints     = document.getElementById('out-hints').checked;
   const wantLesson    = document.getElementById('out-lessonplan').checked;
   const wantParent    = document.getElementById('out-parentnote').checked;
 
-  // Concept labels
+  // Age group
+  let ageGroup = studentOpt?.dataset?.group || '';
+  const dob = studentOpt?.dataset?.dob || '';
+  if (!ageGroup && dob) {
+    const d = new Date(dob), today = new Date();
+    let age = today.getFullYear()-d.getFullYear();
+    if (today.getMonth()-d.getMonth()<0||(today.getMonth()-d.getMonth()===0&&today.getDate()<d.getDate())) age--;
+    ageGroup = age<=7?'tiny':age<=10?'rising':'champions';
+  }
+  if (!ageGroup) ageGroup = selectedLevel<=1?'tiny':selectedLevel<=4?'rising':'champions';
+  const ageDesc = {tiny:'5-7 years (Tiny Champs)',rising:'8-10 years (Rising Stars)',champions:'11-12 years (Champions)'}[ageGroup];
+
+  // Concept and activity labels
   const conceptLabels = {
     add_sub:'Direct Addition and Subtraction',
     big_friends:'Big Friends (complement to 10)',
@@ -747,147 +746,297 @@ function buildPrompt(preview=false) {
     anzan:'Anzan — Mental Abacus',
     revision:'Full Revision of all Level '+selectedLevel+' concepts',
   };
+  const conceptLabel = conceptLabels[selectedConcept] || selectedConcept;
 
-  // Activity labels
-  const actLabels = {
-    flashcards:'Flash Cards',
-    picture_sums:'Visual Picture Sums',
-    story_problems:'Story Problems',
-    fill_blank:'Fill in the Blank',
-    match_pairs:'Match the Pairs',
-    speed_challenge:'Speed Challenge',
-    colour_answer:'Colour by Answer',
-    mixed:'Mixed Variety',
-  };
-
-  const conceptLabel  = conceptLabels[selectedConcept] || selectedConcept;
-  const actLabel      = actLabels[selectedActivity]    || selectedActivity;
-
-  // Build the worksheet specification object — this is the source of truth
-  const spec = {
-    student:         studentName,
-    batch:           batch,
-    age_group:       ageDesc,
-    level:           selectedLevel,
-    concept:         conceptLabel,
-    activity_type:   actLabel,
-    difficulty:      difficulty,
-    question_count:  qCount,
-    time_limit:      timeLimit + ' minutes',
-    theme:           theme,
-    mascot:          mascot,
-    language:        language,
-    special_instructions: special || 'none',
-  };
-
-  // Resolve curriculum rules for this level
+  // Resolve curriculum rules
   var currData = CURRICULUM[selectedLevel];
   var resolvedRules = null;
   if (currData && currData.level) {
     var lvData = currData.level;
-    var diffRule = currData.diffRules[difficulty.replace(' ','_')] || currData.diffRules[difficulty] || {};
+    var diffKey = difficulty.toLowerCase();
+    var diffRule = currData.diffRules[diffKey] || {};
     var activeFormulas = currData.formulas.filter(function(f) {
-      return !selectedConcept || f.concept.toLowerCase().includes(selectedConcept.replace('_',' '));
+      if (!selectedConcept || selectedConcept === 'revision') return true;
+      return f.concept.toLowerCase().replace(/\s+/g,'_').includes(selectedConcept.replace('_','')) ||
+             selectedConcept.includes(f.concept.toLowerCase().split(' ')[0]);
     });
     resolvedRules = {
-      curriculum_version:  '1.0',
-      level_name:          lvData.level_name || ('Level ' + selectedLevel),
-      age_range:           (lvData.age_min || '?') + '-' + (lvData.age_max || '?') + ' years',
-      digit_range:         (diffRule.min_digits || lvData.min_digits || 1) + ' to ' + (diffRule.max_digits || lvData.max_digits || 2) + ' digits',
-      number_range:        '1 to ' + (diffRule.max_number || lvData.max_number || 99),
-      row_range:           (diffRule.min_rows || lvData.min_rows || 3) + ' to ' + (diffRule.max_rows || lvData.max_rows || 5) + ' rows',
-      anzan_allowed:       lvData.anzan_allowed || false,
-      multiplication:      lvData.multiplication_allowed || false,
-      division:            lvData.division_allowed || false,
-      formulas_for_concept: activeFormulas.map(function(f) {
-        return f.name + (f.example ? ' (e.g. ' + f.example + ')' : '') + (f.method ? ' — ' + f.method.slice(0,150) : '');
-      }),
-      difficulty_notes:    diffRule.notes || '',
+      level_name:     lvData.level_name,
+      core_focus:     lvData.core_focus,
+      age_range:      (lvData.age_min||'?')+'-'+(lvData.age_max||'?')+' years',
+      min_digits:     diffRule.min_digits || lvData.min_digits || 1,
+      max_digits:     diffRule.max_digits || lvData.max_digits || 2,
+      min_number:     diffRule.min_number || lvData.min_number || 1,
+      max_number:     diffRule.max_number || lvData.max_number || 99,
+      min_rows:       diffRule.min_rows   || lvData.min_rows   || 3,
+      max_rows:       diffRule.max_rows   || lvData.max_rows   || 5,
+      anzan:          lvData.anzan_allowed || false,
+      multiplication: lvData.multiplication_allowed || false,
+      division:       lvData.division_allowed || false,
+      formulas:       activeFormulas,
+      diff_notes:     diffRule.notes || '',
     };
   }
-  var specWithRules = Object.assign({}, spec);
-  if (resolvedRules) specWithRules.resolved_curriculum_rules = resolvedRules;
-  var SPEC = specWithRules;  // use this in the prompt below
-  // reassign spec so rest of prompt uses enriched version
-  spec = specWithRules;
 
-  var _unused = {
-    outputs_requested: [
-      wantWorksheet ? 'QUESTIONS' : null,
-      wantAnswerKey ? 'ANSWER_KEY' : null,
-      wantHints     ? 'HINT_BOX'   : null,
-      wantLesson    ? 'LESSON_PLAN': null,
-      wantParent    ? 'PARENT_NOTE': null,
-    ].filter(Boolean),
-  };
+  // ── ACTIVITY-SPECIFIC INSTRUCTIONS ───────────────────────────
+  // This is the most important part — each activity gets precise instructions
+  // with examples so AI knows EXACTLY what format to produce
 
-  return 'SYSTEM: You are the iMathAcademy Worksheet Generation Engine.\n\n' +
-    'The Worksheet Specification below contains MANDATORY constraints supplied by the teacher.\n' +
-    'Every single parameter in the specification is MANDATORY.\n' +
-    'You MUST NOT prioritise some parameters over others.\n' +
-    'You MUST NOT silently ignore, substitute, weaken or reinterpret any parameter.\n' +
-    'You MUST NOT use your own judgement to decide which parameters are "more important".\n' +
-    'Every supplied parameter is equally important and MUST be applied simultaneously.\n' +
-    'The Concept selected defines WHAT mathematics is in the worksheet.\n' +
-    'The Activity Type defines HOW the questions are presented.\n' +
-    'The Difficulty defines the complexity WITHIN the selected level only.\n' +
-    'The Level defines the mathematical boundary — do NOT exceed it.\n' +
-    'If you cannot satisfy all constraints simultaneously, return exactly this text:\n' +
-    'GENERATION_CONFLICT: [explain which parameters conflict]\n' +
-    'Do NOT attempt to partially satisfy constraints.\n\n' +
-    '--- WORKSHEET SPECIFICATION ---\n' +
-    JSON.stringify(spec, null, 2) + '\n' +
-    (resolvedRules ? (
-      '--- RESOLVED CURRICULUM RULES (these are BINDING — not suggestions) ---\n' +
-      'These rules come from the iMathAcademy Curriculum Engine and override everything else.\n\n' +
-      'Level: ' + resolvedRules.level_name + '\n' +
-      'Student age: ' + resolvedRules.age_range + '\n' +
-      'Digit range for this difficulty: ' + resolvedRules.digit_range + ' — DO NOT EXCEED THIS.\n' +
-      'Number range: ' + resolvedRules.number_range + ' — DO NOT use numbers outside this range.\n' +
-      'Rows per question: ' + resolvedRules.row_range + '\n' +
-      'Anzan allowed: ' + (resolvedRules.anzan_allowed ? 'YES' : 'NO — physical abacus problems only') + '\n' +
-      'Multiplication allowed: ' + (resolvedRules.multiplication_allowed ? 'YES' : 'NO — do not include multiplication') + '\n' +
-      'Division allowed: ' + (resolvedRules.division_allowed ? 'YES' : 'NO — do not include division') + '\n' +
-      (resolvedRules.formulas_for_concept.length ?
-        '\nFormulas to use for this concept (use these EXACT methods):\n' +
-        resolvedRules.formulas_for_concept.map(function(f,i) { return (i+1) + '. ' + f; }).join('\n') + '\n'
-        : '') +
-      (resolvedRules.difficulty_notes ? '\nDifficulty notes from curriculum designer: ' + resolvedRules.difficulty_notes + '\n' : '') +
-      '--- END CURRICULUM RULES ---\n\n'
-    ) : '') +
-    '--- END SPECIFICATION ---\n\n' +
-    'MANDATORY CONCEPT RULE:\n' +
-    'The concept is: ' + conceptLabel + '\n' +
-    'Every single one of the ' + qCount + ' questions MUST test this concept and ONLY this concept.\n' +
-    'Do not add any other mathematical concept unless the concept is "Full Revision".\n' +
-    'Do not mix in concepts the teacher did not select.\n\n' +
-    'MANDATORY ACTIVITY RULE:\n' +
-    'The activity type is: ' + actLabel + '\n' +
-    'Every question MUST use this presentation format.\n' +
-    'Do not change the format mid-worksheet.\n\n' +
-    'MANDATORY DIFFICULTY RULE:\n' +
-    'Difficulty is: ' + difficulty + '\n' +
-    'Difficulty determines complexity WITHIN Level ' + selectedLevel + ' only.\n' +
-    'Hard difficulty at Level ' + selectedLevel + ' must NOT introduce concepts from Level ' + (selectedLevel+1) + ' or above.\n' +
-    'Stay within Level ' + selectedLevel + ' mathematical boundaries regardless of difficulty.\n\n' +
-    'MANDATORY QUESTION COUNT RULE:\n' +
-    'Generate EXACTLY ' + qCount + ' questions. Not more. Not fewer.\n\n' +
-    'MANDATORY LANGUAGE RULE:\n' +
-    'All questions, instructions and text must be in: ' + language + '\n\n' +
-    (special ? 'MANDATORY SPECIAL INSTRUCTIONS (apply these — they are constraints, not suggestions):\n' + special + '\n\n' : '') +
-    'CONTEXT AND PRESENTATION:\n' +
-    'Use Indian context: Indian names (Aryan, Priya, Ravi, Meera, Rohan, Ananya), Indian settings (cricket, festivals, rupees, mangoes, chai).\n' +
-    'Age group: ' + ageDesc + '\n' +
-    (mascot !== 'none' ? 'Mascot: ' + mascot + ' — include this mascot as a character in the worksheet.\n' : '') +
-    'Theme: ' + theme + '\n' +
-    'Mathematical accuracy: verify every answer before writing it. A wrong answer in a children\'s worksheet is unacceptable.\n\n' +
-    'OUTPUT FORMAT — produce only the sections requested:\n' +
-    (wantWorksheet ? '## QUESTIONS\nReturn a valid JSON array of EXACTLY ' + qCount + ' objects.\nEach object must have these exact keys:\n{"question":"full question text","answer":"correct answer as a string","emoji":"one relevant emoji","type":"calculation|fill_blank|story|visual"}\nReturn the JSON array FIRST before any other text. Valid JSON only. No markdown code fences around the JSON.\n\n' : '') +
-    (wantAnswerKey ? '## ANSWER KEY\nList each question number, the answer, and one line showing the method.\n\n' : '') +
-    (wantHints     ? '## HINT BOX\nWrite the key rule for ' + conceptLabel + ' in simple words a child can memorise. Maximum 3 lines.\n\n' : '') +
-    (wantLesson    ? '## LESSON PLAN\n5 steps: (1) Warm-up (2) Concept introduction (3) Guided practice (4) Independent work (5) Wrap-up. 2 sentences each.\n\n' : '') +
-    (wantParent    ? '## PARENT NOTE\n3 sentences: what was practised today, one activity to try at home tonight, one word of encouragement.\n\n' : '');
+  const mascotLine = mascot ? mascot + ' the ' + mascot : 'an Abacus teacher';
+  const themeDesc  = theme  ? theme + ' theme'          : 'everyday Indian context';
+
+  var activityInstructions = '';
+  var jsonFormat = '';
+
+  if (selectedActivity === 'flashcards') {
+    activityInstructions =
+      'ACTIVITY: Flash Cards\n' +
+      'Each question is a short, direct calculation — one line only.\n' +
+      'Format: just the sum, e.g. "24 + 37 = ?" or "56 - 18 = ?"\n' +
+      'No story. No context. Fast and punchy.\n' +
+      'The ' + themeDesc + ' should appear only in the emoji, not the question text.\n' +
+      'EXAMPLE of a correct Flash Card question: "43 + 28 = ?"\n' +
+      'WRONG example (do NOT do this): "Ravi had 43 mangoes..." — that is a story problem, not a flash card.\n';
+    jsonFormat =
+      '{"question":"43 + 28 = ?","answer":"71","emoji":"⚡","type":"calculation"}';
+
+  } else if (selectedActivity === 'story_problems') {
+    activityInstructions =
+      'ACTIVITY: Story Problems — THIS IS THE MOST IMPORTANT INSTRUCTION FOR THIS ACTIVITY.\n' +
+      'Every single question MUST be a complete story with:\n' +
+      '  (1) A character with an Indian name (Aryan, Priya, Ravi, Meera, Rohan, Ananya, etc.)\n' +
+      '  (2) A real-world situation from Indian daily life\n' +
+      '  (3) A clear question at the end asking for a number answer\n\n' +
+      (mascot ? 'The mascot is ' + mascot + '. Use ' + mascot + ' as the main character in the stories.\n' : '') +
+      'Theme: ' + (theme || 'everyday India') + ' — all stories must fit this theme.\n\n' +
+      'EXAMPLES of CORRECT story problems:\n' +
+      '  "Ravi had 43 mangoes in his basket. He sold 28 at the market. How many mangoes does he have left?"\n' +
+      '  "Priya collected ' + (resolvedRules ? resolvedRules.max_number/2 : 50) + ' stamps on Monday and 27 more on Tuesday. How many stamps does she have in total?"\n' +
+      '  "During Diwali, Aryan had 85 diyas. He gave 36 to his neighbours. How many diyas did he keep?"\n\n' +
+      'WRONG examples — do NOT produce these:\n' +
+      '  "24 + 37 = ?" — this is a flash card, not a story problem\n' +
+      '  "What is 45 + 23?" — no story, not acceptable\n' +
+      '  "Ravi had some mangoes." — incomplete story, no question at the end\n\n' +
+      'Every story MUST have a number in it and end with a question like "How many...?" or "What is the total...?"\n' +
+      'The answer must be a specific number that can be calculated from the story.\n';
+    jsonFormat =
+      '{"question":"Ravi had 43 mangoes. He bought 28 more at the market. How many mangoes does he have now?","answer":"71","emoji":"🥭","type":"story"}';
+
+  } else if (selectedActivity === 'fill_blank') {
+    activityInstructions =
+      'ACTIVITY: Fill in the Blank\n' +
+      'Each question has a gap represented by ___ that the student must fill in.\n' +
+      'The blank can be the answer, a missing operand, or a missing operator.\n' +
+      'EXAMPLES of correct Fill in the Blank questions:\n' +
+      '  "43 + 28 = ___"\n' +
+      '  "___ + 28 = 71"\n' +
+      '  "43 + ___ = 71"\n' +
+      '  "43 ___ 28 = 15" (missing operator)\n' +
+      'Vary the position of the blank across the ' + qCount + ' questions.\n' +
+      (mascot ? 'Use ' + mascot + ' in a short intro: "Help ' + mascot + ' fill in the blanks!"\n' : '') +
+      'WRONG: "What is 43 + 28?" — that is a calculation question, not fill in the blank.\n';
+    jsonFormat =
+      '{"question":"43 + ___ = 71","answer":"28","emoji":"✏️","type":"fill_blank"}';
+
+  } else if (selectedActivity === 'match_pairs') {
+    activityInstructions =
+      'ACTIVITY: Match the Pairs\n' +
+      'Create ' + qCount + ' pairs where Column A has a sum/expression and Column B has the answer.\n' +
+      'The student draws a line to match each expression to its answer.\n' +
+      'Shuffle Column B so answers are not in the same order as Column A.\n' +
+      'Return as a JSON array where each object has "left" (the expression) and "right" (the answer).\n' +
+      'Include some distractors — extra answers in Column B that do not match any expression.\n';
+    jsonFormat =
+      '{"question":"Match: 43 + 28","answer":"71","emoji":"🔗","type":"match","left":"43 + 28","right":"71"}';
+
+  } else if (selectedActivity === 'speed_challenge') {
+    activityInstructions =
+      'ACTIVITY: Speed Challenge\n' +
+      'Short, rapid-fire calculations — one line each.\n' +
+      'These should be slightly simpler than normal to allow fast solving.\n' +
+      'Target time: ' + Math.round(parseInt(timeLimit)*60/qCount) + ' seconds per question.\n' +
+      (mascot ? 'Intro line: "Race against ' + mascot + '! Can you solve all ' + qCount + ' in ' + timeLimit + ' minutes?"\n' : '') +
+      'Format: "Q1: 24 + 37 = ?" — numbered, punchy, no story.\n';
+    jsonFormat =
+      '{"question":"Q1: 24 + 37 = ?","answer":"61","emoji":"⏱️","type":"calculation"}';
+
+  } else if (selectedActivity === 'picture_sums') {
+    activityInstructions =
+      'ACTIVITY: Visual Picture Sums\n' +
+      'Each question describes a visual scene using emojis.\n' +
+      'Format: "[emoji] [emoji] [emoji] + [emoji] [emoji] = ? [emoji]"\n' +
+      'Or: "Ravi has 🥭🥭🥭🥭🥭 mangoes. He eats 🥭🥭. How many 🥭 are left?"\n' +
+      'Use relevant emojis that match the ' + themeDesc + '.\n' +
+      (mascot ? mascot + ' should appear as a character counting the objects.\n' : '') +
+      'The emoji representation must match the actual numbers in the question.\n';
+    jsonFormat =
+      '{"question":"🌟🌟🌟🌟 + 🌟🌟🌟 = ?","answer":"7","emoji":"⭐","type":"visual"}';
+
+  } else if (selectedActivity === 'colour_answer') {
+    activityInstructions =
+      'ACTIVITY: Colour by Answer\n' +
+      'Each question has a calculation and a colour code.\n' +
+      'Format: "Solve: 43 + 28 = ? → Colour this section BLUE"\n' +
+      'Use simple colour names: Red, Blue, Green, Yellow, Orange, Purple.\n' +
+      'Create ' + qCount + ' questions each with a different colour.\n' +
+      (mascot ? mascot + ' tells the student which colour to use.\n' : '') +
+      'Keep calculations simple enough that the child can verify the colour quickly.\n';
+    jsonFormat =
+      '{"question":"43 + 28 = ? → Colour BLUE","answer":"71","emoji":"🎨","type":"colour","colour":"blue"}';
+
+  } else {
+    // mixed variety
+    activityInstructions =
+      'ACTIVITY: Mixed Variety\n' +
+      'Vary the question format across the ' + qCount + ' questions.\n' +
+      'Use a mix of: direct calculation (30%), fill in the blank (30%), short story (40%).\n' +
+      'All formats must still test the SAME concept: ' + conceptLabel + '.\n' +
+      (mascot ? mascot + ' can introduce different sections.\n' : '') +
+      'Each question must clearly indicate its format to the student.\n';
+    jsonFormat =
+      '{"question":"Ravi had 43 coins. He got 28 more. How many coins now?","answer":"71","emoji":"🪙","type":"story"}';
+  }
+
+  // ── CURRICULUM RULES SECTION ──────────────────────────────────
+  var curriculumSection = '';
+  if (resolvedRules) {
+    curriculumSection =
+      '--- CURRICULUM RULES (BINDING — from iMathAcademy Curriculum Engine) ---\n' +
+      'Level: ' + resolvedRules.level_name + ' · Age: ' + resolvedRules.age_range + '\n' +
+      'Digit range: ' + resolvedRules.min_digits + ' to ' + resolvedRules.max_digits + ' digits per number — STRICT LIMIT\n' +
+      'Number range: ' + resolvedRules.min_number + ' to ' + resolvedRules.max_number + ' — DO NOT use numbers outside this range\n' +
+      'Rows per question: ' + resolvedRules.min_rows + ' to ' + resolvedRules.max_rows + '\n' +
+      'Anzan: ' + (resolvedRules.anzan ? 'ALLOWED' : 'NOT ALLOWED') + '\n' +
+      'Multiplication: ' + (resolvedRules.multiplication ? 'ALLOWED' : 'NOT ALLOWED') + '\n' +
+      'Division: ' + (resolvedRules.division ? 'ALLOWED' : 'NOT ALLOWED') + '\n';
+
+    if (resolvedRules.formulas.length) {
+      curriculumSection += '\nFormulas for ' + conceptLabel + ' — use EXACTLY these methods:\n';
+      resolvedRules.formulas.forEach(function(f, i) {
+        curriculumSection += (i+1) + '. ' + f.name + '\n';
+        if (f.example) curriculumSection += '   Example: ' + f.example + '\n';
+        if (f.method)  curriculumSection += '   Method: ' + f.method.slice(0,200) + '\n';
+      });
+    }
+    if (resolvedRules.diff_notes) {
+      curriculumSection += '\nDifficulty notes: ' + resolvedRules.diff_notes + '\n';
+    }
+    curriculumSection += '--- END CURRICULUM RULES ---\n\n';
+  }
+
+  // ── SPECIAL INSTRUCTIONS CLASSIFICATION ──────────────────────
+  var specialSection = '';
+  if (special) {
+    specialSection =
+      '--- SPECIAL INSTRUCTIONS FROM TEACHER ---\n' +
+      'These are mandatory. Apply every instruction below:\n' +
+      special + '\n' +
+      'If any special instruction conflicts with curriculum rules, follow the curriculum rule\n' +
+      'and note the conflict in a GENERATION_CONFLICT message.\n' +
+      '--- END SPECIAL INSTRUCTIONS ---\n\n';
+  }
+
+  // ── FINAL PROMPT ──────────────────────────────────────────────
+  var prompt =
+    'You are the iMathAcademy Worksheet Generation Engine.\n\n' +
+
+    '=== WHAT YOU MUST DO ===\n' +
+    'Generate a worksheet for: ' + studentName + ' (' + ageDesc + ')\n' +
+    'Concept: ' + conceptLabel + '\n' +
+    'Difficulty: ' + difficulty + '\n' +
+    'Number of questions: EXACTLY ' + qCount + ' — not one more, not one fewer\n' +
+    'Language: ' + language + ' — ALL text including question text must be in this language\n' +
+    'Time limit: ' + timeLimit + ' minutes\n\n' +
+
+    '=== EVERY PARAMETER BELOW IS MANDATORY ===\n' +
+    'You must apply ALL of these simultaneously.\n' +
+    'Do not prioritise one over another.\n' +
+    'Do not silently ignore any parameter.\n' +
+    'If you cannot satisfy all parameters, respond with:\n' +
+    'GENERATION_CONFLICT: [explain exactly which parameters conflict and why]\n\n' +
+
+    curriculumSection +
+
+    '=== ACTIVITY FORMAT — READ THIS CAREFULLY ===\n' +
+    activityInstructions + '\n' +
+
+    '=== THEME AND MASCOT — APPLY TO EVERY QUESTION ===\n' +
+    'Theme: ' + (theme || 'everyday India') + '\n' +
+    'Every question must fit the ' + (theme || 'everyday India') + ' theme.\n' +
+    (mascot ?
+      'Mascot: ' + mascot + '\n' +
+      mascot + ' MUST appear in the worksheet — as a character, narrator, or helper.\n' +
+      'For story problems: ' + mascot + ' is the main character or tells the story.\n' +
+      'For flash cards: ' + mascot + ' introduces the set with one line.\n' +
+      'For fill in the blank: ' + mascot + ' asks the student to help.\n' +
+      'Do NOT generate a worksheet without ' + mascot + ' appearing somewhere.\n'
+      : 'No mascot selected.\n') + '\n' +
+
+    '=== INDIAN CONTEXT — MANDATORY ===\n' +
+    'Always use Indian names: Aryan, Priya, Ravi, Meera, Rohan, Ananya, Kavya, Ishaan, Diya, Veer.\n' +
+    'Always use Indian settings: cricket match, Diwali, school tiffin, rupees, mangoes, chai, temple, market.\n' +
+    'Never use foreign names or settings.\n\n' +
+
+    specialSection +
+
+    '=== MATHEMATICAL ACCURACY — NON-NEGOTIABLE ===\n' +
+    'Verify every single answer before writing it.\n' +
+    'A wrong answer in a children\'s worksheet causes real harm.\n' +
+    'Double-check every calculation.\n\n' +
+
+    '=== OUTPUT FORMAT ===\n' +
+    'Produce ONLY the sections listed below — nothing else.\n\n' +
+
+    (wantWorksheet ?
+      '## QUESTIONS\n' +
+      'Return a valid JSON array of EXACTLY ' + qCount + ' question objects.\n' +
+      'Return the JSON array FIRST, before any other text.\n' +
+      'No markdown code fences. Pure JSON only.\n' +
+      'Each object must have these exact keys:\n' +
+      '{"question":"full question text","answer":"correct answer","emoji":"one emoji","type":"calculation|fill_blank|story|visual"}\n' +
+      'Example of one correct object:\n' +
+      jsonFormat + '\n\n' +
+      'CRITICAL: The "question" field must contain the COMPLETE question including any story setup.\n' +
+      'CRITICAL: The "answer" field must be mathematically correct — verify it.\n\n'
+      : '') +
+
+    (wantAnswerKey ?
+      '## ANSWER KEY\n' +
+      'After the JSON array, list:\n' +
+      'Q1. [question summary] → Answer: [answer] · Method: [one line showing the working]\n' +
+      'One line per question.\n\n'
+      : '') +
+
+    (wantHints ?
+      '## HINT BOX\n' +
+      'Write the key rule for ' + conceptLabel + ' that a child can memorise.\n' +
+      'Maximum 3 bullet points. Simple language for ' + ageDesc + '.\n' +
+      (resolvedRules && resolvedRules.formulas.length ?
+        'Base it on these formulas: ' + resolvedRules.formulas.map(function(f){return f.name;}).join(', ') + '\n'
+        : '') + '\n'
+      : '') +
+
+    (wantLesson ?
+      '## LESSON PLAN\n' +
+      'For teacher use only. 5 steps:\n' +
+      '1. Warm-up (2 min): [activity to activate prior knowledge]\n' +
+      '2. Concept introduction (5 min): [how to explain ' + conceptLabel + ']\n' +
+      '3. Guided practice (8 min): [teacher-led examples]\n' +
+      '4. Independent work (10 min): [student completes this worksheet]\n' +
+      '5. Wrap-up (3 min): [how to close the lesson]\n\n'
+      : '') +
+
+    (wantParent ?
+      '## PARENT NOTE\n' +
+      'Three sentences for the parent:\n' +
+      'Sentence 1: What concept the child practised today and why it matters.\n' +
+      'Sentence 2: One specific activity to try at home tonight (must relate to ' + conceptLabel + ').\n' +
+      'Sentence 3: One word of genuine encouragement.\n\n'
+      : '');
+
+  return prompt;
 }
+
 
 
 async function generateWorksheet() {

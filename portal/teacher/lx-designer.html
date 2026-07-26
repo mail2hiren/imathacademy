@@ -229,6 +229,7 @@
       <div id="levelSummary" style="margin-top:10px;padding:8px 12px;background:var(--blue-lt);border-radius:10px;font-size:.78rem;color:var(--blue-dk);font-weight:700;border:1.5px solid var(--blue);">
         Level 1 — Big friends + small friends. Addition and subtraction up to 2 digits.
       </div>
+          <div id="curriculumInfo" style="margin-top:4px;"></div>
     </div>
 
     <!-- Step 3: Concept -->
@@ -463,17 +464,101 @@ function getGroupFromAge(age) {
   return { label:'🚀 Champions (11–12)', bg:'#EDE7F6', border:'#6A1B9A', color:'#4A148C' };
 }
 
+// Curriculum data loaded from DB — keyed by level number
+var CURRICULUM = {};   // CURRICULUM[1] = { level, concepts, diffRules, formulas }
+var CURRICULUM_LOADED = false;
+
 const LEVEL_SUMMARIES = {
-  0: 'Level 0 — No formulas. Counting, number recognition and simple addition 1–9 only.',
-  1: 'Level 1 — Big friends + small friends. Addition and subtraction up to 2 digits.',
-  2: 'Level 2 — Big and small friends combination. Addition and subtraction up to 3 digits.',
-  3: 'Level 3 — Family formula (combination concept). Addition and subtraction up to 4 digits.',
-  4: 'Level 4 — Anzan (mental abacus). Addition and subtraction up to 5 digits.',
-  5: 'Level 5 — Multiplication 2×1 and 3×1 only (no division). 6-digit addition and subtraction.',
-  6: 'Level 6 — Division 2÷1. 7-digit addition and subtraction.',
-  7: 'Level 7 — Multiplication 4×1, 2×2. Division 4÷1. 8-digit addition and subtraction.',
-  8: 'Level 8 — Decimals and negative numbers. Advanced addition and subtraction.',
+  0: 'Level 0 — Beginner: Understanding beads, addition and subtraction.',
+  1: 'Level 1 — Foundation: Big friends and small friends addition.',
+  2: 'Level 2 — Elementary: Big friends and small friends subtraction.',
+  3: 'Level 3 — Pre-Intermediate: Combination / Family formulas.',
+  4: 'Level 4 — Intermediate: Multiplication.',
+  5: 'Level 5 — Upper-Intermediate.',
+  6: 'Level 6 — Advanced.',
+  7: 'Level 7 — Expert.',
+  8: 'Level 8 — Master.',
 };
+
+async function loadCurriculum() {
+  if (CURRICULUM_LOADED) return;
+  try {
+    // Load levels
+    var lvRes = await sb.from('curriculum_levels')
+      .select('level_code,level_name,core_focus,age_min,age_max,min_digits,max_digits,min_number,max_number,min_rows,max_rows,anzan_allowed,multiplication_allowed,division_allowed,decimals_allowed,negative_numbers_allowed,physical_abacus');
+    
+    // Load concept progressions with concept names
+    var lcRes = await sb.from('curriculum_level_concepts')
+      .select('level_code,status,curriculum_concepts(id,concept_name,concept_code,category)');
+    
+    // Load difficulty rules
+    var drRes = await sb.from('curriculum_difficulty_rules')
+      .select('level_code,difficulty,min_digits,max_digits,min_number,max_number,min_rows,max_rows,notes');
+    
+    // Load formulas
+    var fmRes = await sb.from('curriculum_formulas')
+      .select('level_code,formula_name,method,example,curriculum_concepts(concept_name)');
+
+    // Build CURRICULUM map
+    (lvRes.data || []).forEach(function(lv) {
+      var lvNum = parseInt(lv.level_code.replace('L',''));
+      CURRICULUM[lvNum] = {
+        level: lv,
+        concepts: [],
+        diffRules: {},
+        formulas: [],
+      };
+      // Update summaries from real data
+      if (lv.core_focus) {
+        LEVEL_SUMMARIES[lvNum] = lv.level_code + ' — ' + lv.level_name + ': ' + lv.core_focus +
+          (lv.min_digits ? ' · ' + lv.min_digits + '-' + lv.max_digits + ' digits' : '') +
+          (lv.max_number ? ' · up to ' + lv.max_number : '') +
+          (lv.anzan_allowed ? ' · Anzan ✓' : '') +
+          (lv.multiplication_allowed ? ' · Multiplication ✓' : '');
+      }
+    });
+
+    // Add concepts per level
+    (lcRes.data || []).forEach(function(lc) {
+      var lvNum = parseInt(lc.level_code.replace('L',''));
+      if (CURRICULUM[lvNum] && lc.curriculum_concepts) {
+        CURRICULUM[lvNum].concepts.push({
+          id:     lc.curriculum_concepts.id,
+          name:   lc.curriculum_concepts.concept_name,
+          code:   lc.curriculum_concepts.concept_code,
+          cat:    lc.curriculum_concepts.category,
+          status: lc.status,
+        });
+      }
+    });
+
+    // Add difficulty rules
+    (drRes.data || []).forEach(function(dr) {
+      var lvNum = parseInt(dr.level_code.replace('L',''));
+      if (CURRICULUM[lvNum]) {
+        CURRICULUM[lvNum].diffRules[dr.difficulty] = dr;
+      }
+    });
+
+    // Add formulas
+    (fmRes.data || []).forEach(function(fm) {
+      var lvNum = parseInt(fm.level_code.replace('L',''));
+      if (CURRICULUM[lvNum]) {
+        CURRICULUM[lvNum].formulas.push({
+          name:    fm.formula_name,
+          method:  fm.method,
+          example: fm.example,
+          concept: fm.curriculum_concepts ? fm.curriculum_concepts.concept_name : '',
+        });
+      }
+    });
+
+    CURRICULUM_LOADED = true;
+    console.log('Curriculum loaded:', Object.keys(CURRICULUM).length, 'levels');
+  } catch(e) {
+    console.warn('Curriculum load failed:', e.message);
+  }
+}
 
 // ── FORM INTERACTIONS ────────────────────────────────────────
 function selectLevel(el, lv) {
@@ -481,6 +566,70 @@ function selectLevel(el, lv) {
   el.classList.add('selected');
   selectedLevel = lv;
   document.getElementById('levelSummary').textContent = LEVEL_SUMMARIES[lv] || '';
+  // Filter concepts to only show ones valid at this level
+  filterConceptsForLevel(lv);
+}
+
+function filterConceptsForLevel(lv) {
+  var curr = CURRICULUM[lv];
+  if (!curr || !curr.concepts.length) return; // no curriculum data — show all
+
+  // Concepts that are NOT 'N' (not applicable) at this level
+  var validCodes = {};
+  curr.concepts.forEach(function(c) {
+    if (c.status !== 'N') validCodes[c.code] = c.status;
+  });
+
+  // Map curriculum concept codes to LX designer concept values
+  var codeMap = {
+    'direct_add':     ['add_sub'],
+    'direct_sub':     ['add_sub'],
+    'counting':       ['add_sub'],
+    'number_recog':   ['add_sub'],
+    'big_friends':    ['big_friends'],
+    'small_friends':  ['small_friends'],
+    'combination':    ['combination'],
+    'anzan':          ['anzan'],
+    'multiplication': ['multiplication'],
+    'division':       ['division'],
+    'decimals':       ['add_sub'],
+    'negative':       ['add_sub'],
+    'revision':       ['revision'],
+  };
+
+  // Build set of valid LX values
+  var validLxVals = new Set(['revision']); // revision always available
+  Object.keys(validCodes).forEach(function(code) {
+    var mapped = codeMap[code];
+    if (mapped) mapped.forEach(function(v) { validLxVals.add(v); });
+  });
+
+  // Show/hide concept options
+  document.querySelectorAll('.concept-opt').forEach(function(opt) {
+    var inp = opt.querySelector('input');
+    if (!inp) return;
+    var val = inp.value;
+    var isValid = validLxVals.has(val);
+    opt.style.opacity = isValid ? '1' : '0.3';
+    opt.style.pointerEvents = isValid ? '' : 'none';
+    opt.title = isValid ? '' : 'Not available at Level ' + lv;
+    // If currently selected concept becomes invalid, reset to first valid
+    if (!isValid && selectedConcept === val) {
+      var firstValid = document.querySelector('.concept-opt[style*="opacity: 1"], .concept-opt:not([style])');
+      if (firstValid) firstValid.click();
+    }
+  });
+
+  // Update curriculum info panel if it exists
+  var infoEl = document.getElementById('curriculumInfo');
+  if (infoEl && curr.level) {
+    var lvData = curr.level;
+    var info = '';
+    if (lvData.min_digits) info += 'Digits: ' + lvData.min_digits + '-' + lvData.max_digits + ' &nbsp;·&nbsp; ';
+    if (lvData.max_number) info += 'Max number: ' + lvData.max_number + ' &nbsp;·&nbsp; ';
+    if (lvData.min_rows)   info += 'Rows: ' + lvData.min_rows + '-' + lvData.max_rows;
+    infoEl.innerHTML = info ? '<span style="font-size:.72rem;color:var(--text3);">📚 ' + info + '</span>' : '';
+  }
 }
 
 function selectConcept(el, val) {
@@ -629,6 +778,40 @@ function buildPrompt(preview=false) {
     mascot:          mascot,
     language:        language,
     special_instructions: special || 'none',
+  };
+
+  // Resolve curriculum rules for this level
+  var currData = CURRICULUM[selectedLevel];
+  var resolvedRules = null;
+  if (currData && currData.level) {
+    var lvData = currData.level;
+    var diffRule = currData.diffRules[difficulty.replace(' ','_')] || currData.diffRules[difficulty] || {};
+    var activeFormulas = currData.formulas.filter(function(f) {
+      return !selectedConcept || f.concept.toLowerCase().includes(selectedConcept.replace('_',' '));
+    });
+    resolvedRules = {
+      curriculum_version:  '1.0',
+      level_name:          lvData.level_name || ('Level ' + selectedLevel),
+      age_range:           (lvData.age_min || '?') + '-' + (lvData.age_max || '?') + ' years',
+      digit_range:         (diffRule.min_digits || lvData.min_digits || 1) + ' to ' + (diffRule.max_digits || lvData.max_digits || 2) + ' digits',
+      number_range:        '1 to ' + (diffRule.max_number || lvData.max_number || 99),
+      row_range:           (diffRule.min_rows || lvData.min_rows || 3) + ' to ' + (diffRule.max_rows || lvData.max_rows || 5) + ' rows',
+      anzan_allowed:       lvData.anzan_allowed || false,
+      multiplication:      lvData.multiplication_allowed || false,
+      division:            lvData.division_allowed || false,
+      formulas_for_concept: activeFormulas.map(function(f) {
+        return f.name + (f.example ? ' (e.g. ' + f.example + ')' : '') + (f.method ? ' — ' + f.method.slice(0,150) : '');
+      }),
+      difficulty_notes:    diffRule.notes || '',
+    };
+  }
+  var specWithRules = Object.assign({}, spec);
+  if (resolvedRules) specWithRules.resolved_curriculum_rules = resolvedRules;
+  var SPEC = specWithRules;  // use this in the prompt below
+  // reassign spec so rest of prompt uses enriched version
+  spec = specWithRules;
+
+  var _unused = {
     outputs_requested: [
       wantWorksheet ? 'QUESTIONS' : null,
       wantAnswerKey ? 'ANSWER_KEY' : null,
@@ -654,6 +837,24 @@ function buildPrompt(preview=false) {
     'Do NOT attempt to partially satisfy constraints.\n\n' +
     '--- WORKSHEET SPECIFICATION ---\n' +
     JSON.stringify(spec, null, 2) + '\n' +
+    (resolvedRules ? (
+      '--- RESOLVED CURRICULUM RULES (these are BINDING — not suggestions) ---\n' +
+      'These rules come from the iMathAcademy Curriculum Engine and override everything else.\n\n' +
+      'Level: ' + resolvedRules.level_name + '\n' +
+      'Student age: ' + resolvedRules.age_range + '\n' +
+      'Digit range for this difficulty: ' + resolvedRules.digit_range + ' — DO NOT EXCEED THIS.\n' +
+      'Number range: ' + resolvedRules.number_range + ' — DO NOT use numbers outside this range.\n' +
+      'Rows per question: ' + resolvedRules.row_range + '\n' +
+      'Anzan allowed: ' + (resolvedRules.anzan_allowed ? 'YES' : 'NO — physical abacus problems only') + '\n' +
+      'Multiplication allowed: ' + (resolvedRules.multiplication_allowed ? 'YES' : 'NO — do not include multiplication') + '\n' +
+      'Division allowed: ' + (resolvedRules.division_allowed ? 'YES' : 'NO — do not include division') + '\n' +
+      (resolvedRules.formulas_for_concept.length ?
+        '\nFormulas to use for this concept (use these EXACT methods):\n' +
+        resolvedRules.formulas_for_concept.map(function(f,i) { return (i+1) + '. ' + f; }).join('\n') + '\n'
+        : '') +
+      (resolvedRules.difficulty_notes ? '\nDifficulty notes from curriculum designer: ' + resolvedRules.difficulty_notes + '\n' : '') +
+      '--- END CURRICULUM RULES ---\n\n'
+    ) : '') +
     '--- END SPECIFICATION ---\n\n' +
     'MANDATORY CONCEPT RULE:\n' +
     'The concept is: ' + conceptLabel + '\n' +
@@ -1002,6 +1203,7 @@ async function init() {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) { window.location.href='../../login.html'; return; }
     teacherSession = session;
+  loadCurriculum();
 
     const { data: profile } = await sb.from('users').select('*').eq('id', session.user.id).single();
     if (!profile || (profile.role !== 'teacher' && profile.role !== 'admin')) {

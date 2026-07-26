@@ -1146,15 +1146,41 @@ function escapeHtml(text) {
   return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+function stripCodeFences(text) {
+  // Remove ```json ... ``` or ``` ... ``` wrappers
+  return text
+    .replace(/^```json\s*/m, '')
+    .replace(/^```\s*/m, '')
+    .replace(/\s*```$/m, '')
+    .trim();
+}
+
+function extractJsonArray(text) {
+  // Find the first [ ... ] block in the text
+  const start = text.indexOf('[');
+  const end   = text.lastIndexOf(']');
+  if (start === -1 || end === -1 || end <= start) return null;
+  try {
+    return JSON.parse(text.slice(start, end + 1));
+  } catch(e) {
+    // Try stripping code fences first
+    const cleaned = stripCodeFences(text.slice(start, end + 1));
+    try { return JSON.parse(cleaned); } catch(e2) { return null; }
+  }
+}
+
 function parseAndRender(text) {
+  // Strip code fences from entire response first
+  const cleanText = stripCodeFences(text);
+
   // Split into sections by ## headers
   const sections = {};
-  const parts = text.split(/^## /m);
-  parts.forEach(p => {
+  const parts = cleanText.split(/^## /m);
+  parts.forEach(function(p) {
     const lines = p.trim().split('\n');
     const header = lines[0].trim().toUpperCase();
     const body = lines.slice(1).join('\n').trim();
-    if (header.includes('WORKSHEET'))   sections.worksheet   = body;
+    if (header.includes('QUESTION'))    sections.worksheet   = body;
     if (header.includes('ANSWER KEY'))  sections.answerkey   = body;
     if (header.includes('HINT'))        sections.hints       = body;
     if (header.includes('LESSON'))      sections.lessonplan  = body;
@@ -1162,10 +1188,22 @@ function parseAndRender(text) {
     if (header.includes('FLASH'))       sections.flashcards  = body;
   });
 
+  // If no ## headers found, treat entire response as worksheet
+  if (!Object.keys(sections).length) {
+    sections.worksheet = cleanText;
+  }
+
+  // Try to parse questions JSON from the worksheet section
+  if (sections.worksheet) {
+    const questions = extractJsonArray(sections.worksheet);
+    if (questions && questions.length) {
+      sections.parsedQuestions = questions;
+    }
+  }
+
   generatedContent = sections;
 
-  // Show tabs if multiple sections
-  const hasTabs = Object.keys(sections).length > 1;
+  const hasTabs = Object.keys(sections).filter(function(k) { return k !== 'parsedQuestions'; }).length > 1;
   const _ot2 = document.getElementById('outTabs'); if(_ot2) _ot2.style.display = hasTabs ? 'flex' : 'none';
 
   renderOutTab('worksheet');
@@ -1174,30 +1212,91 @@ function parseAndRender(text) {
 function renderOutTab(tab) {
   currentOutTab = tab;
   const body = document.getElementById('outputBody');
-  let content = generatedContent[tab] || generatedContent.worksheet || '';
-
-  if (!content) {
-    const fallback = Object.values(generatedContent).find(v=>v);
-    content = fallback || 'This section was not generated. Check the output options and regenerate.';
-  }
-
-  // Render as formatted HTML
   const studentName = document.getElementById('studentSel').options[document.getElementById('studentSel').selectedIndex]?.text || '';
   const today = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+  const qCount = parseInt(document.getElementById('questionCount').value) || 10;
 
-  body.innerHTML = `
-    <div style="font-family:'Nunito',sans-serif;">
-      ${tab === 'worksheet' ? `
-        <div class="ws-title">iMathAcademy — Level ${selectedLevel} Worksheet</div>
-        <div class="ws-subtitle">${LEVEL_SUMMARIES[selectedLevel]}</div>
-        <div class="ws-meta">
-          <span>Name: ${studentName || '____________________'}</span>
-          <span>Date: ${today}</span>
-          <span>Score: ___ / ${document.getElementById('questionCount').value}</span>
-        </div>
-      ` : `<div style="font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:12px;">${tab.replace(/([A-Z])/g,' $1').trim().toUpperCase()}</div>`}
-      <div style="font-size:.875rem;line-height:1.9;white-space:pre-wrap;color:var(--text);">${escapeHtml(content)}</div>
-    </div>`;
+  if (tab === 'worksheet') {
+    const questions = generatedContent.parsedQuestions;
+    var html = '<div style="font-family:Nunito,sans-serif;">';
+    html += '<div class="ws-title">iMathAcademy — Level ' + selectedLevel + ' Worksheet</div>';
+    html += '<div class="ws-subtitle">' + (LEVEL_SUMMARIES[selectedLevel]||'') + '</div>';
+    html += '<div class="ws-meta">';
+    html += '<span>Name: ' + (studentName || '____________________') + '</span>';
+    html += '<span>Date: ' + today + '</span>';
+    html += '<span>Score: ___ / ' + qCount + '</span>';
+    html += '</div>';
+
+    if (questions && questions.length) {
+      // Render as beautiful question cards
+      html += '<div style="margin-top:16px;">';
+      questions.forEach(function(q, i) {
+        var isStory  = q.type === 'story';
+        var isFill   = q.type === 'fill_blank';
+        var isVisual = q.type === 'visual';
+        var bgColor  = isStory ? '#FFF8E7' : isFill ? '#F0F8FF' : '#FAFAFA';
+        var border   = isStory ? '#FFD54F' : isFill ? '#90CAF9' : '#E0E0E0';
+
+        html += '<div style="background:' + bgColor + ';border:2px solid ' + border + ';border-radius:14px;padding:16px;margin-bottom:12px;">';
+        html += '<div style="display:flex;align-items:flex-start;gap:12px;">';
+        html += '<div style="min-width:32px;height:32px;background:#1565C0;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;flex-shrink:0;">' + (i+1) + '</div>';
+        html += '<div style="flex:1;">';
+
+        // Question text — preserve line breaks
+        var qText = (q.question || '').replace(/\n/g, '<br>');
+        html += '<div style="font-size:.95rem;font-weight:700;line-height:1.7;color:#1A1A2E;">' + qText + '</div>';
+
+        // For fill in the blank — add visible blank line
+        if (isFill && !qText.includes('___')) {
+          html += '<div style="margin-top:8px;border-bottom:2px solid #1565C0;width:120px;"></div>';
+        }
+
+        // Emoji
+        if (q.emoji) {
+          html += '<div style="font-size:1.3rem;margin-top:6px;">' + q.emoji + '</div>';
+        }
+
+        html += '</div>';
+
+        // Answer box (hidden — for teacher view toggle)
+        html += '<div class="ans-box" data-ans="' + escapeHtml(q.answer||'') + '" style="display:none;background:#E8F5E9;border-radius:8px;padding:6px 12px;font-weight:800;font-size:.82rem;color:#2E7D32;white-space:nowrap;">' + escapeHtml(q.answer||'') + '</div>';
+
+        html += '</div></div>';
+      });
+      html += '</div>';
+
+      // Show answers toggle button
+      html += '<div style="margin-top:16px;display:flex;gap:10px;">';
+      html += '<button onclick="toggleAnswers()" class="btn-secondary" style="padding:8px 16px;border:2px solid #1565C0;border-radius:10px;background:#fff;color:#1565C0;font-family:Nunito,sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;">👁 Show / Hide Answers</button>';
+      html += '</div>';
+
+    } else {
+      // No JSON found — render as plain text
+      var raw = generatedContent.worksheet || '';
+      html += '<div style="font-size:.875rem;line-height:1.9;white-space:pre-wrap;color:var(--text);margin-top:16px;">' + escapeHtml(raw) + '</div>';
+    }
+    html += '</div>';
+    body.innerHTML = html;
+
+  } else {
+    // Non-worksheet tabs — render as clean formatted text
+    var content = generatedContent[tab] || '';
+    if (!content) {
+      content = 'This section was not generated. Enable it in Output Options and regenerate.';
+    }
+    var label = {answerkey:'Answer Key',hints:'Hint Box',lessonplan:'Lesson Plan',parentnote:'Parent Note'}[tab] || tab;
+    var html = '<div style="font-family:Nunito,sans-serif;">';
+    html += '<div style="font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:14px;">' + label + '</div>';
+    html += '<div style="font-size:.875rem;line-height:2;white-space:pre-wrap;color:var(--text);">' + escapeHtml(content) + '</div>';
+    html += '</div>';
+    body.innerHTML = html;
+  }
+}
+
+function toggleAnswers() {
+  document.querySelectorAll('.ans-box').forEach(function(el) {
+    el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+  });
 }
 
 function showOutTab(tab, btn) {

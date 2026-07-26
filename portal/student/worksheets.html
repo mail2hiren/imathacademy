@@ -117,7 +117,7 @@
     .bnav-icon{font-size:1.3rem;}
     .bnav-label{font-size:.62rem;font-weight:700;color:var(--text3);font-family:inherit;}
     .bnav-item.active .bnav-label{color:var(--blue-dk);}
-    @media(max-width:768px){.bottom-nav{display:block;}body{padding-bottom:64px;}}
+    @media(max-width:768px){.bottom-nav{display:block;}body{padding-bottom:64px;}.sidebar{transform:translateX(-100%);}.sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.2);}.main{margin-left:0!important;}}
   .sidebar {
       width:220px; flex-shrink:0; background:var(--bg);
       border-right:2px solid var(--border); display:flex;
@@ -184,7 +184,7 @@
   </style>
 </head>
 <body>
-<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;"></div>
 <div class="portal">
 
 <aside class="sidebar" id="sidebar">
@@ -251,6 +251,7 @@ var fsCurrentQIdx = 0;
 var fsQuestions   = [];
 
 function openFullScreen(wsId) {
+  closeSidebar();
   var worksheet = allWs.find(function(w){ return w.id === wsId; });
   if (!worksheet) return;
   fsCurrentWsId = wsId;
@@ -418,6 +419,18 @@ function showFsResult(qs, r) {
       '<div class="fs-xp">+' + xp + ' XP earned! ⚡</div>' +
       '<button class="fs-btn" onclick="closeFullScreen()">Back to worksheets</button>' +
     '</div>';
+}
+
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  var ov = document.getElementById('overlay');
+  if (ov) ov.style.display = document.getElementById('sidebar').classList.contains('open') ? 'block' : 'none';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  var ov = document.getElementById('overlay');
+  if (ov) ov.style.display = 'none';
 }
 
 </script>

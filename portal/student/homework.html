@@ -260,7 +260,7 @@ function renderList(){
         <div class="score-xp">+${r.xp||0} XP</div>
       </div>` : ''}
 
-      <a class="solve-btn ${isDone?'done':''}" href="worksheets.html#${ws.id}">
+      <a class="solve-btn ${isDone?'done':''}" href="worksheets.html#${ws.id}" onclick="sessionStorage.setItem('openWs','${ws.id}')">
         ${isDone ? '✅ View answers' : '📝 Solve now →'}
       </a>
     </div>`;

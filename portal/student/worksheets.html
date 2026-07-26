@@ -538,17 +538,9 @@ function renderResult(ws, qs, r){
 }
 
 // ── INTERACTION ────────────────────────────────────────────
-function toggleCard(id){
-  const solver=document.getElementById('solver-'+id);
-  if(!solver) return;
-  const isOpen=solver.classList.contains('open');
-  document.querySelectorAll('.solver').forEach(s=>s.classList.remove('open'));
-  if(!isOpen){
-    solver.classList.add('open');
-    setTimeout(()=>document.querySelector(`#solver-${id} input`)?.focus(),150);
-  }
+function toggleCard(wsId){
+  openFullScreen(wsId);
 }
-
 function toggleHint(wsId){
   const h=document.getElementById('hint-'+wsId);
   if(h) h.style.display=h.style.display==='none'?'block':'none';

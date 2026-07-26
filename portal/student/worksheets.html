@@ -146,7 +146,42 @@
     .logout-btn:hover { color:var(--red); }
 
     .main { flex:1; margin-left:220px; display:flex; flex-direction:column; }
-    </style>
+    
+    /* ── FULL SCREEN SOLVER ── */
+    .fs-overlay{display:none;position:fixed;inset:0;background:#F0F2FF;z-index:1000;flex-direction:column;overflow:hidden;}
+    .fs-overlay.show{display:flex;}
+    .fs-topbar{height:52px;background:#fff;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;}
+    .fs-back{background:none;border:none;font-size:1.2rem;cursor:pointer;padding:8px;color:var(--text2);}
+    .fs-title{font-size:.875rem;font-weight:800;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .fs-counter{font-size:.78rem;font-weight:700;color:var(--text3);flex-shrink:0;}
+    .fs-progress{height:5px;background:var(--border);flex-shrink:0;}
+    .fs-progress-fill{height:100%;background:linear-gradient(90deg,#1565C0,#7B1FA2);transition:width .3s ease;}
+    .fs-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;}
+    .fs-question-wrap{width:100%;max-width:500px;}
+    .fs-emoji{font-size:3rem;text-align:center;margin-bottom:16px;animation:popIn .3s ease;}
+    .fs-question{font-size:1.1rem;font-weight:700;line-height:1.7;color:var(--text);text-align:center;margin-bottom:24px;}
+    .fs-input-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
+    .fs-input{width:100%;max-width:280px;padding:16px;font-size:1.3rem;font-weight:800;text-align:center;border:3px solid var(--border);border-radius:16px;outline:none;font-family:inherit;transition:border .15s;}
+    .fs-input:focus{border-color:var(--blue);}
+    .fs-input.correct{border-color:var(--green);background:var(--green-lt);}
+    .fs-input.wrong{border-color:var(--red);background:var(--red-lt);}
+    .fs-feedback{height:28px;font-size:.9rem;font-weight:800;text-align:center;transition:all .2s;}
+    .fs-feedback.correct{color:var(--green);}
+    .fs-feedback.wrong{color:var(--red);}
+    .fs-btn{padding:14px 32px;background:linear-gradient(135deg,#1565C0,#7B1FA2);color:#fff;border:none;border-radius:14px;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer;width:100%;max-width:280px;transition:opacity .15s;}
+    .fs-btn:active{opacity:.85;}
+    .fs-btn-skip{padding:10px;background:none;border:none;font-size:.78rem;font-weight:700;color:var(--text3);cursor:pointer;font-family:inherit;}
+    .fs-result{width:100%;max-width:400px;text-align:center;}
+    .fs-trophy{font-size:4rem;margin-bottom:12px;animation:popIn .4s ease;}
+    .fs-score-big{font-size:2.5rem;font-weight:900;margin-bottom:6px;}
+    .fs-score-msg{font-size:1rem;font-weight:700;margin-bottom:20px;}
+    .fs-xp{background:var(--orange-lt);border:2px solid var(--orange);border-radius:14px;padding:12px 20px;margin-bottom:20px;font-size:1rem;font-weight:800;color:var(--orange-dk);}
+    @keyframes popIn{from{transform:scale(0.5);opacity:0}to{transform:scale(1);opacity:1}}
+    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+    .shake{animation:shake .3s ease;}
+    .celebrate{animation:popIn .3s ease;}
+
+  </style>
 </head>
 <body>
 <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
@@ -707,5 +742,17 @@ init();
     document.getElementById('overlay')?.classList.remove('show');
   }
 </script>
+
+<!-- ── FULL SCREEN WORKSHEET SOLVER ── -->
+<div class="fs-overlay" id="fsSolver">
+  <div class="fs-topbar">
+    <button class="fs-back" onclick="closeFullScreen()">✕</button>
+    <div class="fs-title" id="fsTitle">Worksheet</div>
+    <div class="fs-counter" id="fsCounter"></div>
+  </div>
+  <div class="fs-progress"><div class="fs-progress-fill" id="fsProgress" style="width:0%"></div></div>
+  <div class="fs-body" id="fsBody"></div>
+</div>
+
 </body>
 </html>

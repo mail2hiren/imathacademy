@@ -516,26 +516,43 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
-      .navbar { padding: 0 20px; }
+      .navbar { padding: 0 16px; }
       .nav-links { display: none; }
       .hamburger { display: flex; }
-      .hero { padding: 40px 20px 36px; }
+      /* Hero section */
+      .hero { padding: 32px 16px 28px; }
+      .hero-title { font-size: 1.8rem; }
+      .hero-sub { font-size: .95rem; }
+      .hero-actions { flex-direction: column; gap: 10px; align-items: stretch; }
+      .hero-actions a, .hero-actions button { width: 100%; text-align: center; }
+      /* Stats */
       .hero-stats { flex-direction: column; border-radius: 14px; }
       .hstat { border-right: none; border-bottom: 2px solid var(--border); }
       .hstat:last-child { border-bottom: none; }
-      .trust-bar { padding: 14px 20px; gap: 16px; }
-      .programs, .how, .features, .belts, .testimonials { padding: 40px 20px; }
-      .prog-grid, .steps-grid, .feat-grid, .testi-grid { grid-template-columns: 1fr; }
+      /* Trust bar */
+      .trust-bar { padding: 12px 16px; gap: 12px; flex-wrap: wrap; }
+      /* Sections */
+      .programs, .how, .features, .belts, .testimonials { padding: 32px 16px; }
+      .prog-grid, .steps-grid, .feat-grid, .testi-grid { grid-template-columns: 1fr; gap: 12px; }
+      /* Footer */
       .footer-grid { grid-template-columns: 1fr 1fr; }
-      .cta-banner { padding: 40px 20px; }
-      footer { padding: 32px 20px 20px; }
+      .cta-banner { padding: 32px 16px; }
+      footer { padding: 28px 16px 16px; }
+      /* Prevent any horizontal overflow */
+      section, .container, .card, .prog-card, .feat-card, .testi-card { max-width: 100%; overflow: hidden; }
+      img { max-width: 100%; height: auto; }
     }
 
     @media (max-width: 480px) {
       .footer-grid { grid-template-columns: 1fr; }
       .form-row { grid-template-columns: 1fr; }
-      .belts-row { gap: 7px; }
+      .belts-row { gap: 7px; flex-wrap: wrap; }
       .belt { min-width: 62px; padding: 10px 8px; }
+      .navbar { padding: 0 12px; }
+      .hero { padding: 24px 12px; }
+      .hero-title { font-size: 1.5rem; }
+      .programs, .how, .features, .belts, .testimonials { padding: 24px 12px; }
+      .cta-banner { padding: 24px 12px; }
     }
   </style>
 </head>

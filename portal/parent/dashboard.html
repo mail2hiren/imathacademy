@@ -1183,21 +1183,56 @@ var VOICE_INSTALL = {
 
 function getBestVoice(langCode) {
   var available = speechSynth.getVoices();
-  var fallbacks = VOICE_FALLBACKS[langCode] || [langCode, 'en-IN'];
-  for (var i = 0; i < fallbacks.length; i++) {
-    var code = fallbacks[i];
-    // Try exact match first
-    var voice = available.find(function(v) { return v.lang === code; });
-    if (!voice) {
-      // Try prefix match e.g. hi-IN matches hi
-      var prefix = code.split('-')[0];
-      voice = available.find(function(v) { return v.lang.startsWith(prefix); });
-    }
-    if (voice) return { voice: voice, usedCode: code };
+
+  // User-selected voice override
+  var overrides = JSON.parse(localStorage.getItem('voiceOverrides') || '{}');
+  if (overrides[currentLang]) {
+    var ov = available.find(function(v){ return v.name === overrides[currentLang]; });
+    if (ov) { console.log('Override:', ov.name); return {voice:ov, usedCode:ov.lang}; }
   }
-  // Last resort — any voice
-  return available.length ? { voice: available[0], usedCode: available[0].lang } : null;
+
+  // Keyword matching — covers iOS naming quirks
+  var LANG_KEYWORDS = {
+    'gu-IN': ['gujarati','gu-in','gu_in','gu'],
+    'mr-IN': ['marathi','mr-in','mr_in','mr'],
+    'hi-IN': ['hindi','lekha','hi-in','hi_in'],
+    'ta-IN': ['tamil','ta-in','ta_in','ta'],
+    'te-IN': ['telugu','te-in','te_in','te'],
+    'en-IN': ['rishi','veena','en-in','english (india)'],
+  };
+  var FALLBACKS = {
+    'gu-IN': ['gu-IN','hi-IN','en-IN'],
+    'mr-IN': ['mr-IN','hi-IN','en-IN'],
+    'hi-IN': ['hi-IN','en-IN'],
+    'ta-IN': ['ta-IN','en-IN'],
+    'te-IN': ['te-IN','hi-IN','en-IN'],
+    'en-IN': ['en-IN','en-US','en-GB'],
+  };
+
+  var keywords = LANG_KEYWORDS[langCode] || [];
+  // Try keyword match
+  for (var ki=0; ki<keywords.length; ki++) {
+    var kw = keywords[ki];
+    var found = available.find(function(v) {
+      return v.name.toLowerCase().indexOf(kw) > -1 ||
+             v.lang.toLowerCase() === kw ||
+             v.lang.toLowerCase().replace('-','_') === kw;
+    });
+    if (found) { console.log('Keyword match:', found.name, found.lang); return {voice:found, usedCode:found.lang}; }
+  }
+
+  // Fallback chain
+  var fallbacks = FALLBACKS[langCode] || [langCode,'en-IN'];
+  for (var fi=0; fi<fallbacks.length; fi++) {
+    var code = fallbacks[fi];
+    var v2 = available.find(function(v){ return v.lang === code; });
+    if (!v2) v2 = available.find(function(v){ return v.lang.startsWith(code.split('-')[0]); });
+    if (v2) { console.log('Fallback:', v2.name, v2.lang); return {voice:v2, usedCode:v2.lang}; }
+  }
+
+  return available.length ? {voice:available[0], usedCode:available[0].lang} : null;
 }
+
 
 function showVoiceNotice(langCode) {
   var info = VOICE_INSTALL[langCode];
@@ -1329,7 +1364,8 @@ function renderVoiceCard(child, stats) {
     (hw > 0 ? '<div style="background:rgba(255,255,255,.15);border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:.82rem;font-weight:700;">📚 ' + t('homeworkPending', name, hw) + '</div>' : '') +
     '<button class="voice-btn" id="voicePlayBtn" onclick="toggleVoice()">' +
       '<span class="voice-icon">🔊</span> ' + t('listenBtn') +
-    '</button>';
+    '</button>' +
+    '<button onclick="showVoicePicker()" style="margin-top:8px;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.3);border-radius:10px;color:#fff;font-size:.72rem;font-weight:800;padding:7px 14px;cursor:pointer;font-family:inherit;width:100%;">🎤 Choose voice for this language</button>';
 }
 
 function renderStatCards(child, stats) {
@@ -1423,6 +1459,127 @@ function renderTips(child, stats) {
 
 // Hook into renderDashboard to populate new elements
 var _origRenderDashboard = window.renderDashboard;
+
+
+// ── VOICE PICKER ─────────────────────────────────────────────
+function showVoicePicker() {
+  var voices = speechSynth.getVoices();
+  if (!voices.length) {
+    setTimeout(showVoicePicker, 800);
+    return;
+  }
+
+  var existing = document.getElementById('voicePickerModal');
+  if (existing) { existing.remove(); return; }
+
+  var langLabel = (LANGS[currentLang] || {}).label || currentLang;
+  var overrides = JSON.parse(localStorage.getItem('voiceOverrides') || '{}');
+  var currentOverride = overrides[currentLang] || '';
+
+  var modal = document.createElement('div');
+  modal.id = 'voicePickerModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;display:flex;align-items:flex-end;justify-content:center;';
+
+  var sheet = document.createElement('div');
+  sheet.style.cssText = 'background:#fff;border-radius:20px 20px 0 0;padding:20px 16px;width:100%;max-width:500px;max-height:75vh;overflow-y:auto;';
+
+  var titleEl = document.createElement('div');
+  titleEl.style.cssText = 'font-size:1rem;font-weight:900;margin-bottom:4px;color:#1A1A2E;';
+  titleEl.textContent = '🎤 Choose voice for ' + langLabel;
+
+  var subEl = document.createElement('div');
+  subEl.style.cssText = 'font-size:.75rem;color:#888;margin-bottom:14px;';
+  subEl.textContent = 'Tap ▶ Test to hear each voice. Tap a voice name to select it.';
+
+  var LANG_KW = {
+    'gu-IN':['gujarati','gu'], 'mr-IN':['marathi','mr'],
+    'hi-IN':['hindi','lekha','hi'], 'ta-IN':['tamil','ta'],
+    'te-IN':['telugu','te'], 'en-IN':['english','rishi','veena','en-in'],
+  };
+  var langCode = (LANGS[currentLang] || {}).code || 'en-IN';
+  var kws = LANG_KW[langCode] || [];
+
+  var langVoices = voices.filter(function(v) {
+    return kws.some(function(k) {
+      return v.name.toLowerCase().indexOf(k) > -1 || v.lang.toLowerCase().indexOf(k) > -1;
+    });
+  });
+  var otherVoices = voices.filter(function(v){ return langVoices.indexOf(v) < 0; });
+
+  function makeVoiceBtn(v, isLang) {
+    var isSelected = currentOverride ? v.name === currentOverride : false;
+    var row = document.createElement('div');
+    row.style.cssText = (
+      'display:flex;align-items:center;gap:10px;padding:10px 12px;' +
+      'border:2px solid ' + (isSelected ? '#1565C0' : (isLang ? '#43A047' : '#E0E0E0')) + ';' +
+      'border-radius:12px;margin-bottom:8px;background:' + (isSelected ? '#E3F2FD' : (isLang ? '#F1F8E9' : '#fff')) + ';' +
+      'cursor:pointer;'
+    );
+
+    var info = document.createElement('div');
+    info.style.cssText = 'flex:1;';
+    info.innerHTML = (
+      '<div style="font-size:.875rem;font-weight:800;">' + v.name +
+      (isLang ? ' <span style="background:#43A047;color:#fff;font-size:.6rem;padding:2px 6px;border-radius:6px;">MATCH</span>' : '') +
+      '</div>' +
+      '<div style="font-size:.68rem;color:#888;">' + v.lang + '</div>'
+    );
+
+    var testBtn = document.createElement('button');
+    testBtn.textContent = '▶ Test';
+    testBtn.style.cssText = 'padding:6px 12px;background:#1565C0;color:#fff;border:none;border-radius:8px;font-size:.72rem;font-weight:800;cursor:pointer;font-family:inherit;';
+    testBtn.onclick = function(e) {
+      e.stopPropagation();
+      speechSynth.cancel();
+      var utter = new SpeechSynthesisUtterance('Hello! This is ' + v.name + '. Testing voice.');
+      utter.voice = v; utter.lang = v.lang; utter.rate = 0.9;
+      speechSynth.speak(utter);
+    };
+
+    row.onclick = function() {
+      var ov2 = JSON.parse(localStorage.getItem('voiceOverrides') || '{}');
+      ov2[currentLang] = v.name;
+      localStorage.setItem('voiceOverrides', JSON.stringify(ov2));
+      modal.remove();
+      if (window._activeChild && window._activeStats) {
+        setTimeout(function(){ toggleVoice(); }, 200);
+      }
+    };
+
+    row.appendChild(info);
+    row.appendChild(testBtn);
+    return row;
+  }
+
+  var listEl = document.createElement('div');
+  if (langVoices.length) {
+    var hdr = document.createElement('div');
+    hdr.style.cssText = 'font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:#43A047;margin-bottom:8px;';
+    hdr.textContent = 'Voices matching ' + langLabel + ':';
+    listEl.appendChild(hdr);
+    langVoices.forEach(function(v){ listEl.appendChild(makeVoiceBtn(v, true)); });
+  }
+  if (otherVoices.length) {
+    var hdr2 = document.createElement('div');
+    hdr2.style.cssText = 'font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:#888;margin:12px 0 8px;';
+    hdr2.textContent = 'All other voices:';
+    listEl.appendChild(hdr2);
+    otherVoices.forEach(function(v){ listEl.appendChild(makeVoiceBtn(v, false)); });
+  }
+
+  var closeBtn = document.createElement('button');
+  closeBtn.textContent = 'Cancel';
+  closeBtn.style.cssText = 'width:100%;padding:12px;background:#F5F5F5;border:none;border-radius:12px;font-family:inherit;font-size:.875rem;font-weight:800;cursor:pointer;margin-top:8px;';
+  closeBtn.onclick = function(){ modal.remove(); };
+
+  sheet.appendChild(titleEl);
+  sheet.appendChild(subEl);
+  sheet.appendChild(listEl);
+  sheet.appendChild(closeBtn);
+  modal.appendChild(sheet);
+  modal.onclick = function(e){ if (e.target===modal) modal.remove(); };
+  document.body.appendChild(modal);
+}
 
 </script>
 </body>

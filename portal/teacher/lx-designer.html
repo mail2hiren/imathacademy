@@ -1205,41 +1205,47 @@ function extractJsonArray(text) {
 }
 
 function parseAndRender(text) {
-  // Strip code fences from entire response first
   const cleanText = stripCodeFences(text);
-
-  // Split into sections by ## headers
   const sections = {};
+
+  // FIRST: try to extract JSON array from the full text
+  // AI often returns JSON directly without a ## QUESTIONS header
+  const topLevelJson = extractJsonArray(cleanText);
+  if (topLevelJson && topLevelJson.length) {
+    sections.parsedQuestions = topLevelJson;
+    sections.worksheet = cleanText; // keep raw text as fallback
+  }
+
+  // Split by ## headers to get named sections
   const parts = cleanText.split(/^## /m);
   parts.forEach(function(p) {
     const lines = p.trim().split('\n');
     const header = lines[0].trim().toUpperCase();
     const body = lines.slice(1).join('\n').trim();
-    if (header.includes('QUESTION'))    sections.worksheet   = body;
-    if (header.includes('ANSWER KEY'))  sections.answerkey   = body;
-    if (header.includes('HINT'))        sections.hints       = body;
-    if (header.includes('LESSON'))      sections.lessonplan  = body;
-    if (header.includes('PARENT'))      sections.parentnote  = body;
-    if (header.includes('FLASH'))       sections.flashcards  = body;
+    if (header.includes('QUESTION'))   sections.worksheet   = body || sections.worksheet;
+    if (header.includes('ANSWER KEY')) sections.answerkey   = body;
+    if (header.includes('HINT'))       sections.hints       = body;
+    if (header.includes('LESSON'))     sections.lessonplan  = body;
+    if (header.includes('PARENT'))     sections.parentnote  = body;
   });
 
-  // If no ## headers found, treat entire response as worksheet
+  // If we have a worksheet section but no parsed questions yet, try parsing it
+  if (!sections.parsedQuestions && sections.worksheet) {
+    const q = extractJsonArray(sections.worksheet);
+    if (q && q.length) sections.parsedQuestions = q;
+  }
+
+  // If still nothing, treat whole response as worksheet
   if (!Object.keys(sections).length) {
     sections.worksheet = cleanText;
   }
 
-  // Try to parse questions JSON from the worksheet section
-  if (sections.worksheet) {
-    const questions = extractJsonArray(sections.worksheet);
-    if (questions && questions.length) {
-      sections.parsedQuestions = questions;
-    }
-  }
-
   generatedContent = sections;
 
-  const hasTabs = Object.keys(sections).filter(function(k) { return k !== 'parsedQuestions'; }).length > 1;
-  const _ot2 = document.getElementById('outTabs'); if(_ot2) _ot2.style.display = hasTabs ? 'flex' : 'none';
+  const sectionKeys = Object.keys(sections).filter(function(k) { return k !== 'parsedQuestions'; });
+  const hasTabs = sectionKeys.length > 1;
+  const _ot2 = document.getElementById('outTabs');
+  if (_ot2) _ot2.style.display = hasTabs ? 'flex' : 'none';
 
   renderOutTab('worksheet');
 }

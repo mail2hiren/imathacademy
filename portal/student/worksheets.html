@@ -631,7 +631,8 @@ function renderList(){
     list.innerHTML=`<div class="empty"><div class="empty-icon">${filter==='done'?'✅':'📋'}</div><div style="font-size:.875rem;">${filter==='new'?'No new worksheets — great work!':filter==='done'?'No completed worksheets yet.':'Your teacher hasn\'t assigned worksheets yet.'}</div></div>`;
     return;
   }
-  list.innerHTML=items.map(ws=>renderCard(ws)).join('');
+  list.innerHTML='';
+  items.forEach(function(w){ list.appendChild(renderCard(w)); });
 }
 
 function renderCard(w){

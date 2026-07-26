@@ -288,28 +288,53 @@ function showFsQuestion() {
   var pct   = Math.round((fsCurrentQIdx / total) * 100);
   var group = getGroup();
   var fsize = group === 'tiny' ? '1.2rem' : '1rem';
-
   document.getElementById('fsCounter').textContent = (fsCurrentQIdx+1) + ' of ' + total;
   document.getElementById('fsProgress').style.width = pct + '%';
-
-  var prevBtn = fsCurrentQIdx > 0
-    ? '<button class="fs-btn-skip" onclick="fsNav(-1)">← Previous</button>'
-    : '';
-
-  document.getElementById('fsBody').innerHTML =
-    '<div class="fs-question-wrap">' +
-      '<div class="fs-emoji">' + (q.emoji || '🧮') + '</div>' +
-      '<div class="fs-question" style="font-size:' + fsize + ';">' + q.question + '</div>' +
-      '<div class="fs-input-wrap">' +
-        '<input class="fs-input" id="fsInput" type="text" inputmode="numeric" ' +
-          'placeholder="Your answer..." autocomplete="off" ' +
-          'onkeydown="if(event.key==='Enter')fsTryAnswer()">' +
-        '<div class="fs-feedback" id="fsFeedback"></div>' +
-        '<button class="fs-btn" onclick="fsTryAnswer()">✅ Check answer</button>' +
-        prevBtn +
-      '</div>' +
-    '</div>';
+  var body = document.getElementById('fsBody');
+  body.innerHTML = '';
+  var wrap = document.createElement('div');
+  wrap.className = 'fs-question-wrap';
+  var emoji = document.createElement('div');
+  emoji.className = 'fs-emoji';
+  emoji.textContent = q.emoji || '🧮';
+  wrap.appendChild(emoji);
+  var qtext = document.createElement('div');
+  qtext.className = 'fs-question';
+  qtext.style.fontSize = fsize;
+  qtext.textContent = q.question;
+  wrap.appendChild(qtext);
+  var inputWrap = document.createElement('div');
+  inputWrap.className = 'fs-input-wrap';
+  var input = document.createElement('input');
+  input.className = 'fs-input';
+  input.id = 'fsInput';
+  input.type = 'text';
+  input.setAttribute('inputmode','numeric');
+  input.placeholder = 'Your answer...';
+  input.autocomplete = 'off';
+  input.addEventListener('keydown', function(e) { if (e.key === 'Enter') fsTryAnswer(); });
+  inputWrap.appendChild(input);
+  var fb = document.createElement('div');
+  fb.className = 'fs-feedback';
+  fb.id = 'fsFeedback';
+  inputWrap.appendChild(fb);
+  var checkBtn = document.createElement('button');
+  checkBtn.className = 'fs-btn';
+  checkBtn.textContent = 'Check answer';
+  checkBtn.addEventListener('click', fsTryAnswer);
+  inputWrap.appendChild(checkBtn);
+  if (fsCurrentQIdx > 0) {
+    var prevBtn = document.createElement('button');
+    prevBtn.className = 'fs-btn-skip';
+    prevBtn.textContent = 'Previous';
+    prevBtn.addEventListener('click', function() { fsNav(-1); });
+    inputWrap.appendChild(prevBtn);
+  }
+  wrap.appendChild(inputWrap);
+  body.appendChild(wrap);
+  setTimeout(function() { input.focus(); }, 100);
 }
+
 
 function fsTryAnswer() {
   var input    = document.getElementById('fsInput');

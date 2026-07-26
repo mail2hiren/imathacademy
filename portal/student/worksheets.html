@@ -646,9 +646,10 @@ function renderCard(w){
   var div = document.createElement('div');
   div.className = 'ws-card' + (status==='new'?' is-new':'');
   div.id = 'card-' + w.id;
-  div.addEventListener('click', function(){ openFullScreen(w.id); });
+  div.setAttribute('data-wsid', w.id);
+  div.style.cssText = 'cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,.05);';
   div.innerHTML =
-    '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;">'
+    '<div style="display:flex;align-items:center;gap:12px;padding:16px;">'
     + '<div class="ws-icon" style="background:#E3F2FD;">'+iconBg+'</div>'
     + '<div style="flex:1;min-width:0;">'
       + '<div class="ws-title">'+w.title+'</div>'
@@ -660,10 +661,10 @@ function renderCard(w){
     + '</div>'
     + '<div style="text-align:right;flex-shrink:0;">'
       + '<div style="font-size:.72rem;font-weight:800;color:'+statusColor+';">'+statusLabel+'</div>'
-      + (r.score!==undefined?'<div style="font-size:.72rem;font-weight:700;color:var(--text3);">'+r.score+'/'+qs.length+'</div>':'')
-      + '<div style="font-size:1.3rem;color:var(--text3);">›</div>'
+      + (r.score!==undefined?'<div style="font-size:.72rem;color:var(--text3);">'+r.score+'/'+qs.length+'</div>':'')
     + '</div>'
     + '</div>';
+  div.addEventListener('click', function(){ openFullScreen(w.id); });
   return div;
 }
 
@@ -898,11 +899,15 @@ async function init(){
     }
     allWs=wsData;
 
-    // Check if opened with worksheet ID in URL hash
-    var hash = window.location.hash.replace('#','');
-    if (hash && allWs) {
+    // Check if opened with worksheet ID in URL hash — after data loads
+    var hash = window.location.hash.replace('#','')
+               || sessionStorage.getItem('openWs') || '';
+    if (hash) sessionStorage.removeItem('openWs');
+    if (hash) {
       var targetWs = allWs.find(function(w){ return w.id === hash; });
-      if (targetWs) setTimeout(function(){ openFullScreen(hash); }, 300);
+      if (targetWs) {
+        setTimeout(function(){ openFullScreen(hash); }, 400);
+      }
     }
 
     // Load submitted responses

@@ -465,22 +465,7 @@
 <!-- Toast -->
 <div id="toast" style="display:none;" class="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-function toggleInfo(id) {
-  var el = document.getElementById(id);
-  if (!el) return;
-  el.classList.toggle('show');
-}
-function openHelp() {
-  document.getElementById('helpPanel').classList.add('show');
-  document.getElementById('helpOverlay').classList.add('show');
-}
-function closeHelp() {
-  document.getElementById('helpPanel').classList.remove('show');
-  document.getElementById('helpOverlay').classList.remove('show');
-}
-
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
@@ -1602,6 +1587,20 @@ async function reuseWorksheet(wsId, title) {
   } catch(e) {
     toast('❌ ' + e.message, 'error');
   }
+}
+
+function toggleInfo(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('show');
+}
+function openHelp() {
+  document.getElementById('helpPanel').classList.add('show');
+  document.getElementById('helpOverlay').classList.add('show');
+}
+function closeHelp() {
+  document.getElementById('helpPanel').classList.remove('show');
+  document.getElementById('helpOverlay').classList.remove('show');
 }
 </script>
 

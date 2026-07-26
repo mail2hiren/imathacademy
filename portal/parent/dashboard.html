@@ -188,7 +188,177 @@
       .sidebar-overlay{display:none!important;}
       .hamburger-mobile{display:none!important;}
     }
-    </style>
+    
+    /* ── LANGUAGE SELECTOR ── */
+    .lang-bar {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 14px; background: #fff;
+      border-bottom: 2px solid var(--border);
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      position: sticky; top: 56px; z-index: 40;
+    }
+    .lang-bar::-webkit-scrollbar { display: none; }
+    .lang-label { font-size: .7rem; font-weight: 800;
+      color: var(--text3); text-transform: uppercase;
+      letter-spacing: .5px; flex-shrink: 0; }
+    .lang-btn {
+      padding: 6px 14px; border-radius: 20px;
+      border: 2px solid var(--border);
+      background: #fff; font-size: .82rem; font-weight: 800;
+      cursor: pointer; white-space: nowrap; flex-shrink: 0;
+      font-family: inherit; transition: all .12s;
+      color: var(--text2);
+    }
+    .lang-btn.active {
+      background: var(--blue); color: #fff;
+      border-color: var(--blue);
+    }
+
+    /* ── VOICE CARD ── */
+    .voice-card {
+      background: linear-gradient(135deg, #1565C0, #6A1B9A);
+      border-radius: 20px; padding: 20px;
+      margin-bottom: 14px; color: #fff;
+      box-shadow: 0 4px 20px rgba(21,101,192,.25);
+    }
+    .voice-greeting {
+      font-size: 1rem; font-weight: 700;
+      opacity: .85; margin-bottom: 6px;
+    }
+    .voice-summary {
+      font-size: 1.05rem; font-weight: 800;
+      line-height: 1.6; margin-bottom: 16px;
+    }
+    .voice-btn {
+      display: flex; align-items: center; gap: 10px;
+      background: #fff; color: #1565C0;
+      border: none; border-radius: 50px;
+      padding: 12px 24px; font-family: inherit;
+      font-size: 1rem; font-weight: 900;
+      cursor: pointer; width: 100%;
+      justify-content: center;
+      transition: transform .1s, box-shadow .1s;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+    .voice-btn:active { transform: scale(.97); }
+    .voice-btn.speaking {
+      background: #FF6F00; color: #fff;
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 2px 8px rgba(255,111,0,.4); }
+      50% { box-shadow: 0 4px 20px rgba(255,111,0,.7); }
+    }
+    .voice-icon { font-size: 1.4rem; }
+
+    /* ── STAT CARDS ── */
+    .stat-row {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; margin-bottom: 14px;
+    }
+    .stat-card {
+      background: #fff; border-radius: 16px;
+      border: 2px solid var(--border);
+      padding: 16px 14px; text-align: center;
+    }
+    .stat-icon { font-size: 2rem; margin-bottom: 4px; }
+    .stat-val {
+      font-size: 1.6rem; font-weight: 900;
+      font-family: 'Baloo 2', sans-serif;
+      line-height: 1;
+    }
+    .stat-lbl {
+      font-size: .72rem; font-weight: 800;
+      color: var(--text3); margin-top: 4px;
+      text-transform: uppercase; letter-spacing: .3px;
+    }
+
+    /* ── PROGRESS BAR CARD ── */
+    .progress-card {
+      background: #fff; border-radius: 16px;
+      border: 2px solid var(--border);
+      padding: 16px; margin-bottom: 14px;
+    }
+    .progress-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 10px;
+    }
+    .progress-title {
+      font-size: .875rem; font-weight: 800;
+    }
+    .progress-pct {
+      font-size: 1.1rem; font-weight: 900;
+      color: var(--blue);
+    }
+    .prog-bar {
+      height: 12px; background: var(--border);
+      border-radius: 20px; overflow: hidden;
+      margin-bottom: 6px;
+    }
+    .prog-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #1565C0, #6A1B9A);
+      border-radius: 20px; transition: width .6s ease;
+    }
+    .prog-labels {
+      display: flex; justify-content: space-between;
+      font-size: .68rem; color: var(--text3); font-weight: 700;
+    }
+
+    /* ── HOMEWORK ALERT ── */
+    .hw-alert {
+      background: #FFF3E0; border: 2px solid #FFB300;
+      border-radius: 16px; padding: 14px 16px;
+      margin-bottom: 14px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .hw-alert-icon { font-size: 2rem; flex-shrink: 0; }
+    .hw-alert-text { font-size: .875rem; font-weight: 800; color: #E65100; }
+    .hw-alert-sub { font-size: .78rem; color: #BF360C; margin-top: 2px; }
+
+    /* ── TIPS ── */
+    .tip-card {
+      background: #fff; border-radius: 14px;
+      border: 2px solid var(--border);
+      padding: 14px; margin-bottom: 10px;
+      display: flex; gap: 12px; align-items: flex-start;
+    }
+    .tip-emoji { font-size: 1.6rem; flex-shrink: 0; margin-top: 2px; }
+    .tip-heading { font-size: .875rem; font-weight: 800; margin-bottom: 3px; }
+    .tip-body { font-size: .78rem; color: var(--text2); line-height: 1.6; }
+
+    /* ── CONVERSATION STARTERS ── */
+    .conv-card {
+      background: #E8F5E9; border: 2px solid #43A047;
+      border-radius: 16px; padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+    .conv-title {
+      font-size: .78rem; font-weight: 900;
+      color: #1B5E20; text-transform: uppercase;
+      letter-spacing: .4px; margin-bottom: 10px;
+    }
+    .conv-item {
+      background: #fff; border-radius: 10px;
+      padding: 10px 12px; margin-bottom: 8px;
+      font-size: .875rem; font-weight: 700;
+      color: #1B5E20; line-height: 1.5;
+    }
+    .conv-item:last-child { margin-bottom: 0; }
+
+    /* ── SECTION TITLE ── */
+    .sec-hdr {
+      font-size: .7rem; font-weight: 900;
+      text-transform: uppercase; letter-spacing: .6px;
+      color: var(--text3); margin: 16px 0 8px;
+    }
+
+    /* Box sizing */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { overflow-x: hidden; }
+
+  </style>
 </head>
 <body>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
@@ -220,6 +390,9 @@
     <div class="topbar-title" id="topbarTitle">Parent Dashboard</div>
       <button class="logout-btn" onclick="logout()" id="mobileLogout" style="display:none;">⇥</button>
     </div>
+
+    <!-- Language bar -->
+    <div class="lang-bar" id="langBar"></div>
 
     <div class="content" id="mainContent">
       <div class="loader"><div class="spinner"></div>Loading your children's progress...</div>
@@ -354,6 +527,25 @@ function renderDashboard(child, stats) {
           </div>
         </div>`).join('')}
     </div>` : ''}
+
+    <!-- Voice card + language -->
+    <div class="voice-card" id="voiceCard"></div>
+
+    <!-- Stat cards -->
+    <div class="stat-row" id="statCards"></div>
+
+    <!-- Level progress -->
+    <div class="progress-card" id="progressCard"></div>
+
+    <!-- Homework alert -->
+    <div class="hw-alert" id="hwAlert" style="display:none;"></div>
+
+    <!-- Conversation starters -->
+    <div class="conv-card" id="convCard"></div>
+
+    <!-- Action tips -->
+    <div class="sec-hdr" id="tipsHdr">💡 What you can do at home this week</div>
+    <div id="tipsContainer"></div>
 
     <!-- Journey banner -->
     <div class="journey-banner" style="background:linear-gradient(135deg,#1565C0,#6A1B9A);">
@@ -782,7 +974,15 @@ async function init() {
 
     activeChild = children[0];
     const stats = await loadChildStats(activeChild.id);
+    window._activeChild = activeChild;
+    window._activeStats = stats;
     renderDashboard(activeChild, stats);
+    renderLangBar();
+    renderVoiceCard(activeChild, stats);
+    renderStatCards(activeChild, stats);
+    renderConvStarters(activeChild, stats);
+    renderHomeworkAlert(activeChild, stats);
+    renderTips(activeChild, stats);
 
   } catch(err) {
     document.getElementById('mainContent').innerHTML = `<div style="padding:40px;text-align:center;color:var(--red);">Error: ${err.message} <a href="../../login.html">Login again</a></div>`;
@@ -790,6 +990,349 @@ async function init() {
 }
 
 init();
+
+// ── LANGUAGE SYSTEM ──────────────────────────────────────────
+var currentLang = localStorage.getItem('parentLang') || 'en';
+var speechSynth = window.speechSynthesis;
+var currentUtterance = null;
+
+const LANGS = {
+  en: { label: 'English',    code: 'en-IN', flag: '🇬🇧' },
+  hi: { label: 'हिंदी',      code: 'hi-IN', flag: '🇮🇳' },
+  gu: { label: 'ગુજરાતી',   code: 'gu-IN', flag: '🇮🇳' },
+  mr: { label: 'मराठी',      code: 'mr-IN', flag: '🇮🇳' },
+  ta: { label: 'தமிழ்',     code: 'ta-IN', flag: '🇮🇳' },
+  te: { label: 'తెలుగు',    code: 'te-IN', flag: '🇮🇳' },
+};
+
+// Translations for UI labels
+const T = {
+  greeting: {
+    en: (n) => 'Hello! Here is ' + n + '\'s progress today.',
+    hi: (n) => 'नमस्ते! यह है ' + n + ' की आज की प्रगति।',
+    gu: (n) => 'નમસ્તે! આ છે ' + n + ' ની આજની પ્રગ્રેસ.',
+    mr: (n) => 'नमस्कार! हे आहे ' + n + ' ची आजची प्रगती.',
+    ta: (n) => 'வணக்கம்! இதோ ' + n + ' இன் இன்றைய முன்னேற்றம்.',
+    te: (n) => 'నమస్కారం! ఇది ' + n + ' యొక్క నేటి పురోగతి.',
+  },
+  listenBtn: {
+    en: '🔊 Hear progress',
+    hi: '🔊 प्रगति सुनें',
+    gu: '🔊 પ્રગ્રેસ સાંભળો',
+    mr: '🔊 प्रगती ऐका',
+    ta: '🔊 முன்னேற்றம் கேளுங்கள்',
+    te: '🔊 పురోగతి వినండి',
+  },
+  stopBtn: {
+    en: '⏹ Stop',
+    hi: '⏹ रोकें',
+    gu: '⏹ અટકાવો',
+    mr: '⏹ थांबवा',
+    ta: '⏹ நிறுத்து',
+    te: '⏹ ఆపు',
+  },
+  xpThisWeek: {
+    en: 'XP this week',
+    hi: 'इस हफ्ते XP',
+    gu: 'આ અઠવાડિયે XP',
+    mr: 'या आठवड्यात XP',
+    ta: 'இந்த வாரம் XP',
+    te: 'ఈ వారం XP',
+  },
+  streak: {
+    en: 'Day streak 🔥',
+    hi: 'दिन की streak 🔥',
+    gu: 'દિવસ streak 🔥',
+    mr: 'दिवस streak 🔥',
+    ta: 'நாள் streak 🔥',
+    te: 'రోజు streak 🔥',
+  },
+  levelProgress: {
+    en: 'Level progress',
+    hi: 'लेवल प्रगति',
+    gu: 'લેવલ પ્રગ્રેસ',
+    mr: 'लेव्हल प्रगती',
+    ta: 'நிலை முன்னேற்றம்',
+    te: 'స్థాయి పురోగతి',
+  },
+  homeworkPending: {
+    en: (n,h) => n + ' has ' + h + ' homework pending. Please encourage them to complete it.',
+    hi: (n,h) => n + ' का ' + h + ' होमवर्क बाकी है। उन्हें पूरा करने के लिए प्रोत्साहित करें।',
+    gu: (n,h) => n + ' ना ' + h + ' homework બાકી છે. તેમને પૂર્ણ કરવા પ્રોત્સાહિત કરો.',
+    mr: (n,h) => n + ' चे ' + h + ' गृहपाठ बाकी आहे. त्यांना पूर्ण करण्यास प्रोत्साहन द्या.',
+    ta: (n,h) => n + ' க்கு ' + h + ' வீட்டுப்பாடம் உள்ளது. அவர்களை முடிக்க ஊக்குவிக்கவும்.',
+    te: (n,h) => n + ' కి ' + h + ' హోంవర్క్ పెండింగ్ లో ఉంది. వారిని పూర్తి చేయమని ప్రోత్సహించండి.',
+  },
+  talkTonight: {
+    en: 'Ask at home tonight',
+    hi: 'आज रात घर पर पूछें',
+    gu: 'આજ રાત્રે ઘરે પૂછો',
+    mr: 'आज रात्री घरी विचारा',
+    ta: 'இன்றிரவு வீட்டில் கேளுங்கள்',
+    te: 'ఈ రాత్రి ఇంట్లో అడగండి',
+  },
+  practisedToday: {
+    en: (n) => n + ' has practised today! Great work.',
+    hi: (n) => n + ' ने आज अभ्यास किया! बहुत बढ़िया।',
+    gu: (n) => n + ' એ આજે અભ્યાસ કર્યો! ખૂબ સરસ.',
+    mr: (n) => n + ' ने आज सराव केला! खूप छान.',
+    ta: (n) => n + ' இன்று பயிற்சி செய்தார்! மிகவும் நன்று.',
+    te: (n) => n + ' ఈ రోజు సాధన చేశారు! చాలా బాగుంది.',
+  },
+  notPractisedToday: {
+    en: (n) => n + ' has not practised today. A gentle reminder would help.',
+    hi: (n) => n + ' ने आज अभ्यास नहीं किया। एक छोटी याद दिलाने से मदद मिलेगी।',
+    gu: (n) => n + ' એ આજે અભ્યાસ નથી કર્યો. એક નમ્ર reminder મદદ કરશે.',
+    mr: (n) => n + ' ने आज सराव केला नाही. एक आठवण देणे उपयुक्त ठरेल.',
+    ta: (n) => n + ' இன்று பயிற்சி செய்யவில்லை. ஒரு மென்மையான நினைவூட்டல் உதவும்.',
+    te: (n) => n + ' ఈ రోజు సాధన చేయలేదు. ఒక మృదువైన గుర్తుచేపు సహాయపడుతుంది.',
+  },
+  streakMsg: {
+    en: (n,s) => s > 0 ? n + ' is on a ' + s + '-day streak! Celebrate this tonight.' : n + '\'s streak was broken. Help restart it tomorrow.',
+    hi: (n,s) => s > 0 ? n + ' ' + s + ' दिन की streak पर है! आज रात इसे सेलिब्रेट करें।' : n + ' की streak टूट गई। कल फिर से शुरू करने में मदद करें।',
+    gu: (n,s) => s > 0 ? n + ' ' + s + ' દિવસ ની streak પર છે! આજ રાત્રે celebrate કરો.' : n + ' ની streak તૂટી ગઈ. કાલ ફરી શરૂ કરવામાં મદદ કરો.',
+    mr: (n,s) => s > 0 ? n + ' ' + s + ' दिवसांची streak आहे! आज रात्री साजरी करा.' : n + ' ची streak तुटली. उद्या पुन्हा सुरू करण्यास मदत करा.',
+    ta: (n,s) => s > 0 ? n + ' ' + s + ' நாள் streak ல் இருக்கிறார்! இன்றிரவு கொண்டாடுங்கள்.' : n + ' இன் streak உடைந்தது. நாளை மறுதொடக்கம் செய்ய உதவுங்கள்.',
+    te: (n,s) => s > 0 ? n + ' ' + s + ' రోజుల streak లో ఉన్నారు! ఈ రాత్రి సంతోషపడండి.' : n + ' యొక్క streak విరిగింది. రేపు మళ్ళీ ప్రారంభించడానికి సహాయం చేయండి.',
+  },
+};
+
+function t(key, ...args) {
+  var fn = (T[key] || {})[currentLang] || (T[key] || {})['en'];
+  if (!fn) return '';
+  return typeof fn === 'function' ? fn(...args) : fn;
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('parentLang', lang);
+  // Update active button
+  document.querySelectorAll('.lang-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+  // Re-render voice card if child is loaded
+  if (window._activeChild && window._activeStats) {
+    renderVoiceCard(window._activeChild, window._activeStats);
+  }
+  stopVoice();
+}
+
+function buildVoiceScript(child, stats) {
+  var name = child.full_name.split(' ')[0];
+  var streak = child.streak_days || 0;
+  var xp = stats.weeklyXP || 0;
+  var hw = stats.homeworkPending || 0;
+  var practised = stats.practiceToday || false;
+  var lv = child.current_level || 1;
+  var journey = getWeeksInLevel(child.created_at);
+
+  var parts = [];
+  parts.push(t('greeting', name));
+  parts.push(practised ? t('practisedToday', name) : t('notPractisedToday', name));
+  parts.push(t('streakMsg', name, streak));
+  if (xp > 0) {
+    var xpText = {
+      en: name + ' earned ' + xp + ' XP points this week.',
+      hi: name + ' ने इस हफ्ते ' + xp + ' XP पॉइंट्स कमाए।',
+      gu: name + ' એ આ અઠવાડિયે ' + xp + ' XP points કમાયા.',
+      mr: name + ' ने या आठवड्यात ' + xp + ' XP पॉइंट्स मिळवले.',
+      ta: name + ' இந்த வாரம் ' + xp + ' XP பயிற்சி புள்ளிகள் பெற்றார்.',
+      te: name + ' ఈ వారం ' + xp + ' XP పాయింట్లు సంపాదించారు.',
+    };
+    parts.push(xpText[currentLang] || xpText.en);
+  }
+  if (hw > 0) parts.push(t('homeworkPending', name, hw));
+
+  // Level encouragement
+  var lvText = {
+    en: name + ' is currently on Level ' + lv + ' of the Abacus course. Keep encouraging them!',
+    hi: name + ' अभी Abacus कोर्स के Level ' + lv + ' पर है। उन्हें प्रोत्साहित करते रहें!',
+    gu: name + ' હાલ Abacus course ના Level ' + lv + ' પર છે. તેમને પ્રોત્સાહિત કરતા રહો!',
+    mr: name + ' सध्या Abacus course च्या Level ' + lv + ' वर आहे. त्यांना प्रोत्साहन देत राहा!',
+    ta: name + ' தற்போது Abacus பாடத்தின் Level ' + lv + ' ல் உள்ளார். அவர்களை ஊக்குவிக்கவும்!',
+    te: name + ' ప్రస్తుతం Abacus కోర్సులో Level ' + lv + ' లో ఉన్నారు. వారిని ప్రోత్సహించండి!',
+  };
+  parts.push(lvText[currentLang] || lvText.en);
+
+  return parts.join(' ');
+}
+
+function speakText(text, langCode) {
+  if (!speechSynth) { alert('Voice not supported on this browser'); return; }
+  speechSynth.cancel();
+  var utter = new SpeechSynthesisUtterance(text);
+  utter.lang = langCode;
+  utter.rate = 0.88;
+  utter.pitch = 1.0;
+
+  var btn = document.getElementById('voicePlayBtn');
+  if (btn) {
+    btn.classList.add('speaking');
+    btn.textContent = t('stopBtn');
+  }
+
+  utter.onend = function() {
+    if (btn) {
+      btn.classList.remove('speaking');
+      btn.innerHTML = '<span class="voice-icon">🔊</span> ' + t('listenBtn');
+    }
+    currentUtterance = null;
+  };
+  utter.onerror = function() {
+    if (btn) {
+      btn.classList.remove('speaking');
+      btn.innerHTML = '<span class="voice-icon">🔊</span> ' + t('listenBtn');
+    }
+  };
+
+  currentUtterance = utter;
+  speechSynth.speak(utter);
+}
+
+function toggleVoice() {
+  if (speechSynth.speaking) {
+    stopVoice();
+    return;
+  }
+  if (!window._activeChild || !window._activeStats) return;
+  var script = buildVoiceScript(window._activeChild, window._activeStats);
+  var lang = LANGS[currentLang] || LANGS.en;
+  speakText(script, lang.code);
+}
+
+function stopVoice() {
+  if (speechSynth) speechSynth.cancel();
+  var btn = document.getElementById('voicePlayBtn');
+  if (btn) {
+    btn.classList.remove('speaking');
+    btn.innerHTML = '<span class="voice-icon">🔊</span> ' + t('listenBtn');
+  }
+  currentUtterance = null;
+}
+
+function renderLangBar() {
+  var bar = document.getElementById('langBar');
+  if (!bar) return;
+  var html = '<span class="lang-label">🌐</span>';
+  Object.keys(LANGS).forEach(function(k) {
+    var l = LANGS[k];
+    html += '<button class="lang-btn' + (k===currentLang?' active':'') + '" data-lang="' + k + '" onclick="setLang(\'' + k + '\')">' + l.label + '</button>';
+  });
+  bar.innerHTML = html;
+}
+
+function renderVoiceCard(child, stats) {
+  var vc = document.getElementById('voiceCard');
+  if (!vc) return;
+  var name = child.full_name.split(' ')[0];
+  var streak = child.streak_days || 0;
+  var xp = stats.weeklyXP || 0;
+  var practised = stats.practiceToday || false;
+  var hw = stats.homeworkPending || 0;
+
+  var summaryLine = (practised ? t('practisedToday', name) : t('notPractisedToday', name)) + ' ' + t('streakMsg', name, streak);
+
+  vc.innerHTML =
+    '<div class="voice-greeting">' + t('greeting', name) + '</div>' +
+    '<div class="voice-summary">' + summaryLine + '</div>' +
+    (hw > 0 ? '<div style="background:rgba(255,255,255,.15);border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:.82rem;font-weight:700;">📚 ' + t('homeworkPending', name, hw) + '</div>' : '') +
+    '<button class="voice-btn" id="voicePlayBtn" onclick="toggleVoice()">' +
+      '<span class="voice-icon">🔊</span> ' + t('listenBtn') +
+    '</button>';
+}
+
+function renderStatCards(child, stats) {
+  var sc = document.getElementById('statCards');
+  if (!sc) return;
+  var streak = child.streak_days || 0;
+  var xp = stats.weeklyXP || 0;
+  var lv = child.current_level || 1;
+  var journey = getWeeksInLevel(child.created_at);
+
+  sc.innerHTML =
+    '<div class="stat-card">' +
+      '<div class="stat-icon">⚡</div>' +
+      '<div class="stat-val" style="color:#F57F17">' + xp + '</div>' +
+      '<div class="stat-lbl">' + t('xpThisWeek') + '</div>' +
+    '</div>' +
+    '<div class="stat-card">' +
+      '<div class="stat-icon">🔥</div>' +
+      '<div class="stat-val" style="color:#E65100">' + streak + '</div>' +
+      '<div class="stat-lbl">' + t('streak') + '</div>' +
+    '</div>';
+
+  // Progress card
+  var pc = document.getElementById('progressCard');
+  if (pc) {
+    pc.innerHTML =
+      '<div class="progress-header">' +
+        '<div class="progress-title">' + t('levelProgress') + ' — Level ' + lv + '</div>' +
+        '<div class="progress-pct">' + journey.pct + '%</div>' +
+      '</div>' +
+      '<div class="prog-bar"><div class="prog-bar-fill" style="width:' + journey.pct + '%"></div></div>' +
+      '<div class="prog-labels"><span>Week 1</span><span>Week ' + journey.week + ' — now</span><span>Week 12 🎓</span></div>';
+  }
+}
+
+function renderConvStarters(child, stats) {
+  var cc = document.getElementById('convCard');
+  if (!cc) return;
+  var name = child.full_name.split(' ')[0];
+  var group = child.age_group || levelGroup(child.current_level || 1);
+  var starters = buildConvStarters(child, stats, group);
+
+  // Translate conversation starters
+  var convTitle = {
+    en: '💬 Ask ' + name + ' tonight',
+    hi: '💬 आज रात ' + name + ' से पूछें',
+    gu: '💬 આજ રાત ' + name + ' ને પૂછો',
+    mr: '💬 आज रात ' + name + ' ला विचारा',
+    ta: '💬 இன்றிரவு ' + name + ' ஐ கேளுங்கள்',
+    te: '💬 ఈ రాత్రి ' + name + ' ని అడగండి',
+  };
+
+  cc.innerHTML =
+    '<div class="conv-title">' + (convTitle[currentLang] || convTitle.en) + '</div>' +
+    starters.map(function(s) {
+      return '<div class="conv-item">' + s + '</div>';
+    }).join('');
+}
+
+function renderHomeworkAlert(child, stats) {
+  var ha = document.getElementById('hwAlert');
+  if (!ha) return;
+  var hw = stats.homeworkPending || 0;
+  var name = child.full_name.split(' ')[0];
+  if (hw > 0) {
+    ha.style.display = 'flex';
+    ha.innerHTML =
+      '<div class="hw-alert-icon">📚</div>' +
+      '<div>' +
+        '<div class="hw-alert-text">' + t('homeworkPending', name, hw) + '</div>' +
+      '</div>';
+  } else {
+    ha.style.display = 'none';
+  }
+}
+
+function renderTips(child, stats) {
+  var tc = document.getElementById('tipsContainer');
+  if (!tc) return;
+  var group = child.age_group || levelGroup(child.current_level || 1);
+  var journey = getWeeksInLevel(child.created_at);
+  var tips = buildActionTips(child, stats, journey, group);
+  tc.innerHTML = tips.map(function(tip) {
+    return '<div class="tip-card">' +
+      '<div class="tip-emoji">' + tip.icon + '</div>' +
+      '<div><div class="tip-heading">' + tip.title + '</div>' +
+      '<div class="tip-body">' + tip.desc + '</div></div>' +
+    '</div>';
+  }).join('');
+}
+
+// Hook into renderDashboard to populate new elements
+var _origRenderDashboard = window.renderDashboard;
+
 </script>
 </body>
 </html>

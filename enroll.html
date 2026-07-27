@@ -583,6 +583,8 @@ async function goToPayment() {
         contact: phone,
       },
       theme: { color: '#1565C0' },
+      callback_url: 'https://imathacademy.net/payment-success.html',
+      redirect: true,
       handler: async function(response) {
         // Activate student account
         await sb.from('users').update({ is_active: true }).eq('id', studentId);

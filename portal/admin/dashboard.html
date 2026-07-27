@@ -2027,7 +2027,17 @@ async function loadPricing() {
     .order('country_code')
     .order('duration_days');
   if (error) { toast('Error loading pricing: ' + error.message, 'error'); return; }
+  console.log('Pricing data loaded:', data);
   allPricing = data || [];
+  if (!allPricing.length) {
+    document.getElementById('pricingGrid').innerHTML =
+      '<div style="padding:20px;text-align:center;color:#888;">' +
+      '<div style="font-size:2rem;margin-bottom:8px;">💰</div>' +
+      '<div style="font-weight:800;margin-bottom:6px;">No pricing data found</div>' +
+      '<div style="font-size:.78rem;">Please run the SQL seed script in Supabase to add pricing plans.</div>' +
+      '</div>';
+    return;
+  }
   renderPricingGrid('IN');
 }
 
@@ -2042,7 +2052,9 @@ function renderPricingGrid(countryCode) {
   var grid = document.getElementById('pricingGrid');
   if (!grid) return;
   var country = COUNTRIES[countryCode] || {};
-  var plans = allPricing.filter(p => p.country_code === countryCode);
+  console.log('All pricing:', allPricing.length, 'rows, filtering by:', countryCode);
+  var plans = allPricing.filter(function(p) { return p.country_code === countryCode; });
+  console.log('Plans for', countryCode, ':', plans.length);
 
   if (!plans.length) {
     grid.innerHTML = '<div class="empty-state"><div style="font-size:2rem">💰</div><div>No pricing found for ' + country.name + '</div></div>';

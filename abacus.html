@@ -7,506 +7,402 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Baloo+2:wght@800;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;background:#1A1A2E;font-family:'Nunito',sans-serif;color:#fff;overflow:hidden;}
-.app{display:flex;flex-direction:column;height:100vh;max-width:680px;margin:0 auto;}
+html,body{height:100%;background:#1A1A2E;font-family:'Nunito',sans-serif;color:#fff;}
+body{display:flex;flex-direction:column;overflow:hidden;}
 
-/* TOPBAR */
-.topbar{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.logo{font-family:'Baloo 2',sans-serif;font-size:.95rem;font-weight:900;color:#fff;}
-.logo span{color:#90CAF9;}
-.value-wrap{display:flex;flex-direction:column;align-items:center;}
-.value-label{font-size:.6rem;font-weight:800;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;}
-.value-num{font-family:'Baloo 2',sans-serif;font-size:1.5rem;font-weight:900;color:#FFD54F;letter-spacing:1px;min-width:80px;text-align:center;}
+.topbar{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#111827;}
+.logo{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:900;}
+.logo em{color:#90CAF9;font-style:normal;}
+.val-box{text-align:center;}
+.val-lbl{font-size:.6rem;font-weight:800;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;}
+.val-num{font-family:'Baloo 2',sans-serif;font-size:1.6rem;font-weight:900;color:#FFD54F;min-width:100px;text-align:center;line-height:1;}
 .icon-btns{display:flex;gap:6px;}
-.icon-btn{width:32px;height:32px;border-radius:8px;border:none;background:rgba(255,255,255,.1);color:#fff;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;}
-.icon-btn.active{background:rgba(255,255,255,.25);}
+.ibtn{width:34px;height:34px;border-radius:8px;border:none;background:rgba(255,255,255,.1);color:#fff;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;}
 
-/* ROD SELECTOR */
-.rod-sel{display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 14px;flex-shrink:0;}
-.rod-sel-label{font-size:.68rem;font-weight:800;color:rgba(255,255,255,.4);}
-.rod-btn{padding:4px 12px;border-radius:20px;border:1.5px solid rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.5);font-family:inherit;font-size:.72rem;font-weight:800;cursor:pointer;transition:all .12s;}
-.rod-btn.active{background:#1565C0;border-color:#1565C0;color:#fff;}
+.rod-sel{display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 14px;flex-shrink:0;background:#111827;border-top:1px solid rgba(255,255,255,.05);}
+.rsl{font-size:.68rem;font-weight:800;color:rgba(255,255,255,.35);}
+.rbtn{padding:4px 14px;border-radius:20px;border:1.5px solid rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.45);font-family:inherit;font-size:.72rem;font-weight:800;cursor:pointer;}
+.rbtn.on{background:#1565C0;border-color:#1565C0;color:#fff;}
 
-/* ABACUS FRAME */
-.abacus-outer{flex:1;display:flex;flex-direction:column;padding:0 8px;overflow:hidden;}
-.abacus-frame{flex:1;background:#4E342E;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;}
-.frame-top{height:10px;background:#3E2723;border-radius:14px 14px 0 0;flex-shrink:0;}
-.frame-bot{height:10px;background:#3E2723;border-radius:0 0 14px 14px;flex-shrink:0;}
-.rods-wrap{flex:1;display:flex;align-items:stretch;padding:0 6px;background:#3E2723;gap:2px;overflow:hidden;}
+.modes{display:flex;gap:6px;padding:6px 14px;flex-shrink:0;background:#111827;border-top:1px solid rgba(255,255,255,.05);}
+.mbtn{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);font-family:inherit;font-size:.72rem;font-weight:800;cursor:pointer;text-align:center;}
+.mbtn.on{background:#1565C0;border-color:#1565C0;color:#fff;}
 
-/* SINGLE ROD */
-.rod{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;cursor:pointer;min-width:0;}
-.rod-line{position:absolute;top:0;bottom:0;width:3px;border-radius:2px;left:50%;transform:translateX(-50%);z-index:0;opacity:.5;}
+.qcard{margin:6px 14px;border-radius:10px;padding:9px 14px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.1);flex-shrink:0;display:none;}
+.qcard.show{display:block;}
+.qlbl{font-size:.6rem;font-weight:900;text-transform:uppercase;letter-spacing:.4px;color:rgba(255,255,255,.4);margin-bottom:2px;}
+.qnum{font-family:'Baloo 2',sans-serif;font-size:1.4rem;font-weight:900;color:#FFD54F;}
+.qfb{font-size:.78rem;font-weight:800;margin-top:5px;padding:5px 10px;border-radius:7px;display:none;}
+.qfb.ok{background:rgba(46,125,50,.35);color:#81C784;display:block;}
+.qfb.no{background:rgba(183,28,28,.35);color:#EF9A9A;display:block;}
 
-/* HEAVEN ZONE */
-.heaven-zone{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:3px;position:relative;z-index:1;flex-shrink:0;}
+/* THE ABACUS */
+.abacus-area{flex:1;padding:6px 10px;overflow:hidden;display:flex;flex-direction:column;}
+.abacus-frame{flex:1;border-radius:12px;overflow:hidden;background:#3E2723;display:flex;flex-direction:column;border:3px solid #5D4037;}
+.ab-top{height:10px;background:#5D4037;flex-shrink:0;}
+.ab-mid{flex:1;display:flex;overflow:hidden;}
+.ab-bot{height:10px;background:#5D4037;flex-shrink:0;}
 
-/* DIVIDER */
-.rod-divider{height:6px;width:100%;background:#5D4037;flex-shrink:0;position:relative;z-index:2;}
-.rod-divider::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:6px;height:6px;background:#3E2723;border-radius:50%;}
+.rod-col{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;cursor:pointer;padding:4px 2px;}
 
-/* EARTH ZONE */
-.earth-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:3px;position:relative;z-index:1;gap:2px;}
+.rod-stick{position:absolute;top:0;bottom:0;width:3px;border-radius:2px;left:50%;transform:translateX(-50%);opacity:.5;}
 
-/* BEAD */
-.bead{border-radius:50%;position:relative;z-index:3;flex-shrink:0;transition:transform .18s cubic-bezier(.34,1.4,.64,1);cursor:pointer;width:calc(100% - 4px);max-width:30px;}
-.bead::after{content:'';position:absolute;top:15%;left:20%;width:35%;height:25%;border-radius:50%;background:rgba(255,255,255,.4);}
-.bead:active{transform:scale(.9);}
+.h-area{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.e-area{flex:1;display:flex;flex-direction:column;align-items:center;}
 
-/* BEAD STATES */
-.bead.inactive{opacity:.45;}
-.bead.active{opacity:1;box-shadow:0 2px 10px rgba(0,0,0,.4);}
+.divbar{height:5px;background:#5D4037;width:100%;flex-shrink:0;position:relative;z-index:5;}
+.divbar::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:5px;height:5px;background:#3E2723;border-radius:50%;}
 
-/* GHOST SLOT */
-.ghost{border-radius:50%;flex-shrink:0;border:1.5px dashed rgba(255,255,255,.15);width:calc(100% - 4px);max-width:30px;}
-
-/* CONTROLS */
-.controls{display:flex;gap:8px;padding:8px 14px;flex-shrink:0;}
-.ctrl-btn{flex:1;padding:10px 6px;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;font-family:inherit;font-size:.75rem;font-weight:800;cursor:pointer;transition:all .12s;text-align:center;}
-.ctrl-btn:hover{background:rgba(255,255,255,.15);}
-.ctrl-btn.primary{background:#1565C0;border-color:#1565C0;}
-
-/* QUESTION CARD */
-.q-card{margin:0 14px 6px;border-radius:12px;padding:10px 14px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.12);flex-shrink:0;display:none;}
-.q-card.show{display:block;}
-.q-label{font-size:.62rem;font-weight:900;text-transform:uppercase;letter-spacing:.4px;color:rgba(255,255,255,.5);margin-bottom:3px;}
-.q-num{font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:900;color:#FFD54F;}
-.q-feedback{font-size:.78rem;font-weight:800;margin-top:6px;padding:5px 10px;border-radius:8px;display:none;}
-.q-feedback.correct{background:rgba(46,125,50,.3);color:#81C784;display:block;}
-.q-feedback.wrong{background:rgba(198,40,40,.3);color:#EF9A9A;display:block;}
-
-/* CELEBRATION */
-.celeb{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:100;}
-.celeb.show{display:flex;}
-.celeb-card{background:#1A1A2E;border:2px solid #FFD54F;border-radius:20px;padding:28px 24px;text-align:center;max-width:280px;width:90%;}
-.celeb-icon{font-size:3rem;margin-bottom:8px;}
-.celeb-title{font-family:'Baloo 2',sans-serif;font-size:1.4rem;font-weight:900;color:#FFD54F;margin-bottom:6px;}
-.celeb-sub{font-size:.82rem;color:rgba(255,255,255,.7);margin-bottom:16px;}
-.celeb-btn{width:100%;padding:12px;background:#1565C0;color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:.9rem;font-weight:900;cursor:pointer;}
-
-@media(max-width:380px){
-  .bead,.ghost{max-width:22px;}
-  .value-num{font-size:1.2rem;}
+/* BEADS */
+.bead,.ghost{
+  width:calc(100% - 4px);
+  max-width:32px;
+  flex-shrink:0;
+  border-radius:50%;
+  position:relative;
+  z-index:3;
 }
+.bead{
+  cursor:pointer;
+  transition:transform .15s cubic-bezier(.34,1.4,.64,1);
+}
+.bead:active{transform:scale(.88);}
+.bead::after{
+  content:'';
+  position:absolute;
+  top:18%;left:22%;
+  width:30%;height:22%;
+  border-radius:50%;
+  background:rgba(255,255,255,.45);
+}
+.bead.dim{opacity:.4;}
+.ghost{
+  border:1.5px dashed rgba(255,255,255,.18);
+  background:transparent;
+}
+
+.controls{display:flex;gap:8px;padding:6px 14px;flex-shrink:0;background:#111827;border-top:1px solid rgba(255,255,255,.05);}
+.cbtn{flex:1;padding:10px 4px;border-radius:9px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#fff;font-family:inherit;font-size:.75rem;font-weight:800;cursor:pointer;text-align:center;}
+.cbtn.p{background:#1565C0;border-color:#1565C0;}
+
+.celeb{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:200;}
+.celeb.show{display:flex;}
+.celeb-box{background:#111827;border:2px solid #FFD54F;border-radius:18px;padding:28px 22px;text-align:center;max-width:270px;width:88%;}
+.c-icon{font-size:3rem;margin-bottom:8px;}
+.c-title{font-family:'Baloo 2',sans-serif;font-size:1.4rem;font-weight:900;color:#FFD54F;margin-bottom:6px;}
+.c-sub{font-size:.82rem;color:rgba(255,255,255,.65);margin-bottom:14px;line-height:1.5;}
+.c-btn{width:100%;padding:11px;background:#1565C0;color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:.9rem;font-weight:900;cursor:pointer;}
+
+/* aspect ratio helpers */
+.bead[data-aspect]{aspect-ratio:1;}
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="topbar">
-    <div class="logo">🧮 iMath<span>Academy</span></div>
-    <div class="value-wrap">
-      <div class="value-label">Value</div>
-      <div class="value-num" id="valDisp">0</div>
-    </div>
-    <div class="icon-btns">
-      <button class="icon-btn" id="soundBtn" onclick="toggleSound()" title="Sound">🔊</button>
-      <button class="icon-btn" id="clearBtn" onclick="clearAll()" title="Clear">↺</button>
-    </div>
-  </div>
 
-  <div class="rod-sel">
-    <span class="rod-sel-label">Rods:</span>
-    <button class="rod-btn active" onclick="setRods(7,this)">7</button>
-    <button class="rod-btn" onclick="setRods(9,this)">9</button>
-    <button class="rod-btn" onclick="setRods(13,this)">13</button>
-    <button class="rod-btn" onclick="setRods(17,this)">17</button>
+<div class="topbar">
+  <div class="logo">🧮 iMath<em>Academy</em></div>
+  <div class="val-box">
+    <div class="val-lbl">Value</div>
+    <div class="val-num" id="vd">0</div>
   </div>
-
-  <!-- Mode buttons -->
-  <div style="display:flex;gap:6px;padding:0 14px 6px;flex-shrink:0;">
-    <button class="ctrl-btn primary" onclick="setMode('free',this)" id="modeBtn0">🎯 Free play</button>
-    <button class="ctrl-btn" onclick="setMode('practice',this)" id="modeBtn1">📝 Practice</button>
-    <button class="ctrl-btn" onclick="setMode('challenge',this)" id="modeBtn2">⚡ Challenge</button>
-  </div>
-
-  <!-- Question card -->
-  <div class="q-card" id="qCard">
-    <div class="q-label" id="qLabel">Set this number on the abacus</div>
-    <div class="q-num" id="qNum">—</div>
-    <div class="q-feedback" id="qFeedback"></div>
-  </div>
-
-  <!-- THE ABACUS -->
-  <div class="abacus-outer">
-    <div class="abacus-frame">
-      <div class="frame-top"></div>
-      <div class="rods-wrap" id="rodsWrap"></div>
-      <div class="frame-bot"></div>
-    </div>
-  </div>
-
-  <!-- Bottom controls -->
-  <div class="controls" id="bottomControls" style="padding-bottom:max(8px,env(safe-area-inset-bottom));">
-    <button class="ctrl-btn" onclick="randomNumber()" id="randBtn">🎲 Random</button>
-    <button class="ctrl-btn primary" onclick="checkAnswer()" id="checkBtn" style="display:none">✓ Check</button>
-    <button class="ctrl-btn" onclick="nextQuestion()" id="nextBtn" style="display:none">Next →</button>
+  <div class="icon-btns">
+    <button class="ibtn" id="sndBtn" onclick="toggleSound()">🔊</button>
+    <button class="ibtn" onclick="clearAll()">↺</button>
   </div>
 </div>
 
+<div class="rod-sel">
+  <span class="rsl">Rods:</span>
+  <button class="rbtn on" onclick="setRods(7,this)">7</button>
+  <button class="rbtn" onclick="setRods(9,this)">9</button>
+  <button class="rbtn" onclick="setRods(13,this)">13</button>
+  <button class="rbtn" onclick="setRods(17,this)">17</button>
+</div>
+
+<div class="modes">
+  <button class="mbtn on" onclick="setMode('free',this)">🎯 Free</button>
+  <button class="mbtn" onclick="setMode('practice',this)">📝 Practice</button>
+  <button class="mbtn" onclick="setMode('challenge',this)">⚡ Challenge</button>
+</div>
+
+<div class="qcard" id="qcard">
+  <div class="qlbl" id="qlbl">Set this number</div>
+  <div class="qnum" id="qnum">—</div>
+  <div class="qfb" id="qfb"></div>
+</div>
+
+<div class="abacus-area">
+  <div class="abacus-frame">
+    <div class="ab-top"></div>
+    <div class="ab-mid" id="abMid"></div>
+    <div class="ab-bot"></div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="cbtn" id="randBtn" onclick="randomNum()">🎲 Random</button>
+  <button class="cbtn p" id="chkBtn" style="display:none" onclick="checkAns()">✓ Check</button>
+  <button class="cbtn" id="nxtBtn" style="display:none" onclick="nextQ()">Next →</button>
+</div>
+
 <div class="celeb" id="celeb">
-  <div class="celeb-card">
-    <div class="celeb-icon">🎉</div>
-    <div class="celeb-title">Correct!</div>
-    <div class="celeb-sub" id="celebSub">Well done!</div>
-    <button class="celeb-btn" onclick="nextQuestion()">Next question →</button>
+  <div class="celeb-box">
+    <div class="c-icon">🎉</div>
+    <div class="c-title">Correct!</div>
+    <div class="c-sub" id="cSub">Well done!</div>
+    <button class="c-btn" onclick="nextQ()">Next question →</button>
   </div>
 </div>
 
 <script>
-// ── COLOURS PER ROD (right to left = ones to highest) ────────
-var ROD_COLORS = [
-  {rod:'#F44336',bead:'linear-gradient(145deg,#FF8A80,#F44336 55%,#B71C1C)',glow:'#F44336'},
-  {rod:'#FF7F00',bead:'linear-gradient(145deg,#FFD180,#FF7F00 55%,#E65100)',glow:'#FF7F00'},
-  {rod:'#FFC107',bead:'linear-gradient(145deg,#FFFF8D,#FFC107 55%,#FF6F00)',glow:'#FFC107'},
-  {rod:'#4CAF50',bead:'linear-gradient(145deg,#B9F6CA,#4CAF50 55%,#1B5E20)',glow:'#4CAF50'},
-  {rod:'#2196F3',bead:'linear-gradient(145deg,#82B1FF,#2196F3 55%,#0D47A1)',glow:'#2196F3'},
-  {rod:'#9C27B0',bead:'linear-gradient(145deg,#EA80FC,#9C27B0 55%,#4A148C)',glow:'#9C27B0'},
-  {rod:'#F44336',bead:'linear-gradient(145deg,#FF8A80,#F44336 55%,#B71C1C)',glow:'#F44336'},
-  {rod:'#FF7F00',bead:'linear-gradient(145deg,#FFD180,#FF7F00 55%,#E65100)',glow:'#FF7F00'},
-  {rod:'#FFC107',bead:'linear-gradient(145deg,#FFFF8D,#FFC107 55%,#FF6F00)',glow:'#FFC107'},
-  {rod:'#4CAF50',bead:'linear-gradient(145deg,#B9F6CA,#4CAF50 55%,#1B5E20)',glow:'#4CAF50'},
-  {rod:'#2196F3',bead:'linear-gradient(145deg,#82B1FF,#2196F3 55%,#0D47A1)',glow:'#2196F3'},
-  {rod:'#9C27B0',bead:'linear-gradient(145deg,#EA80FC,#9C27B0 55%,#4A148C)',glow:'#9C27B0'},
-  {rod:'#F44336',bead:'linear-gradient(145deg,#FF8A80,#F44336 55%,#B71C1C)',glow:'#F44336'},
-  {rod:'#FF7F00',bead:'linear-gradient(145deg,#FFD180,#FF7F00 55%,#E65100)',glow:'#FF7F00'},
-  {rod:'#FFC107',bead:'linear-gradient(145deg,#FFFF8D,#FFC107 55%,#FF6F00)',glow:'#FFC107'},
-  {rod:'#4CAF50',bead:'linear-gradient(145deg,#B9F6CA,#4CAF50 55%,#1B5E20)',glow:'#4CAF50'},
-  {rod:'#2196F3',bead:'linear-gradient(145deg,#82B1FF,#2196F3 55%,#0D47A1)',glow:'#2196F3'},
+var COLORS = [
+  {rod:'#F44336',g1:'#FF8A80',g2:'#F44336',g3:'#B71C1C'},
+  {rod:'#FF8F00',g1:'#FFE57F',g2:'#FF8F00',g3:'#E65100'},
+  {rod:'#FDD835',g1:'#FFFF8D',g2:'#FDD835',g3:'#F57F17'},
+  {rod:'#43A047',g1:'#B9F6CA',g2:'#43A047',g3:'#1B5E20'},
+  {rod:'#1E88E5',g1:'#82B1FF',g2:'#1E88E5',g3:'#0D47A1'},
+  {rod:'#8E24AA',g1:'#EA80FC',g2:'#8E24AA',g3:'#4A148C'},
 ];
 
-var NUM_RODS = 7;
-var state = []; // index 0 = rightmost (ones)
-var mode = 'free';
-var soundOn = true;
-var target = null;
-var score = {c:0,t:0};
-var chalTimer = null, chalTime = 0;
-var audioCtx = null;
+var N=7, state=[], mode='free', soundOn=true, target=null;
+var score={c:0,t:0}, chalTimer=null, chalSec=0, practIdx=0;
+var audioCtx=null;
 
-function audio() {
-  if (!audioCtx) try { audioCtx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){}
-  return audioCtx;
-}
-function click(high) {
-  if (!soundOn) return;
-  var ctx = audio(); if (!ctx) return;
-  var o = ctx.createOscillator(), g = ctx.createGain();
-  o.connect(g); g.connect(ctx.destination);
-  o.frequency.value = high ? 1100 : 700;
-  g.gain.setValueAtTime(.1, ctx.currentTime);
-  g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime+.06);
-  o.start(); o.stop(ctx.currentTime+.06);
-}
-function playSuccess() {
-  if (!soundOn) return;
-  var ctx = audio(); if (!ctx) return;
-  [523,659,784,1047].forEach(function(f,i){
-    var o=ctx.createOscillator(),g=ctx.createGain();
-    o.connect(g);g.connect(ctx.destination);
-    o.frequency.value=f;
-    var t=ctx.currentTime+i*.08;
-    g.gain.setValueAtTime(.1,t);
-    g.gain.exponentialRampToValueAtTime(.001,t+.12);
-    o.start(t);o.stop(t+.12);
-  });
+function getAudio(){if(!audioCtx)try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}return audioCtx;}
+function beep(f,d){if(!soundOn)return;var ctx=getAudio();if(!ctx)return;var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;g.gain.setValueAtTime(.08,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+d);o.start();o.stop(ctx.currentTime+d);}
+function playWin(){if(!soundOn)return;[523,659,784,1047].forEach(function(f,i){setTimeout(function(){beep(f,.12);},i*90);});}
+
+function initState(){state=[];for(var i=0;i<N;i++)state.push({h:0,e:0});}
+
+function getVal(){
+  var t=0;
+  for(var i=0;i<N;i++) t+=(state[i].h*5+state[i].e)*Math.pow(10,N-1-i);
+  return t;
 }
 
-function initState() {
-  state = [];
-  for (var i=0;i<NUM_RODS;i++) state.push({h:0,e:0});
+function setRods(n,btn){
+  N=n;
+  document.querySelectorAll('.rbtn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  initState(); build(); updateVal();
 }
 
-function getValue() {
-  var total = 0;
-  state.forEach(function(r,i){
-    total += (r.h*5 + r.e) * Math.pow(10, NUM_RODS-1-i);
-  });
-  return total;
+function beadGrad(ci){
+  var c=COLORS[ci%COLORS.length];
+  return 'radial-gradient(ellipse at 38% 32%, '+c.g1+', '+c.g2+' 55%, '+c.g3+')';
+}
+function beadBorder(ci){
+  var c=COLORS[ci%COLORS.length];
+  return '1.5px solid '+c.g3;
+}
+function beadShadow(ci){
+  var c=COLORS[ci%COLORS.length];
+  return '0 2px 8px '+c.rod+'80';
 }
 
-function setRods(n, btn) {
-  NUM_RODS = n;
-  document.querySelectorAll('.rod-btn').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  initState();
-  buildDOM();
-  updateDisplay();
-}
+function build(){
+  var mid=document.getElementById('abMid');
+  mid.innerHTML='';
 
-// ── DOM BUILD ─────────────────────────────────────────────────
-function buildDOM() {
-  var wrap = document.getElementById('rodsWrap');
-  wrap.innerHTML = '';
+  // Fixed bead height — no dependency on offsetHeight
+  var BEAD_H=22; // px — good for most phones
+  var GAP=3;     // px between beads
 
-  // Compute bead size based on available height
-  var frameH = wrap.offsetHeight || 260;
-  var beadH = Math.min(Math.floor((frameH - 30) / 7.5), 28);
-  var beadW = beadH; // square aspect ratio makes circles; we'll do slightly wider
-  var gap = Math.max(2, Math.floor(beadH * .08));
+  for(var vi=0;vi<N;vi++){
+    var di=N-1-vi; // data index: 0=ones (rightmost visually)
+    var ci=vi%COLORS.length;
+    var col=COLORS[ci];
+    var rod=state[di];
 
-  // Left to right visually = highest rod to lowest
-  // state[0] = ones = rightmost
-  for (var vi=0; vi<NUM_RODS; vi++) {
-    var di = NUM_RODS - 1 - vi; // data index (0=ones at right)
-    var col = ROD_COLORS[vi % ROD_COLORS.length];
+    var colEl=document.createElement('div');
+    colEl.className='rod-col';
 
-    var rodEl = document.createElement('div');
-    rodEl.className = 'rod';
+    // Rod stick
+    var stick=document.createElement('div');
+    stick.className='rod-stick';
+    stick.style.background=col.rod;
+    colEl.appendChild(stick);
 
-    // Rod line
-    var line = document.createElement('div');
-    line.className = 'rod-line';
-    line.style.background = col.rod;
-    rodEl.appendChild(line);
+    // ── HEAVEN AREA ──────────────────────────────────────
+    var ha=document.createElement('div');
+    ha.className='h-area';
+    ha.style.gap=GAP+'px';
+    ha.style.paddingBottom=GAP+'px';
 
-    // ── HEAVEN ZONE ──────────────────────────────────────────
-    var hz = document.createElement('div');
-    hz.className = 'heaven-zone';
-    hz.style.height = (beadH * 2 + gap + 6) + 'px';
+    // heaven bead + ghost — ordering depends on active state
+    var hb=document.createElement('div');
+    hb.className='bead'+(rod.h?' ':' dim ');
+    hb.style.height=BEAD_H+'px';
+    hb.style.background=beadGrad(ci);
+    hb.style.border=beadBorder(ci);
+    if(rod.h) hb.style.boxShadow=beadShadow(ci);
+    hb.dataset.di=di; hb.dataset.t='h';
+    hb.addEventListener('click',function(e){e.stopPropagation();tapH(+this.dataset.di);});
+    hb.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();tapH(+this.dataset.di);});
 
-    // Ghost slot (top = bead resting position)
-    var hGhost = document.createElement('div');
-    hGhost.className = 'ghost';
-    hGhost.style.height = beadH + 'px';
-    hGhost.style.marginBottom = gap + 'px';
+    var hg=document.createElement('div');
+    hg.className='ghost';
+    hg.style.height=BEAD_H+'px';
+    hg.dataset.di=di; hg.dataset.t='h';
+    hg.addEventListener('click',function(e){e.stopPropagation();tapH(+this.dataset.di);});
+    hg.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();tapH(+this.dataset.di);});
 
-    // Heaven bead
-    var hBead = document.createElement('div');
-    hBead.className = 'bead ' + (state[di].h ? 'active' : 'inactive');
-    hBead.style.height = beadH + 'px';
-    hBead.style.background = col.bead;
-    if (state[di].h) hBead.style.boxShadow = '0 2px 10px ' + col.glow + '80';
-    hBead.dataset.di = di;
-    hBead.dataset.type = 'h';
-    hBead.addEventListener('click', function(e) {
-      e.stopPropagation();
-      tapHeaven(parseInt(this.dataset.di));
-    });
-    hBead.addEventListener('touchend', function(e) {
-      e.preventDefault();
-      tapHeaven(parseInt(this.dataset.di));
-    });
+    // Active = bead near divider (bottom of heaven area)
+    if(rod.h){ ha.appendChild(hg); ha.appendChild(hb); }
+    else      { ha.appendChild(hb); ha.appendChild(hg); }
+    colEl.appendChild(ha);
 
-    if (state[di].h) {
-      hz.appendChild(hGhost);
-      hz.appendChild(hBead);
-    } else {
-      hz.appendChild(hBead);
-      hz.appendChild(hGhost);
-    }
+    // ── DIVIDER ──────────────────────────────────────────
+    var dv=document.createElement('div');
+    dv.className='divbar';
+    colEl.appendChild(dv);
 
-    rodEl.appendChild(hz);
+    // ── EARTH AREA ───────────────────────────────────────
+    var ea=document.createElement('div');
+    ea.className='e-area';
+    ea.style.gap=GAP+'px';
+    ea.style.paddingTop=GAP+'px';
 
-    // ── DIVIDER ──────────────────────────────────────────────
-    var div = document.createElement('div');
-    div.className = 'rod-divider';
-    rodEl.appendChild(div);
-
-    // ── EARTH ZONE ───────────────────────────────────────────
-    var ez = document.createElement('div');
-    ez.className = 'earth-zone';
-
-    for (var ei=0; ei<4; ei++) {
-      var isActive = ei < state[di].e;
-
-      if (isActive) {
-        var eBead = document.createElement('div');
-        eBead.className = 'bead active';
-        eBead.style.height = beadH + 'px';
-        eBead.style.background = col.bead;
-        eBead.style.boxShadow = '0 2px 10px ' + col.glow + '80';
-        eBead.dataset.di = di;
-        eBead.dataset.ei = ei;
-        eBead.dataset.type = 'e';
-        eBead.addEventListener('click', (function(d,e_){ return function(ev){
-          ev.stopPropagation(); tapEarth(d,e_);
-        };})(di, ei));
-        eBead.addEventListener('touchend', (function(d,e_){ return function(ev){
-          ev.preventDefault(); tapEarth(d,e_);
-        };})(di, ei));
-        ez.appendChild(eBead);
+    // Slots 0-3; slot 0 = closest to divider
+    // Active beads are at top (close to divider)
+    for(var ei=0;ei<4;ei++){
+      var isActive=(ei<rod.e);
+      if(isActive){
+        var eb=document.createElement('div');
+        eb.className='bead';
+        eb.style.height=BEAD_H+'px';
+        eb.style.background=beadGrad(ci);
+        eb.style.border=beadBorder(ci);
+        eb.style.boxShadow=beadShadow(ci);
+        eb.dataset.di=di; eb.dataset.ei=ei;
+        eb.addEventListener('click',(function(d,e_){return function(ev){ev.stopPropagation();tapE(d,e_);};})(di,ei));
+        eb.addEventListener('touchend',(function(d,e_){return function(ev){ev.preventDefault();ev.stopPropagation();tapE(d,e_);};})(di,ei));
+        ea.appendChild(eb);
       } else {
-        var eGhost = document.createElement('div');
-        eGhost.className = 'ghost';
-        eGhost.style.height = beadH + 'px';
-        eGhost.dataset.di = di;
-        eGhost.dataset.ei = ei;
-        eGhost.addEventListener('click', (function(d,e_){ return function(ev){
-          ev.stopPropagation(); tapEarth(d,e_);
-        };})(di, ei));
-        eGhost.addEventListener('touchend', (function(d,e_){ return function(ev){
-          ev.preventDefault(); tapEarth(d,e_);
-        };})(di, ei));
-        ez.appendChild(eGhost);
+        var eg=document.createElement('div');
+        eg.className='ghost';
+        eg.style.height=BEAD_H+'px';
+        eg.dataset.di=di; eg.dataset.ei=ei;
+        eg.addEventListener('click',(function(d,e_){return function(ev){ev.stopPropagation();tapE(d,e_);};})(di,ei));
+        eg.addEventListener('touchend',(function(d,e_){return function(ev){ev.preventDefault();ev.stopPropagation();tapE(d,e_);};})(di,ei));
+        ea.appendChild(eg);
       }
     }
-
-    rodEl.appendChild(ez);
-    wrap.appendChild(rodEl);
+    colEl.appendChild(ea);
+    mid.appendChild(colEl);
   }
 }
 
-// ── INTERACTIONS ─────────────────────────────────────────────
-function tapHeaven(di) {
-  state[di].h = state[di].h ? 0 : 1;
-  click(true);
-  buildDOM();
-  updateDisplay();
+function tapH(di){
+  state[di].h=state[di].h?0:1;
+  beep(900,.07); build(); updateVal();
 }
-
-function tapEarth(di, ei) {
-  // If tapping an active bead — deactivate it and all above it
-  // If tapping a ghost/inactive — activate it and all below
-  if (ei < state[di].e) {
-    state[di].e = ei; // deactivate from ei upward
-  } else {
-    state[di].e = ei + 1; // activate from 0 to ei inclusive
+function tapE(di,ei){
+  if(ei<state[di].e) state[di].e=ei;
+  else state[di].e=ei+1;
+  beep(650,.07); build(); updateVal();
+}
+function updateVal(){
+  var v=getVal();
+  var el=document.getElementById('vd');
+  el.textContent=v===0?'0':v.toLocaleString('en-IN');
+  el.style.color=v===0?'rgba(255,255,255,.25)':'#FFD54F';
+}
+function clearAll(silent){
+  initState(); build(); updateVal();
+  if(!silent) document.getElementById('qfb').className='qfb';
+}
+function randomNum(){
+  var mx=Math.pow(10,N)-1;
+  setNum(Math.floor(Math.random()*mx)+1);
+}
+function setNum(n){
+  initState();
+  var rem=Math.floor(n);
+  for(var vi=0;vi<N;vi++){
+    var di=N-1-vi;
+    var pl=Math.pow(10,N-1-vi);
+    var dg=Math.floor(rem/pl); rem-=dg*pl;
+    state[di].h=dg>=5?1:0;
+    state[di].e=dg>=5?dg-5:dg;
   }
-  click(false);
-  buildDOM();
-  updateDisplay();
+  build(); updateVal();
+}
+function toggleSound(){
+  soundOn=!soundOn;
+  document.getElementById('sndBtn').textContent=soundOn?'🔊':'🔇';
+  getAudio();
 }
 
-function updateDisplay() {
-  var v = getValue();
-  var el = document.getElementById('valDisp');
-  el.textContent = v === 0 ? '0' : v.toLocaleString('en-IN');
-  el.style.color = v === 0 ? 'rgba(255,255,255,.3)' : '#FFD54F';
-}
-
-// ── MODES ─────────────────────────────────────────────────────
-function setMode(m, btn) {
-  mode = m;
-  document.querySelectorAll('[id^="modeBtn"]').forEach(function(b){b.classList.remove('primary');});
-  btn.classList.add('primary');
-
-  var qCard = document.getElementById('qCard');
-  var checkBtn = document.getElementById('checkBtn');
-  var nextBtn = document.getElementById('nextBtn');
-  var randBtn = document.getElementById('randBtn');
-
-  if (m === 'free') {
-    qCard.classList.remove('show');
-    checkBtn.style.display = 'none';
-    nextBtn.style.display = 'none';
-    randBtn.style.display = '';
-    if (chalTimer) { clearInterval(chalTimer); chalTimer = null; }
+// MODES
+function setMode(m,btn){
+  mode=m;
+  document.querySelectorAll('.mbtn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  var qc=document.getElementById('qcard');
+  var chk=document.getElementById('chkBtn');
+  var nxt=document.getElementById('nxtBtn');
+  var rnd=document.getElementById('randBtn');
+  if(m==='free'){
+    qc.classList.remove('show');
+    chk.style.display='none'; nxt.style.display='none'; rnd.style.display='';
+    if(chalTimer){clearInterval(chalTimer);chalTimer=null;}
   } else {
-    qCard.classList.add('show');
-    checkBtn.style.display = '';
-    nextBtn.style.display = 'none';
-    randBtn.style.display = 'none';
-    score = {c:0,t:0};
-    nextQuestion();
+    qc.classList.add('show');
+    chk.style.display=''; nxt.style.display='none'; rnd.style.display='none';
+    score={c:0,t:0};
+    nextQ();
   }
   clearAll(true);
 }
 
-var practiceList = [3,5,7,8,9,12,23,45,67,89,99,123,456,789,999,1234,5678,9999,12345];
-var practiceIdx = 0;
-
-function nextQuestion() {
+var PLIST=[3,5,7,8,9,12,23,45,67,89,123,456,789,999,1234,5678,9999,12345,56789];
+function nextQ(){
   document.getElementById('celeb').classList.remove('show');
-  document.getElementById('qFeedback').className = 'q-feedback';
-  document.getElementById('checkBtn').style.display = '';
-  document.getElementById('nextBtn').style.display = 'none';
-
-  var maxVal = Math.pow(10, NUM_RODS) - 1;
-
-  if (mode === 'practice') {
-    var filtered = practiceList.filter(function(n){return n<=maxVal;});
-    target = filtered[practiceIdx % filtered.length];
-    practiceIdx++;
-    document.getElementById('qLabel').textContent = 'Set this number on the abacus';
+  document.getElementById('qfb').className='qfb';
+  document.getElementById('chkBtn').style.display='';
+  document.getElementById('nxtBtn').style.display='none';
+  var mx=Math.pow(10,N)-1;
+  if(mode==='practice'){
+    var fl=PLIST.filter(function(x){return x<=mx;});
+    target=fl[practIdx%fl.length]; practIdx++;
+    document.getElementById('qlbl').textContent='Set this number on the abacus';
   } else {
-    target = Math.floor(Math.random() * Math.min(maxVal, 9999)) + 1;
-    chalTime = 0;
-    if (chalTimer) clearInterval(chalTimer);
-    chalTimer = setInterval(function(){
-      chalTime++;
-      document.getElementById('qLabel').textContent = '⚡ Time: ' + chalTime + 's';
-    }, 1000);
-    document.getElementById('qLabel').textContent = '⚡ Time: 0s';
+    target=Math.floor(Math.random()*Math.min(mx,9999))+1;
+    chalSec=0;
+    if(chalTimer)clearInterval(chalTimer);
+    chalTimer=setInterval(function(){chalSec++;document.getElementById('qlbl').textContent='⚡ Time: '+chalSec+'s';},1000);
+    document.getElementById('qlbl').textContent='⚡ Time: 0s';
   }
-
-  document.getElementById('qNum').textContent = (target||0).toLocaleString('en-IN');
+  document.getElementById('qnum').textContent=(target||0).toLocaleString('en-IN');
   clearAll(true);
 }
-
-function checkAnswer() {
-  var v = getValue();
-  var fb = document.getElementById('qFeedback');
-
-  if (v === target) {
-    if (chalTimer) { clearInterval(chalTimer); chalTimer = null; }
-    score.c++; score.t++;
-    playSuccess();
-    document.getElementById('celebSub').textContent =
-      (target||0).toLocaleString('en-IN') + ' — correct! ' +
-      (mode === 'challenge' ? 'Time: ' + chalTime + 's. ' : '') +
-      'Score: ' + score.c + '/' + score.t;
+function checkAns(){
+  var v=getVal();
+  var fb=document.getElementById('qfb');
+  if(v===target){
+    if(chalTimer){clearInterval(chalTimer);chalTimer=null;}
+    score.c++;score.t++;
+    playWin();
+    document.getElementById('cSub').textContent=
+      (target||0).toLocaleString('en-IN')+' — correct! '+
+      (mode==='challenge'?'Time: '+chalSec+'s. ':'')+
+      'Score: '+score.c+'/'+score.t;
     document.getElementById('celeb').classList.add('show');
-    document.getElementById('checkBtn').style.display = 'none';
-    document.getElementById('nextBtn').style.display = '';
+    document.getElementById('chkBtn').style.display='none';
+    document.getElementById('nxtBtn').style.display='';
   } else {
     score.t++;
-    fb.textContent = '✗ You set ' + v.toLocaleString('en-IN') +
-      ' — the answer is ' + (target||0).toLocaleString('en-IN') + '. Try again!';
-    fb.className = 'q-feedback wrong';
+    fb.textContent='✗ You set '+v.toLocaleString('en-IN')+
+      ' — answer is '+(target||0).toLocaleString('en-IN')+'. Try again!';
+    fb.className='qfb no';
   }
 }
 
-function clearAll(silent) {
-  initState();
-  buildDOM();
-  updateDisplay();
-  if (!silent) {
-    document.getElementById('qFeedback').className = 'q-feedback';
-  }
-}
-
-function randomNumber() {
-  var max = Math.pow(10, NUM_RODS) - 1;
-  var n = Math.floor(Math.random() * max) + 1;
-  setNumber(n);
-}
-
-function setNumber(n) {
-  initState();
-  var rem = Math.floor(n);
-  for (var i=NUM_RODS-1; i>=0; i--) {
-    var di = NUM_RODS - 1 - i; // data index
-    var place = Math.pow(10, i);
-    var digit = Math.floor(rem / place);
-    rem -= digit * place;
-    state[di].h = digit >= 5 ? 1 : 0;
-    state[di].e = digit >= 5 ? digit - 5 : digit;
-  }
-  buildDOM();
-  updateDisplay();
-}
-
-function toggleSound() {
-  soundOn = !soundOn;
-  var btn = document.getElementById('soundBtn');
-  btn.textContent = soundOn ? '🔊' : '🔇';
-  btn.classList.toggle('active', !soundOn);
-  audio(); // init on gesture
-}
-
-// ── INIT ─────────────────────────────────────────────────────
+// INIT
 initState();
-// Wait for layout before building (need offsetHeight)
-requestAnimationFrame(function(){
-  buildDOM();
-  updateDisplay();
-  // Rebuild on resize
-  var resizeTimer;
-  window.addEventListener('resize', function(){
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(function(){ buildDOM(); }, 80);
-  });
-});
+build();
+updateVal();
 </script>
 </body>
 </html>

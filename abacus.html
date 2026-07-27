@@ -7,94 +7,136 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Baloo+2:wght@800;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;background:#1A1A2E;font-family:'Nunito',sans-serif;color:#fff;}
-body{display:flex;flex-direction:column;overflow:hidden;}
+html,body{height:100%;background:#1A1A2E;font-family:'Nunito',sans-serif;color:#fff;overflow:hidden;}
+body{display:flex;flex-direction:column;}
 
-.topbar{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#111827;}
+.topbar{
+  padding:10px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:#111827;flex-shrink:0;
+}
 .logo{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:900;}
 .logo em{color:#90CAF9;font-style:normal;}
 .val-box{text-align:center;}
-.val-lbl{font-size:.6rem;font-weight:800;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;}
-.val-num{font-family:'Baloo 2',sans-serif;font-size:1.6rem;font-weight:900;color:#FFD54F;min-width:100px;text-align:center;line-height:1;}
+.val-lbl{font-size:.58rem;font-weight:800;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;}
+.val-num{font-family:'Baloo 2',sans-serif;font-size:1.5rem;font-weight:900;color:#FFD54F;min-width:90px;text-align:center;line-height:1.1;}
 .icon-btns{display:flex;gap:6px;}
-.ibtn{width:34px;height:34px;border-radius:8px;border:none;background:rgba(255,255,255,.1);color:#fff;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;}
+.ibtn{width:34px;height:34px;border-radius:8px;border:none;background:rgba(255,255,255,.1);color:#fff;cursor:pointer;font-size:1rem;}
 
-.rod-sel{display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 14px;flex-shrink:0;background:#111827;border-top:1px solid rgba(255,255,255,.05);}
-.rsl{font-size:.68rem;font-weight:800;color:rgba(255,255,255,.35);}
-.rbtn{padding:4px 14px;border-radius:20px;border:1.5px solid rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.45);font-family:inherit;font-size:.72rem;font-weight:800;cursor:pointer;}
+.rod-sel{display:flex;align-items:center;justify-content:center;gap:6px;padding:5px 14px;background:#111827;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+.rsl{font-size:.65rem;font-weight:800;color:rgba(255,255,255,.3);}
+.rbtn{padding:3px 12px;border-radius:20px;border:1.5px solid rgba(255,255,255,.18);background:transparent;color:rgba(255,255,255,.4);font-family:inherit;font-size:.7rem;font-weight:800;cursor:pointer;}
 .rbtn.on{background:#1565C0;border-color:#1565C0;color:#fff;}
 
-.modes{display:flex;gap:6px;padding:6px 14px;flex-shrink:0;background:#111827;border-top:1px solid rgba(255,255,255,.05);}
-.mbtn{flex:1;padding:8px 4px;border-radius:8px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);font-family:inherit;font-size:.72rem;font-weight:800;cursor:pointer;text-align:center;}
+.modes{display:flex;gap:6px;padding:5px 14px;background:#111827;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+.mbtn{flex:1;padding:7px 4px;border-radius:8px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:rgba(255,255,255,.55);font-family:inherit;font-size:.7rem;font-weight:800;cursor:pointer;text-align:center;}
 .mbtn.on{background:#1565C0;border-color:#1565C0;color:#fff;}
 
-.qcard{margin:6px 14px;border-radius:10px;padding:9px 14px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.1);flex-shrink:0;display:none;}
+.qcard{margin:5px 12px;border-radius:9px;padding:8px 12px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.1);flex-shrink:0;display:none;}
 .qcard.show{display:block;}
-.qlbl{font-size:.6rem;font-weight:900;text-transform:uppercase;letter-spacing:.4px;color:rgba(255,255,255,.4);margin-bottom:2px;}
-.qnum{font-family:'Baloo 2',sans-serif;font-size:1.4rem;font-weight:900;color:#FFD54F;}
-.qfb{font-size:.78rem;font-weight:800;margin-top:5px;padding:5px 10px;border-radius:7px;display:none;}
+.qlbl{font-size:.58rem;font-weight:900;text-transform:uppercase;letter-spacing:.4px;color:rgba(255,255,255,.38);margin-bottom:1px;}
+.qnum{font-family:'Baloo 2',sans-serif;font-size:1.25rem;font-weight:900;color:#FFD54F;}
+.qfb{font-size:.75rem;font-weight:800;margin-top:4px;padding:4px 8px;border-radius:6px;display:none;}
 .qfb.ok{background:rgba(46,125,50,.35);color:#81C784;display:block;}
 .qfb.no{background:rgba(183,28,28,.35);color:#EF9A9A;display:block;}
 
-/* THE ABACUS */
-.abacus-area{flex:1;padding:6px 10px;overflow:hidden;display:flex;flex-direction:column;}
-.abacus-frame{flex:1;border-radius:12px;overflow:hidden;background:#3E2723;display:flex;flex-direction:column;border:3px solid #5D4037;}
-.ab-top{height:10px;background:#5D4037;flex-shrink:0;}
-.ab-mid{flex:1;display:flex;overflow:hidden;}
-.ab-bot{height:10px;background:#5D4037;flex-shrink:0;}
+/* ── THE ABACUS ── */
+.abacus-area{
+  flex-shrink:0;          /* does NOT grow — fixed size */
+  padding:8px 10px;
+}
+.abacus-frame{
+  border-radius:12px;
+  overflow:hidden;
+  background:#3E2723;
+  border:3px solid #5D4037;
+  display:flex;
+  flex-direction:column;
+}
+.ab-top{height:9px;background:#5D4037;flex-shrink:0;}
+.ab-mid{
+  display:flex;
+  /* height set by JS */
+}
+.ab-bot{height:9px;background:#5D4037;flex-shrink:0;}
 
-.rod-col{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;cursor:pointer;padding:4px 2px;}
+/* spacer so controls sit below, with remaining space */
+.spacer{flex:1;}
 
-.rod-stick{position:absolute;top:0;bottom:0;width:3px;border-radius:2px;left:50%;transform:translateX(-50%);opacity:.5;}
-
-.h-area{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
-.e-area{flex:1;display:flex;flex-direction:column;align-items:center;}
-
-.divbar{height:5px;background:#5D4037;width:100%;flex-shrink:0;position:relative;z-index:5;}
-.divbar::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:5px;height:5px;background:#3E2723;border-radius:50%;}
-
-/* BEADS */
-.bead,.ghost{
-  width:calc(100% - 4px);
-  max-width:32px;
-  flex-shrink:0;
-  border-radius:50%;
+.rod-col{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
   position:relative;
-  z-index:3;
+  padding:4px 1px;
+}
+.rod-stick{
+  position:absolute;
+  top:4px;bottom:4px;
+  width:3px;border-radius:2px;
+  left:50%;transform:translateX(-50%);
+  opacity:.45;z-index:0;
+}
+.h-area{
+  display:flex;flex-direction:column;align-items:center;
+  gap:3px;padding-bottom:2px;flex-shrink:0;z-index:2;
+}
+.divbar{
+  height:5px;background:#5D4037;width:100%;flex-shrink:0;z-index:5;position:relative;
+}
+.divbar::after{
+  content:'';position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  width:5px;height:5px;background:#3E2723;border-radius:50%;
+}
+.e-area{
+  display:flex;flex-direction:column;align-items:center;
+  gap:3px;padding-top:2px;flex-shrink:0;z-index:2;
+}
+
+/* BEADS — oval like real abacus */
+.bead,.ghost{
+  flex-shrink:0;
+  border-radius:40%;   /* oval not circle */
+  position:relative;z-index:3;
 }
 .bead{
   cursor:pointer;
-  transition:transform .15s cubic-bezier(.34,1.4,.64,1);
+  transition:transform .14s cubic-bezier(.34,1.4,.64,1);
 }
-.bead:active{transform:scale(.88);}
 .bead::after{
-  content:'';
-  position:absolute;
-  top:18%;left:22%;
-  width:30%;height:22%;
-  border-radius:50%;
-  background:rgba(255,255,255,.45);
+  content:'';position:absolute;
+  top:18%;left:20%;width:28%;height:22%;
+  border-radius:50%;background:rgba(255,255,255,.42);
 }
-.bead.dim{opacity:.4;}
+.bead:active{transform:scale(.85);}
+.bead.dim{opacity:.38;}
 .ghost{
-  border:1.5px dashed rgba(255,255,255,.18);
+  border:1.5px dashed rgba(255,255,255,.2);
   background:transparent;
 }
 
-.controls{display:flex;gap:8px;padding:6px 14px;flex-shrink:0;background:#111827;border-top:1px solid rgba(255,255,255,.05);}
-.cbtn{flex:1;padding:10px 4px;border-radius:9px;border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#fff;font-family:inherit;font-size:.75rem;font-weight:800;cursor:pointer;text-align:center;}
+.controls{
+  display:flex;gap:8px;padding:6px 14px;
+  background:#111827;border-top:1px solid rgba(255,255,255,.06);
+  flex-shrink:0;
+}
+.cbtn{
+  flex:1;padding:9px 4px;border-radius:9px;
+  border:1.5px solid rgba(255,255,255,.13);
+  background:rgba(255,255,255,.07);color:#fff;
+  font-family:inherit;font-size:.73rem;font-weight:800;cursor:pointer;text-align:center;
+}
 .cbtn.p{background:#1565C0;border-color:#1565C0;}
 
 .celeb{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:200;}
 .celeb.show{display:flex;}
-.celeb-box{background:#111827;border:2px solid #FFD54F;border-radius:18px;padding:28px 22px;text-align:center;max-width:270px;width:88%;}
-.c-icon{font-size:3rem;margin-bottom:8px;}
-.c-title{font-family:'Baloo 2',sans-serif;font-size:1.4rem;font-weight:900;color:#FFD54F;margin-bottom:6px;}
-.c-sub{font-size:.82rem;color:rgba(255,255,255,.65);margin-bottom:14px;line-height:1.5;}
-.c-btn{width:100%;padding:11px;background:#1565C0;color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:.9rem;font-weight:900;cursor:pointer;}
-
-/* aspect ratio helpers */
-.bead[data-aspect]{aspect-ratio:1;}
+.celeb-box{background:#111827;border:2px solid #FFD54F;border-radius:18px;padding:26px 20px;text-align:center;max-width:260px;width:86%;}
+.c-icon{font-size:2.8rem;margin-bottom:6px;}
+.c-title{font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:900;color:#FFD54F;margin-bottom:5px;}
+.c-sub{font-size:.8rem;color:rgba(255,255,255,.65);margin-bottom:12px;line-height:1.5;}
+.c-btn{width:100%;padding:10px;background:#1565C0;color:#fff;border:none;border-radius:9px;font-family:inherit;font-size:.88rem;font-weight:900;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -131,13 +173,16 @@ body{display:flex;flex-direction:column;overflow:hidden;}
   <div class="qfb" id="qfb"></div>
 </div>
 
-<div class="abacus-area">
-  <div class="abacus-frame">
+<!-- ABACUS: fixed height, not flex:1 -->
+<div class="abacus-area" id="abacusArea">
+  <div class="abacus-frame" id="abFrame">
     <div class="ab-top"></div>
     <div class="ab-mid" id="abMid"></div>
     <div class="ab-bot"></div>
   </div>
 </div>
+
+<div class="spacer"></div>
 
 <div class="controls">
   <button class="cbtn" id="randBtn" onclick="randomNum()">🎲 Random</button>
@@ -155,63 +200,84 @@ body{display:flex;flex-direction:column;overflow:hidden;}
 </div>
 
 <script>
-var COLORS = [
-  {rod:'#F44336',g1:'#FF8A80',g2:'#F44336',g3:'#B71C1C'},
-  {rod:'#FF8F00',g1:'#FFE57F',g2:'#FF8F00',g3:'#E65100'},
-  {rod:'#FDD835',g1:'#FFFF8D',g2:'#FDD835',g3:'#F57F17'},
-  {rod:'#43A047',g1:'#B9F6CA',g2:'#43A047',g3:'#1B5E20'},
-  {rod:'#1E88E5',g1:'#82B1FF',g2:'#1E88E5',g3:'#0D47A1'},
-  {rod:'#8E24AA',g1:'#EA80FC',g2:'#8E24AA',g3:'#4A148C'},
+var COLORS=[
+  {rod:'#F44336',g:'radial-gradient(ellipse at 38% 32%,#FF8A80,#F44336 55%,#B71C1C)',border:'#B71C1C',glow:'#F4433660'},
+  {rod:'#FF8F00',g:'radial-gradient(ellipse at 38% 32%,#FFE082,#FF8F00 55%,#E65100)',border:'#E65100',glow:'#FF8F0060'},
+  {rod:'#FDD835',g:'radial-gradient(ellipse at 38% 32%,#FFFF8D,#FDD835 55%,#F57F17)',border:'#F57F17',glow:'#FDD83560'},
+  {rod:'#43A047',g:'radial-gradient(ellipse at 38% 32%,#B9F6CA,#43A047 55%,#1B5E20)',border:'#1B5E20',glow:'#43A04760'},
+  {rod:'#1E88E5',g:'radial-gradient(ellipse at 38% 32%,#82B1FF,#1E88E5 55%,#0D47A1)',border:'#0D47A1',glow:'#1E88E560'},
+  {rod:'#8E24AA',g:'radial-gradient(ellipse at 38% 32%,#EA80FC,#8E24AA 55%,#4A148C)',border:'#4A148C',glow:'#8E24AA60'},
 ];
 
-var N=7, state=[], mode='free', soundOn=true, target=null;
-var score={c:0,t:0}, chalTimer=null, chalSec=0, practIdx=0;
+// ── BEAD DIMENSIONS — fixed, not from DOM ─────────────────
+var BW=32;   // bead width px
+var BH=20;   // bead height px (oval)
+var GAP=3;   // gap between beads px
+
+// Abacus total height = top(9) + heaven(2*BH+GAP+2*GAP) + divider(5) + earth(4*BH+3*GAP+2*GAP) + bot(9)
+// heaven section: 1 bead + 1 ghost + gap between + padding = 2*20+3+4+4 = 51
+// earth section: 4 beads/ghosts + 3 gaps + padding = 4*20+3*3+4+4 = 97
+// total mid = 51+5+97 = 153
+// with top/bot = 153+18 = 171px
+
+var N=7,state=[],mode='free',soundOn=true,target=null;
+var score={c:0,t:0},chalTimer=null,chalSec=0,practIdx=0;
 var audioCtx=null;
 
 function getAudio(){if(!audioCtx)try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}return audioCtx;}
-function beep(f,d){if(!soundOn)return;var ctx=getAudio();if(!ctx)return;var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;g.gain.setValueAtTime(.08,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+d);o.start();o.stop(ctx.currentTime+d);}
-function playWin(){if(!soundOn)return;[523,659,784,1047].forEach(function(f,i){setTimeout(function(){beep(f,.12);},i*90);});}
+function beep(f){if(!soundOn)return;var ctx=getAudio();if(!ctx)return;var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;g.gain.setValueAtTime(.08,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.06);o.start();o.stop(ctx.currentTime+.06);}
+function playWin(){[523,659,784,1047].forEach(function(f,i){setTimeout(function(){beep(f);},i*90);});}
 
 function initState(){state=[];for(var i=0;i<N;i++)state.push({h:0,e:0});}
-
-function getVal(){
-  var t=0;
-  for(var i=0;i<N;i++) t+=(state[i].h*5+state[i].e)*Math.pow(10,N-1-i);
-  return t;
-}
+function getVal(){var t=0;for(var i=0;i<N;i++)t+=(state[i].h*5+state[i].e)*Math.pow(10,N-1-i);return t;}
 
 function setRods(n,btn){
   N=n;
   document.querySelectorAll('.rbtn').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
-  initState(); build(); updateVal();
+  initState();build();updateVal();
 }
 
-function beadGrad(ci){
-  var c=COLORS[ci%COLORS.length];
-  return 'radial-gradient(ellipse at 38% 32%, '+c.g1+', '+c.g2+' 55%, '+c.g3+')';
+function makeBead(ci,active,w,h){
+  var el=document.createElement('div');
+  el.className='bead'+(active?'':' dim');
+  el.style.width=w+'px';
+  el.style.height=h+'px';
+  el.style.background=COLORS[ci].g;
+  el.style.border='1.5px solid '+COLORS[ci].border;
+  if(active)el.style.boxShadow='0 2px 8px '+COLORS[ci].glow;
+  return el;
 }
-function beadBorder(ci){
-  var c=COLORS[ci%COLORS.length];
-  return '1.5px solid '+c.g3;
-}
-function beadShadow(ci){
-  var c=COLORS[ci%COLORS.length];
-  return '0 2px 8px '+c.rod+'80';
+function makeGhost(w,h){
+  var el=document.createElement('div');
+  el.className='ghost';
+  el.style.width=w+'px';
+  el.style.height=h+'px';
+  return el;
 }
 
 function build(){
   var mid=document.getElementById('abMid');
   mid.innerHTML='';
 
-  // Fixed bead height — no dependency on offsetHeight
-  var BEAD_H=22; // px — good for most phones
-  var GAP=3;     // px between beads
+  // Compute bead width from number of rods
+  var midW=mid.parentElement.offsetWidth||document.getElementById('abacusArea').offsetWidth;
+  var availW=midW-6; // subtract frame padding
+  var bw=Math.min(BW, Math.floor(availW/N)-4);
+  bw=Math.max(bw,10);
+  var bh=Math.round(bw*0.65); // oval ratio
+  var gap=3;
+
+  // Set ab-mid height based on bead sizes
+  var heavenH=bh+gap+bh+gap*2; // ghost+bead+gaps+padding
+  var earthH=4*bh+3*gap+gap*2;  // 4 slots+gaps+padding
+  var divH=5;
+  var midH=heavenH+divH+earthH;
+  mid.style.height=midH+'px';
 
   for(var vi=0;vi<N;vi++){
-    var di=N-1-vi; // data index: 0=ones (rightmost visually)
+    var di=N-1-vi;
     var ci=vi%COLORS.length;
-    var col=COLORS[ci];
     var rod=state[di];
 
     var colEl=document.createElement('div');
@@ -220,71 +286,67 @@ function build(){
     // Rod stick
     var stick=document.createElement('div');
     stick.className='rod-stick';
-    stick.style.background=col.rod;
+    stick.style.background=COLORS[ci].rod;
     colEl.appendChild(stick);
 
-    // ── HEAVEN AREA ──────────────────────────────────────
+    // ── HEAVEN ─────────────────────────────────────────
     var ha=document.createElement('div');
     ha.className='h-area';
-    ha.style.gap=GAP+'px';
-    ha.style.paddingBottom=GAP+'px';
+    ha.style.paddingTop=gap+'px';
+    ha.style.gap=gap+'px';
 
-    // heaven bead + ghost — ordering depends on active state
-    var hb=document.createElement('div');
-    hb.className='bead'+(rod.h?' ':' dim ');
-    hb.style.height=BEAD_H+'px';
-    hb.style.background=beadGrad(ci);
-    hb.style.border=beadBorder(ci);
-    if(rod.h) hb.style.boxShadow=beadShadow(ci);
-    hb.dataset.di=di; hb.dataset.t='h';
-    hb.addEventListener('click',function(e){e.stopPropagation();tapH(+this.dataset.di);});
-    hb.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();tapH(+this.dataset.di);});
+    var hBead=makeBead(ci,true,bw,bh);
+    hBead.dataset.di=di;
+    hBead.addEventListener('click',function(e){e.stopPropagation();tapH(+this.dataset.di);});
+    hBead.addEventListener('touchend',function(e){e.preventDefault();tapH(+this.dataset.di);});
+    if(!rod.h) hBead.classList.add('dim');
 
-    var hg=document.createElement('div');
-    hg.className='ghost';
-    hg.style.height=BEAD_H+'px';
-    hg.dataset.di=di; hg.dataset.t='h';
-    hg.addEventListener('click',function(e){e.stopPropagation();tapH(+this.dataset.di);});
-    hg.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();tapH(+this.dataset.di);});
+    var hGhost=makeGhost(bw,bh);
+    hGhost.dataset.di=di;
+    hGhost.addEventListener('click',function(e){e.stopPropagation();tapH(+this.dataset.di);});
+    hGhost.addEventListener('touchend',function(e){e.preventDefault();tapH(+this.dataset.di);});
 
-    // Active = bead near divider (bottom of heaven area)
-    if(rod.h){ ha.appendChild(hg); ha.appendChild(hb); }
-    else      { ha.appendChild(hb); ha.appendChild(hg); }
+    // Active heaven bead = near divider = BOTTOM of heaven area
+    if(rod.h){
+      ha.appendChild(hGhost);
+      ha.appendChild(hBead);
+    } else {
+      ha.appendChild(hBead);
+      ha.appendChild(hGhost);
+    }
     colEl.appendChild(ha);
 
-    // ── DIVIDER ──────────────────────────────────────────
+    // ── DIVIDER ─────────────────────────────────────────
     var dv=document.createElement('div');
     dv.className='divbar';
     colEl.appendChild(dv);
 
-    // ── EARTH AREA ───────────────────────────────────────
+    // ── EARTH ───────────────────────────────────────────
+    // Active earth beads sit at TOP (touching divider)
+    // Inactive (ghost) slots sit at BOTTOM
+    // rod.e = count of active earth beads (0-4)
     var ea=document.createElement('div');
     ea.className='e-area';
-    ea.style.gap=GAP+'px';
-    ea.style.paddingTop=GAP+'px';
+    ea.style.paddingBottom=gap+'px';
+    ea.style.gap=gap+'px';
 
-    // Slots 0-3; slot 0 = closest to divider
-    // Active beads are at top (close to divider)
     for(var ei=0;ei<4;ei++){
       var isActive=(ei<rod.e);
       if(isActive){
-        var eb=document.createElement('div');
-        eb.className='bead';
-        eb.style.height=BEAD_H+'px';
-        eb.style.background=beadGrad(ci);
-        eb.style.border=beadBorder(ci);
-        eb.style.boxShadow=beadShadow(ci);
+        var eb=makeBead(ci,true,bw,bh);
         eb.dataset.di=di; eb.dataset.ei=ei;
-        eb.addEventListener('click',(function(d,e_){return function(ev){ev.stopPropagation();tapE(d,e_);};})(di,ei));
-        eb.addEventListener('touchend',(function(d,e_){return function(ev){ev.preventDefault();ev.stopPropagation();tapE(d,e_);};})(di,ei));
+        (function(d,e_){
+          eb.addEventListener('click',function(ev){ev.stopPropagation();tapE(d,e_);});
+          eb.addEventListener('touchend',function(ev){ev.preventDefault();tapE(d,e_);});
+        })(di,ei);
         ea.appendChild(eb);
       } else {
-        var eg=document.createElement('div');
-        eg.className='ghost';
-        eg.style.height=BEAD_H+'px';
+        var eg=makeGhost(bw,bh);
         eg.dataset.di=di; eg.dataset.ei=ei;
-        eg.addEventListener('click',(function(d,e_){return function(ev){ev.stopPropagation();tapE(d,e_);};})(di,ei));
-        eg.addEventListener('touchend',(function(d,e_){return function(ev){ev.preventDefault();ev.stopPropagation();tapE(d,e_);};})(di,ei));
+        (function(d,e_){
+          eg.addEventListener('click',function(ev){ev.stopPropagation();tapE(d,e_);});
+          eg.addEventListener('touchend',function(ev){ev.preventDefault();tapE(d,e_);});
+        })(di,ei);
         ea.appendChild(eg);
       }
     }
@@ -295,22 +357,28 @@ function build(){
 
 function tapH(di){
   state[di].h=state[di].h?0:1;
-  beep(900,.07); build(); updateVal();
+  beep(900); build(); updateVal();
 }
 function tapE(di,ei){
-  if(ei<state[di].e) state[di].e=ei;
-  else state[di].e=ei+1;
-  beep(650,.07); build(); updateVal();
+  // Tap active bead → deactivate it and all above it (lower index)
+  // Tap ghost → activate it and all beads from top down to it
+  if(ei<state[di].e){
+    state[di].e=ei;      // keep only 0..ei-1 active
+  } else {
+    state[di].e=ei+1;    // activate 0..ei
+  }
+  beep(650); build(); updateVal();
 }
+
 function updateVal(){
   var v=getVal();
   var el=document.getElementById('vd');
   el.textContent=v===0?'0':v.toLocaleString('en-IN');
-  el.style.color=v===0?'rgba(255,255,255,.25)':'#FFD54F';
+  el.style.color=v===0?'rgba(255,255,255,.22)':'#FFD54F';
 }
 function clearAll(silent){
-  initState(); build(); updateVal();
-  if(!silent) document.getElementById('qfb').className='qfb';
+  initState();build();updateVal();
+  if(!silent)document.getElementById('qfb').className='qfb';
 }
 function randomNum(){
   var mx=Math.pow(10,N)-1;
@@ -322,11 +390,11 @@ function setNum(n){
   for(var vi=0;vi<N;vi++){
     var di=N-1-vi;
     var pl=Math.pow(10,N-1-vi);
-    var dg=Math.floor(rem/pl); rem-=dg*pl;
+    var dg=Math.floor(rem/pl);rem-=dg*pl;
     state[di].h=dg>=5?1:0;
     state[di].e=dg>=5?dg-5:dg;
   }
-  build(); updateVal();
+  build();updateVal();
 }
 function toggleSound(){
   soundOn=!soundOn;
@@ -334,7 +402,6 @@ function toggleSound(){
   getAudio();
 }
 
-// MODES
 function setMode(m,btn){
   mode=m;
   document.querySelectorAll('.mbtn').forEach(function(b){b.classList.remove('on');});
@@ -345,13 +412,12 @@ function setMode(m,btn){
   var rnd=document.getElementById('randBtn');
   if(m==='free'){
     qc.classList.remove('show');
-    chk.style.display='none'; nxt.style.display='none'; rnd.style.display='';
+    chk.style.display='none';nxt.style.display='none';rnd.style.display='';
     if(chalTimer){clearInterval(chalTimer);chalTimer=null;}
   } else {
     qc.classList.add('show');
-    chk.style.display=''; nxt.style.display='none'; rnd.style.display='none';
-    score={c:0,t:0};
-    nextQ();
+    chk.style.display='';nxt.style.display='none';rnd.style.display='none';
+    score={c:0,t:0};nextQ();
   }
   clearAll(true);
 }
@@ -365,7 +431,7 @@ function nextQ(){
   var mx=Math.pow(10,N)-1;
   if(mode==='practice'){
     var fl=PLIST.filter(function(x){return x<=mx;});
-    target=fl[practIdx%fl.length]; practIdx++;
+    target=fl[practIdx%fl.length];practIdx++;
     document.getElementById('qlbl').textContent='Set this number on the abacus';
   } else {
     target=Math.floor(Math.random()*Math.min(mx,9999))+1;
@@ -378,12 +444,10 @@ function nextQ(){
   clearAll(true);
 }
 function checkAns(){
-  var v=getVal();
-  var fb=document.getElementById('qfb');
+  var v=getVal(),fb=document.getElementById('qfb');
   if(v===target){
     if(chalTimer){clearInterval(chalTimer);chalTimer=null;}
-    score.c++;score.t++;
-    playWin();
+    score.c++;score.t++;playWin();
     document.getElementById('cSub').textContent=
       (target||0).toLocaleString('en-IN')+' — correct! '+
       (mode==='challenge'?'Time: '+chalSec+'s. ':'')+
@@ -393,16 +457,18 @@ function checkAns(){
     document.getElementById('nxtBtn').style.display='';
   } else {
     score.t++;
-    fb.textContent='✗ You set '+v.toLocaleString('en-IN')+
-      ' — answer is '+(target||0).toLocaleString('en-IN')+'. Try again!';
+    fb.textContent='✗ You set '+v.toLocaleString('en-IN')+' — answer is '+(target||0).toLocaleString('en-IN')+'. Try again!';
     fb.className='qfb no';
   }
 }
 
-// INIT
+// Init
 initState();
-build();
-updateVal();
+// Build after first paint so offsetWidth is available
+window.addEventListener('load',function(){build();updateVal();});
+// Also try immediately
+setTimeout(function(){build();updateVal();},50);
+window.addEventListener('resize',function(){build();});
 </script>
 </body>
 </html>

@@ -154,7 +154,7 @@ function calcDims() {
   BW = Math.max(BW, 12);
   BH = Math.round(BW * 0.62);
   H_HEIGHT = PAD + BH + HGAP + BH + PAD; // top_pad + bead + gap + bead + bot_pad
-  E_HEIGHT = PAD + BH + EGAP + BH + EGAP + BH + EGAP + BH + EGAP + BH + PAD; // pad + 5 slots + pad
+  E_HEIGHT = PAD*2 + 9*(BH+EGAP); // 1 empty + 4 active + 4 resting slots
 }
 
 // ── POSITION HELPERS (global scope) ───────────────────────────

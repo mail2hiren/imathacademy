@@ -142,7 +142,6 @@
     .video-preview iframe { width: 100%; height: 100%; border: none; }
 
     @media (max-width: 768px) {
-      .sidebar { display: none; }
       .main { margin-left: 0; }
       .stats-grid { grid-template-columns: 1fr 1fr; }
       .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
@@ -166,6 +165,7 @@
 </head>
 <body>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div id="overlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;"></div>
 <div class="portal">
 
   <!-- ── SIDEBAR ── -->

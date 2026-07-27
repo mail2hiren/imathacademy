@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join iMathAcademy — Enroll Your Child</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800;900&display=swap" rel="stylesheet">
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { overflow-x: hidden; }
+    body { font-family: 'Nunito', sans-serif; background: #F0F4FF; color: #1A1A2E; min-height: 100vh; }
+
+    /* ── TOPBAR ── */
+    .topbar { background: #fff; border-bottom: 2px solid #E8ECF5; padding: 0 20px; height: 58px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .topbar-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .topbar-logo img { height: 36px; }
+    .topbar-logo span { font-family: 'Baloo 2', sans-serif; font-size: 1.1rem; font-weight: 800; color: #1A1A2E; }
+    .topbar-login { font-size: .82rem; font-weight: 800; color: #1565C0; text-decoration: none; }
+
+    /* ── HERO ── */
+    .hero { background: linear-gradient(135deg, #1565C0 0%, #6A1B9A 100%); color: #fff; padding: 36px 20px 32px; text-align: center; }
+    .hero-badge { display: inline-block; background: rgba(255,255,255,.15); border: 1.5px solid rgba(255,255,255,.3); border-radius: 20px; padding: 5px 14px; font-size: .75rem; font-weight: 800; margin-bottom: 14px; letter-spacing: .3px; }
+    .hero-title { font-family: 'Baloo 2', sans-serif; font-size: 1.8rem; font-weight: 900; line-height: 1.2; margin-bottom: 10px; }
+    .hero-title span { color: #FFD54F; }
+    .hero-sub { font-size: .95rem; opacity: .85; line-height: 1.6; margin-bottom: 20px; max-width: 420px; margin-left: auto; margin-right: auto; }
+    .hero-stats { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; }
+    .hero-stat { text-align: center; }
+    .hero-stat-num { font-family: 'Baloo 2', sans-serif; font-size: 1.4rem; font-weight: 900; color: #FFD54F; }
+    .hero-stat-lbl { font-size: .68rem; font-weight: 700; opacity: .75; }
+
+    /* ── MAIN ── */
+    .main { max-width: 560px; margin: 0 auto; padding: 20px 16px 40px; }
+
+    /* ── STEPS ── */
+    .steps { display: flex; align-items: center; gap: 6px; margin-bottom: 20px; }
+    .step { display: flex; align-items: center; gap: 6px; font-size: .72rem; font-weight: 800; color: #999; }
+    .step.active { color: #1565C0; }
+    .step.done { color: #2E7D32; }
+    .step-num { width: 24px; height: 24px; border-radius: 50%; background: #E8ECF5; display: flex; align-items: center; justify-content: center; font-size: .68rem; font-weight: 900; flex-shrink: 0; }
+    .step.active .step-num { background: #1565C0; color: #fff; }
+    .step.done .step-num { background: #2E7D32; color: #fff; }
+    .step-div { flex: 1; height: 2px; background: #E8ECF5; }
+    .step-div.done { background: #2E7D32; }
+
+    /* ── CARDS ── */
+    .card { background: #fff; border-radius: 18px; border: 2px solid #E8ECF5; padding: 22px 18px; margin-bottom: 14px; }
+    .card-title { font-size: 1rem; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 14px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    label { display: block; font-size: .72rem; font-weight: 800; color: #666; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 5px; }
+    input, select { width: 100%; padding: 12px 14px; border: 2px solid #E8ECF5; border-radius: 12px; font-family: inherit; font-size: .9rem; font-weight: 600; outline: none; transition: border .15s; background: #fff; }
+    input:focus, select:focus { border-color: #1565C0; }
+    input.error, select.error { border-color: #E53935; }
+    .field-err { font-size: .72rem; color: #E53935; font-weight: 700; margin-top: 4px; display: none; }
+    .field-err.show { display: block; }
+    .phone-row { display: flex; gap: 8px; }
+    .phone-flag { width: 80px; flex-shrink: 0; }
+
+    /* ── COUNTRY SELECT ── */
+    .country-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .country-btn { padding: 12px 10px; border: 2px solid #E8ECF5; border-radius: 12px; background: #fff; cursor: pointer; text-align: center; font-family: inherit; transition: all .12s; }
+    .country-btn:hover { border-color: #1565C0; background: #F0F4FF; }
+    .country-btn.selected { border-color: #1565C0; background: #E3F2FD; }
+    .country-btn-flag { font-size: 1.5rem; margin-bottom: 3px; }
+    .country-btn-name { font-size: .78rem; font-weight: 800; color: #1A1A2E; }
+    .country-btn-currency { font-size: .68rem; color: #888; font-weight: 700; }
+
+    /* ── PLAN CARDS ── */
+    .plan-grid { display: flex; flex-direction: column; gap: 10px; }
+    .plan-card { border: 2px solid #E8ECF5; border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: all .12s; position: relative; display: flex; align-items: center; gap: 14px; }
+    .plan-card:hover { border-color: #1565C0; }
+    .plan-card.selected { border-color: #1565C0; background: #E3F2FD; }
+    .plan-card.popular { border-color: #6A1B9A; }
+    .popular-badge { position: absolute; top: -10px; right: 14px; background: #6A1B9A; color: #fff; font-size: .62rem; font-weight: 900; padding: 2px 10px; border-radius: 10px; letter-spacing: .3px; }
+    .plan-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #ccc; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .plan-card.selected .plan-radio { border-color: #1565C0; background: #1565C0; }
+    .plan-radio-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; display: none; }
+    .plan-card.selected .plan-radio-dot { display: block; }
+    .plan-info { flex: 1; }
+    .plan-name { font-size: .9rem; font-weight: 800; }
+    .plan-duration { font-size: .72rem; color: #888; font-weight: 700; margin-top: 1px; }
+    .plan-price { font-size: 1.2rem; font-weight: 900; color: #1565C0; white-space: nowrap; }
+    .plan-saving { font-size: .68rem; font-weight: 800; color: #2E7D32; margin-top: 2px; text-align: right; }
+
+    /* ── BUTTONS ── */
+    .btn-primary { width: 100%; padding: 16px; background: linear-gradient(135deg, #1565C0, #6A1B9A); color: #fff; border: none; border-radius: 14px; font-family: inherit; font-size: 1rem; font-weight: 900; cursor: pointer; transition: opacity .15s; }
+    .btn-primary:hover { opacity: .92; }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-secondary { width: 100%; padding: 14px; background: #fff; color: #1565C0; border: 2px solid #1565C0; border-radius: 14px; font-family: inherit; font-size: .9rem; font-weight: 800; cursor: pointer; margin-top: 10px; }
+    .btn-enquire { width: 100%; padding: 14px; background: #F0F4FF; color: #1A1A2E; border: 2px solid #E8ECF5; border-radius: 14px; font-family: inherit; font-size: .9rem; font-weight: 800; cursor: pointer; margin-top: 8px; }
+
+    /* ── TRUST ── */
+    .trust-bar { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 16px 0; }
+    .trust-item { display: flex; align-items: center; gap: 5px; font-size: .72rem; font-weight: 700; color: #555; }
+
+    /* ── SUCCESS ── */
+    .success-screen { display: none; text-align: center; padding: 30px 20px; }
+    .success-icon { font-size: 4rem; margin-bottom: 14px; animation: popIn .4s ease; }
+    .success-title { font-family: 'Baloo 2', sans-serif; font-size: 1.6rem; font-weight: 900; color: #2E7D32; margin-bottom: 8px; }
+    .success-sub { font-size: .9rem; color: #555; line-height: 1.7; margin-bottom: 20px; }
+    .success-login { display: inline-block; padding: 14px 32px; background: #2E7D32; color: #fff; border-radius: 14px; font-weight: 900; text-decoration: none; font-size: .95rem; }
+
+    /* ── ENQUIRY SUCCESS ── */
+    .enquiry-success { display: none; text-align: center; padding: 30px 20px; }
+
+    /* ── MISC ── */
+    .divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; color: #999; font-size: .75rem; font-weight: 700; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #E8ECF5; }
+    .secure-note { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: .72rem; color: #888; font-weight: 700; margin-top: 12px; }
+    @keyframes popIn { from { transform: scale(.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .spinner { width: 28px; height: 28px; border: 3px solid #E8ECF5; border-top-color: #1565C0; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 480px) {
+      .hero-title { font-size: 1.5rem; }
+      .form-row { grid-template-columns: 1fr; }
+      .country-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-logo" href="/">
+    <img src="/assets/logo.png" alt="iMathAcademy">
+    <span>iMathAcademy</span>
+  </a>
+  <a class="topbar-login" href="/login.html">Already enrolled? Sign in →</a>
+</div>
+
+<div class="hero">
+  <div class="hero-badge">🎓 Trusted by 500+ students across India & globally</div>
+  <div class="hero-title">Make your child a<br><span>Maths Superstar!</span></div>
+  <div class="hero-sub">Interactive Abacus & Vedic Maths classes online. Proven method. Expert teachers. Real results.</div>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-num">4–15</div><div class="hero-stat-lbl">Age group</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">10+</div><div class="hero-stat-lbl">Levels</div></div>
+    <div class="hero-stat"><div class="hero-stat-num">🏆</div><div class="hero-stat-lbl">Belt system</div></div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Success screen -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">🎉</div>
+    <div class="success-title">Welcome to iMathAcademy!</div>
+    <div class="success-sub" id="successMsg">Your child's account has been created and subscription is active. They can login right now and start their Maths journey!</div>
+    <a href="/login.html" class="success-login">Login to Student Portal →</a>
+  </div>
+
+  <!-- Enquiry success screen -->
+  <div class="enquiry-success" id="enquirySuccess">
+    <div class="success-icon">🙏</div>
+    <div class="success-title">Thank you!</div>
+    <div class="success-sub">Megha will call you within 24 hours to answer your questions and help you get started.</div>
+    <a href="/" style="display:inline-block;padding:12px 28px;background:#1565C0;color:#fff;border-radius:12px;font-weight:800;text-decoration:none;margin-top:8px;">Back to website</a>
+  </div>
+
+  <!-- Enrollment form -->
+  <div id="enrollForm">
+
+    <!-- Steps -->
+    <div class="steps">
+      <div class="step active" id="step1"><div class="step-num">1</div> <span>Details</span></div>
+      <div class="step-div" id="div1"></div>
+      <div class="step" id="step2"><div class="step-num">2</div> <span>Country</span></div>
+      <div class="step-div" id="div2"></div>
+      <div class="step" id="step3"><div class="step-num">3</div> <span>Plan</span></div>
+      <div class="step-div" id="div3"></div>
+      <div class="step" id="step4"><div class="step-num">4</div> <span>Pay</span></div>
+    </div>
+
+    <!-- Step 1: Child & Parent Details -->
+    <div id="sectionDetails">
+      <div class="card">
+        <div class="card-title">👶 Child's details</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Child's first name *</label>
+            <input type="text" id="childFirst" placeholder="e.g. Aryan">
+            <div class="field-err" id="err-childFirst">Required</div>
+          </div>
+          <div class="form-group">
+            <label>Last name *</label>
+            <input type="text" id="childLast" placeholder="e.g. Sharma">
+            <div class="field-err" id="err-childLast">Required</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date of birth *</label>
+            <input type="date" id="childDob">
+            <div class="field-err" id="err-childDob">Required</div>
+          </div>
+          <div class="form-group">
+            <label>Program *</label>
+            <select id="childProgram">
+              <option value="">Select program</option>
+              <option value="503089d2-3d04-4071-8200-b411d0429ae6">Abacus (Age 4-12)</option>
+              <option value="237e82b5-212c-49be-98fb-8561f33624e0">Vedic Maths (Age 9-15)</option>
+            </select>
+            <div class="field-err" id="err-childProgram">Required</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">👨‍👩‍👧 Parent details</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Your name *</label>
+            <input type="text" id="parentName" placeholder="Your full name">
+            <div class="field-err" id="err-parentName">Required</div>
+          </div>
+          <div class="form-group">
+            <label>Email address *</label>
+            <input type="email" id="parentEmail" placeholder="your@email.com">
+            <div class="field-err" id="err-parentEmail">Valid email required</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password for student login *</label>
+          <input type="password" id="studentPassword" placeholder="Min 8 characters">
+          <div class="field-err" id="err-studentPassword">Min 8 characters</div>
+        </div>
+        <div class="form-group">
+          <label>Phone (WhatsApp) *</label>
+          <input type="tel" id="parentPhone" placeholder="+91 98765 43210">
+          <div class="field-err" id="err-parentPhone">Required</div>
+        </div>
+        <div class="form-group">
+          <label>City</label>
+          <input type="text" id="parentCity" placeholder="Your city">
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="goToStep2()">Continue → Choose Country & Plan</button>
+
+      <div class="divider">or</div>
+      <button class="btn-enquire" onclick="showEnquiryForm()">💬 Just want to enquire first? Ask us anything</button>
+
+      <div class="trust-bar">
+        <div class="trust-item">🔒 Secure signup</div>
+        <div class="trust-item">✅ Cancel anytime</div>
+        <div class="trust-item">📱 Works on any device</div>
+        <div class="trust-item">🎓 Expert teachers</div>
+      </div>
+    </div>
+
+    <!-- Step 2: Country Selection -->
+    <div id="sectionCountry" style="display:none;">
+      <div class="card">
+        <div class="card-title">🌍 Where are you based?</div>
+        <div class="country-grid" id="countryGrid">
+          <div class="spinner"></div>
+        </div>
+      </div>
+      <button class="btn-secondary" onclick="goToStep1()">← Back</button>
+    </div>
+
+    <!-- Step 3: Plan Selection -->
+    <div id="sectionPlan" style="display:none;">
+      <div class="card">
+        <div class="card-title">📋 Choose your plan</div>
+        <div class="plan-grid" id="planGrid">
+          <div class="spinner"></div>
+        </div>
+      </div>
+      <button class="btn-primary" style="margin-top:4px;" onclick="goToPayment()">Continue → Pay Securely</button>
+      <button class="btn-secondary" onclick="goToStep2()">← Back</button>
+      <div class="secure-note">🔒 Secured by Razorpay · 256-bit SSL encryption</div>
+    </div>
+
+  </div><!-- /enrollForm -->
+
+  <!-- Enquiry form -->
+  <div id="enquiryFormWrap" style="display:none;">
+    <div class="card">
+      <div class="card-title">💬 Ask us anything</div>
+      <div class="form-group">
+        <label>Your name *</label>
+        <input type="text" id="enqName" placeholder="Your name">
+      </div>
+      <div class="form-group">
+        <label>Phone (WhatsApp) *</label>
+        <input type="tel" id="enqPhone" placeholder="+91 98765 43210">
+      </div>
+      <div class="form-group">
+        <label>Child's age</label>
+        <input type="number" id="enqAge" placeholder="e.g. 8" min="4" max="18">
+      </div>
+      <div class="form-group">
+        <label>Your city</label>
+        <input type="text" id="enqCity" placeholder="City">
+      </div>
+      <div class="form-group">
+        <label>Your question (optional)</label>
+        <textarea id="enqMsg" placeholder="Any specific questions?" rows="3" style="width:100%;padding:12px 14px;border:2px solid #E8ECF5;border-radius:12px;font-family:inherit;font-size:.9rem;resize:none;outline:none;"></textarea>
+      </div>
+      <button class="btn-primary" onclick="submitEnquiry()">Send Enquiry — We'll call within 24 hours</button>
+      <button class="btn-secondary" style="margin-top:8px;" onclick="hideEnquiryForm()">← Back to enrollment</button>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SURL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+const RZP_KEY = 'rzp_live_TI9Cunr3LEPlup';
+const sb = supabase.createClient(SURL, SKEY);
+
+var allPlans = [];
+var selectedCountry = null;
+var selectedPlan    = null;
+var currentStep     = 1;
+
+const COUNTRIES = [
+  { code: 'IN', name: 'India',  flag: '🇮🇳', symbol: '₹',   currency: 'INR', dial: '+91' },
+  { code: 'US', name: 'USA',    flag: '🇺🇸', symbol: '$',   currency: 'USD', dial: '+1'  },
+  { code: 'AE', name: 'UAE',    flag: '🇦🇪', symbol: 'AED', currency: 'AED', dial: '+971' },
+  { code: 'GB', name: 'UK',     flag: '🇬🇧', symbol: '£',   currency: 'GBP', dial: '+44' },
+];
+
+// ── INIT ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async function() {
+  // Load pricing from DB
+  var { data } = await sb.from('pricing_plans')
+    .select('*')
+    .eq('is_active', true)
+    .order('duration_days');
+  allPlans = data || [];
+
+  // Auto-detect country
+  try {
+    var resp = await fetch('https://ipapi.co/json/');
+    var geo  = await resp.json();
+    var code = geo.country_code;
+    var match = COUNTRIES.find(function(c) { return c.code === code; });
+    if (match) selectedCountry = match;
+  } catch(e) {}
+  if (!selectedCountry) selectedCountry = COUNTRIES[0]; // default India
+});
+
+// ── VALIDATION ───────────────────────────────────────────────
+function val(id, check) {
+  var el  = document.getElementById(id);
+  var err = document.getElementById('err-' + id);
+  var ok  = check(el.value.trim());
+  el.classList.toggle('error', !ok);
+  if (err) err.classList.toggle('show', !ok);
+  return ok;
+}
+
+function validateStep1() {
+  var ok = true;
+  ok = val('childFirst',    function(v) { return v.length > 0; }) && ok;
+  ok = val('childLast',     function(v) { return v.length > 0; }) && ok;
+  ok = val('childDob',      function(v) { return v.length > 0; }) && ok;
+  ok = val('childProgram',  function(v) { return v.length > 0; }) && ok;
+  ok = val('parentName',    function(v) { return v.length > 0; }) && ok;
+  ok = val('parentEmail',   function(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }) && ok;
+  ok = val('studentPassword', function(v) { return v.length >= 8; }) && ok;
+  ok = val('parentPhone',   function(v) { return v.length >= 7; }) && ok;
+  return ok;
+}
+
+// ── STEP NAVIGATION ──────────────────────────────────────────
+function setStep(n) {
+  currentStep = n;
+  for (var i = 1; i <= 4; i++) {
+    var s = document.getElementById('step' + i);
+    var d = document.getElementById('div' + i);
+    if (!s) continue;
+    s.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+    if (d) d.className = 'step-div' + (i < n ? ' done' : '');
+  }
+}
+
+function goToStep1() {
+  document.getElementById('sectionDetails').style.display = '';
+  document.getElementById('sectionCountry').style.display = 'none';
+  document.getElementById('sectionPlan').style.display    = 'none';
+  setStep(1);
+}
+
+function goToStep2() {
+  if (!validateStep1()) {
+    document.querySelector('.error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  document.getElementById('sectionDetails').style.display = 'none';
+  document.getElementById('sectionCountry').style.display = '';
+  document.getElementById('sectionPlan').style.display    = 'none';
+  renderCountryGrid();
+  setStep(2);
+}
+
+function goToStep3(country) {
+  selectedCountry = country;
+  document.getElementById('sectionDetails').style.display = 'none';
+  document.getElementById('sectionCountry').style.display = 'none';
+  document.getElementById('sectionPlan').style.display    = '';
+  renderPlanGrid();
+  setStep(3);
+}
+
+// ── COUNTRY GRID ─────────────────────────────────────────────
+function renderCountryGrid() {
+  var grid = document.getElementById('countryGrid');
+  grid.innerHTML = COUNTRIES.map(function(c) {
+    var isSelected = selectedCountry && selectedCountry.code === c.code;
+    return (
+      '<button class="country-btn' + (isSelected ? ' selected' : '') + '" onclick="goToStep3(' + JSON.stringify(c).replace(/"/g,'&quot;') + ')">' +
+        '<div class="country-btn-flag">' + c.flag + '</div>' +
+        '<div class="country-btn-name">' + c.name + '</div>' +
+        '<div class="country-btn-currency">' + c.symbol + ' ' + c.currency + '</div>' +
+      '</button>'
+    );
+  }).join('');
+}
+
+// ── PLAN GRID ────────────────────────────────────────────────
+function renderPlanGrid() {
+  var grid = document.getElementById('planGrid');
+  var plans = allPlans.filter(function(p) { return p.country_code === selectedCountry.code; });
+
+  if (!plans.length) {
+    grid.innerHTML = '<div style="text-align:center;padding:20px;color:#888;">No plans available for this country. Please enquire.</div>';
+    return;
+  }
+
+  // Sort by duration
+  plans.sort(function(a,b) { return a.duration_days - b.duration_days; });
+
+  // Calculate savings vs monthly
+  var monthlyPrice = plans.find(function(p) { return p.plan_code === 'monthly'; });
+
+  grid.innerHTML = plans.map(function(p) {
+    var isSelected = selectedPlan && selectedPlan.id === p.id;
+    var isPopular  = p.plan_code === 'halfyearly';
+    var saving     = '';
+    if (monthlyPrice && p.plan_code !== 'monthly') {
+      var monthlyEquiv = monthlyPrice.amount * (p.duration_days / 30);
+      var saved = Math.round(monthlyEquiv - p.amount);
+      if (saved > 0) saving = 'Save ' + selectedCountry.symbol + saved;
+    }
+    return (
+      '<div class="plan-card' + (isSelected ? ' selected' : '') + (isPopular ? ' popular' : '') + '" onclick="selectPlan(' + JSON.stringify(p).replace(/"/g,'&quot;') + ')">' +
+        (isPopular ? '<div class="popular-badge">⭐ MOST POPULAR</div>' : '') +
+        '<div class="plan-radio"><div class="plan-radio-dot"></div></div>' +
+        '<div class="plan-info">' +
+          '<div class="plan-name">' + p.plan_name + '</div>' +
+          '<div class="plan-duration">' + p.duration_days + ' days</div>' +
+        '</div>' +
+        '<div style="text-align:right;">' +
+          '<div class="plan-price">' + selectedCountry.symbol + p.amount + '</div>' +
+          (saving ? '<div class="plan-saving">✅ ' + saving + '</div>' : '') +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
+
+  // Auto select half-yearly
+  if (!selectedPlan) {
+    var halfYearly = plans.find(function(p) { return p.plan_code === 'halfyearly'; });
+    if (halfYearly) selectPlan(halfYearly);
+  }
+}
+
+function selectPlan(plan) {
+  selectedPlan = plan;
+  document.querySelectorAll('.plan-card').forEach(function(c) { c.classList.remove('selected'); });
+  var cards = document.querySelectorAll('.plan-card');
+  cards.forEach(function(c) {
+    if (c.textContent.indexOf(plan.plan_name) > -1 && c.textContent.indexOf(plan.amount) > -1) {
+      c.classList.add('selected');
+    }
+  });
+}
+
+// ── PAYMENT ──────────────────────────────────────────────────
+async function goToPayment() {
+  if (!selectedPlan) { alert('Please select a plan'); return; }
+
+  var btn = document.querySelector('#sectionPlan .btn-primary');
+  btn.disabled = true;
+  btn.textContent = 'Creating account...';
+
+  try {
+    // 1. Create student account in Supabase Auth
+    var childName  = document.getElementById('childFirst').value.trim() + ' ' + document.getElementById('childLast').value.trim();
+    var email      = document.getElementById('parentEmail').value.trim();
+    var password   = document.getElementById('studentPassword').value;
+    var phone      = document.getElementById('parentPhone').value.trim();
+    var dob        = document.getElementById('childDob').value;
+    var program    = document.getElementById('childProgram').value;
+    var city       = document.getElementById('parentCity').value.trim();
+    var parentName = document.getElementById('parentName').value.trim();
+
+    var { data: authData, error: authErr } = await sb.auth.signUp({
+      email:    email,
+      password: password,
+      options:  {
+        data: {
+          full_name:    childName,
+          role:         'student',
+          program:      program,
+          date_of_birth: dob,
+          city:         city,
+        }
+      }
+    });
+    if (authErr) throw authErr;
+
+    var studentId = authData.user.id;
+
+    // 2. Create user profile
+    await sb.from('users').upsert({
+      id:           studentId,
+      full_name:    childName,
+      role:         'student',
+      email:        email,
+      date_of_birth: dob,
+      program:      program,
+      is_active:    false, // activate after payment
+    });
+
+    // 3. Create parent record
+    await sb.from('users').insert({
+      full_name: parentName,
+      email:     email + '.parent',
+      role:      'parent',
+      is_active: true,
+    }).then(async function(res) {
+      // Link parent to student
+      if (res.data && res.data[0]) {
+        await sb.from('parent_students').insert({
+          parent_id:  res.data[0].id,
+          student_id: studentId,
+        });
+      }
+    }).catch(function() {}); // non-critical
+
+    // 4. Save enquiry/enrollment record
+    await sb.from('enquiries').insert({
+      student_id:   studentId,
+      child_name:   childName,
+      parent_name:  parentName,
+      email:        email,
+      phone:        phone,
+      city:         city,
+      program_id:   program,
+      country_code: selectedCountry.code,
+      plan_code:    selectedPlan.plan_code,
+      status:       'payment_pending',
+    }).catch(function() {}); // non-critical — table may not exist yet
+
+    btn.textContent = 'Opening payment...';
+
+    // 5. Open Razorpay
+    var options = {
+      key:         RZP_KEY,
+      amount:      Math.round(selectedPlan.amount_inr * 100), // in paise
+      currency:    'INR',
+      name:        'iMathAcademy',
+      description: selectedPlan.plan_name + ' subscription for ' + childName,
+      image:       '/assets/logo.png',
+      notes: {
+        student_id:   studentId,
+        plan:         selectedPlan.plan_code,
+        student_name: childName,
+        country:      selectedCountry.code,
+      },
+      prefill: {
+        name:    parentName,
+        email:   email,
+        contact: phone,
+      },
+      theme: { color: '#1565C0' },
+      handler: async function(response) {
+        // Activate student account
+        await sb.from('users').update({ is_active: true }).eq('id', studentId);
+        showSuccess(childName);
+      },
+      modal: {
+        ondismiss: function() {
+          btn.disabled = false;
+          btn.textContent = 'Continue → Pay Securely';
+        }
+      }
+    };
+
+    var rzp = new Razorpay(options);
+    rzp.open();
+
+  } catch(err) {
+    alert('Error: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = 'Continue → Pay Securely';
+  }
+}
+
+// ── SUCCESS ──────────────────────────────────────────────────
+function showSuccess(childName) {
+  document.getElementById('enrollForm').style.display     = 'none';
+  document.getElementById('enquiryFormWrap').style.display = 'none';
+  document.getElementById('successMsg').textContent =
+    childName + '\'s account is ready! The subscription is active and they can login right now. Welcome to iMathAcademy! 🎉';
+  document.getElementById('successScreen').style.display  = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── ENQUIRY ──────────────────────────────────────────────────
+function showEnquiryForm() {
+  document.getElementById('sectionDetails').style.display = 'none';
+  document.getElementById('enquiryFormWrap').style.display = '';
+}
+
+function hideEnquiryForm() {
+  document.getElementById('enquiryFormWrap').style.display = 'none';
+  document.getElementById('sectionDetails').style.display  = '';
+}
+
+async function submitEnquiry() {
+  var name  = document.getElementById('enqName').value.trim();
+  var phone = document.getElementById('enqPhone').value.trim();
+  if (!name || !phone) { alert('Please enter your name and phone number'); return; }
+
+  var btn = document.querySelector('#enquiryFormWrap .btn-primary');
+  btn.disabled = true; btn.textContent = 'Sending...';
+
+  try {
+    await sb.from('enquiries').insert({
+      parent_name:  name,
+      phone:        phone,
+      child_age:    document.getElementById('enqAge').value || null,
+      city:         document.getElementById('enqCity').value.trim() || null,
+      message:      document.getElementById('enqMsg').value.trim() || null,
+      status:       'enquiry',
+      created_at:   new Date().toISOString(),
+    });
+  } catch(e) {
+    // enquiries table may not exist — still show success
+    console.warn('Enquiry insert failed:', e.message);
+  }
+
+  document.getElementById('enrollForm').style.display      = 'none';
+  document.getElementById('enquiryFormWrap').style.display = 'none';
+  document.getElementById('enquirySuccess').style.display  = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

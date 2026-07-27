@@ -2030,12 +2030,14 @@ async function loadPricing() {
   console.log('Pricing data loaded:', data);
   allPricing = data || [];
   if (!allPricing.length) {
-    document.getElementById('pricingGrid').innerHTML =
-      '<div style="padding:20px;text-align:center;color:#888;">' +
-      '<div style="font-size:2rem;margin-bottom:8px;">💰</div>' +
-      '<div style="font-weight:800;margin-bottom:6px;">No pricing data found</div>' +
-      '<div style="font-size:.78rem;">Please run the SQL seed script in Supabase to add pricing plans.</div>' +
-      '</div>';
+    var pg = document.getElementById('pricingGrid');
+    if (pg) {
+      pg.innerHTML = '';
+      var emptyDiv = document.createElement('div');
+      emptyDiv.style.cssText = 'padding:20px;text-align:center;color:#888;';
+      emptyDiv.innerHTML = '<div style="font-size:2rem;margin-bottom:8px;">💰</div><div style="font-weight:800;">No pricing data found</div>';
+      pg.appendChild(emptyDiv);
+    }
     return;
   }
   renderPricingGrid('IN');

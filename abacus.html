@@ -10,11 +10,7 @@
 html,body{height:100%;background:#1A1A2E;font-family:'Nunito',sans-serif;color:#fff;overflow:hidden;}
 body{display:flex;flex-direction:column;}
 
-.topbar{
-  padding:10px 14px;
-  display:flex;align-items:center;justify-content:space-between;
-  background:#111827;flex-shrink:0;
-}
+.topbar{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;background:#111827;flex-shrink:0;}
 .logo{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:900;}
 .logo em{color:#90CAF9;font-style:normal;}
 .val-box{text-align:center;}
@@ -40,94 +36,63 @@ body{display:flex;flex-direction:column;}
 .qfb.ok{background:rgba(46,125,50,.35);color:#81C784;display:block;}
 .qfb.no{background:rgba(183,28,28,.35);color:#EF9A9A;display:block;}
 
-/* ── THE ABACUS ── */
-.abacus-area{
-  flex-shrink:0;          /* does NOT grow — fixed size */
-  padding:8px 10px;
-}
-.abacus-frame{
-  border-radius:12px;
-  overflow:hidden;
-  background:#3E2723;
-  border:3px solid #5D4037;
-  display:flex;
-  flex-direction:column;
-}
+.abacus-area{flex-shrink:0;padding:8px 10px;}
+.abacus-frame{border-radius:12px;overflow:hidden;background:#3E2723;border:3px solid #5D4037;display:flex;flex-direction:column;}
 .ab-top{height:9px;background:#5D4037;flex-shrink:0;}
-.ab-mid{
-  display:flex;
-  /* height set by JS */
-}
+.ab-mid{display:flex;}
 .ab-bot{height:9px;background:#5D4037;flex-shrink:0;}
 
-/* spacer so controls sit below, with remaining space */
 .spacer{flex:1;}
 
-.rod-col{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  position:relative;
-  padding:4px 1px;
-}
-.rod-stick{
-  position:absolute;
-  top:4px;bottom:4px;
-  width:3px;border-radius:2px;
-  left:50%;transform:translateX(-50%);
-  opacity:.45;z-index:0;
-}
+.rod-col{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;padding:0 1px;}
+.rod-stick{position:absolute;top:0;bottom:0;width:3px;border-radius:2px;left:50%;transform:translateX(-50%);opacity:.4;z-index:0;}
+
+/* Heaven and earth sections — fixed height, flex column */
 .h-area{
   display:flex;flex-direction:column;align-items:center;
-  gap:3px;padding-bottom:2px;flex-shrink:0;z-index:2;
-}
-.divbar{
-  height:5px;background:#5D4037;width:100%;flex-shrink:0;z-index:5;position:relative;
-}
-.divbar::after{
-  content:'';position:absolute;left:50%;top:50%;
-  transform:translate(-50%,-50%);
-  width:5px;height:5px;background:#3E2723;border-radius:50%;
+  justify-content:flex-end; /* beads stack from bottom = near divider */
+  padding:4px 0 2px;
+  gap:3px;
+  flex-shrink:0;
 }
 .e-area{
   display:flex;flex-direction:column;align-items:center;
-  gap:3px;padding-top:2px;flex-shrink:0;z-index:2;
+  justify-content:flex-start; /* beads stack from top = near divider */
+  padding:2px 0 4px;
+  gap:3px;
+  flex-shrink:0;
 }
 
-/* BEADS — oval like real abacus */
-.bead,.ghost{
-  flex-shrink:0;
-  border-radius:40%;   /* oval not circle */
-  position:relative;z-index:3;
-}
+.divbar{height:5px;background:#5D4037;width:100%;flex-shrink:0;z-index:5;position:relative;}
+.divbar::after{content:'';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:5px;height:5px;background:#3E2723;border-radius:50%;}
+
+/* BEAD — oval shaped, fully visible */
 .bead{
+  flex-shrink:0;
+  border-radius:40%;
+  position:relative;z-index:3;
   cursor:pointer;
-  transition:transform .14s cubic-bezier(.34,1.4,.64,1);
+  transition:transform .12s cubic-bezier(.34,1.4,.64,1);
 }
 .bead::after{
   content:'';position:absolute;
-  top:18%;left:20%;width:28%;height:22%;
-  border-radius:50%;background:rgba(255,255,255,.42);
+  top:16%;left:18%;width:28%;height:22%;
+  border-radius:50%;background:rgba(255,255,255,.45);
 }
 .bead:active{transform:scale(.85);}
-.bead.dim{opacity:.38;}
+
+/* GHOST — same size as bead but dashed outline only */
 .ghost{
-  border:1.5px dashed rgba(255,255,255,.2);
+  flex-shrink:0;
+  border-radius:40%;
+  border:1.5px dashed rgba(255,255,255,.25);
   background:transparent;
+  cursor:pointer;
+  z-index:2;
 }
 
-.controls{
-  display:flex;gap:8px;padding:6px 14px;
-  background:#111827;border-top:1px solid rgba(255,255,255,.06);
-  flex-shrink:0;
-}
-.cbtn{
-  flex:1;padding:9px 4px;border-radius:9px;
-  border:1.5px solid rgba(255,255,255,.13);
-  background:rgba(255,255,255,.07);color:#fff;
-  font-family:inherit;font-size:.73rem;font-weight:800;cursor:pointer;text-align:center;
-}
+.controls{display:flex;gap:8px;padding:6px 14px;background:#111827;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+.cbtn{flex:1;padding:9px 4px;border-radius:9px;border:1.5px solid rgba(255,255,255,.13);background:rgba(255,255,255,.07);color:#fff;font-family:inherit;font-size:.73rem;font-weight:800;cursor:pointer;text-align:center;}
 .cbtn.p{background:#1565C0;border-color:#1565C0;}
 
 .celeb{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:200;}
@@ -173,9 +138,8 @@ body{display:flex;flex-direction:column;}
   <div class="qfb" id="qfb"></div>
 </div>
 
-<!-- ABACUS: fixed height, not flex:1 -->
 <div class="abacus-area" id="abacusArea">
-  <div class="abacus-frame" id="abFrame">
+  <div class="abacus-frame">
     <div class="ab-top"></div>
     <div class="ab-mid" id="abMid"></div>
     <div class="ab-bot"></div>
@@ -201,31 +165,25 @@ body{display:flex;flex-direction:column;}
 
 <script>
 var COLORS=[
-  {rod:'#F44336',g:'radial-gradient(ellipse at 38% 32%,#FF8A80,#F44336 55%,#B71C1C)',border:'#B71C1C',glow:'#F4433660'},
-  {rod:'#FF8F00',g:'radial-gradient(ellipse at 38% 32%,#FFE082,#FF8F00 55%,#E65100)',border:'#E65100',glow:'#FF8F0060'},
-  {rod:'#FDD835',g:'radial-gradient(ellipse at 38% 32%,#FFFF8D,#FDD835 55%,#F57F17)',border:'#F57F17',glow:'#FDD83560'},
-  {rod:'#43A047',g:'radial-gradient(ellipse at 38% 32%,#B9F6CA,#43A047 55%,#1B5E20)',border:'#1B5E20',glow:'#43A04760'},
-  {rod:'#1E88E5',g:'radial-gradient(ellipse at 38% 32%,#82B1FF,#1E88E5 55%,#0D47A1)',border:'#0D47A1',glow:'#1E88E560'},
-  {rod:'#8E24AA',g:'radial-gradient(ellipse at 38% 32%,#EA80FC,#8E24AA 55%,#4A148C)',border:'#4A148C',glow:'#8E24AA60'},
+  {rod:'#F44336',g:'radial-gradient(ellipse at 35% 30%,#FF8A80,#F44336 60%,#B71C1C)',b:'#B71C1C',glow:'rgba(244,67,54,.5)'},
+  {rod:'#FF8F00',g:'radial-gradient(ellipse at 35% 30%,#FFE082,#FF8F00 60%,#E65100)',b:'#E65100',glow:'rgba(255,143,0,.5)'},
+  {rod:'#FDD835',g:'radial-gradient(ellipse at 35% 30%,#FFFF8D,#FDD835 60%,#F57F17)',b:'#F57F17',glow:'rgba(253,216,53,.5)'},
+  {rod:'#43A047',g:'radial-gradient(ellipse at 35% 30%,#B9F6CA,#43A047 60%,#1B5E20)',b:'#1B5E20',glow:'rgba(67,160,71,.5)'},
+  {rod:'#1E88E5',g:'radial-gradient(ellipse at 35% 30%,#82B1FF,#1E88E5 60%,#0D47A1)',b:'#0D47A1',glow:'rgba(30,136,229,.5)'},
+  {rod:'#8E24AA',g:'radial-gradient(ellipse at 35% 30%,#EA80FC,#8E24AA 60%,#4A148C)',b:'#4A148C',glow:'rgba(142,36,170,.5)'},
 ];
 
-// ── BEAD DIMENSIONS — fixed, not from DOM ─────────────────
-var BW=32;   // bead width px
-var BH=20;   // bead height px (oval)
-var GAP=3;   // gap between beads px
-
-// Abacus total height = top(9) + heaven(2*BH+GAP+2*GAP) + divider(5) + earth(4*BH+3*GAP+2*GAP) + bot(9)
-// heaven section: 1 bead + 1 ghost + gap between + padding = 2*20+3+4+4 = 51
-// earth section: 4 beads/ghosts + 3 gaps + padding = 4*20+3*3+4+4 = 97
-// total mid = 51+5+97 = 153
-// with top/bot = 153+18 = 171px
-
-var N=7,state=[],mode='free',soundOn=true,target=null;
-var score={c:0,t:0},chalTimer=null,chalSec=0,practIdx=0;
+var N=7, state=[], mode='free', soundOn=true, target=null;
+var score={c:0,t:0}, chalTimer=null, chalSec=0, practIdx=0;
 var audioCtx=null;
 
+// Fixed bead dimensions
+var BW=30; // bead width
+var BH=18; // bead height (oval)
+var GAP=3; // gap between items
+
 function getAudio(){if(!audioCtx)try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}return audioCtx;}
-function beep(f){if(!soundOn)return;var ctx=getAudio();if(!ctx)return;var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;g.gain.setValueAtTime(.08,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.06);o.start();o.stop(ctx.currentTime+.06);}
+function beep(f){if(!soundOn)return;var ctx=getAudio();if(!ctx)return;var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;g.gain.setValueAtTime(.08,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.07);o.start();o.stop(ctx.currentTime+.07);}
 function playWin(){[523,659,784,1047].forEach(function(f,i){setTimeout(function(){beep(f);},i*90);});}
 
 function initState(){state=[];for(var i=0;i<N;i++)state.push({h:0,e:0});}
@@ -235,20 +193,23 @@ function setRods(n,btn){
   N=n;
   document.querySelectorAll('.rbtn').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
-  initState();build();updateVal();
+  initState(); build(); updateVal();
 }
 
-function makeBead(ci,active,w,h){
+// Create a coloured bead element
+function mkBead(ci, w, h){
   var el=document.createElement('div');
-  el.className='bead'+(active?'':' dim');
+  el.className='bead';
   el.style.width=w+'px';
   el.style.height=h+'px';
   el.style.background=COLORS[ci].g;
-  el.style.border='1.5px solid '+COLORS[ci].border;
-  if(active)el.style.boxShadow='0 2px 8px '+COLORS[ci].glow;
+  el.style.border='1.5px solid '+COLORS[ci].b;
+  el.style.boxShadow='0 2px 6px '+COLORS[ci].glow;
   return el;
 }
-function makeGhost(w,h){
+
+// Create a ghost (empty) slot
+function mkGhost(w, h){
   var el=document.createElement('div');
   el.className='ghost';
   el.style.width=w+'px';
@@ -260,112 +221,137 @@ function build(){
   var mid=document.getElementById('abMid');
   mid.innerHTML='';
 
-  // Compute bead width from number of rods
-  var midW=mid.parentElement.offsetWidth||document.getElementById('abacusArea').offsetWidth;
-  var availW=midW-6; // subtract frame padding
-  var bw=Math.min(BW, Math.floor(availW/N)-4);
-  bw=Math.max(bw,10);
-  var bh=Math.round(bw*0.65); // oval ratio
+  // Calculate bead width to fit number of rods
+  var areaW=document.getElementById('abacusArea').offsetWidth||320;
+  var bw=Math.min(BW, Math.floor((areaW-20)/N)-4);
+  bw=Math.max(bw,12);
+  var bh=Math.round(bw*0.62);
   var gap=3;
 
-  // Set ab-mid height based on bead sizes
-  var heavenH=bh+gap+bh+gap*2; // ghost+bead+gaps+padding
-  var earthH=4*bh+3*gap+gap*2;  // 4 slots+gaps+padding
-  var divH=5;
-  var midH=heavenH+divH+earthH;
-  mid.style.height=midH+'px';
+  // Section heights:
+  // Heaven: 1 bead + 1 ghost + 1 gap + top/bot padding = bh+bh+gap+4+4
+  // Earth:  4 beads/ghosts + 3 gaps + top/bot padding = 4*bh+3*gap+4+4
+  var hH=2*bh+gap+8;
+  var eH=4*bh+3*gap+8;
+  mid.style.height=(hH+5+eH)+'px'; // heaven + divider + earth
 
   for(var vi=0;vi<N;vi++){
-    var di=N-1-vi;
+    var di=N-1-vi; // data index: 0=ones=rightmost
     var ci=vi%COLORS.length;
     var rod=state[di];
 
     var colEl=document.createElement('div');
     colEl.className='rod-col';
+    colEl.style.height=(hH+5+eH)+'px';
 
-    // Rod stick
+    // Rod line
     var stick=document.createElement('div');
     stick.className='rod-stick';
     stick.style.background=COLORS[ci].rod;
     colEl.appendChild(stick);
 
-    // ── HEAVEN ─────────────────────────────────────────
+    // ── HEAVEN AREA ─────────────────────────────────────────
+    // 1 heaven bead + 1 ghost slot
+    // ACTIVE (value=1): ghost on TOP, bead on BOTTOM (touching divider)
+    // INACTIVE (value=0): bead on TOP, ghost on BOTTOM (touching divider)
     var ha=document.createElement('div');
     ha.className='h-area';
-    ha.style.paddingTop=gap+'px';
+    ha.style.height=hH+'px';
     ha.style.gap=gap+'px';
 
-    var hBead=makeBead(ci,true,bw,bh);
-    hBead.dataset.di=di;
-    hBead.addEventListener('click',function(e){e.stopPropagation();tapH(+this.dataset.di);});
-    hBead.addEventListener('touchend',function(e){e.preventDefault();tapH(+this.dataset.di);});
-    if(!rod.h) hBead.classList.add('dim');
+    var hb=mkBead(ci,bw,bh);
+    hb.dataset.di=di;
+    hb.onclick=function(e){e.stopPropagation();tapH(+this.dataset.di);};
+    hb.ontouchend=function(e){e.preventDefault();tapH(+this.dataset.di);};
 
-    var hGhost=makeGhost(bw,bh);
-    hGhost.dataset.di=di;
-    hGhost.addEventListener('click',function(e){e.stopPropagation();tapH(+this.dataset.di);});
-    hGhost.addEventListener('touchend',function(e){e.preventDefault();tapH(+this.dataset.di);});
+    var hg=mkGhost(bw,bh);
+    hg.dataset.di=di;
+    hg.onclick=function(e){e.stopPropagation();tapH(+this.dataset.di);};
+    hg.ontouchend=function(e){e.preventDefault();tapH(+this.dataset.di);};
 
-    // Active heaven bead = near divider = BOTTOM of heaven area
-    if(rod.h){
-      ha.appendChild(hGhost);
-      ha.appendChild(hBead);
+    if(rod.h===1){
+      // Active: ghost top, bead bottom (near divider)
+      ha.appendChild(hg);
+      ha.appendChild(hb);
     } else {
-      ha.appendChild(hBead);
-      ha.appendChild(hGhost);
+      // Inactive: bead top, ghost bottom (near divider)
+      ha.appendChild(hb);
+      ha.appendChild(hg);
     }
     colEl.appendChild(ha);
 
-    // ── DIVIDER ─────────────────────────────────────────
+    // ── DIVIDER ─────────────────────────────────────────────
     var dv=document.createElement('div');
     dv.className='divbar';
     colEl.appendChild(dv);
 
-    // ── EARTH ───────────────────────────────────────────
-    // Active earth beads sit at TOP (touching divider)
-    // Inactive (ghost) slots sit at BOTTOM
-    // rod.e = count of active earth beads (0-4)
+    // ── EARTH AREA ──────────────────────────────────────────
+    // 4 slots: rod.e = how many are ACTIVE (touching divider = top of earth area)
+    //
+    // rod.e=0: all 4 ghosts (none active)
+    //   [ghost][ghost][ghost][ghost]
+    //
+    // rod.e=1: 1 bead at top, 3 ghosts below
+    //   [bead][ghost][ghost][ghost]
+    //
+    // rod.e=2: 2 beads at top, 2 ghosts below
+    //   [bead][bead][ghost][ghost]
+    //
+    // rod.e=3: 3 beads, 1 ghost
+    //   [bead][bead][bead][ghost]
+    //
+    // rod.e=4: all 4 beads
+    //   [bead][bead][bead][bead]
+    //
+    // Tapping a BEAD at position i: deactivates it → rod.e = i
+    // Tapping a GHOST at position i: activates up to i → rod.e = i+1
+
     var ea=document.createElement('div');
     ea.className='e-area';
-    ea.style.paddingBottom=gap+'px';
+    ea.style.height=eH+'px';
     ea.style.gap=gap+'px';
 
-    for(var ei=0;ei<4;ei++){
-      var isActive=(ei<rod.e);
-      if(isActive){
-        var eb=makeBead(ci,true,bw,bh);
-        eb.dataset.di=di; eb.dataset.ei=ei;
-        (function(d,e_){
-          eb.addEventListener('click',function(ev){ev.stopPropagation();tapE(d,e_);});
-          eb.addEventListener('touchend',function(ev){ev.preventDefault();tapE(d,e_);});
-        })(di,ei);
+    for(var slot=0;slot<4;slot++){
+      if(slot<rod.e){
+        // Active bead
+        var eb=mkBead(ci,bw,bh);
+        (function(d,s){
+          eb.dataset.di=d;
+          eb.onclick=function(e){e.stopPropagation();tapE(+this.dataset.di,s);};
+          eb.ontouchend=function(e){e.preventDefault();tapE(+this.dataset.di,s);};
+        })(di,slot);
         ea.appendChild(eb);
       } else {
-        var eg=makeGhost(bw,bh);
-        eg.dataset.di=di; eg.dataset.ei=ei;
-        (function(d,e_){
-          eg.addEventListener('click',function(ev){ev.stopPropagation();tapE(d,e_);});
-          eg.addEventListener('touchend',function(ev){ev.preventDefault();tapE(d,e_);});
-        })(di,ei);
+        // Ghost slot
+        var eg=mkGhost(bw,bh);
+        (function(d,s){
+          eg.dataset.di=d;
+          eg.onclick=function(e){e.stopPropagation();tapE(+this.dataset.di,s);};
+          eg.ontouchend=function(e){e.preventDefault();tapE(+this.dataset.di,s);};
+        })(di,slot);
         ea.appendChild(eg);
       }
     }
+
     colEl.appendChild(ea);
     mid.appendChild(colEl);
   }
 }
 
+// HEAVEN: toggle between 0 and 1
 function tapH(di){
   state[di].h=state[di].h?0:1;
   beep(900); build(); updateVal();
 }
-function tapE(di,ei){
-  // Tap active bead → deactivate it and all above it (lower index)
-  // Tap ghost → activate it and all beads from top down to it
-  if(ei<state[di].e){
-    state[di].e=ei;      // keep only 0..ei-1 active
+
+// EARTH:
+// Tap bead at slot s → rod.e becomes s (deactivate s and above)
+// Tap ghost at slot s → rod.e becomes s+1 (activate 0 through s)
+function tapE(di, slot){
+  if(slot < state[di].e){
+    state[di].e = slot;      // deactivate: keep 0..(slot-1)
   } else {
-    state[di].e=ei+1;    // activate 0..ei
+    state[di].e = slot + 1;  // activate: set 0..slot as active
   }
   beep(650); build(); updateVal();
 }
@@ -374,28 +360,32 @@ function updateVal(){
   var v=getVal();
   var el=document.getElementById('vd');
   el.textContent=v===0?'0':v.toLocaleString('en-IN');
-  el.style.color=v===0?'rgba(255,255,255,.22)':'#FFD54F';
+  el.style.color=v===0?'rgba(255,255,255,.2)':'#FFD54F';
 }
+
 function clearAll(silent){
-  initState();build();updateVal();
-  if(!silent)document.getElementById('qfb').className='qfb';
+  initState(); build(); updateVal();
+  if(!silent) document.getElementById('qfb').className='qfb';
 }
+
 function randomNum(){
   var mx=Math.pow(10,N)-1;
   setNum(Math.floor(Math.random()*mx)+1);
 }
+
 function setNum(n){
   initState();
   var rem=Math.floor(n);
   for(var vi=0;vi<N;vi++){
     var di=N-1-vi;
     var pl=Math.pow(10,N-1-vi);
-    var dg=Math.floor(rem/pl);rem-=dg*pl;
+    var dg=Math.floor(rem/pl); rem-=dg*pl;
     state[di].h=dg>=5?1:0;
     state[di].e=dg>=5?dg-5:dg;
   }
-  build();updateVal();
+  build(); updateVal();
 }
+
 function toggleSound(){
   soundOn=!soundOn;
   document.getElementById('sndBtn').textContent=soundOn?'🔊':'🔇';
@@ -412,12 +402,12 @@ function setMode(m,btn){
   var rnd=document.getElementById('randBtn');
   if(m==='free'){
     qc.classList.remove('show');
-    chk.style.display='none';nxt.style.display='none';rnd.style.display='';
+    chk.style.display='none'; nxt.style.display='none'; rnd.style.display='';
     if(chalTimer){clearInterval(chalTimer);chalTimer=null;}
   } else {
     qc.classList.add('show');
-    chk.style.display='';nxt.style.display='none';rnd.style.display='none';
-    score={c:0,t:0};nextQ();
+    chk.style.display=''; nxt.style.display='none'; rnd.style.display='none';
+    score={c:0,t:0}; nextQ();
   }
   clearAll(true);
 }
@@ -431,7 +421,7 @@ function nextQ(){
   var mx=Math.pow(10,N)-1;
   if(mode==='practice'){
     var fl=PLIST.filter(function(x){return x<=mx;});
-    target=fl[practIdx%fl.length];practIdx++;
+    target=fl[practIdx%fl.length]; practIdx++;
     document.getElementById('qlbl').textContent='Set this number on the abacus';
   } else {
     target=Math.floor(Math.random()*Math.min(mx,9999))+1;
@@ -443,11 +433,12 @@ function nextQ(){
   document.getElementById('qnum').textContent=(target||0).toLocaleString('en-IN');
   clearAll(true);
 }
+
 function checkAns(){
-  var v=getVal(),fb=document.getElementById('qfb');
+  var v=getVal(), fb=document.getElementById('qfb');
   if(v===target){
     if(chalTimer){clearInterval(chalTimer);chalTimer=null;}
-    score.c++;score.t++;playWin();
+    score.c++; score.t++; playWin();
     document.getElementById('cSub').textContent=
       (target||0).toLocaleString('en-IN')+' — correct! '+
       (mode==='challenge'?'Time: '+chalSec+'s. ':'')+
@@ -457,18 +448,16 @@ function checkAns(){
     document.getElementById('nxtBtn').style.display='';
   } else {
     score.t++;
-    fb.textContent='✗ You set '+v.toLocaleString('en-IN')+' — answer is '+(target||0).toLocaleString('en-IN')+'. Try again!';
+    fb.textContent='✗ You set '+v.toLocaleString('en-IN')+
+      ' — answer is '+(target||0).toLocaleString('en-IN')+'. Try again!';
     fb.className='qfb no';
   }
 }
 
-// Init
+// Start
 initState();
-// Build after first paint so offsetWidth is available
-window.addEventListener('load',function(){build();updateVal();});
-// Also try immediately
-setTimeout(function(){build();updateVal();},50);
-window.addEventListener('resize',function(){build();});
+setTimeout(function(){ build(); updateVal(); }, 30);
+window.addEventListener('resize', function(){ build(); });
 </script>
 </body>
 </html>

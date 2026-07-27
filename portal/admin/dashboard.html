@@ -2052,119 +2052,102 @@ function renderPricingGrid(countryCode) {
   var grid = document.getElementById('pricingGrid');
   if (!grid) return;
   var country = COUNTRIES[countryCode] || {};
-  console.log('All pricing:', allPricing.length, 'rows, filtering by:', countryCode);
   var plans = allPricing.filter(function(p) { return p.country_code === countryCode; });
-  console.log('Plans for', countryCode, ':', plans.length);
+  console.log('Rendering', plans.length, 'plans for', countryCode);
+
+  grid.innerHTML = '';
 
   if (!plans.length) {
-    grid.innerHTML = '<div class="empty-state"><div style="font-size:2rem">💰</div><div>No pricing found for ' + country.name + '</div></div>';
+    grid.innerHTML = '<div style="padding:20px;text-align:center;color:#888;"><div style="font-size:2rem">💰</div><div>No plans for ' + (country.name||countryCode) + '</div></div>';
     return;
   }
 
-  var html = '';
   plans.forEach(function(p) {
-    html += (
-      '<div style="background:#fff;border:2px solid var(--border);border-radius:14px;padding:18px;margin-bottom:12px;">' +
-      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">' +
-        '<span style="font-size:1.5rem;">' + (PLAN_ICONS[p.plan_code] || '💳') + '</span>' +
-        '<div>' +
-          '<div style="font-size:.95rem;font-weight:800;">' + (PLAN_NAMES[p.plan_code] || p.plan_name) + '</div>' +
-          '<div style="font-size:.72rem;color:var(--text-muted);">' + p.duration_days + ' days · ' + country.flag + ' ' + country.name + '</div>' +
-        '</div>' +
-        '<div style="margin-left:auto;">' +
-          '<span class="badge ' + (p.is_active ? 'badge-success' : 'badge-danger') + '">' +
-            (p.is_active ? 'Active' : 'Inactive') +
-          '</span>' +
-        '</div>' +
-      '</div>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">' +
-        '<div class="form-group">' +
-          '<label class="form-label">' + country.symbol + ' Price (' + country.code + ')</label>' +
-          '<input type="number" class="form-input" id="price-' + p.id + '" value="' + p.amount + '" step="0.01" min="0">' +
-        '</div>' +
-        '<div class="form-group">' +
-          '<label class="form-label">₹ Equivalent (INR)</label>' +
-          '<input type="number" class="form-input" id="inr-' + p.id + '" value="' + p.amount_inr + '" step="1" min="0">' +
-        '</div>' +
-        '<div class="form-group">' +
-          '<label class="form-label">Duration (days)</label>' +
-          '<input type="number" class="form-input" id="days-' + p.id + '" value="' + p.duration_days + '" min="1">' +
-        '</div>' +
-      '</div>' +
-      '<div style="display:flex;gap:8px;margin-top:10px;">' +
-        '<label style="display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:700;cursor:pointer;">' +
-          '<input type="checkbox" id="active-' + p.id + '"' + (p.is_active ? ' checked' : '') + '>' +
-          'Active (show on enrollment page)' +
-        '</label>' +
-      '</div>' +
-      '</div>'
-    );
-  });
+    var card = document.createElement('div');
+    card.style.cssText = 'background:#fff;border:2px solid #DEE2F5;border-radius:14px;padding:18px;margin-bottom:12px;';
 
-  // Add note about INR equivalent
-  html += (
-    '<div style="background:#FFF8E1;border:1.5px solid #FFD54F;border-radius:10px;padding:12px 14px;font-size:.78rem;color:#E65100;margin-top:4px;">' +
-    '⚠️ <strong>INR Equivalent</strong> is what Razorpay charges the customer in rupees. Update this when exchange rates change significantly. ' +
-    'Razorpay will convert and charge the international card accordingly.' +
-    '</div>'
-  );
+    // Header row
+    var hdr = document.createElement('div');
+    hdr.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:14px;';
 
-  grid.innerHTML = html;
-}
+    var icon = document.createElement('span');
+    icon.style.fontSize = '1.5rem';
+    icon.textContent = PLAN_ICONS[p.plan_code] || '💳';
 
-async function savePricing() {
-  var plans = allPricing.filter(p => p.country_code === currentPricingCountry);
-  var updates = [];
-  var hasError = false;
+    var info = document.createElement('div');
+    var planName = document.createElement('div');
+    planName.style.cssText = 'font-size:.95rem;font-weight:800;';
+    planName.textContent = PLAN_NAMES[p.plan_code] || p.plan_name;
+    var planSub = document.createElement('div');
+    planSub.style.cssText = 'font-size:.72rem;color:#888;';
+    planSub.textContent = p.duration_days + ' days · ' + (country.flag||'') + ' ' + (country.name||countryCode);
+    info.appendChild(planName);
+    info.appendChild(planSub);
 
-  plans.forEach(function(p) {
-    var amountEl  = document.getElementById('price-' + p.id);
-    var inrEl     = document.getElementById('inr-' + p.id);
-    var daysEl    = document.getElementById('days-' + p.id);
-    var activeEl  = document.getElementById('active-' + p.id);
-    if (!amountEl) return;
-    updates.push({
-      id:           p.id,
-      amount:       parseFloat(amountEl.value) || 0,
-      amount_inr:   parseFloat(inrEl.value)   || 0,
-      duration_days: parseInt(daysEl.value)   || 30,
-      is_active:    activeEl ? activeEl.checked : true,
-      updated_at:   new Date().toISOString(),
-    });
-  });
+    var badge = document.createElement('span');
+    badge.style.cssText = 'margin-left:auto;padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:800;background:' + (p.is_active ? '#E8F5E9' : '#FFEBEE') + ';color:' + (p.is_active ? '#2E7D32' : '#C62828') + ';';
+    badge.textContent = p.is_active ? 'Active' : 'Inactive';
 
-  if (!updates.length) { toast('Nothing to save', 'error'); return; }
+    hdr.appendChild(icon);
+    hdr.appendChild(info);
+    hdr.appendChild(badge);
+    card.appendChild(hdr);
 
-  var saveBtn = document.querySelector('[onclick="savePricing()"]');
-  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
+    // Fields grid
+    var fieldsGrid = document.createElement('div');
+    fieldsGrid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;';
 
-  try {
-    for (var i = 0; i < updates.length; i++) {
-      var u = updates[i];
-      var { error } = await sb.from('pricing_plans')
-        .update({
-          amount:        u.amount,
-          amount_inr:    u.amount_inr,
-          duration_days: u.duration_days,
-          is_active:     u.is_active,
-          updated_at:    u.updated_at,
-        })
-        .eq('id', u.id);
-      if (error) throw error;
-      // Update local cache
-      var idx = allPricing.findIndex(p => p.id === u.id);
-      if (idx > -1) Object.assign(allPricing[idx], u);
+    function makeField(labelText, inputId, value, step) {
+      var fg = document.createElement('div');
+      var lbl = document.createElement('label');
+      lbl.htmlFor = inputId;
+      lbl.style.cssText = 'display:block;font-size:.68rem;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;';
+      lbl.textContent = labelText;
+      var inp = document.createElement('input');
+      inp.type = 'number';
+      inp.id = inputId;
+      inp.value = value;
+      inp.step = step || '1';
+      inp.min = '0';
+      inp.style.cssText = 'width:100%;padding:9px 12px;border:2px solid #DEE2F5;border-radius:10px;font-family:inherit;font-size:.875rem;font-weight:700;outline:none;';
+      inp.addEventListener('focus', function() { this.style.borderColor = '#1565C0'; });
+      inp.addEventListener('blur',  function() { this.style.borderColor = '#DEE2F5'; });
+      fg.appendChild(lbl);
+      fg.appendChild(inp);
+      return fg;
     }
-    toast('✅ Pricing saved for ' + (COUNTRIES[currentPricingCountry] || {}).name + '!', 'success');
-  } catch(err) {
-    toast('❌ Error: ' + err.message, 'error');
-  } finally {
-    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 Save All Prices'; }
-  }
+
+    fieldsGrid.appendChild(makeField((country.symbol||'') + ' Price (' + (country.code||countryCode) + ')', 'price-' + p.id, p.amount, '0.01'));
+    fieldsGrid.appendChild(makeField('₹ Equivalent (INR)', 'inr-' + p.id, p.amount_inr, '1'));
+    fieldsGrid.appendChild(makeField('Duration (days)', 'days-' + p.id, p.duration_days, '1'));
+    card.appendChild(fieldsGrid);
+
+    // Active toggle
+    var toggleRow = document.createElement('div');
+    toggleRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:12px;';
+    var cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.id = 'active-' + p.id;
+    cb.checked = p.is_active;
+    var cblbl = document.createElement('label');
+    cblbl.htmlFor = 'active-' + p.id;
+    cblbl.style.cssText = 'font-size:.82rem;font-weight:700;cursor:pointer;';
+    cblbl.textContent = 'Active (show on enrollment page)';
+    toggleRow.appendChild(cb);
+    toggleRow.appendChild(cblbl);
+    card.appendChild(toggleRow);
+
+    grid.appendChild(card);
+  });
+
+  // INR note
+  var note = document.createElement('div');
+  note.style.cssText = 'background:#FFF8E1;border:1.5px solid #FFD54F;border-radius:10px;padding:12px 14px;font-size:.78rem;color:#E65100;margin-top:4px;';
+  note.innerHTML = '<strong>⚠️ INR Equivalent</strong> — This is what Razorpay charges in rupees. Update when exchange rates change significantly.';
+  grid.appendChild(note);
 }
 
 
-// ── SIDEBAR ──────────────────────────────────────────────────
 function toggleSidebar() {
   var s = document.getElementById('sidebar');
   var o = document.getElementById('overlay');

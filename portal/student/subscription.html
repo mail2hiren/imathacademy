@@ -310,6 +310,8 @@ async function startPayment() {
         contact: profile?.phone || '',
       },
       theme: { color: '#1565C0' },
+      callback_url: 'https://imathacademy.net/payment-success.html',
+      redirect: true,
       handler: async function(response) {
         // Webhook handles DB update automatically
         // This handler just shows success UI

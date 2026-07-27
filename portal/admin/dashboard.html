@@ -2190,8 +2190,41 @@ function closeSidebar() {
   if (o) o.style.display = 'none';
 }
 
+
+async function savePricing() {
+  var plans = allPricing.filter(function(p) { return p.country_code === currentPricingCountry; });
+  if (!plans.length) { toast('Nothing to save', 'error'); return; }
+  var saveBtn = document.querySelector('[onclick="savePricing()"]');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
+  try {
+    for (var i = 0; i < plans.length; i++) {
+      var p = plans[i];
+      var amountEl = document.getElementById('price-' + p.id);
+      var inrEl    = document.getElementById('inr-'   + p.id);
+      var daysEl   = document.getElementById('days-'  + p.id);
+      var activeEl = document.getElementById('active-'+ p.id);
+      if (!amountEl) continue;
+      var upd = {
+        amount:        parseFloat(amountEl.value) || 0,
+        amount_inr:    parseFloat(inrEl ? inrEl.value : p.amount_inr) || 0,
+        duration_days: parseInt(daysEl ? daysEl.value : p.duration_days) || 30,
+        is_active:     activeEl ? activeEl.checked : true,
+        updated_at:    new Date().toISOString(),
+      };
+      var { error } = await sb.from('pricing_plans').update(upd).eq('id', p.id);
+      if (error) throw error;
+      var idx2 = allPricing.findIndex(function(x){ return x.id === p.id; });
+      if (idx2 > -1) Object.assign(allPricing[idx2], upd);
+    }
+    var cname = (COUNTRIES[currentPricingCountry]||{}).name || currentPricingCountry;
+    toast('✅ Pricing saved for ' + cname + '!', 'success');
+  } catch(err) {
+    toast('❌ Error: ' + err.message, 'error');
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 Save All Prices'; }
+  }
+}
+
 </script>
 </body>
 </html>
-
-      <!-- ══ PRICING ══ -->

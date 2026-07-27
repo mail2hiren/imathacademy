@@ -313,43 +313,40 @@ function buildEarthRod(container, di, ci) {
   container.appendChild(rod);
 }
 
-// Single global handler — reads dataset
+// Earth bead handler — same pattern as heaven: query by data attributes
 function handleEarthClick(e) {
   e.stopPropagation();
-  var di = parseInt(this.dataset.di);
-  var bi = parseInt(this.dataset.bi);
-  toggleEarth(di, bi);
+  toggleEarth(parseInt(this.dataset.di), parseInt(this.dataset.bi));
 }
 function handleEarthTouch(e) {
   e.preventDefault(); e.stopPropagation();
-  var di = parseInt(this.dataset.di);
-  var bi = parseInt(this.dataset.bi);
-  toggleEarth(di, bi);
+  toggleEarth(parseInt(this.dataset.di), parseInt(this.dataset.bi));
 }
 
 function toggleEarth(di, bi) {
   if (bi <= state[di].e) {
-    state[di].e = bi - 1; // deactivate bi and above (lower index = higher up)
+    state[di].e = bi - 1;
   } else {
-    state[di].e = bi;     // activate up to bi
+    state[di].e = bi;
   }
-  // Animate only the beads on this rod — no DOM rebuild
-  refreshEarthRod(di);
+  // Update ALL earth beads on this rod by querying data attributes
+  // This is identical in approach to how heaven bead updates itself
+  var allEarthBeads = document.querySelectorAll('#earthBody .bead[data-di="' + di + '"]');
+  allEarthBeads.forEach(function(beadEl) {
+    var b = parseInt(beadEl.dataset.bi);
+    beadEl.style.top = earthPos(b, state[di].e) + 'px';
+  });
   beep(650);
   updateVal();
 }
 
-// Update top positions of all 4 beads on one earth rod
+// Keep refreshEarthRod for clearAll/setNum — also use querySelectorAll
 function refreshEarthRod(di) {
-  var vi = N - 1 - di; // visual index
-  var eBody = document.getElementById('earthBody');
-  var rod = eBody.children[vi];
-  if (!rod) return;
-  // rod.children[0] = stick, rod.children[1..4] = beads bi=1..4
-  for (var bi = 1; bi <= 4; bi++) {
-    var beadEl = rod.children[bi];
-    if (beadEl) beadEl.style.top = earthPos(bi, state[di].e) + 'px';
-  }
+  var allEarthBeads = document.querySelectorAll('#earthBody .bead[data-di="' + di + '"]');
+  allEarthBeads.forEach(function(beadEl) {
+    var b = parseInt(beadEl.dataset.bi);
+    beadEl.style.top = earthPos(b, state[di].e) + 'px';
+  });
 }
 
 function refreshHeavenRod(di) {

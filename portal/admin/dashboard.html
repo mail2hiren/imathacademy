@@ -188,6 +188,7 @@
       <button class="nav-item" onclick="showTab('lessons',this)"><span class="nav-icon">▶️</span> Lessons</button>
       <div class="nav-sec">Finance</div>
       <button class="nav-item" onclick="showTab('fees',this)"><span class="nav-icon">💰</span> Fees</button>
+      <button class="nav-item" onclick="showTab('pricing', this)"><span class="sb-icon">🌍</span> Pricing</button>
       <button class="nav-item" onclick="showTab('subscriptions',this)"><span class="nav-icon">🔑</span> Subscriptions</button>
     <div class="sb-section">Curriculum</div>
       <a href="curriculum.html" style="text-decoration:none;" class="sb-item"><span class="sb-icon">📚</span> Curriculum Designer</a>
@@ -961,7 +962,7 @@ function showTab(name, btn) {
   document.getElementById(`tab-${name}`).classList.add('active');
   if (btn) btn.classList.add('active');
   currentTab = name;
-  const titles = { overview:'Dashboard', students:'Students', teachers:'Teachers', parents:'Parents', batches:'Batches', associations:'Associations', lessons:'Lessons', fees:'Fees', subscriptions:'Subscriptions' };
+  const titles = { overview:'Dashboard', students:'Students', teachers:'Teachers', parents:'Parents', batches:'Batches', associations:'Associations', lessons:'Lessons', fees:'Fees', subscriptions:'Subscriptions', pricing:'🌍 Global Pricing' };
   document.getElementById('topbarTitle').textContent = titles[name] || 'Admin';
   // Load data for the tab
   if (name === 'students')     renderStudents();
@@ -972,6 +973,7 @@ function showTab(name, btn) {
   if (name === 'lessons')      renderLessons();
   if (name === 'fees')         renderFees();
     if (name === 'subscriptions') loadSubscriptions();
+  if (name === 'pricing') loadPricing();
 }
 
 // ── SEARCH / FILTER ─────────────────────────────────────────
@@ -1975,6 +1977,160 @@ function filterBatchLevels(programId) {
     vedicGrp.style.display  = '';
   }
   if (levelSel) levelSel.value = '';
+}
+
+
+// ── PRICING MANAGER ──────────────────────────────────────────
+var allPricing = [];
+var currentPricingCountry = 'IN';
+
+const COUNTRIES = {
+  IN: { name: 'India',    flag: '🇮🇳', symbol: '₹',   code: 'INR' },
+  US: { name: 'USA',      flag: '🇺🇸', symbol: '$',   code: 'USD' },
+  AE: { name: 'UAE',      flag: '🇦🇪', symbol: 'AED', code: 'AED' },
+  GB: { name: 'UK',       flag: '🇬🇧', symbol: '£',   code: 'GBP' },
+};
+
+const PLAN_ICONS = {
+  monthly:    '📅',
+  halfyearly: '📆',
+  annual:     '🗓️',
+};
+
+const PLAN_NAMES = {
+  monthly:    'Monthly',
+  halfyearly: 'Half-yearly',
+  annual:     'Annual',
+};
+
+async function loadPricing() {
+  const { data, error } = await sb.from('pricing_plans')
+    .select('*')
+    .order('country_code')
+    .order('duration_days');
+  if (error) { toast('Error loading pricing: ' + error.message, 'error'); return; }
+  allPricing = data || [];
+  renderPricingGrid('IN');
+}
+
+function switchPricingCountry(code, btn) {
+  currentPricingCountry = code;
+  document.querySelectorAll('[id^="ptab-"]').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderPricingGrid(code);
+}
+
+function renderPricingGrid(countryCode) {
+  var grid = document.getElementById('pricingGrid');
+  if (!grid) return;
+  var country = COUNTRIES[countryCode] || {};
+  var plans = allPricing.filter(p => p.country_code === countryCode);
+
+  if (!plans.length) {
+    grid.innerHTML = '<div class="empty-state"><div style="font-size:2rem">💰</div><div>No pricing found for ' + country.name + '</div></div>';
+    return;
+  }
+
+  var html = '';
+  plans.forEach(function(p) {
+    html += (
+      '<div style="background:#fff;border:2px solid var(--border);border-radius:14px;padding:18px;margin-bottom:12px;">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">' +
+        '<span style="font-size:1.5rem;">' + (PLAN_ICONS[p.plan_code] || '💳') + '</span>' +
+        '<div>' +
+          '<div style="font-size:.95rem;font-weight:800;">' + (PLAN_NAMES[p.plan_code] || p.plan_name) + '</div>' +
+          '<div style="font-size:.72rem;color:var(--text-muted);">' + p.duration_days + ' days · ' + country.flag + ' ' + country.name + '</div>' +
+        '</div>' +
+        '<div style="margin-left:auto;">' +
+          '<span class="badge ' + (p.is_active ? 'badge-success' : 'badge-danger') + '">' +
+            (p.is_active ? 'Active' : 'Inactive') +
+          '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">' +
+        '<div class="form-group">' +
+          '<label class="form-label">' + country.symbol + ' Price (' + country.code + ')</label>' +
+          '<input type="number" class="form-input" id="price-' + p.id + '" value="' + p.amount + '" step="0.01" min="0">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label class="form-label">₹ Equivalent (INR)</label>' +
+          '<input type="number" class="form-input" id="inr-' + p.id + '" value="' + p.amount_inr + '" step="1" min="0">' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label class="form-label">Duration (days)</label>' +
+          '<input type="number" class="form-input" id="days-' + p.id + '" value="' + p.duration_days + '" min="1">' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;margin-top:10px;">' +
+        '<label style="display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:700;cursor:pointer;">' +
+          '<input type="checkbox" id="active-' + p.id + '"' + (p.is_active ? ' checked' : '') + '>' +
+          'Active (show on enrollment page)' +
+        '</label>' +
+      '</div>' +
+      '</div>'
+    );
+  });
+
+  // Add note about INR equivalent
+  html += (
+    '<div style="background:#FFF8E1;border:1.5px solid #FFD54F;border-radius:10px;padding:12px 14px;font-size:.78rem;color:#E65100;margin-top:4px;">' +
+    '⚠️ <strong>INR Equivalent</strong> is what Razorpay charges the customer in rupees. Update this when exchange rates change significantly. ' +
+    'Razorpay will convert and charge the international card accordingly.' +
+    '</div>'
+  );
+
+  grid.innerHTML = html;
+}
+
+async function savePricing() {
+  var plans = allPricing.filter(p => p.country_code === currentPricingCountry);
+  var updates = [];
+  var hasError = false;
+
+  plans.forEach(function(p) {
+    var amountEl  = document.getElementById('price-' + p.id);
+    var inrEl     = document.getElementById('inr-' + p.id);
+    var daysEl    = document.getElementById('days-' + p.id);
+    var activeEl  = document.getElementById('active-' + p.id);
+    if (!amountEl) return;
+    updates.push({
+      id:           p.id,
+      amount:       parseFloat(amountEl.value) || 0,
+      amount_inr:   parseFloat(inrEl.value)   || 0,
+      duration_days: parseInt(daysEl.value)   || 30,
+      is_active:    activeEl ? activeEl.checked : true,
+      updated_at:   new Date().toISOString(),
+    });
+  });
+
+  if (!updates.length) { toast('Nothing to save', 'error'); return; }
+
+  var saveBtn = document.querySelector('[onclick="savePricing()"]');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
+
+  try {
+    for (var i = 0; i < updates.length; i++) {
+      var u = updates[i];
+      var { error } = await sb.from('pricing_plans')
+        .update({
+          amount:        u.amount,
+          amount_inr:    u.amount_inr,
+          duration_days: u.duration_days,
+          is_active:     u.is_active,
+          updated_at:    u.updated_at,
+        })
+        .eq('id', u.id);
+      if (error) throw error;
+      // Update local cache
+      var idx = allPricing.findIndex(p => p.id === u.id);
+      if (idx > -1) Object.assign(allPricing[idx], u);
+    }
+    toast('✅ Pricing saved for ' + (COUNTRIES[currentPricingCountry] || {}).name + '!', 'success');
+  } catch(err) {
+    toast('❌ Error: ' + err.message, 'error');
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = '💾 Save All Prices'; }
+  }
 }
 
 </script>

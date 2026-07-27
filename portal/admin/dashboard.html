@@ -2164,3 +2164,21 @@ function closeSidebar() {
 </script>
 </body>
 </html>
+
+      <!-- ══ PRICING ══ -->
+      <div id="tab-pricing" class="tab-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <div>
+            <div style="font-size:1rem;font-weight:800;">🌍 Global Pricing Manager</div>
+            <div style="font-size:.78rem;color:#888;margin-top:2px;">Set prices per country and plan. Changes take effect immediately on the enrollment page.</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="savePricing()">💾 Save All Prices</button>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
+          <button class="tab-btn active" id="ptab-IN" onclick="switchPricingCountry('IN',this)">🇮🇳 India</button>
+          <button class="tab-btn" id="ptab-US" onclick="switchPricingCountry('US',this)">🇺🇸 USA</button>
+          <button class="tab-btn" id="ptab-AE" onclick="switchPricingCountry('AE',this)">🇦🇪 UAE</button>
+          <button class="tab-btn" id="ptab-GB" onclick="switchPricingCountry('GB',this)">🇬🇧 UK</button>
+        </div>
+        <div id="pricingGrid"><div class="spinner"></div></div>
+      </div>

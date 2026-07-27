@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Failed — iMathAcademy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Baloo+2:wght@800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(135deg, #B71C1C 0%, #4A148C 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 40px 32px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .logo img { height: 32px; }
+    .logo span {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #1A1A2E;
+    }
+    .icon { font-size: 4rem; margin-bottom: 16px; animation: shake .4s ease; }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-8px); }
+      75%      { transform: translateX(8px); }
+    }
+    h1 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #C62828;
+      margin-bottom: 10px;
+    }
+    .sub {
+      font-size: .95rem;
+      color: #555;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+    .error-box {
+      background: #FFF3F3;
+      border: 1.5px solid #FFCDD2;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: .82rem;
+      color: #C62828;
+      font-weight: 700;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .reasons {
+      background: #F8F9FF;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .reasons-title {
+      font-size: .75rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      color: #888;
+      margin-bottom: 10px;
+    }
+    .reason-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: .82rem;
+      color: #444;
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+    .reason-item:last-child { margin-bottom: 0; }
+    .reason-icon { flex-shrink: 0; font-size: 1rem; }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #1565C0, #6A1B9A);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 900;
+      text-decoration: none;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .btn-secondary {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: #fff;
+      color: #666;
+      border: 2px solid #E0E0E0;
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: .875rem;
+      font-weight: 800;
+      text-decoration: none;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .help-text {
+      font-size: .75rem;
+      color: #999;
+      margin-top: 16px;
+      line-height: 1.6;
+    }
+    .help-text a { color: #1565C0; font-weight: 800; }
+  </style>
+</head>
+<body>
+  <div class="card">
+
+    <div class="logo">
+      <img src="/assets/logo.png" alt="iMathAcademy">
+      <span>iMathAcademy</span>
+    </div>
+
+    <div class="icon">😔</div>
+    <h1>Payment Failed</h1>
+    <p class="sub">
+      Don't worry — your account is safe and no money has been deducted.
+      You can try again right now.
+    </p>
+
+    <div class="error-box" id="errorBox">
+      Payment could not be processed. Please try again.
+    </div>
+
+    <div class="reasons">
+      <div class="reasons-title">Common reasons for failure</div>
+      <div class="reason-item">
+        <span class="reason-icon">💳</span>
+        Insufficient balance or card limit reached
+      </div>
+      <div class="reason-item">
+        <span class="reason-icon">🔢</span>
+        Incorrect card details or OTP entered
+      </div>
+      <div class="reason-item">
+        <span class="reason-icon">🌐</span>
+        Poor internet connection during payment
+      </div>
+      <div class="reason-item">
+        <span class="reason-icon">🏦</span>
+        Bank temporarily declined the transaction
+      </div>
+      <div class="reason-item">
+        <span class="reason-icon">⏱️</span>
+        Payment session timed out — please try again
+      </div>
+    </div>
+
+    <a href="javascript:history.back()" class="btn">🔄 Try Payment Again</a>
+    <a href="/enroll.html" class="btn-secondary">← Back to Enrollment</a>
+    <a href="/" class="btn-secondary">Back to Website</a>
+
+    <p class="help-text">
+      Still having trouble? 
+      <a href="mailto:support@imathacademy.net">Email us</a> or 
+      reach us on <a href="https://www.instagram.com/imathacademy_/" target="_blank">Instagram</a>
+      and we will help you complete your enrollment.
+    </p>
+
+  </div>
+
+  <script>
+    // Read error details from URL params
+    var params = new URLSearchParams(window.location.search);
+    var errorCode = params.get('error[code]') || params.get('error_code');
+    var errorDesc = params.get('error[description]') || params.get('error_description');
+    var errorReason = params.get('error[reason]') || params.get('error_reason');
+
+    var errorBox = document.getElementById('errorBox');
+    if (errorDesc) {
+      errorBox.textContent = errorDesc;
+    } else if (errorCode) {
+      errorBox.textContent = 'Error code: ' + errorCode + '. Please try again or use a different payment method.';
+    }
+
+    // If user came from subscription page (logged in student)
+    // update Try Again button to go back to subscription
+    var ref = document.referrer;
+    var tryBtn = document.querySelector('.btn');
+    if (ref && ref.indexOf('subscription') > -1) {
+      tryBtn.href = '/portal/student/subscription.html';
+      tryBtn.textContent = '🔄 Try Payment Again';
+    } else if (ref && ref.indexOf('enroll') > -1) {
+      tryBtn.href = '/enroll.html';
+      tryBtn.textContent = '🔄 Try Payment Again';
+    } else {
+      tryBtn.href = 'javascript:history.back()';
+    }
+  </script>
+</body>
+</html>

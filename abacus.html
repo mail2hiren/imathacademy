@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>iMathAcademy — Virtual Abacus</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Baloo+2:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --blue:#1565C0;--blue-lt:#E3F2FD;--purple:#6A1B9A;--purple-lt:#F3E5F5;
+  --amber:#F57F17;--green:#2E7D32;--red:#C62828;
+  --bg:#F7F8FF;--card:#fff;--border:#DEE2F5;
+  --text1:#1A1A2E;--text2:#444;--text3:#888;
+  --bead-heaven:#1565C0;--bead-earth:#1565C0;
+  --bead-inactive:#BBDEFB;--frame:#0D47A1;
+  --rod:#90CAF9;--divider:#1565C0;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);font-family:'Nunito',sans-serif;color:var(--text1);}
+
+/* ── LAYOUT ── */
+.app{display:flex;flex-direction:column;height:100vh;max-width:600px;margin:0 auto;}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--blue);color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.topbar-logo{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:900;}
+.topbar-title{font-size:.82rem;font-weight:700;opacity:.8;}
+.topbar-right{display:flex;gap:8px;}
+.icon-btn{background:rgba(255,255,255,.15);border:none;border-radius:8px;color:#fff;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;transition:background .15s;}
+.icon-btn:hover{background:rgba(255,255,255,.25);}
+.icon-btn.active{background:rgba(255,255,255,.3);}
+
+/* ── DISPLAY BAR ── */
+.display-bar{background:var(--blue);color:#fff;padding:0 16px 12px;flex-shrink:0;}
+.value-display{background:rgba(0,0,0,.25);border-radius:12px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.value-label{font-size:.72rem;font-weight:800;opacity:.7;text-transform:uppercase;letter-spacing:.4px;}
+.value-number{font-family:'Baloo 2',sans-serif;font-size:1.8rem;font-weight:900;letter-spacing:.5px;min-width:80px;text-align:right;}
+.value-number.zero{opacity:.4;}
+
+/* ── MODE BAR ── */
+.mode-bar{display:flex;gap:6px;padding:10px 14px;background:#fff;border-bottom:1.5px solid var(--border);flex-shrink:0;}
+.mode-btn{flex:1;padding:8px 6px;border:1.5px solid var(--border);border-radius:8px;background:#fff;font-family:inherit;font-size:.75rem;font-weight:800;color:var(--text2);cursor:pointer;transition:all .12s;text-align:center;}
+.mode-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+
+/* ── ABACUS AREA ── */
+.abacus-wrap{flex:1;overflow:hidden;padding:12px 8px;display:flex;flex-direction:column;gap:8px;}
+
+/* Question card (practice mode) */
+.question-card{background:var(--blue-lt);border:1.5px solid var(--blue);border-radius:14px;padding:12px 16px;display:none;flex-shrink:0;}
+.question-card.show{display:block;}
+.q-label{font-size:.7rem;font-weight:900;text-transform:uppercase;letter-spacing:.4px;color:var(--blue);margin-bottom:4px;}
+.q-text{font-family:'Baloo 2',sans-serif;font-size:1.4rem;font-weight:900;color:var(--text1);}
+.q-hint{font-size:.75rem;color:var(--blue);font-weight:700;margin-top:4px;}
+.q-feedback{font-size:.875rem;font-weight:800;margin-top:8px;padding:6px 10px;border-radius:8px;display:none;}
+.q-feedback.correct{background:#E8F5E9;color:#1B5E20;display:block;}
+.q-feedback.wrong{background:#FFEBEE;color:#B71C1C;display:block;}
+
+/* The actual abacus */
+.abacus{flex:1;background:var(--card);border-radius:16px;border:2px solid var(--border);overflow:hidden;display:flex;flex-direction:column;position:relative;}
+.abacus-frame{flex:1;display:flex;flex-direction:row;align-items:stretch;padding:8px 6px;gap:0;position:relative;}
+
+/* divider bar across all rods */
+.abacus-divider{position:absolute;left:0;right:0;height:4px;background:var(--divider);z-index:5;pointer-events:none;}
+
+/* rod column */
+.rod-col{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;cursor:pointer;padding:0 1px;}
+
+/* rod stick */
+.rod-stick{position:absolute;top:8px;bottom:8px;width:3px;background:var(--rod);border-radius:2px;left:50%;transform:translateX(-50%);z-index:1;}
+
+/* bead */
+.bead{width:calc(100% - 4px);max-width:28px;aspect-ratio:1;border-radius:50%;border:2px solid rgba(0,0,0,.12);z-index:3;position:relative;transition:transform .15s cubic-bezier(.34,1.56,.64,1),background .1s;cursor:pointer;user-select:none;touch-action:none;}
+.bead.heaven{background:var(--bead-inactive);}
+.bead.heaven.active{background:var(--bead-heaven);}
+.bead.earth{background:var(--bead-inactive);}
+.bead.earth.active{background:var(--bead-earth);}
+.bead:active{transform:scale(.92);}
+.bead.bounce{animation:beadBounce .2s ease;}
+@keyframes beadBounce{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+
+/* heaven area */
+.heaven-area{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:6px;flex-shrink:0;}
+
+/* earth area */
+.earth-area{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:6px;gap:2px;flex:1;}
+
+/* column label */
+.col-labels{display:flex;flex-direction:row;padding:0 6px 6px;gap:0;}
+.col-label{flex:1;text-align:center;font-size:9px;font-weight:800;color:var(--text3);line-height:1.2;padding:0 1px;}
+.col-label.ones{color:var(--blue);font-weight:900;}
+
+/* ── CONTROLS ── */
+.controls{flex-shrink:0;padding:8px 12px;display:flex;gap:8px;align-items:center;background:#fff;border-top:1.5px solid var(--border);}
+.ctrl-btn{flex:1;padding:10px 8px;border-radius:10px;border:1.5px solid var(--border);background:#fff;font-family:inherit;font-size:.78rem;font-weight:800;color:var(--text2);cursor:pointer;transition:all .12s;text-align:center;}
+.ctrl-btn:hover{border-color:var(--blue);color:var(--blue);}
+.ctrl-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+.ctrl-btn.danger{background:var(--red);color:#fff;border-color:var(--red);}
+.ctrl-btn.success{background:var(--green);color:#fff;border-color:var(--green);}
+
+/* ── ROD COUNT SELECTOR ── */
+.rod-selector{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--blue-lt);border-bottom:1.5px solid var(--border);flex-shrink:0;}
+.rod-sel-label{font-size:.72rem;font-weight:800;color:var(--blue);white-space:nowrap;}
+.rod-sel-btns{display:flex;gap:4px;}
+.rod-sel-btn{padding:4px 10px;border-radius:6px;border:1.5px solid var(--border);background:#fff;font-family:inherit;font-size:.72rem;font-weight:800;color:var(--text2);cursor:pointer;}
+.rod-sel-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+
+/* ── MASCOT ── */
+.mascot{position:absolute;bottom:12px;right:12px;width:48px;height:48px;font-size:2.4rem;z-index:10;pointer-events:none;transition:transform .2s;line-height:1;}
+.mascot.happy{animation:mascotHappy .4s ease;}
+.mascot.sad{animation:mascotShake .3s ease;}
+@keyframes mascotHappy{0%,100%{transform:scale(1) rotate(0)}25%{transform:scale(1.2) rotate(-8deg)}75%{transform:scale(1.2) rotate(8deg)}}
+@keyframes mascotShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+/* ── CELEBRATION ── */
+.celebration{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:100;flex-direction:column;gap:12px;}
+.celebration.show{display:flex;}
+.celeb-card{background:#fff;border-radius:20px;padding:28px 24px;text-align:center;max-width:280px;width:90%;}
+.celeb-icon{font-size:3.5rem;margin-bottom:8px;}
+.celeb-title{font-family:'Baloo 2',sans-serif;font-size:1.4rem;font-weight:900;color:var(--green);margin-bottom:6px;}
+.celeb-sub{font-size:.875rem;color:var(--text2);margin-bottom:16px;}
+.celeb-btn{width:100%;padding:12px;background:var(--blue);color:#fff;border:none;border-radius:12px;font-family:inherit;font-size:.95rem;font-weight:900;cursor:pointer;}
+
+/* rod count badge */
+.rod-count-badge{font-size:.68rem;font-weight:900;color:var(--blue);background:var(--blue-lt);padding:3px 8px;border-radius:6px;border:1px solid var(--blue);}
+
+@media(max-width:400px){.value-number{font-size:1.4rem;}.q-text{font-size:1.2rem;}.bead{max-width:22px;}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="topbar-logo">🧮 iMathAcademy</div>
+        <div class="topbar-title">Virtual Abacus</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="icon-btn" id="soundBtn" onclick="toggleSound()" title="Toggle sound">🔊</button>
+      <button class="icon-btn" id="flipBtn" onclick="toggleFlip()" title="Flip for left hand">🔄</button>
+    </div>
+  </div>
+
+  <!-- Value display -->
+  <div class="display-bar">
+    <div class="value-display">
+      <span class="value-label">Current value</span>
+      <span class="value-number zero" id="valueDisplay">0</span>
+    </div>
+  </div>
+
+  <!-- Mode selector -->
+  <div class="mode-bar">
+    <button class="mode-btn active" onclick="setMode('free',this)">🎯 Free play</button>
+    <button class="mode-btn" onclick="setMode('practice',this)">📝 Practice</button>
+    <button class="mode-btn" onclick="setMode('challenge',this)">⚡ Challenge</button>
+  </div>
+
+  <!-- Rod count selector -->
+  <div class="rod-selector">
+    <span class="rod-sel-label">Rods:</span>
+    <div class="rod-sel-btns">
+      <button class="rod-sel-btn active" onclick="setRods(7,this)">7</button>
+      <button class="rod-sel-btn" onclick="setRods(9,this)">9</button>
+      <button class="rod-sel-btn" onclick="setRods(13,this)">13</button>
+      <button class="rod-sel-btn" onclick="setRods(17,this)">17</button>
+    </div>
+    <span class="rod-count-badge" id="rodBadge">Up to 9,999,999</span>
+  </div>
+
+  <!-- Abacus area -->
+  <div class="abacus-wrap">
+
+    <!-- Practice question card -->
+    <div class="question-card" id="questionCard">
+      <div class="q-label" id="qLabel">Set this number on the abacus</div>
+      <div class="q-text" id="qText">—</div>
+      <div class="q-hint" id="qHint"></div>
+      <div class="q-feedback" id="qFeedback"></div>
+    </div>
+
+    <!-- The abacus -->
+    <div class="abacus" id="abacusEl">
+      <div class="abacus-frame" id="abacusFrame">
+        <div class="mascot" id="mascot">🐘</div>
+      </div>
+      <div class="col-labels" id="colLabels"></div>
+    </div>
+
+  </div>
+
+  <!-- Controls -->
+  <div class="controls" id="controlsBar">
+    <button class="ctrl-btn danger" onclick="resetAll()">↺ Clear</button>
+    <button class="ctrl-btn" onclick="randomNumber()" id="randomBtn">🎲 Random</button>
+    <button class="ctrl-btn primary" onclick="checkAnswer()" id="checkBtn" style="display:none;">✓ Check</button>
+    <button class="ctrl-btn" onclick="nextQuestion()" id="nextBtn" style="display:none;">Next →</button>
+  </div>
+
+</div>
+
+<!-- Celebration overlay -->
+<div class="celebration" id="celebration">
+  <div class="celeb-card">
+    <div class="celeb-icon">🎉</div>
+    <div class="celeb-title">Perfect!</div>
+    <div class="celeb-sub" id="celebSub">You set the abacus correctly!</div>
+    <button class="celeb-btn" onclick="nextQuestion()">Next question →</button>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────
+var NUM_RODS = 7;
+var beadState = []; // [{heaven:0|1, earth:[0,0,0,0]}] index 0 = rightmost (ones)
+var mode = 'free';
+var soundOn = true;
+var flipped = false;
+var targetNumber = null;
+var score = { correct: 0, total: 0 };
+var challengeTimer = null;
+var challengeTime = 0;
+
+// Audio context for click sounds
+var audioCtx = null;
+function getAudio() {
+  if (!audioCtx) try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){}
+  return audioCtx;
+}
+function playClick(high) {
+  if (!soundOn) return;
+  var ctx = getAudio(); if (!ctx) return;
+  var o = ctx.createOscillator();
+  var g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.frequency.value = high ? 900 : 650;
+  g.gain.setValueAtTime(0.15, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+  o.start(); o.stop(ctx.currentTime + 0.08);
+}
+function playSuccess() {
+  if (!soundOn) return;
+  var ctx = getAudio(); if (!ctx) return;
+  [523,659,784,1047].forEach(function(f,i) {
+    var o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = f;
+    var t = ctx.currentTime + i * 0.1;
+    g.gain.setValueAtTime(0.12, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    o.start(t); o.stop(t + 0.15);
+  });
+}
+
+// ── INIT ──────────────────────────────────────────────────
+function initBeads() {
+  beadState = [];
+  for (var i = 0; i < NUM_RODS; i++) {
+    beadState.push({ heaven: 0, earth: [0,0,0,0] });
+  }
+}
+
+var PLACE_LABELS = [
+  'Ones','Tens','Hundreds','Thousands','10K','Lakh','10L','Cr','10Cr','100Cr','1000Cr','10000Cr','100000Cr','1000000Cr','10M Cr','100M Cr','1000M Cr'
+];
+var MAX_VALS = {7:'99,99,999', 9:'99,99,99,999', 13:'9,999,999,999,999', 17:'99,999,999,999,999,999'};
+
+function setRods(n, btn) {
+  NUM_RODS = n;
+  initBeads();
+  document.querySelectorAll('.rod-sel-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  document.getElementById('rodBadge').textContent = 'Up to ' + (MAX_VALS[n]||'');
+  render();
+  updateDisplay();
+}
+
+// ── RENDER ────────────────────────────────────────────────
+function render() {
+  var frame = document.getElementById('abacusFrame');
+  var mascot = document.getElementById('mascot');
+  frame.innerHTML = '';
+  frame.appendChild(mascot);
+
+  var cols = beadState.slice(); // index 0 = ones (rightmost visually)
+  if (!flipped) cols = cols.slice().reverse(); // flip so ones is on right
+
+  // Measure available height
+  var frameH = frame.offsetHeight || 280;
+  var heavenH = Math.floor(frameH * 0.28);
+  var earthH  = frameH - heavenH - 8;
+  var beadSize = Math.min(Math.floor((frameH - 20) / 6.5), flipped ? 28 : 28);
+
+  // Divider position
+  var divTop = heavenH;
+  var divEl = document.createElement('div');
+  divEl.className = 'abacus-divider';
+  divEl.style.top = divTop + 'px';
+  frame.appendChild(divEl);
+
+  cols.forEach(function(rod, visIdx) {
+    var dataIdx = flipped ? visIdx : (NUM_RODS - 1 - visIdx);
+    var col = document.createElement('div');
+    col.className = 'rod-col';
+
+    var stick = document.createElement('div');
+    stick.className = 'rod-stick';
+    col.appendChild(stick);
+
+    // Heaven area
+    var hArea = document.createElement('div');
+    hArea.className = 'heaven-area';
+    hArea.style.height = heavenH + 'px';
+
+    var hBead = document.createElement('div');
+    hBead.className = 'bead heaven' + (rod.heaven ? ' active' : '');
+    hBead.style.width = beadSize + 'px';
+    hBead.style.height = beadSize + 'px';
+    hBead.dataset.rodIdx = dataIdx;
+    hBead.dataset.type = 'heaven';
+    hBead.addEventListener('click', function() { toggleHeaven(parseInt(this.dataset.rodIdx)); });
+    hBead.addEventListener('touchend', function(e) { e.preventDefault(); toggleHeaven(parseInt(this.dataset.rodIdx)); });
+    hArea.appendChild(hBead);
+    col.appendChild(hArea);
+
+    // Earth area
+    var eArea = document.createElement('div');
+    eArea.className = 'earth-area';
+    eArea.style.height = earthH + 'px';
+
+    rod.earth.forEach(function(active, ei) {
+      var eBead = document.createElement('div');
+      eBead.className = 'bead earth' + (active ? ' active' : '');
+      eBead.style.width = beadSize + 'px';
+      eBead.style.height = beadSize + 'px';
+      eBead.dataset.rodIdx = dataIdx;
+      eBead.dataset.earthIdx = ei;
+      eBead.dataset.type = 'earth';
+      eBead.addEventListener('click', function() { toggleEarth(parseInt(this.dataset.rodIdx), parseInt(this.dataset.earthIdx)); });
+      eBead.addEventListener('touchend', function(e) { e.preventDefault(); toggleEarth(parseInt(this.dataset.rodIdx), parseInt(this.dataset.earthIdx)); });
+      eArea.appendChild(eBead);
+    });
+
+    col.appendChild(eArea);
+    frame.appendChild(col);
+  });
+
+  renderLabels(cols);
+}
+
+function renderLabels(cols) {
+  var labelsEl = document.getElementById('colLabels');
+  labelsEl.innerHTML = '';
+  cols.forEach(function(_, visIdx) {
+    var dataIdx = flipped ? visIdx : (NUM_RODS - 1 - visIdx);
+    var lbl = document.createElement('div');
+    lbl.className = 'col-label' + (dataIdx === 0 ? ' ones' : '');
+    lbl.textContent = PLACE_LABELS[dataIdx] || ('10^' + dataIdx);
+    labelsEl.appendChild(lbl);
+  });
+}
+
+// ── BEAD TOGGLE LOGIC ────────────────────────────────────
+function toggleHeaven(rodIdx) {
+  var rod = beadState[rodIdx];
+  rod.heaven = rod.heaven ? 0 : 1;
+  playClick(true);
+  animateMascot();
+  render();
+  updateDisplay();
+}
+
+function toggleEarth(rodIdx, earthIdx) {
+  var rod = beadState[rodIdx];
+  var currentActive = rod.earth.filter(function(v){return v;}).length;
+  
+  // Smart logic: clicking an active bead deactivates it and all above
+  // Clicking an inactive bead activates it and all below
+  if (rod.earth[earthIdx]) {
+    // deactivate this and all above (lower index = closer to divider)
+    for (var i = 0; i <= earthIdx; i++) rod.earth[i] = 0;
+  } else {
+    // activate this and all below (higher index = further from divider)
+    for (var i = earthIdx; i < 4; i++) rod.earth[i] = 1;
+  }
+  
+  playClick(false);
+  animateMascot();
+  render();
+  updateDisplay();
+}
+
+// ── VALUE CALCULATION ────────────────────────────────────
+function getValue() {
+  var total = 0;
+  beadState.forEach(function(rod, i) {
+    var placeValue = Math.pow(10, i);
+    var rodValue = rod.heaven * 5;
+    rodValue += rod.earth.filter(function(v){return v;}).length;
+    total += rodValue * placeValue;
+  });
+  return total;
+}
+
+function updateDisplay() {
+  var v = getValue();
+  var el = document.getElementById('valueDisplay');
+  el.textContent = v === 0 ? '0' : v.toLocaleString('en-IN');
+  el.classList.toggle('zero', v === 0);
+}
+
+// ── SET NUMBER ON ABACUS ─────────────────────────────────
+function setNumber(n) {
+  initBeads();
+  var remaining = Math.floor(n);
+  for (var i = NUM_RODS - 1; i >= 0; i--) {
+    var placeValue = Math.pow(10, i);
+    var digit = Math.floor(remaining / placeValue);
+    remaining -= digit * placeValue;
+    if (digit >= 5) { beadState[i].heaven = 1; digit -= 5; }
+    for (var j = 3; j >= 4 - digit; j--) beadState[i].earth[j] = 1;
+  }
+  render();
+  updateDisplay();
+}
+
+// ── MODES ────────────────────────────────────────────────
+function setMode(m, btn) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  
+  var qCard = document.getElementById('questionCard');
+  var checkBtn = document.getElementById('checkBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var randomBtn = document.getElementById('randomBtn');
+  var feedback = document.getElementById('qFeedback');
+  
+  if (m === 'free') {
+    qCard.classList.remove('show');
+    checkBtn.style.display = 'none';
+    nextBtn.style.display = 'none';
+    randomBtn.style.display = '';
+    feedback.className = 'q-feedback';
+  } else if (m === 'practice') {
+    qCard.classList.add('show');
+    checkBtn.style.display = '';
+    nextBtn.style.display = 'none';
+    randomBtn.style.display = 'none';
+    document.getElementById('qLabel').textContent = 'Set this number on the abacus';
+    score = {correct:0, total:0};
+    nextQuestion();
+  } else if (m === 'challenge') {
+    qCard.classList.add('show');
+    checkBtn.style.display = '';
+    nextBtn.style.display = 'none';
+    randomBtn.style.display = 'none';
+    document.getElementById('qLabel').textContent = '⚡ Speed challenge — set as fast as you can!';
+    score = {correct:0, total:0};
+    nextQuestion();
+  }
+  resetAll();
+}
+
+var PRACTICE_NUMBERS = [5,8,12,25,48,73,99,125,348,567,999,1234,5678,9999,12345,67890,99999];
+var practiceIdx = 0;
+
+function nextQuestion() {
+  document.getElementById('celebration').classList.remove('show');
+  document.getElementById('qFeedback').className = 'q-feedback';
+  document.getElementById('checkBtn').style.display = '';
+  document.getElementById('nextBtn').style.display = 'none';
+  
+  if (mode === 'practice') {
+    var maxVal = Math.pow(10, NUM_RODS) - 1;
+    var filtered = PRACTICE_NUMBERS.filter(function(n){return n <= maxVal;});
+    targetNumber = filtered[practiceIdx % filtered.length];
+    practiceIdx++;
+  } else if (mode === 'challenge') {
+    var maxVal = Math.pow(10, Math.min(NUM_RODS, 4)) - 1;
+    targetNumber = Math.floor(Math.random() * maxVal) + 1;
+    challengeTime = 0;
+    if (challengeTimer) clearInterval(challengeTimer);
+    challengeTimer = setInterval(function() {
+      challengeTime++;
+      document.getElementById('qLabel').textContent = '⚡ Time: ' + challengeTime + 's — Set this number';
+    }, 1000);
+  }
+  
+  document.getElementById('qText').textContent = (targetNumber||0).toLocaleString('en-IN');
+  
+  // Show hint for small numbers
+  if (targetNumber <= 9) {
+    var h = targetNumber >= 5 ? '1 heaven bead (' + (targetNumber-5) + ' earth bead' + (targetNumber-5!==1?'s':'') + ')' : targetNumber + ' earth bead' + (targetNumber!==1?'s':'');
+    document.getElementById('qHint').textContent = '💡 Ones column: ' + h;
+  } else {
+    document.getElementById('qHint').textContent = '';
+  }
+  
+  resetAll();
+}
+
+function checkAnswer() {
+  var current = getValue();
+  var feedback = document.getElementById('qFeedback');
+  
+  if (current === targetNumber) {
+    if (challengeTimer) { clearInterval(challengeTimer); challengeTimer = null; }
+    score.correct++; score.total++;
+    playSuccess();
+    mascotReact(true);
+    document.getElementById('celebSub').textContent = 
+      (targetNumber||0).toLocaleString('en-IN') + ' — correct! Score: ' + score.correct + '/' + score.total;
+    document.getElementById('celebration').classList.add('show');
+    document.getElementById('checkBtn').style.display = 'none';
+    document.getElementById('nextBtn').style.display = '';
+  } else {
+    score.total++;
+    feedback.textContent = '❌ Not quite. You set ' + current.toLocaleString('en-IN') + ' but the answer is ' + (targetNumber||0).toLocaleString('en-IN') + '. Try again!';
+    feedback.className = 'q-feedback wrong';
+    mascotReact(false);
+  }
+}
+
+// ── CONTROLS ─────────────────────────────────────────────
+function resetAll() {
+  initBeads();
+  render();
+  updateDisplay();
+  document.getElementById('qFeedback').className = 'q-feedback';
+}
+
+function randomNumber() {
+  var maxVal = Math.pow(10, NUM_RODS) - 1;
+  var n = Math.floor(Math.random() * maxVal) + 1;
+  setNumber(n);
+}
+
+function toggleSound() {
+  soundOn = !soundOn;
+  document.getElementById('soundBtn').textContent = soundOn ? '🔊' : '🔇';
+  document.getElementById('soundBtn').classList.toggle('active', !soundOn);
+  // Init audio context on user gesture
+  getAudio();
+}
+
+function toggleFlip() {
+  flipped = !flipped;
+  document.getElementById('flipBtn').classList.toggle('active', flipped);
+  render();
+}
+
+// ── MASCOT ───────────────────────────────────────────────
+function animateMascot() {
+  var m = document.getElementById('mascot');
+  m.className = 'mascot';
+  void m.offsetWidth;
+}
+
+function mascotReact(happy) {
+  var m = document.getElementById('mascot');
+  m.textContent = happy ? '🎉' : '😟';
+  m.className = 'mascot ' + (happy ? 'happy' : 'sad');
+  setTimeout(function() {
+    m.textContent = '🐘';
+    m.className = 'mascot';
+  }, 1500);
+}
+
+// ── START ─────────────────────────────────────────────────
+initBeads();
+render();
+updateDisplay();
+
+// Re-render on resize for correct sizing
+window.addEventListener('resize', function() { render(); });
+</script>
+</body>
+</html>

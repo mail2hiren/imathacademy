@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Successful — iMathAcademy</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Baloo+2:wght@800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: linear-gradient(135deg, #1565C0 0%, #6A1B9A 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 40px 32px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+    .icon { font-size: 4rem; margin-bottom: 16px; animation: pop .4s ease; }
+    @keyframes pop {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+    h1 {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #2E7D32;
+      margin-bottom: 10px;
+    }
+    .sub {
+      font-size: .95rem;
+      color: #555;
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+    .payment-id {
+      background: #F0F4FF;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: .78rem;
+      color: #888;
+      margin-bottom: 24px;
+      word-break: break-all;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #1565C0, #6A1B9A);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 900;
+      text-decoration: none;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .btn-secondary {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: #fff;
+      color: #1565C0;
+      border: 2px solid #1565C0;
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: .9rem;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .logo img { height: 32px; }
+    .logo span {
+      font-family: 'Baloo 2', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #1A1A2E;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <img src="/assets/logo.png" alt="iMathAcademy">
+      <span>iMathAcademy</span>
+    </div>
+
+    <div class="icon">🎉</div>
+    <h1>Payment Successful!</h1>
+    <p class="sub">
+      Your subscription is now active. Your child can login and start their
+      Maths journey right now!
+    </p>
+
+    <div class="payment-id" id="paymentRef">
+      Processing your subscription...
+    </div>
+
+    <a href="/login.html" class="btn">Login to Student Portal →</a>
+    <a href="/" class="btn-secondary">Back to iMathAcademy website</a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SURL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+    const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+    const sb = supabase.createClient(SURL, SKEY);
+
+    // Read payment details from URL params Razorpay passes
+    var params = new URLSearchParams(window.location.search);
+    var paymentId  = params.get('razorpay_payment_id');
+    var orderId    = params.get('razorpay_order_id');
+    var signature  = params.get('razorpay_signature');
+
+    var refEl = document.getElementById('paymentRef');
+
+    if (paymentId) {
+      refEl.textContent = 'Payment ID: ' + paymentId;
+
+      // Activate student if session exists
+      sb.auth.getSession().then(function(res) {
+        if (res.data && res.data.session) {
+          var uid = res.data.session.user.id;
+          sb.from('users').update({ is_active: true }).eq('id', uid).then(function() {
+            console.log('Student activated');
+          });
+        }
+      });
+    } else {
+      refEl.textContent = 'Your subscription has been activated. You can now login.';
+    }
+  </script>
+</body>
+</html>

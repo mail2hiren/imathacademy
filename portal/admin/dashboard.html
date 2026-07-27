@@ -161,7 +161,32 @@
       .sidebar-overlay{display:none!important;}
       .hamburger-mobile{display:none!important;}
     }
-    </style>
+    
+    /* ── PRICING COUNTRY TABS ── */
+    .pricing-tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+    .pricing-tab {
+      padding: 10px 20px;
+      border: 2px solid var(--border);
+      border-radius: 50px;
+      background: #fff;
+      font-family: inherit;
+      font-size: .875rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all .12s;
+      color: var(--text2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pricing-tab:hover { border-color: var(--blue); background: var(--blue-lt); }
+    .pricing-tab.active {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+  </style>
 </head>
 <body>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
@@ -844,11 +869,11 @@
           </div>
           <button class="btn btn-primary btn-sm" onclick="savePricing()">💾 Save All Prices</button>
         </div>
-        <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
-          <button class="tab-btn active" id="ptab-IN" onclick="switchPricingCountry('IN',this)">🇮🇳 India</button>
-          <button class="tab-btn" id="ptab-US" onclick="switchPricingCountry('US',this)">🇺🇸 USA</button>
-          <button class="tab-btn" id="ptab-AE" onclick="switchPricingCountry('AE',this)">🇦🇪 UAE</button>
-          <button class="tab-btn" id="ptab-GB" onclick="switchPricingCountry('GB',this)">🇬🇧 UK</button>
+        <div class="pricing-tabs">
+          <button class="pricing-tab active" id="ptab-IN" onclick="switchPricingCountry('IN',this)">🇮🇳 India</button>
+          <button class="pricing-tab" id="ptab-US" onclick="switchPricingCountry('US',this)">🇺🇸 USA</button>
+          <button class="pricing-tab" id="ptab-AE" onclick="switchPricingCountry('AE',this)">🇦🇪 UAE</button>
+          <button class="pricing-tab" id="ptab-GB" onclick="switchPricingCountry('GB',this)">🇬🇧 UK</button>
         </div>
         <div id="pricingGrid"><div class="spinner"></div></div>
       </div>
@@ -2047,7 +2072,7 @@ async function loadPricing() {
 
 function switchPricingCountry(code, btn) {
   currentPricingCountry = code;
-  document.querySelectorAll('[id^="ptab-"]').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.pricing-tab').forEach(function(b){ b.classList.remove('active'); });
   if (btn) btn.classList.add('active');
   renderPricingGrid(code);
 }

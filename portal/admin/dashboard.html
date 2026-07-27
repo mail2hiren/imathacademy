@@ -2133,6 +2133,21 @@ async function savePricing() {
   }
 }
 
+
+// ── SIDEBAR ──────────────────────────────────────────────────
+function toggleSidebar() {
+  var s = document.getElementById('sidebar');
+  var o = document.getElementById('overlay');
+  if (s) s.classList.toggle('open');
+  if (o) o.style.display = s && s.classList.contains('open') ? 'block' : 'none';
+}
+function closeSidebar() {
+  var s = document.getElementById('sidebar');
+  var o = document.getElementById('overlay');
+  if (s) s.classList.remove('open');
+  if (o) o.style.display = 'none';
+}
+
 </script>
 </body>
 </html>

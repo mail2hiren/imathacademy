@@ -422,9 +422,10 @@
             </div>
             <div class="form-group">
               <label class="form-label" for="b-program">Program</label>
-              <select class="form-select" id="b-program">
-                <option value="abacus">Abacus</option>
-                <option value="vedic">Vedic Maths</option>
+              <select class="form-select" id="b-program" onchange="filterBatchLevels(this.value)">
+                <option value="">Select program</option>
+                <option value="503089d2-3d04-4071-8200-b411d0429ae6">Abacus</option>
+                <option value="237e82b5-212c-49be-98fb-8561f33624e0">Vedic Maths</option>
               </select>
             </div>
             <div class="form-group">
@@ -1372,6 +1373,7 @@ function resetPwd(email) {
 async function createBatch() {
   const name     = document.getElementById('b-name').value.trim();
   const program  = document.getElementById('b-program').value;
+  const level    = document.getElementById('b-level') ? document.getElementById('b-level').value : null;
   const teacher  = document.getElementById('b-teacher').value;
   const schedule = document.getElementById('b-schedule').value.trim();
   const meet     = document.getElementById('b-meet').value.trim();
@@ -1926,6 +1928,25 @@ async function init() {
 }
 
 init();
+
+function filterBatchLevels(programId) {
+  var abacusGrp = document.getElementById('abacus-levels');
+  var vedicGrp  = document.getElementById('vedic-levels');
+  var levelSel  = document.getElementById('b-level');
+  if (!abacusGrp || !vedicGrp) return;
+  if (programId === '503089d2-3d04-4071-8200-b411d0429ae6') {
+    abacusGrp.style.display = '';
+    vedicGrp.style.display  = 'none';
+  } else if (programId === '237e82b5-212c-49be-98fb-8561f33624e0') {
+    abacusGrp.style.display = 'none';
+    vedicGrp.style.display  = '';
+  } else {
+    abacusGrp.style.display = '';
+    vedicGrp.style.display  = '';
+  }
+  if (levelSel) levelSel.value = '';
+}
+
 </script>
 </body>
 </html>

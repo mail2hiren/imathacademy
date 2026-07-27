@@ -1410,7 +1410,9 @@ async function createBatch() {
   btn.disabled = true; btn.textContent = 'Creating...';
   try {
     const { error } = await sb.from('batches').insert({
-      name, program: program || null,
+      name,
+      program_id:    program  || null,
+      level_id:      level    || null,
       teacher_id:    teacher  || null,
       schedule_json: schedule ? { text: schedule } : null,
       meet_link:     meet     || null,

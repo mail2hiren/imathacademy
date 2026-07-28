@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Baloo+2:wght@800;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;background:#1A1A2E;font-family:'Nunito',sans-serif;color:#fff;overflow:hidden;}
+html,body{height:100%;background:#1A1A2E;font-family:'Nunito',sans-serif;color:#fff;}
 body{display:flex;flex-direction:column;}
 
 .topbar{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;background:#111827;flex-shrink:0;}
@@ -32,7 +32,7 @@ body{display:flex;flex-direction:column;}
 .qfb.no{background:rgba(183,28,28,.35);color:#EF9A9A;display:block;}
 
 /* ── ABACUS ── */
-.abacus-wrap{flex-shrink:0;padding:8px 6px;}
+.abacus-wrap{flex-shrink:0;padding:8px 6px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .frame{background:#4E342E;border-radius:12px;padding:5px;display:flex;flex-direction:column;border:3px solid #6D4C41;}
 .top-bar,.bot-bar{height:8px;background:#3E2723;border-radius:4px;flex-shrink:0;}
 
@@ -94,6 +94,18 @@ body{display:flex;flex-direction:column;}
 .c-title{font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:900;color:#FFD54F;margin-bottom:4px;}
 .c-sub{font-size:.8rem;color:rgba(255,255,255,.65);margin-bottom:12px;line-height:1.5;}
 .c-btn{width:100%;padding:10px;background:#1565C0;color:#fff;border:none;border-radius:9px;font-family:inherit;font-size:.88rem;font-weight:900;cursor:pointer;}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .topbar { padding: 4px 14px; }
+  .val-num { font-size: .9rem; }
+  .modes { padding: 2px 14px; }
+  .mbtn { padding: 4px 4px; font-size: .62rem; }
+  .abacus-wrap { padding: 4px 6px; }
+  .controls { padding: 4px 14px; }
+  .cbtn { padding: 6px 4px; font-size: .65rem; }
+  .qcard { margin: 2px 12px; padding: 4px 10px; }
+  .qnum { font-size: 1rem; }
+}
 </style>
 </head>
 <body>

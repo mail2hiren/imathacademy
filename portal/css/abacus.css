@@ -1,0 +1,153 @@
+/* ============================================================
+   iMathAcademy — Abacus component
+   Every rule is scoped under .imath-abacus so the component can
+   be embedded into any page without colliding with host styles.
+   ============================================================ */
+
+.imath-abacus {
+  --ab-frame:   #4E342E;
+  --ab-bar:     #3E2723;
+  --ab-edge:    #6D4C41;
+  --ab-dot:     #BCAAA4;
+  --ab-dec:     #FFD54F;
+  box-sizing: border-box;
+  width: 100%;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.imath-abacus *,
+.imath-abacus *::before,
+.imath-abacus *::after { box-sizing: border-box; }
+
+/* ── Value readout ─────────────────────────────────────────── */
+.imath-abacus .ab-value {
+  text-align: center;
+  margin-bottom: 8px;
+}
+.imath-abacus .ab-value-label {
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  opacity: .45;
+}
+.imath-abacus .ab-value-num {
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: .5px;
+  line-height: 1.2;
+  color: #F9A825;
+}
+.imath-abacus .ab-value-num.is-zero { opacity: .3; }
+
+/* ── Frame ─────────────────────────────────────────────────── */
+.imath-abacus .ab-frame {
+  background: var(--ab-frame);
+  border: 3px solid var(--ab-edge);
+  border-radius: 12px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.imath-abacus .ab-bar {
+  height: 8px;
+  background: var(--ab-bar);
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* ── Rod rows ──────────────────────────────────────────────── */
+.imath-abacus .ab-rods {
+  display: flex;
+  flex-shrink: 0;
+  position: relative;
+}
+.imath-abacus .ab-rod {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+.imath-abacus .ab-stick {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3px;
+  border-radius: 2px;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  opacity: .45;
+}
+
+/* ── Divider with unit dots ────────────────────────────────── */
+.imath-abacus .ab-divider {
+  position: relative;
+  height: 10px;
+  background: var(--ab-bar);
+  flex-shrink: 0;
+}
+.imath-abacus .ab-dot {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ab-dot);
+  transform: translate(-50%, -50%);
+  z-index: 15;
+}
+.imath-abacus .ab-decimal-sep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--ab-dec);
+  z-index: 20;
+}
+
+/* ── Beads ─────────────────────────────────────────────────── */
+.imath-abacus .ab-bead {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 35%;
+  border: 1px solid rgba(0,0,0,.2);
+  z-index: 3;
+  cursor: pointer;
+  transition: top .2s cubic-bezier(.4, 0, .2, 1);
+}
+.imath-abacus .ab-bead::after {
+  content: '';
+  position: absolute;
+  top: 15%;
+  left: 18%;
+  width: 28%;
+  height: 22%;
+  border-radius: 50%;
+  background: rgba(255,255,255,.45);
+  pointer-events: none;
+}
+
+/* Guided mode — pulse the bead the child should move next */
+.imath-abacus .ab-bead.ab-hint {
+  box-shadow: 0 0 0 3px rgba(255,213,79,.9);
+  animation: abHintPulse 1.1s ease-in-out infinite;
+}
+@keyframes abHintPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(255,213,79,.9); }
+  50%      { box-shadow: 0 0 0 7px rgba(255,213,79,.25); }
+}
+
+/* Read-only mode — child can look but not move */
+.imath-abacus.ab-readonly .ab-bead {
+  cursor: default;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .imath-abacus .ab-bead { transition: none; }
+  .imath-abacus .ab-bead.ab-hint { animation: none; }
+}

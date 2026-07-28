@@ -228,8 +228,17 @@ async function loadVirtualClassCard(userId) {
 
 // ── TODAY'S QUEST CARD ───────────────────────────────────────
 async function renderTodaysQuest(userId, batchIds) {
-  const card = document.getElementById('todaysQuestCard');
-  if (!card) return;
+  // Create the card element ourselves and prepend into mainContent.
+  // buildDashboard() replaces mainContent.innerHTML, so a static
+  // placeholder in the HTML shell would be wiped out. This runs after.
+  const main = document.getElementById('mainContent');
+  if (!main) return;
+  let card = document.getElementById('todaysQuestCard');
+  if (!card) {
+    card = document.createElement('div');
+    card.id = 'todaysQuestCard';
+    main.insertBefore(card, main.firstChild);
+  }
   try {
     const { data: allWs } = await sb.from('lx_worksheets')
       .select('id, title, questions_count, student_id, batch_id')

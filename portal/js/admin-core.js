@@ -1,3 +1,22 @@
+// ── SUPABASE CLIENT ─────────────────────────────────────────
+const SURL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+const sb = supabase.createClient(SURL, SKEY);
+
+// ── GLOBAL SHARED STATE ──────────────────────────────────────
+// Declared here so all split JS files can access them
+var allStudents  = [];
+var allTeachers  = [];
+var allParents   = [];
+var allBatches   = [];
+var allFees      = [];
+var allLevels    = [];
+var allPrograms  = [];
+var allPricing   = [];
+var currentTab   = 'overview';
+var confirmCallback = null;
+var currentPricingCountry = 'IN';
+
 function toast(msg, type = 'success') {
   const wrap = document.getElementById('toastWrap');
   const el = document.createElement('div');

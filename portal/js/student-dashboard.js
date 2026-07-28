@@ -1,7 +1,7 @@
 function buildDashboard(profile, stats, group, session_user_id) {
   const age = getAgeFromDOB(profile.date_of_birth);
   const name    = profile.full_name || 'Student';
-  const level   = profile.current_level || 1;
+  const level   = profile.current_level ?? 0;
   const xp      = profile.xp_points || 0;
   const streak  = profile.streak_days || 0;
   const xpNext  = (Math.floor(xp / 500) + 1) * 500;
@@ -123,7 +123,7 @@ function buildDashboard(profile, stats, group, session_user_id) {
           <div>
             <div class="hero-greeting">${greet()}!</div>
             <div class="hero-name">${name} 🌟</div>
-            <div class="hero-sub">Level ${level} · Abacus${age ? ' · Age '+age : ''}</div>
+            <div class="hero-sub">Level ${level} · ${levelName(level)}${age ? ' · Age '+age : ''}</div>
           </div>
           <div class="streak-box">
             <div class="streak-icon">🔥</div>
@@ -253,7 +253,7 @@ function buildDashboard(profile, stats, group, session_user_id) {
       ${getBadgeHint(stats.badges)}
 
       <!-- Level progress -->
-      <div class="section-title">Level ${level} progress</div>
+      <div class="section-title">Level ${level} — ${levelName(level)}</div>
       <div class="progress-card">
         <div class="progress-item">
           <div class="progress-icon">✅</div>

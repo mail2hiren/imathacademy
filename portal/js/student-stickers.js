@@ -174,33 +174,49 @@ function groupStickers(rows) {
 }
 
 /**
- * The sticker book. Earned stickers show in colour with a count;
- * ones not yet collected show as faint outlines, so the child can
- * see what is still out there to find.
+ * The sticker book.
+ *
+ * Earned stickers show in colour, with a small count if the child
+ * has more than one. A handful of uncollected ones follow as faint
+ * outlines so there is always something visible still to find.
+ *
+ * All twenty-four slots are deliberately NOT shown. A child with no
+ * stickers yet would see a wall of grey, which reads as "you have
+ * nothing" rather than "look what you could collect".
  */
 function renderStickerBook(rows) {
   var counts = groupStickers(rows);
   var total  = (rows || []).length;
-  var unique = Object.keys(counts).length;
 
-  var cells = STICKER_DEFS.map(function (s) {
-    var n   = counts[s.key] || 0;
-    var got = n > 0;
-    return '' +
-      '<div class="sticker' + (got ? ' got' : '') + '" title="' + s.name + '">' +
-        '<span class="sticker-emoji">' + s.emoji + '</span>' +
-        (n > 1 ? '<span class="sticker-count">' + n + '</span>' : '') +
-      '</div>';
-  }).join('');
+  var earned   = STICKER_DEFS.filter(function (s) { return counts[s.key]; });
+  var toFind   = STICKER_DEFS.filter(function (s) { return !counts[s.key]; }).slice(0, 6);
+
+  var tiles = earned.map(function (s) {
+    var n = counts[s.key];
+    return '<div class="sb-item sb-got" title="' + s.name + '">' +
+             '<span class="sb-emoji">' + s.emoji + '</span>' +
+             (n > 1 ? '<span class="sb-dupe">' + n + '</span>' : '') +
+           '</div>';
+  }).concat(toFind.map(function (s) {
+    return '<div class="sb-item" title="Not collected yet">' +
+             '<span class="sb-emoji">' + s.emoji + '</span>' +
+           '</div>';
+  })).join('');
+
+  var caption = total === 0
+    ? 'Finish a worksheet to earn your first sticker!'
+    : (toFind.length
+        ? 'Keep going — there are more stickers to find!'
+        : 'You have collected every kind of sticker! 🎉');
 
   return '' +
-    '<div class="sticker-book">' +
-      '<div class="sticker-book-head">' +
-        '<span class="sticker-book-title">My sticker book</span>' +
-        '<span class="sticker-book-count">' + total + ' collected · ' +
-          unique + ' of ' + STICKER_DEFS.length + ' kinds</span>' +
+    '<div class="sb-book">' +
+      '<div class="sb-head">' +
+        '<span class="sb-title">🎁 My sticker book</span>' +
+        '<span class="sb-count">' + total + (total === 1 ? ' sticker' : ' stickers') + '</span>' +
       '</div>' +
-      '<div class="sticker-grid">' + cells + '</div>' +
+      '<div class="sb-grid">' + tiles + '</div>' +
+      '<div class="sb-caption">' + caption + '</div>' +
     '</div>';
 }
 

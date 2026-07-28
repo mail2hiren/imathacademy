@@ -3,484 +3,230 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>iMathAcademy — Virtual Abacus</title>
+<title>Abacus — iMathAcademy</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Baloo+2:wght@800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="portal/css/abacus.css">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;background:#1A1A2E;font-family:'Nunito',sans-serif;color:#fff;}
-body{display:flex;flex-direction:column;}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #1A1A2E; color: #fff; font-family: 'Nunito', sans-serif; }
+  body { display: flex; flex-direction: column; }
 
-.topbar{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;background:#111827;flex-shrink:0;}
-.logo{font-family:'Baloo 2',sans-serif;font-size:1rem;font-weight:900;}
-.logo em{color:#90CAF9;font-style:normal;}
-.val-box{text-align:center;flex:1;margin:0 10px;}
-.val-lbl{font-size:.58rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;font-weight:800;}
-.val-num{font-family:'Baloo 2',sans-serif;font-size:1.1rem;font-weight:900;color:#FFD54F;text-align:center;letter-spacing:.5px;}
-.icon-btns{display:flex;gap:6px;}
-.ibtn{width:34px;height:34px;border-radius:8px;border:none;background:rgba(255,255,255,.1);color:#fff;cursor:pointer;font-size:1rem;}
+  .topbar { display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 14px; background: #111827; flex-shrink: 0; }
+  .logo { font-family: 'Baloo 2', sans-serif; font-size: 1rem; font-weight: 900; }
+  .logo em { color: #90CAF9; font-style: normal; }
+  .icon-btns { display: flex; gap: 6px; }
+  .ibtn { width: 34px; height: 34px; border: none; border-radius: 8px;
+          background: rgba(255,255,255,.1); color: #fff; font-size: 1rem; cursor: pointer; }
 
-.modes{display:flex;gap:6px;padding:5px 14px;background:#111827;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;}
-.mbtn{flex:1;padding:6px 4px;border-radius:8px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);font-family:inherit;font-size:.68rem;font-weight:800;cursor:pointer;text-align:center;}
-.mbtn.on{background:#1565C0;border-color:#1565C0;color:#fff;}
+  .modes { display: flex; gap: 6px; padding: 5px 14px; background: #111827;
+           border-top: 1px solid rgba(255,255,255,.06); flex-shrink: 0; }
+  .mbtn { flex: 1; padding: 6px 4px; border-radius: 8px; cursor: pointer;
+          border: 1.5px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05);
+          color: rgba(255,255,255,.5); font-family: inherit; font-size: .68rem; font-weight: 800; }
+  .mbtn.on { background: #1565C0; border-color: #1565C0; color: #fff; }
 
-.qcard{margin:4px 12px;border-radius:9px;padding:7px 12px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.1);flex-shrink:0;display:none;}
-.qcard.show{display:block;}
-.qlbl{font-size:.56rem;font-weight:900;text-transform:uppercase;letter-spacing:.4px;color:rgba(255,255,255,.35);}
-.qnum{font-family:'Baloo 2',sans-serif;font-size:1.2rem;font-weight:900;color:#FFD54F;}
-.qfb{font-size:.73rem;font-weight:800;margin-top:3px;padding:3px 8px;border-radius:6px;display:none;}
-.qfb.ok{background:rgba(46,125,50,.35);color:#81C784;display:block;}
-.qfb.no{background:rgba(183,28,28,.35);color:#EF9A9A;display:block;}
+  .qcard { display: none; margin: 6px 12px; padding: 8px 12px; border-radius: 9px;
+           background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.1); flex-shrink: 0; }
+  .qcard.show { display: block; }
+  .qlbl { font-size: .56rem; font-weight: 900; letter-spacing: .4px;
+          text-transform: uppercase; color: rgba(255,255,255,.35); }
+  .qnum { font-size: 1.2rem; font-weight: 900; color: #FFD54F; }
+  .qfb { display: none; margin-top: 4px; padding: 4px 8px; border-radius: 6px;
+         font-size: .73rem; font-weight: 800; }
+  .qfb.ok { display: block; background: rgba(46,125,50,.35);  color: #81C784; }
+  .qfb.no { display: block; background: rgba(183,28,28,.35); color: #EF9A9A; }
 
-/* ── ABACUS ── */
-.abacus-wrap{flex-shrink:0;padding:8px 6px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.frame{background:#4E342E;border-radius:12px;padding:5px;display:flex;flex-direction:column;border:3px solid #6D4C41;}
-.top-bar,.bot-bar{height:8px;background:#3E2723;border-radius:4px;flex-shrink:0;}
+  .stage { padding: 8px 10px; flex-shrink: 0; }
+  .spacer { flex: 1; }
 
-/* Heaven and earth rod rows */
-.rods-row{display:flex;position:relative;flex-shrink:0;}
+  .controls { display: flex; gap: 8px; padding: 6px 14px; background: #111827;
+              border-top: 1px solid rgba(255,255,255,.06); flex-shrink: 0; }
+  .cbtn { flex: 1; padding: 9px 4px; border-radius: 9px; cursor: pointer;
+          border: 1.5px solid rgba(255,255,255,.13); background: rgba(255,255,255,.07);
+          color: #fff; font-family: inherit; font-size: .72rem; font-weight: 800; }
+  .cbtn.primary { background: #1565C0; border-color: #1565C0; }
 
-/* The divider — contains dots */
-.divider-wrap{flex-shrink:0;position:relative;height:10px;background:#3E2723;}
+  .celeb { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200;
+           display: none; align-items: center; justify-content: center; }
+  .celeb.show { display: flex; }
+  .celeb-box { background: #111827; border: 2px solid #FFD54F; border-radius: 18px;
+               padding: 24px 20px; text-align: center; max-width: 260px; width: 86%; }
+  .celeb-icon { font-size: 2.8rem; margin-bottom: 6px; }
+  .celeb-title { font-family: 'Baloo 2', sans-serif; font-size: 1.3rem;
+                 font-weight: 900; color: #FFD54F; margin-bottom: 4px; }
+  .celeb-sub { font-size: .8rem; color: rgba(255,255,255,.65); margin-bottom: 12px; line-height: 1.5; }
+  .celeb-btn { width: 100%; padding: 10px; border: none; border-radius: 9px;
+               background: #1565C0; color: #fff; font-family: inherit;
+               font-size: .88rem; font-weight: 900; cursor: pointer; }
 
-/* Decimal gap — visual separator between rod 9 and 10 */
-.decimal-sep{
-  position:absolute;
-  top:0;bottom:0;
-  width:3px;
-  background:#FFD54F;
-  z-index:20;
-  border-radius:2px;
-}
-
-/* Unit dots on divider */
-.unit-dot{
-  position:absolute;
-  width:8px;height:8px;
-  border-radius:50%;
-  background:#BCAAA4;
-  top:50%;transform:translate(-50%,-50%);
-  z-index:15;
-}
-.unit-dot.ones{
-  background:#FFD54F; /* gold dot at rod 9 = ones */
-  width:10px;height:10px;
-}
-
-/* Rod column */
-.rod{flex:1;position:relative;}
-.rod-stick{position:absolute;left:50%;transform:translateX(-50%);width:3px;border-radius:2px;top:0;bottom:0;z-index:1;opacity:.45;}
-
-/* Bead */
-.bead{
-  position:absolute;left:50%;transform:translateX(-50%);
-  border-radius:35%;cursor:pointer;z-index:3;
-  transition:top .2s cubic-bezier(.4,0,.2,1);
-}
-.bead::after{
-  content:'';position:absolute;
-  top:15%;left:18%;width:28%;height:22%;
-  border-radius:50%;background:rgba(255,255,255,.45);pointer-events:none;
-}
-
-.spacer{flex:1;}
-.controls{display:flex;gap:8px;padding:6px 14px;background:#111827;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;}
-.cbtn{flex:1;padding:9px 4px;border-radius:9px;border:1.5px solid rgba(255,255,255,.13);background:rgba(255,255,255,.07);color:#fff;font-family:inherit;font-size:.72rem;font-weight:800;cursor:pointer;text-align:center;}
-.cbtn.p{background:#1565C0;border-color:#1565C0;}
-
-.celeb{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:200;}
-.celeb.show{display:flex;}
-.celeb-box{background:#111827;border:2px solid #FFD54F;border-radius:18px;padding:24px 20px;text-align:center;max-width:260px;width:86%;}
-.c-icon{font-size:2.8rem;margin-bottom:6px;}
-.c-title{font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:900;color:#FFD54F;margin-bottom:4px;}
-.c-sub{font-size:.8rem;color:rgba(255,255,255,.65);margin-bottom:12px;line-height:1.5;}
-.c-btn{width:100%;padding:10px;background:#1565C0;color:#fff;border:none;border-radius:9px;font-family:inherit;font-size:.88rem;font-weight:900;cursor:pointer;}
-
-@media (orientation: landscape) and (max-height: 500px) {
-  .topbar { padding: 4px 14px; }
-  .val-num { font-size: .9rem; }
-  .modes { padding: 2px 14px; }
-  .mbtn { padding: 4px 4px; font-size: .62rem; }
-  .abacus-wrap { padding: 4px 6px; }
-  .controls { padding: 4px 14px; }
-  .cbtn { padding: 6px 4px; font-size: .65rem; }
-  .qcard { margin: 2px 12px; padding: 4px 10px; }
-  .qnum { font-size: 1rem; }
-}
+  @media (orientation: landscape) and (max-height: 500px) {
+    .topbar { padding: 4px 14px; }
+    .modes  { padding: 2px 14px; }
+    .stage  { padding: 4px 10px; }
+    .controls { padding: 4px 14px; }
+  }
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <div class="logo">🧮 iMath<em>Academy</em></div>
-  <div class="val-box">
-    <div class="val-lbl">Value</div>
-    <div class="val-num" id="vd">0</div>
-  </div>
   <div class="icon-btns">
-    <button class="ibtn" id="sndBtn" onclick="toggleSound()">🔊</button>
-    <button class="ibtn" onclick="clearAll()">↺</button>
+    <button class="ibtn" id="soundBtn" title="Sound">🔊</button>
+    <button class="ibtn" id="clearBtn" title="Clear">↺</button>
   </div>
 </div>
 
 <div class="modes">
-  <button class="mbtn on" onclick="setMode('free',this)">🎯 Free</button>
-  <button class="mbtn" onclick="setMode('practice',this)">📝 Practice</button>
-  <button class="mbtn" onclick="setMode('challenge',this)">⚡ Challenge</button>
+  <button class="mbtn on" data-mode="free">🎯 Free</button>
+  <button class="mbtn"    data-mode="practice">📝 Practice</button>
+  <button class="mbtn"    data-mode="challenge">⚡ Challenge</button>
 </div>
 
 <div class="qcard" id="qcard">
   <div class="qlbl" id="qlbl">Set this number</div>
   <div class="qnum" id="qnum">—</div>
-  <div class="qfb" id="qfb"></div>
+  <div class="qfb"  id="qfb"></div>
 </div>
 
-<div class="abacus-wrap" id="abWrap">
-  <div class="frame" id="abFrame">
-    <div class="top-bar"></div>
-    <div class="rods-row" id="hRods"></div>
-    <div class="divider-wrap" id="divWrap"></div>
-    <div class="rods-row" id="eRods"></div>
-    <div class="bot-bar"></div>
-  </div>
-</div>
+<div class="stage" id="abacusSlot"></div>
 
 <div class="spacer"></div>
 
 <div class="controls">
-  <button class="cbtn" id="randBtn" onclick="randomNum()">🎲 Random</button>
-  <button class="cbtn p" id="chkBtn" style="display:none" onclick="checkAns()">✓ Check</button>
-  <button class="cbtn" id="nxtBtn" style="display:none" onclick="nextQ()">Next →</button>
+  <button class="cbtn" id="randBtn">🎲 Random</button>
+  <button class="cbtn primary" id="checkBtn" style="display:none">✓ Check</button>
+  <button class="cbtn" id="nextBtn" style="display:none">Next →</button>
 </div>
 
 <div class="celeb" id="celeb">
   <div class="celeb-box">
-    <div class="c-icon">🎉</div>
-    <div class="c-title">Correct!</div>
-    <div class="c-sub" id="cSub">Well done!</div>
-    <button class="c-btn" onclick="nextQ()">Next question →</button>
+    <div class="celeb-icon">🎉</div>
+    <div class="celeb-title">Correct!</div>
+    <div class="celeb-sub" id="celebSub">Well done!</div>
+    <button class="celeb-btn" id="celebNext">Next question →</button>
   </div>
 </div>
 
+<script src="portal/js/abacus.js"></script>
 <script>
-// ── LAYOUT ────────────────────────────────────────────────────
-// 17 rods, left to right:
-// Rod 1 (vi=0, leftmost) = Ten Crores
-// Rod 9 (vi=8) = ONES ← decimal boundary
-// Rod 10 (vi=9) = 0.1 (first decimal)
-// Rod 17 (vi=16, rightmost) = 0.00000001
-//
-// Unit dots at rods 3,6,9,12,15 (1-indexed from LEFT)
-// = visual indices 2, 5, 8, 11, 14 (0-indexed)
-// Rod 9 (vi=8) dot is GOLD — ones/decimal boundary
+(function () {
+  var abacus = Abacus.mount(document.getElementById('abacusSlot'), { sound: true });
 
-var N = 17;
-var DOT_VIS = [2, 5, 8, 11, 14];   // 0-indexed visual positions
-var ONES_VI  = 8;                    // rod 9 (0-indexed) = ones
-var DEC_VI   = 9;                    // rod 10 (0-indexed) = first decimal
+  var mode = 'free', target = null, score = { correct: 0, total: 0 };
+  var timer = null, seconds = 0, practiceIndex = 0;
+  var PRACTICE = [3, 5, 7, 8, 9, 12, 23, 45, 67, 89, 123, 456, 789, 999,
+                  1234, 5678, 9999, 12345, 56789, 123456];
 
-// state[vi]: visual index 0=leftmost
-// h: 0=inactive, 1=active (slid toward divider)
-// e: 0-4 active earth beads
-var state = [];
+  var el = {
+    qcard:  document.getElementById('qcard'),
+    qlbl:   document.getElementById('qlbl'),
+    qnum:   document.getElementById('qnum'),
+    qfb:    document.getElementById('qfb'),
+    rand:   document.getElementById('randBtn'),
+    check:  document.getElementById('checkBtn'),
+    next:   document.getElementById('nextBtn'),
+    celeb:  document.getElementById('celeb'),
+    celebSub: document.getElementById('celebSub')
+  };
 
-// Colour: whole number rods = warm, decimal rods = cool
-function getColour(vi) {
-  if (vi < DEC_VI) {
-    // Whole number rods — cycle warm colours
-    var warm = ['#E53935','#EF6C00','#F9A825','#388E3C','#1565C0','#6A1B9A'];
-    return warm[Math.floor(vi/1) % warm.length];
-  } else {
-    // Decimal rods — all teal/cyan to visually distinguish
-    return '#00838F';
-  }
-}
-function getGrad(vi) {
-  var c = getColour(vi);
-  if (vi >= DEC_VI) {
-    return 'radial-gradient(ellipse at 35% 28%,#B2EBF2,'+c+' 60%,#004D40)';
-  }
-  var lights = ['#FFCDD2','#FFE0B2','#FFF9C4','#C8E6C9','#BBDEFB','#E1BEE7'];
-  var darks  = ['#B71C1C','#E65100','#F57F17','#1B5E20','#0D47A1','#4A148C'];
-  var i = Math.floor(vi/1) % lights.length;
-  return 'radial-gradient(ellipse at 35% 28%,'+lights[i]+','+c+' 60%,'+darks[i]+')';
-}
+  function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
 
-// ── DIMENSIONS ────────────────────────────────────────────────
-var BW, BH, GAP = 2;
-var H_GAP = 5;
-var H_H, H_REST, H_ACTIVE;
-var E_H, E_PAD = 4;
+  function setMode(next, btn) {
+    mode = next;
+    var buttons = document.querySelectorAll('.mbtn');
+    for (var i = 0; i < buttons.length; i++) buttons[i].classList.remove('on');
+    btn.classList.add('on');
 
-function calcDims() {
-  var wrap = document.getElementById('abWrap');
-  var availW = (wrap.offsetWidth || 340) - 26;
-  BW = Math.min(24, Math.floor(availW / N) - 3);
-  BW = Math.max(BW, 10);
-  BH = Math.round(BW * 0.65);
-  GAP = Math.max(2, Math.round(BH * 0.15));
-
-  H_H      = BH + H_GAP + BH + 8;
-  H_REST   = 4;
-  H_ACTIVE = 4 + BH + H_GAP;
-
-  E_H = 4*(BH+GAP) - GAP + BH + GAP + 8;
-}
-
-function eActiveTop(bi) { return E_PAD + (bi-1)*(BH+GAP); }
-function eRestTop(bi)   { return E_H - E_PAD - BH - (4-bi)*(BH+GAP); }
-function eTop(bi, e)    { return bi<=e ? eActiveTop(bi) : eRestTop(bi); }
-
-// ── AUDIO ─────────────────────────────────────────────────────
-var audioCtx=null, soundOn=true;
-function getAudio(){if(!audioCtx)try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}return audioCtx;}
-function beep(f){if(!soundOn)return;var ctx=getAudio();if(!ctx)return;var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;g.gain.setValueAtTime(.06,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.07);o.start();o.stop(ctx.currentTime+.07);}
-function playWin(){[523,659,784,1047].forEach(function(f,i){setTimeout(function(){beep(f);},i*90);});}
-
-// ── STATE ─────────────────────────────────────────────────────
-var mode='free', target=null;
-var score={c:0,t:0}, chalTimer=null, chalSec=0, practIdx=0;
-
-function initState(){
-  state=[];
-  for(var i=0;i<N;i++) state.push({h:0,e:0});
-}
-
-// Value calculation
-// vi=8 (rod 9) = ones = 10^0
-// vi=7 (rod 8) = tens = 10^1
-// vi=0 (rod 1) = 10^8
-// vi=9 (rod 10) = 0.1 = 10^-1
-// vi=16 (rod 17) = 10^-8
-function getVal() {
-  var t = 0;
-  for (var vi=0; vi<N; vi++) {
-    var exp = ONES_VI - vi; // positive for whole, negative for decimal
-    t += (state[vi].h*5 + state[vi].e) * Math.pow(10, exp);
-  }
-  return t;
-}
-
-// ── BUILD ─────────────────────────────────────────────────────
-function makeBead(vi, top) {
-  var b = document.createElement('div');
-  b.className = 'bead';
-  b.style.width  = BW+'px';
-  b.style.height = BH+'px';
-  b.style.background = getGrad(vi);
-  b.style.border = '1px solid rgba(0,0,0,.2)';
-  b.style.top = top+'px';
-  return b;
-}
-
-function build() {
-  var hRow = document.getElementById('hRods');
-  var eRow = document.getElementById('eRods');
-  var divW = document.getElementById('divWrap');
-  hRow.innerHTML=''; eRow.innerHTML=''; divW.innerHTML='';
-  hRow.style.height = H_H+'px';
-  eRow.style.height = E_H+'px';
-
-  // Compute rod width to place dots correctly
-  var rodW = BW + 3; // approximate rod column width
-
-  for (var vi=0; vi<N; vi++) {
-    var c = getColour(vi);
-
-    // ── HEAVEN ROD ──────────────────────────────────────
-    var hr = document.createElement('div');
-    hr.className='rod'; hr.style.height=H_H+'px';
-    var hst=document.createElement('div');
-    hst.className='rod-stick'; hst.style.background=c; hst.style.height=H_H+'px';
-    hr.appendChild(hst);
-
-    var hb = makeBead(vi, state[vi].h ? H_ACTIVE : H_REST);
-    hb.dataset.vi=vi;
-    hb.addEventListener('click',function(){
-      var v=+this.dataset.vi; state[v].h=state[v].h?0:1;
-      this.style.top=(state[v].h?H_ACTIVE:H_REST)+'px'; beep(900); updateVal();
-    });
-    hb.addEventListener('touchend',function(e){
-      e.preventDefault(); var v=+this.dataset.vi; state[v].h=state[v].h?0:1;
-      this.style.top=(state[v].h?H_ACTIVE:H_REST)+'px'; beep(900); updateVal();
-    });
-    hr.appendChild(hb);
-    hRow.appendChild(hr);
-
-    // ── EARTH ROD ───────────────────────────────────────
-    var er=document.createElement('div');
-    er.className='rod'; er.style.height=E_H+'px';
-    var est=document.createElement('div');
-    est.className='rod-stick'; est.style.background=c; est.style.height=E_H+'px';
-    er.appendChild(est);
-
-    for(var bi=1;bi<=4;bi++){
-      var eb=makeBead(vi, eTop(bi,state[vi].e));
-      eb.dataset.vi=vi; eb.dataset.bi=bi;
-      eb.addEventListener('click',(function(v,b){return function(){
-        state[v].e=(b<=state[v].e)?b-1:b;
-        var all=document.querySelectorAll('#eRods .bead[data-vi="'+v+'"]');
-        for(var i=0;i<all.length;i++) all[i].style.top=eTop(+all[i].dataset.bi,state[v].e)+'px';
-        beep(650); updateVal();
-      };})(vi,bi));
-      eb.addEventListener('touchend',(function(v,b){return function(e){
-        e.preventDefault(); state[v].e=(b<=state[v].e)?b-1:b;
-        var all=document.querySelectorAll('#eRods .bead[data-vi="'+v+'"]');
-        for(var i=0;i<all.length;i++) all[i].style.top=eTop(+all[i].dataset.bi,state[v].e)+'px';
-        beep(650); updateVal();
-      };})(vi,bi));
-      er.appendChild(eb);
+    if (mode === 'free') {
+      el.qcard.classList.remove('show');
+      el.check.style.display = 'none';
+      el.next.style.display  = 'none';
+      el.rand.style.display  = '';
+      stopTimer();
+      abacus.reset();
+    } else {
+      el.qcard.classList.add('show');
+      el.check.style.display = '';
+      el.next.style.display  = 'none';
+      el.rand.style.display  = 'none';
+      score = { correct: 0, total: 0 };
+      nextQuestion();
     }
-    eRow.appendChild(er);
   }
 
-  // ── DIVIDER with dots ────────────────────────────────────────
-  // Each rod column width
-  var totalW = hRow.offsetWidth || (N*(BW+3));
-  var colW = totalW / N;
+  function nextQuestion() {
+    el.celeb.classList.remove('show');
+    el.qfb.className = 'qfb';
+    el.check.style.display = '';
+    el.next.style.display  = 'none';
 
-  // No yellow line — decimal boundary shown by dot colour only
+    if (mode === 'practice') {
+      target = PRACTICE[practiceIndex % PRACTICE.length];
+      practiceIndex++;
+      el.qlbl.textContent = 'Set this number on the abacus';
+      stopTimer();
+    } else {
+      target = Math.floor(Math.random() * 99999) + 1;
+      seconds = 0;
+      stopTimer();
+      el.qlbl.textContent = '⚡ Time: 0s';
+      timer = setInterval(function () {
+        seconds++;
+        el.qlbl.textContent = '⚡ Time: ' + seconds + 's';
+      }, 1000);
+    }
 
-  // Unit dots at vi = 2,5,8,11,14
-  DOT_VIS.forEach(function(dvi) {
-    var dot = document.createElement('div');
-    dot.className = 'unit-dot';
-    // Centre of rod column
-    var left = (dvi + 0.5) * colW;
-    dot.style.left = left + 'px';
-    divW.appendChild(dot);
+    el.qnum.textContent = target.toLocaleString('en-IN');
+    abacus.reset();
+  }
+
+  function checkAnswer() {
+    var value = abacus.getValue();
+    if (value === target) {
+      stopTimer();
+      score.correct++; score.total++;
+      el.celebSub.textContent = target.toLocaleString('en-IN') + ' — correct! ' +
+        (mode === 'challenge' ? 'Time: ' + seconds + 's. ' : '') +
+        'Score: ' + score.correct + '/' + score.total;
+      el.celeb.classList.add('show');
+      el.check.style.display = 'none';
+      el.next.style.display  = '';
+    } else {
+      score.total++;
+      el.qfb.textContent = '✗ You set ' + value.toLocaleString('en-IN') +
+        ' — the answer is ' + target.toLocaleString('en-IN') + '. Try again!';
+      el.qfb.className = 'qfb no';
+    }
+  }
+
+  var modeButtons = document.querySelectorAll('.mbtn');
+  for (var i = 0; i < modeButtons.length; i++) {
+    modeButtons[i].addEventListener('click', function () {
+      setMode(this.dataset.mode, this);
+    });
+  }
+
+  document.getElementById('clearBtn').addEventListener('click', function () {
+    abacus.reset();
+    el.qfb.className = 'qfb';
   });
-}
 
-// ── DISPLAY ───────────────────────────────────────────────────
-function updateVal() {
-  var v = getVal();
-  var el = document.getElementById('vd');
-  // Format with up to 8 decimal places, trim trailing zeros
-  var formatted;
-  if (v === 0) {
-    formatted = '0';
-  } else if (Number.isInteger(v)) {
-    formatted = v.toLocaleString('en-IN');
-  } else {
-    // Show decimal value cleanly
-    formatted = v.toLocaleString('en-IN', {maximumFractionDigits:8});
-  }
-  el.textContent = formatted;
-  el.style.color = v===0 ? 'rgba(255,255,255,.2)' : '#FFD54F';
-}
+  document.getElementById('soundBtn').addEventListener('click', function () {
+    var on = !abacus.isSoundOn();
+    abacus.setSound(on);
+    this.textContent = on ? '🔊' : '🔇';
+  });
 
-function clearAll(silent) {
-  initState(); build(); updateVal();
-  if(!silent) document.getElementById('qfb').className='qfb';
-}
+  el.rand.addEventListener('click', function () {
+    abacus.setValue(Math.floor(Math.random() * 99999999) + 1);
+  });
 
-function randomNum() {
-  // Random whole number up to crores
-  var n = Math.floor(Math.random() * 99999999) + 1;
-  setNum(n);
-}
-
-function setNum(n) {
-  initState();
-  // Split into whole and decimal parts
-  var whole = Math.floor(Math.abs(n));
-  var dec = Math.abs(n) - whole;
-
-  // Set whole number rods (vi=8 down to vi=0)
-  var rem = whole;
-  for (var vi=ONES_VI; vi>=0; vi--) {
-    var exp = ONES_VI - vi;
-    var dg = Math.floor(rem / Math.pow(10, exp)) % 10;
-    state[vi].h = dg>=5?1:0;
-    state[vi].e = dg>=5?dg-5:dg;
-  }
-
-  // Set decimal rods (vi=9 onwards)
-  var decRem = Math.round(dec * 1e8);
-  for (var vi=DEC_VI; vi<N; vi++) {
-    var exp2 = vi - ONES_VI;
-    var dg2 = Math.floor(decRem / Math.pow(10, 8-exp2)) % 10;
-    state[vi].h = dg2>=5?1:0;
-    state[vi].e = dg2>=5?dg2-5:dg2;
-  }
-
-  build(); updateVal();
-}
-
-function toggleSound(){
-  soundOn=!soundOn;
-  document.getElementById('sndBtn').textContent=soundOn?'🔊':'🔇';
-  getAudio();
-}
-
-// ── MODES ─────────────────────────────────────────────────────
-function setMode(m,btn){
-  mode=m;
-  document.querySelectorAll('.mbtn').forEach(function(b){b.classList.remove('on');});
-  btn.classList.add('on');
-  var qc=document.getElementById('qcard');
-  if(m==='free'){
-    qc.classList.remove('show');
-    document.getElementById('chkBtn').style.display='none';
-    document.getElementById('nxtBtn').style.display='none';
-    document.getElementById('randBtn').style.display='';
-    if(chalTimer){clearInterval(chalTimer);chalTimer=null;}
-  } else {
-    qc.classList.add('show');
-    document.getElementById('chkBtn').style.display='';
-    document.getElementById('nxtBtn').style.display='none';
-    document.getElementById('randBtn').style.display='none';
-    score={c:0,t:0}; nextQ();
-  }
-  clearAll(true);
-}
-
-var PLIST=[3,5,7,8,9,12,23,45,67,89,123,456,789,999,1234,5678,9999,12345,56789,123456];
-function nextQ(){
-  document.getElementById('celeb').classList.remove('show');
-  document.getElementById('qfb').className='qfb';
-  document.getElementById('chkBtn').style.display='';
-  document.getElementById('nxtBtn').style.display='none';
-  if(mode==='practice'){
-    target=PLIST[practIdx%PLIST.length]; practIdx++;
-    document.getElementById('qlbl').textContent='Set this number on the abacus';
-  } else {
-    target=Math.floor(Math.random()*99999)+1;
-    chalSec=0;
-    if(chalTimer)clearInterval(chalTimer);
-    chalTimer=setInterval(function(){chalSec++;document.getElementById('qlbl').textContent='⚡ Time: '+chalSec+'s';},1000);
-    document.getElementById('qlbl').textContent='⚡ Time: 0s';
-  }
-  document.getElementById('qnum').textContent=(target||0).toLocaleString('en-IN');
-  clearAll(true);
-}
-
-function checkAns(){
-  // Compare rounded to avoid floating point issues
-  var v=Math.round(getVal()*1e8)/1e8;
-  var tgt=Math.round((target||0)*1e8)/1e8;
-  var fb=document.getElementById('qfb');
-  if(v===tgt){
-    if(chalTimer){clearInterval(chalTimer);chalTimer=null;}
-    score.c++;score.t++;playWin();
-    document.getElementById('cSub').textContent=
-      (target||0).toLocaleString('en-IN')+' — correct! '+
-      (mode==='challenge'?'Time: '+chalSec+'s. ':'')+
-      'Score: '+score.c+'/'+score.t;
-    document.getElementById('celeb').classList.add('show');
-    document.getElementById('chkBtn').style.display='none';
-    document.getElementById('nxtBtn').style.display='';
-  } else {
-    score.t++;
-    fb.textContent='✗ You set '+v.toLocaleString('en-IN')+' — answer is '+(target||0).toLocaleString('en-IN')+'. Try again!';
-    fb.className='qfb no';
-  }
-}
-
-// ── INIT ─────────────────────────────────────────────────────
-initState();
-setTimeout(function(){ calcDims(); build(); updateVal(); }, 60);
-window.addEventListener('resize', function(){ calcDims(); build(); updateVal(); });
+  el.check.addEventListener('click', checkAnswer);
+  el.next.addEventListener('click', nextQuestion);
+  document.getElementById('celebNext').addEventListener('click', nextQuestion);
+})();
 </script>
 </body>
 </html>

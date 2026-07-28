@@ -704,60 +704,72 @@ function showXPPop(text){
    they answer. Whether it is required, optional or absent is
    decided by the curriculum — Megha sets it per level under
    "Abacus Mode & Operations" — not by the child and not here.
+
+   There are two worksheet UIs on this page: the inline card
+   solver and the fullscreen solver. Every route opens the
+   fullscreen one, so both must build the abacus the same way.
+   Hence one builder, called from both.
    ─────────────────────────────────────────────────────────── */
 var abacusInstances = {};
 
-function mountAbacusSlots() {
-  if (typeof Abacus === 'undefined' || typeof abacusModeFor !== 'function') return;
+function buildAbacusFor(wsId, inputEl) {
+  if (typeof Abacus === 'undefined' || typeof abacusModeFor !== 'function') return null;
 
+  var sheet = (allWs || []).find(function (w) { return w.id === wsId; }) || {};
+  var level = (currentUser && currentUser.current_level != null) ? currentUser.current_level : 0;
+  var mode  = abacusModeFor(level, sheet.concept || '');
+
+  var box = document.createElement('div');
+  box.className = 'abacus-slot';
+  box.setAttribute('data-mounted', '1');   // keeps the observer off it
+
+  if (mode === 'mental') {
+    box.innerHTML = '<div class="abacus-note abacus-note-mental">🧠 ' +
+                    abacusModeLabel(mode) + '</div>';
+    return box;
+  }
+
+  var head = document.createElement('div');
+  head.className = 'abacus-note';
+  head.textContent = (mode === 'guided' ? '✨ ' : '🧮 ') + abacusModeLabel(mode);
+  box.appendChild(head);
+
+  var host = document.createElement('div');
+  box.appendChild(host);
+
+  abacusInstances[wsId] = Abacus.mount(host, {
+    sound: true,
+    onChange: function (value) {
+      if (!inputEl || inputEl.disabled) return;
+      inputEl.value = (value === 0) ? '' : String(value);
+      inputEl.classList.remove('correct', 'wrong');
+    }
+  });
+
+  // Where the curriculum requires the abacus, the beads are the only
+  // way in. Typing would let a child bypass what they came to learn.
+  if (inputEl && !typingAllowed(mode)) {
+    inputEl.readOnly    = true;
+    inputEl.placeholder = 'Use the abacus below';
+    inputEl.style.cursor = 'default';
+  }
+
+  return box;
+}
+
+// The inline card solver renders from a template string, so its
+// slot arrives empty and is filled here.
+function mountAbacusSlots() {
   document.querySelectorAll('.abacus-slot:not([data-mounted])').forEach(function (slot) {
     slot.setAttribute('data-mounted', '1');
-
     var wsId  = slot.getAttribute('data-ws');
     var idx   = slot.getAttribute('data-idx');
-    var sheet = allWs.find(function (w) { return w.id === wsId; }) || {};
-    var level = (currentUser && currentUser.current_level != null) ? currentUser.current_level : 0;
-    var mode  = abacusModeFor(level, sheet.concept || '');
-
-    if (mode === 'mental') {
-      slot.innerHTML = '<div class="abacus-note abacus-note-mental">🧠 ' +
-                       abacusModeLabel(mode) + '</div>';
-      return;
-    }
-
-    var head = document.createElement('div');
-    head.className = 'abacus-note';
-    head.textContent = (mode === 'guided' ? '✨ ' : '🧮 ') + abacusModeLabel(mode);
-    slot.appendChild(head);
-
-    var host = document.createElement('div');
-    slot.appendChild(host);
-
     var input = document.getElementById('inp-' + wsId + '-' + idx);
-
-    abacusInstances[wsId] = Abacus.mount(host, {
-      sound: true,
-      onChange: function (value) {
-        if (!input || input.disabled) return;
-        input.value = (value === 0) ? '' : String(value);
-        input.classList.remove('correct', 'wrong');
-      }
-    });
-
-    // Where the curriculum requires the abacus, the beads are the
-    // only way in. Typing would let a child bypass the very thing
-    // they are here to learn.
-    if (input && !typingAllowed(mode)) {
-      input.readOnly    = true;
-      input.placeholder = 'Use the abacus below';
-      input.style.cursor = 'default';
-    }
+    var built = buildAbacusFor(wsId, input);
+    if (built) while (built.firstChild) slot.appendChild(built.firstChild);
   });
 }
 
-// Slots appear whenever a worksheet opens or a question changes.
-// Watching the DOM beats remembering to call this from every
-// place that re-renders.
 new MutationObserver(mountAbacusSlots).observe(document.body, { childList: true, subtree: true });
 
 async function init(){
@@ -912,6 +924,12 @@ function showFsQuestion() {
     inputWrap.appendChild(prevBtn);
   }
   wrap.appendChild(inputWrap);
+
+  // Abacus below the check button, per Megha's layout:
+  // question -> answer box -> check -> abacus
+  var ab = buildAbacusFor(fsCurrentWsId, input);
+  if (ab) wrap.appendChild(ab);
+
   body.appendChild(wrap);
   setTimeout(function() { input.focus(); }, 100);
 }

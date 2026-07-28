@@ -46,7 +46,18 @@ async function init() {
     renderTodaysQuest(session.user.id, batchIds);
 
     // Sticker book — the child's real collection
-    if (profileFor(group).show.stickers) fillStickerBook(session.user.id);
+    if (profileFor(group).show.stickers) {
+      // One streak sticker per day, for showing up. awardSticker
+      // enforces the daily cap, so this is safe to call on every load.
+      if ((profile.streak_days || 0) > 0) {
+        awardSticker(session.user.id, 'streak').then(function (s) {
+          if (s) showStickerReward(s, function () { fillStickerBook(session.user.id); });
+          else fillStickerBook(session.user.id);
+        });
+      } else {
+        fillStickerBook(session.user.id);
+      }
+    }
 
     // Voice reading for tiny champs
     setupVoiceReading(group);

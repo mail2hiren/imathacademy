@@ -244,7 +244,7 @@ async function renderTodaysQuest(userId, batchIds) {
   }
   try {
     const { data: allWs } = await sb.from('lx_worksheets')
-      .select('id, title, questions_count, student_id, batch_id')
+      .select('id, title, student_id, batch_id')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
       .limit(10);
@@ -265,7 +265,7 @@ async function renderTodaysQuest(userId, batchIds) {
 
     const isDone  = doneIds.has(quest.id);
     const qTitle  = quest.title || 'Practice Quest';
-    const qCount  = quest.questions_count ? quest.questions_count + ' questions' : 'Complete your daily quest';
+    const qCount  = 'Tap to start your worksheet';
 
     card.innerHTML = `
       <div style="background:linear-gradient(135deg,#1B5E20,#2E7D32);border-radius:18px;padding:16px;margin-bottom:14px;color:#fff;box-shadow:0 4px 16px rgba(27,94,32,.3);position:relative;overflow:hidden;">

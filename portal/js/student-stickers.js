@@ -45,12 +45,19 @@ var STICKER_DEFS = [
   { key: 'diamond',   emoji: '💎', name: 'Diamond',    tier: 'shiny' }
 ];
 
-// What each kind of achievement is worth
+// What each kind of achievement is worth.
+//
+// THE CAP: one sticker per worksheet, plus one per day for keeping
+// the streak. Generous enough to feel rewarding every session,
+// scarce enough that the collection still means something.
+//
+// Practice deliberately does not pay out on its own — it feeds the
+// daily streak sticker instead. Otherwise a child could farm stickers
+// by starting practice sessions over and over.
 var STICKER_RULES = {
-  worksheet:  'common',   // finished a worksheet
-  practice:   'common',   // five correct in a row
-  streak:     'common',   // another day in the streak
-  perfect:    'rare',     // full marks
+  worksheet:  'common',   // finished a worksheet — once per worksheet
+  perfect:    'rare',     // full marks on a worksheet — replaces the common one
+  streak:     'common',   // kept the streak — once per day
   quiz:       'rare',     // weekly challenge
   levelup:    'shiny',    // moved up a level
   bonus:      'rare'      // teacher awarded it by hand
@@ -72,31 +79,73 @@ function pickSticker(tier) {
 }
 
 /**
- * Award a sticker and save it.
- * @param {string} studentId
- * @param {string} reason  key of STICKER_RULES: worksheet, practice, streak, perfect, quiz, levelup, bonus
- * @returns {Promise<object|null>} the sticker awarded, or null if saving failed
+ * Has this child already been paid out for this thing?
+ * Worksheets are capped per worksheet, streaks per calendar day.
  */
-async function awardSticker(studentId, reason) {
+async function canEarnSticker(studentId, reason, refId) {
+  try {
+    // One per worksheet, keyed on the worksheet id
+    if (reason === 'worksheet' || reason === 'perfect') {
+      if (!refId) return true;               // nothing to key on, allow it
+      var ws = await sb.from('student_stickers')
+        .select('id').eq('student_id', studentId).eq('ref_id', refId).limit(1);
+      return !(ws.data && ws.data.length);
+    }
+
+    // One per calendar day for the streak
+    if (reason === 'streak') {
+      var midnight = new Date();
+      midnight.setHours(0, 0, 0, 0);
+      var st = await sb.from('student_stickers')
+        .select('id')
+        .eq('student_id', studentId)
+        .eq('source', 'streak')
+        .gte('earned_at', midnight.toISOString())
+        .limit(1);
+      return !(st.data && st.data.length);
+    }
+  } catch (e) {
+    console.warn('Sticker cap check failed, allowing:', e.message);
+  }
+  // quiz, levelup and teacher bonuses are rare events — not capped here
+  return true;
+}
+
+/**
+ * Award a sticker and save it.
+ *
+ * @param {string} studentId
+ * @param {string} reason  worksheet | perfect | streak | quiz | levelup | bonus
+ * @param {string} [refId] the worksheet id, so the same sheet cannot pay twice
+ * @returns {Promise<object|null>} the sticker awarded, or null if capped or failed
+ */
+async function awardSticker(studentId, reason, refId) {
+  if (!(await canEarnSticker(studentId, reason, refId))) return null;
+
   var tier    = STICKER_RULES[reason] || 'common';
   var sticker = pickSticker(tier);
 
-  // The DB only records how it was earned, not the tier
-  var source = ['worksheet', 'practice', 'streak', 'quiz', 'bonus'].indexOf(reason) > -1
-    ? reason
-    : (reason === 'perfect' ? 'worksheet' : 'bonus');
+  // The row records how it was earned, not which tier it was
+  var source = reason === 'perfect' ? 'worksheet'
+             : (['worksheet', 'streak', 'quiz', 'levelup', 'bonus'].indexOf(reason) > -1 ? reason : 'bonus');
 
   try {
     var res = await sb.from('student_stickers').insert({
       student_id:  studentId,
       sticker_key: sticker.key,
-      source:      source
+      source:      source,
+      ref_id:      refId || null
     });
-    if (res.error) throw res.error;
+    // A unique-index violation means two requests raced. The cap held,
+    // which is the correct outcome — just do not award twice.
+    if (res.error) {
+      if (String(res.error.code) === '23505') return null;
+      throw res.error;
+    }
     return sticker;
   } catch (e) {
     console.warn('Could not save sticker:', e.message);
-    return null;   // never block the child's session over a sticker
+    return null;   // never block a child's session over a sticker
   }
 }
 

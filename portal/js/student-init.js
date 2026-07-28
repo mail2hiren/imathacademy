@@ -20,7 +20,12 @@ async function init() {
     // Load curriculum level names before rendering anything
     await loadLevels();
 
-    const group = getGroup(profile);
+    // Age group. A ?preview=tiny|rising|champions parameter lets staff
+    // inspect any age group's screen without creating test accounts.
+    // Nothing is written and no student ever passes this parameter.
+    const forced = previewGroup();
+    const group  = forced || getGroup(profile);
+    if (forced) renderPreviewBar(forced, getGroup(profile));
 
     // Load stats and notifications in parallel
     const [stats] = await Promise.all([
@@ -357,4 +362,58 @@ function setupVoiceReading(group) {
       (streak > 0 ? 'You have a ' + streak + ' day streak. Amazing!' : "Ready to do some maths magic today?");
     speakText(msg);
   }, 1200);
+}
+
+
+// ── AGE GROUP PREVIEW (staff tool) ───────────────────────────
+// Visit dashboard.html?preview=tiny   (or rising / champions)
+// Renders that age group's layout without changing any data.
+function previewGroup() {
+  var g = new URLSearchParams(location.search).get('preview');
+  return ['tiny', 'rising', 'champions'].indexOf(g) > -1 ? g : null;
+}
+
+function renderPreviewBar(showing, realGroup) {
+  if (document.getElementById('previewBar')) return;
+
+  var LABEL = { tiny: 'Tiny Champs 5–7', rising: 'Rising Stars 8–10', champions: 'Champions 11–14' };
+  var css = document.createElement('style');
+  css.textContent =
+    '#previewBar{position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#111827;' +
+    'border-top:2px solid #F9A825;padding:8px 12px calc(8px + env(safe-area-inset-bottom));' +
+    'font-family:Nunito,sans-serif;color:#fff;box-shadow:0 -4px 16px rgba(0,0,0,.4);}' +
+    '#previewBar .pv-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;}' +
+    '#previewBar .pv-tag{font-size:.58rem;font-weight:900;letter-spacing:.6px;text-transform:uppercase;' +
+    'color:#F9A825;width:100%;text-align:center;margin-bottom:5px;}' +
+    '#previewBar .pv-chip{padding:5px 12px;border-radius:20px;border:1.5px solid rgba(255,255,255,.2);' +
+    'background:transparent;color:rgba(255,255,255,.6);font-family:inherit;font-size:.7rem;' +
+    'font-weight:800;cursor:pointer;white-space:nowrap;}' +
+    '#previewBar .pv-chip.on{background:#F9A825;border-color:#F9A825;color:#1A1A2E;}' +
+    '#previewBar .pv-chip.pv-exit{border-color:rgba(255,255,255,.35);color:rgba(255,255,255,.8);}' +
+    'body{padding-bottom:96px;}';
+  document.head.appendChild(css);
+
+  var bar = document.createElement('div');
+  bar.id = 'previewBar';
+
+  var chips = ['tiny', 'rising', 'champions'].map(function (g) {
+    return '<button class="pv-chip' + (g === showing ? ' on' : '') + '" data-g="' + g + '">' +
+           LABEL[g] + '</button>';
+  }).join('');
+
+  bar.innerHTML =
+    '<div class="pv-tag">Preview mode · this student is actually ' + LABEL[realGroup] + '</div>' +
+    '<div class="pv-row">' + chips + '<button class="pv-chip pv-exit" data-g="">Exit</button></div>';
+
+  document.body.appendChild(bar);
+
+  bar.addEventListener('click', function (ev) {
+    var btn = ev.target.closest('.pv-chip');
+    if (!btn) return;
+    var g = btn.getAttribute('data-g');
+    var url = new URL(location.href);
+    if (g) url.searchParams.set('preview', g);
+    else   url.searchParams.delete('preview');
+    location.href = url.toString();
+  });
 }

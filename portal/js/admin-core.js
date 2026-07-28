@@ -16,6 +16,15 @@ var allPricing   = [];
 var currentTab   = 'overview';
 var confirmCallback = null;
 var currentPricingCountry = 'IN';
+var allSubs      = [];
+var allEnquiries = [];
+
+// Subscription plans reference
+const SUB_PLANS = {
+  monthly:    { label: 'Monthly',     days: 30,  amount: 199  },
+  halfyearly: { label: 'Half-yearly', days: 180, amount: 1099 },
+  annual:     { label: 'Annual',      days: 365, amount: 1999 },
+};
 
 function toast(msg, type = 'success') {
   const wrap = document.getElementById('toastWrap');

@@ -186,7 +186,6 @@ function quickChangeProgram(id, name, currentProgram, currentLevel) {
 
 // ── AUTH ────────────────────────────────────────────────────
 // ── SUBSCRIPTIONS ───────────────────────────────────────────
-let allSubs = [], subsFilter = 'all';
 
 const SUB_PLANS = {
   monthly:    { label: 'Monthly',     amount: 199,  days: 30  },

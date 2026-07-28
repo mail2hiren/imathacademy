@@ -45,6 +45,9 @@ async function init() {
     // Today's quest card
     renderTodaysQuest(session.user.id, batchIds);
 
+    // Sticker book — the child's real collection
+    if (profileFor(group).show.stickers) fillStickerBook(session.user.id);
+
     // Voice reading for tiny champs
     setupVoiceReading(group);
 

@@ -606,64 +606,75 @@ function selectLevel(el, lv) {
 }
 
 function filterConceptsForLevel(lv) {
+  var opts = document.querySelectorAll('.concept-opt');
+
+  function enableAll() {
+    opts.forEach(function(opt) {
+      opt.style.opacity = '1';
+      opt.style.pointerEvents = '';
+      opt.title = '';
+    });
+  }
+
   var curr = CURRICULUM[lv];
-  if (!curr || !curr.concepts.length) return; // no curriculum data — show all
+  // No curriculum data for this level — never lock the teacher out
+  if (!curr || !curr.concepts || !curr.concepts.length) { enableAll(); return; }
 
-  // Concepts that are NOT 'N' (not applicable) at this level
-  var validCodes = {};
+  // Map a curriculum concept_code to LX concept values using keywords,
+  // so naming variations in the database still resolve correctly.
+  function toLxValues(rawCode) {
+    var c = String(rawCode || '').toLowerCase();
+    if (c.indexOf('big') > -1 && c.indexOf('friend') > -1)   return ['big_friends'];
+    if (c.indexOf('small') > -1 && c.indexOf('friend') > -1) return ['small_friends'];
+    if (c.indexOf('combin') > -1 || c.indexOf('mixed') > -1) return ['combination'];
+    if (c.indexOf('anzan') > -1 || c.indexOf('mental') > -1 || c.indexOf('visual') > -1) return ['anzan'];
+    if (c.indexOf('multipl') > -1 || c.indexOf('times') > -1) return ['multiplication'];
+    if (c.indexOf('divi') > -1) return ['division'];
+    if (c.indexOf('revis') > -1 || c.indexOf('review') > -1) return ['revision'];
+    // direct add/sub, counting, number recognition, decimals, negatives, anything else
+    return ['add_sub'];
+  }
+
+  var validLxVals = new Set(['revision']); // revision is always available
   curr.concepts.forEach(function(c) {
-    if (c.status !== 'N') validCodes[c.code] = c.status;
+    if (c.status === 'N') return; // not applicable at this level
+    toLxValues(c.code).forEach(function(v) { validLxVals.add(v); });
   });
 
-  // Map curriculum concept codes to LX designer concept values
-  var codeMap = {
-    'direct_add':     ['add_sub'],
-    'direct_sub':     ['add_sub'],
-    'counting':       ['add_sub'],
-    'number_recog':   ['add_sub'],
-    'big_friends':    ['big_friends'],
-    'small_friends':  ['small_friends'],
-    'combination':    ['combination'],
-    'anzan':          ['anzan'],
-    'multiplication': ['multiplication'],
-    'division':       ['division'],
-    'decimals':       ['add_sub'],
-    'negative':       ['add_sub'],
-    'revision':       ['revision'],
-  };
+  // Safety net: if the mapping produced almost nothing, the curriculum data
+  // does not line up with these options — show everything rather than
+  // leaving the teacher with a dead panel.
+  if (validLxVals.size < 2) { enableAll(); return; }
 
-  // Build set of valid LX values
-  var validLxVals = new Set(['revision']); // revision always available
-  Object.keys(validCodes).forEach(function(code) {
-    var mapped = codeMap[code];
-    if (mapped) mapped.forEach(function(v) { validLxVals.add(v); });
-  });
+  var firstValidEl = null;
+  var selectedStillValid = false;
 
-  // Show/hide concept options
-  document.querySelectorAll('.concept-opt').forEach(function(opt) {
+  opts.forEach(function(opt) {
     var inp = opt.querySelector('input');
     if (!inp) return;
     var val = inp.value;
     var isValid = validLxVals.has(val);
-    opt.style.opacity = isValid ? '1' : '0.3';
+    opt.style.opacity = isValid ? '1' : '0.35';
     opt.style.pointerEvents = isValid ? '' : 'none';
-    opt.title = isValid ? '' : 'Not available at Level ' + lv;
-    // If currently selected concept becomes invalid, reset to first valid
-    if (!isValid && selectedConcept === val) {
-      var firstValid = document.querySelector('.concept-opt[style*="opacity: 1"], .concept-opt:not([style])');
-      if (firstValid) firstValid.click();
+    opt.title = isValid ? '' : 'Not taught at Level ' + lv;
+    if (isValid) {
+      if (!firstValidEl) firstValidEl = opt;
+      if (selectedConcept === val) selectedStillValid = true;
     }
   });
 
-  // Update curriculum info panel if it exists
+  // If the current selection is no longer valid, move to the first valid one
+  if (!selectedStillValid && firstValidEl) firstValidEl.click();
+
+  // Update curriculum info panel if present
   var infoEl = document.getElementById('curriculumInfo');
   if (infoEl && curr.level) {
     var lvData = curr.level;
     var info = '';
-    if (lvData.min_digits) info += 'Digits: ' + lvData.min_digits + '-' + lvData.max_digits + ' &nbsp;·&nbsp; ';
-    if (lvData.max_number) info += 'Max number: ' + lvData.max_number + ' &nbsp;·&nbsp; ';
+    if (lvData.min_digits) info += 'Digits: ' + lvData.min_digits + '-' + lvData.max_digits + ' &nbsp;\u00b7&nbsp; ';
+    if (lvData.max_number) info += 'Max number: ' + lvData.max_number + ' &nbsp;\u00b7&nbsp; ';
     if (lvData.min_rows)   info += 'Rows: ' + lvData.min_rows + '-' + lvData.max_rows;
-    infoEl.innerHTML = info ? '<span style="font-size:.72rem;color:var(--text3);">📚 ' + info + '</span>' : '';
+    infoEl.innerHTML = info ? '<span style="font-size:.72rem;color:var(--text3);">\ud83d\udcda ' + info + '</span>' : '';
   }
 }
 

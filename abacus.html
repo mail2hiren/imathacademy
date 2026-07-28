@@ -338,17 +338,12 @@ function build() {
   var totalW = hRow.offsetWidth || (N*(BW+3));
   var colW = totalW / N;
 
-  // Decimal separator line between rod 9 (vi=8) and rod 10 (vi=9)
-  var decSep = document.createElement('div');
-  decSep.className = 'decimal-sep';
-  var decLeft = (DEC_VI) * colW - 1; // left edge of rod 10
-  decSep.style.left = decLeft + 'px';
-  divW.appendChild(decSep);
+  // No yellow line — decimal boundary shown by dot colour only
 
   // Unit dots at vi = 2,5,8,11,14
   DOT_VIS.forEach(function(dvi) {
     var dot = document.createElement('div');
-    dot.className = 'unit-dot' + (dvi===ONES_VI ? ' ones' : '');
+    dot.className = 'unit-dot';
     // Centre of rod column
     var left = (dvi + 0.5) * colW;
     dot.style.left = left + 'px';

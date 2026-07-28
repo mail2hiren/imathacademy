@@ -282,3 +282,6 @@
     .vc-title { font-size:.95rem; font-weight:800; margin-bottom:3px; }
     .vc-meta { font-size:.75rem; opacity:.85; }
     .vc-join { background:rgba(255,255,255,.2); border:2px solid rgba(255,255,255,.4); color:#fff; padding:8px 16px; border-radius:10px; font-family:inherit; font-size:.82rem; font-weight:800; cursor:pointer; white-space:nowrap; text-decoration:none; flex-shrink:0; }
+  
+
+@keyframes spin { to { transform: rotate(360deg); } }

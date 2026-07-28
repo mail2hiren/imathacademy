@@ -22,15 +22,29 @@ create table if not exists student_stickers (
   sticker_key  text not null,
 
   -- what the child did to earn it
-  source       text not null default 'practice'
-               check (source in ('worksheet','practice','streak','quiz','bonus')),
+  source       text not null default 'worksheet'
+               check (source in ('worksheet','streak','quiz','levelup','bonus')),
+
+  -- What it was earned for. For a worksheet this is the worksheet id,
+  -- which is what enforces "one sticker per worksheet" — a child cannot
+  -- redo the same sheet to farm stickers.
+  ref_id       uuid,
 
   earned_at    timestamptz not null default now()
 );
 
--- No unique constraint. Duplicates are intentional.
+-- Duplicate sticker *kinds* are intentional — three cats is fine.
+-- But the same worksheet must never pay out twice.
+create unique index if not exists uq_sticker_per_worksheet
+  on student_stickers (student_id, ref_id)
+  where ref_id is not null;
+
 create index if not exists idx_stickers_student
   on student_stickers (student_id, earned_at desc);
+
+-- Supports the "one streak sticker per day" check
+create index if not exists idx_stickers_source_day
+  on student_stickers (student_id, source, earned_at desc);
 
 comment on table student_stickers is
   'Collectible stickers. Duplicates are intentional — the collection growing is the motivator, not scarcity.';

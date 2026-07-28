@@ -659,6 +659,8 @@ async function submitWorksheet(wsId, qs){
   }catch(e){console.error('submit error:',e);}
 
   showXPPop(`+${xp} XP! 🎉`);
+  // Store for dashboard celebration overlay
+  try { sessionStorage.setItem('celebrationData', JSON.stringify({score, total, xp, wsId})); } catch(e) {}
 
   // Re-render card with result
   const card=document.getElementById('card-'+wsId);

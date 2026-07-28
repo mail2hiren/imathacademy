@@ -103,3 +103,121 @@ function abacusModeLabel(mode) {
 function typingAllowed(mode) {
   return mode === 'optional' || mode === 'mental';
 }
+
+
+/* ============================================================
+   LEVEL COMPLETION
+   ------------------------------------------------------------
+   A child completes a level by clearing three gates:
+
+     1. every worksheet for the level submitted
+     2. enough practice sessions   (Megha sets the number)
+     3. a pass on the level test   (Megha sets the mark)
+
+   Only then the certificate, and only then the next level.
+   ============================================================ */
+
+/**
+ * Where is this child against the three gates?
+ * Always resolves — a query failure reports the gate as incomplete
+ * rather than throwing, so a child is never wrongly advanced.
+ */
+async function levelProgress(studentId, level) {
+  var code  = 'L' + level;
+  var rules = await loadCurriculumRules(level);
+
+  var out = {
+    levelCode: code,
+    levelName: rules.level_name || ('Level ' + level),
+    worksheets: { done: 0, total: 0, complete: false },
+    practice:   { done: 0, required: rules.required_practice_sessions || 20, complete: false },
+    test:       { exists: false, attempted: false, score: null,
+                  passMark: rules.test_pass_mark || 80, passed: false },
+    canComplete: false,
+    alreadyCompleted: false
+  };
+
+  try {
+    // Already certified? Then everything is settled.
+    var done = await sb.from('student_level_completions')
+      .select('certificate_number, completed_at')
+      .eq('student_id', studentId).eq('level_code', code).limit(1);
+    if (done.data && done.data.length) {
+      out.alreadyCompleted   = true;
+      out.certificateNumber  = done.data[0].certificate_number;
+      out.completedAt        = done.data[0].completed_at;
+    }
+
+    // Which batches is this child in?
+    var bl = await sb.from('batch_students').select('batch_id').eq('student_id', studentId);
+    var batchIds = (bl.data || []).map(function (b) { return b.batch_id; });
+
+    // Everything assigned to them at this level
+    var filter = 'student_id.eq.' + studentId;
+    if (batchIds.length) filter += ',batch_id.in.(' + batchIds.join(',') + ')';
+
+    var ws = await sb.from('lx_worksheets')
+      .select('id, is_level_test')
+      .eq('is_active', true).eq('level_code', code).or(filter);
+    var all = ws.data || [];
+
+    var practiceSheets = all.filter(function (w) { return !w.is_level_test; });
+    var testSheets     = all.filter(function (w) { return  w.is_level_test; });
+
+    // What have they submitted?
+    var rs = await sb.from('worksheet_responses')
+      .select('worksheet_id, score, total').eq('student_id', studentId);
+    var byId = {};
+    (rs.data || []).forEach(function (r) { byId[r.worksheet_id] = r; });
+
+    // ── Gate 1 — worksheets ──────────────────────────────────
+    out.worksheets.total = practiceSheets.length;
+    out.worksheets.done  = practiceSheets.filter(function (w) { return byId[w.id]; }).length;
+    out.worksheets.complete =
+      out.worksheets.total > 0 && out.worksheets.done >= out.worksheets.total;
+
+    // ── Gate 2 — practice ────────────────────────────────────
+    var ps = await sb.from('practice_sessions')
+      .select('id').eq('student_id', studentId);
+    out.practice.done     = (ps.data || []).length;
+    out.practice.complete = out.practice.done >= out.practice.required;
+
+    // ── Gate 3 — the level test ──────────────────────────────
+    out.test.exists = testSheets.length > 0;
+    var best = null;
+    testSheets.forEach(function (t) {
+      var r = byId[t.id];
+      if (!r || !r.total) return;
+      var pct = Math.round(r.score / r.total * 100);
+      if (best === null || pct > best) best = pct;
+    });
+    if (best !== null) {
+      out.test.attempted = true;
+      out.test.score     = best;
+      out.test.passed    = best >= out.test.passMark;
+    }
+
+    out.canComplete = out.worksheets.complete &&
+                      out.practice.complete &&
+                      out.test.passed &&
+                      !out.alreadyCompleted;
+
+  } catch (e) {
+    console.warn('levelProgress:', e.message);
+  }
+
+  return out;
+}
+
+/** One line saying what is still standing between the child and the certificate. */
+function nextStepFor(p) {
+  if (p.alreadyCompleted)      return 'Level complete! Certificate ' + (p.certificateNumber || 'issued') + ' 🎓';
+  if (!p.worksheets.complete)  return (p.worksheets.total - p.worksheets.done) + ' more worksheet' +
+                                      ((p.worksheets.total - p.worksheets.done) === 1 ? '' : 's') + ' to finish';
+  if (!p.practice.complete)    return (p.practice.required - p.practice.done) + ' more practice session' +
+                                      ((p.practice.required - p.practice.done) === 1 ? '' : 's');
+  if (!p.test.exists)          return 'Waiting for your teacher to set the level test';
+  if (!p.test.attempted)       return 'Take the level test — you are ready!';
+  if (!p.test.passed)          return 'Try the level test again — you need ' + p.test.passMark + '%';
+  return 'Ready for your certificate! 🎓';
+}

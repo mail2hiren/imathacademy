@@ -181,7 +181,12 @@
     .shake{animation:shake .3s ease;}
     .celebrate{animation:popIn .3s ease;}
 
-  </style>
+  
+/* Abacus inside a worksheet */
+.abacus-slot { margin-top: 14px; }
+.abacus-note { font-size:.78rem; font-weight:800; color:var(--text2); text-align:center; margin-bottom:8px; }
+.abacus-note-mental { background:#EDE7F6; border:1.5px solid #B39DDB; border-radius:12px; padding:12px; color:#4A148C; }
+</style>
 </head>
 <body>
 <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;"></div>
@@ -245,6 +250,9 @@
 </div></nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="../css/abacus.css">
+<script src="../js/abacus.js"></script>
+<script src="../js/curriculum.js"></script>
 <script src="../js/student-stickers.js"></script>
 <script>
 const SUPABASE_URL='https://bhullfoajenhkxlkiubs.supabase.co';
@@ -496,6 +504,7 @@ function renderSolver(ws,qs,r,status){
       ${cur>0?`<button class="q-nav-btn btn-prev" onclick="prevQ('${ws.id}')">← Back</button>`:''}
       <button class="q-nav-btn btn-check" id="checkBtn-${ws.id}" onclick="checkAnswer('${ws.id}',${cur},'${encodeAnswers(qs)}')">Check answer</button>
     </div>`:''}
+    ${qs.length?`<div class="abacus-slot" data-ws="${ws.id}" data-idx="${cur}"></div>`:''}
   </div>`;
 }
 
@@ -689,6 +698,68 @@ function showXPPop(text){
 }
 
 // ── INIT ──────────────────────────────────────────────────
+
+/* ── ABACUS IN THE WORKSHEET ──────────────────────────────────
+   Children are here to learn the abacus, so the abacus is how
+   they answer. Whether it is required, optional or absent is
+   decided by the curriculum — Megha sets it per level under
+   "Abacus Mode & Operations" — not by the child and not here.
+   ─────────────────────────────────────────────────────────── */
+var abacusInstances = {};
+
+function mountAbacusSlots() {
+  if (typeof Abacus === 'undefined' || typeof abacusModeFor !== 'function') return;
+
+  document.querySelectorAll('.abacus-slot:not([data-mounted])').forEach(function (slot) {
+    slot.setAttribute('data-mounted', '1');
+
+    var wsId  = slot.getAttribute('data-ws');
+    var idx   = slot.getAttribute('data-idx');
+    var sheet = allWs.find(function (w) { return w.id === wsId; }) || {};
+    var level = (currentUser && currentUser.current_level != null) ? currentUser.current_level : 0;
+    var mode  = abacusModeFor(level, sheet.concept || '');
+
+    if (mode === 'mental') {
+      slot.innerHTML = '<div class="abacus-note abacus-note-mental">🧠 ' +
+                       abacusModeLabel(mode) + '</div>';
+      return;
+    }
+
+    var head = document.createElement('div');
+    head.className = 'abacus-note';
+    head.textContent = (mode === 'guided' ? '✨ ' : '🧮 ') + abacusModeLabel(mode);
+    slot.appendChild(head);
+
+    var host = document.createElement('div');
+    slot.appendChild(host);
+
+    var input = document.getElementById('inp-' + wsId + '-' + idx);
+
+    abacusInstances[wsId] = Abacus.mount(host, {
+      sound: true,
+      onChange: function (value) {
+        if (!input || input.disabled) return;
+        input.value = (value === 0) ? '' : String(value);
+        input.classList.remove('correct', 'wrong');
+      }
+    });
+
+    // Where the curriculum requires the abacus, the beads are the
+    // only way in. Typing would let a child bypass the very thing
+    // they are here to learn.
+    if (input && !typingAllowed(mode)) {
+      input.readOnly    = true;
+      input.placeholder = 'Use the abacus below';
+      input.style.cursor = 'default';
+    }
+  });
+}
+
+// Slots appear whenever a worksheet opens or a question changes.
+// Watching the DOM beats remembering to call this from every
+// place that re-renders.
+new MutationObserver(mountAbacusSlots).observe(document.body, { childList: true, subtree: true });
+
 async function init(){
   try{
     const{data:{session}}=await sb.auth.getSession();
@@ -696,6 +767,8 @@ async function init(){
     const{data:profile}=await sb.from('users').select('*').eq('id',session.user.id).single();
     if(!profile||profile.role!=='student'){window.location.href='../../login.html';return;}
     currentUser={...profile,id:session.user.id};
+    // The curriculum decides how the abacus behaves at this level
+    try { await loadCurriculumRules(currentUser.current_level ?? 0); } catch(e) {}
     const ok=await checkSub(session.user.id);
     if(!ok) return;
 

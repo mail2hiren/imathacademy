@@ -285,3 +285,91 @@
   
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── STICKER BOOK ─────────────────────────────────────────────
+   Prefixed sb- to avoid colliding with the older .sticker-*
+   rules further up this file, which style a different component.
+   ─────────────────────────────────────────────────────────── */
+.sb-book {
+  background: linear-gradient(150deg, #FFFDF5, #FFF3D6);
+  border: 2px solid #F9A825;
+  border-radius: 18px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.sb-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.sb-title {
+  font-size: .95rem;
+  font-weight: 900;
+  color: #E65100;
+}
+.sb-count {
+  font-size: .72rem;
+  font-weight: 800;
+  color: #F57F17;
+  white-space: nowrap;
+}
+.sb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 8px;
+}
+.sb-item {
+  aspect-ratio: 1;
+  border-radius: 14px;
+  background: rgba(255,255,255,.5);
+  border: 2px dashed rgba(249,168,37,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.sb-item.sb-got {
+  background: #fff;
+  border: 2px solid #F9A825;
+  box-shadow: 0 2px 8px rgba(245,124,0,.22);
+}
+.sb-emoji {
+  font-size: 1.75rem;
+  line-height: 1;
+  filter: grayscale(1);
+  opacity: .22;          /* not yet collected — a hint, not a blank */
+}
+.sb-item.sb-got .sb-emoji {
+  filter: none;
+  opacity: 1;
+}
+.sb-dupe {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: #E65100;
+  color: #fff;
+  font-size: .66rem;
+  font-weight: 900;
+  line-height: 19px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,.25);
+}
+.sb-caption {
+  margin-top: 11px;
+  font-size: .75rem;
+  font-weight: 700;
+  color: #F57F17;
+  text-align: center;
+}
+
+@media (max-width: 380px) {
+  .sb-grid  { grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); gap: 6px; }
+  .sb-emoji { font-size: 1.5rem; }
+}

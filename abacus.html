@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Abacus — iMathAcademy</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Baloo+2:wght@800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="portal/css/abacus.css">
+<link rel="stylesheet" href="portal/css/abacus.css?v=2">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; background: #1A1A2E; color: #fff; font-family: 'Nunito', sans-serif; }
@@ -109,9 +109,16 @@
   </div>
 </div>
 
-<script src="portal/js/abacus.js"></script>
+<script src="portal/js/abacus.js?v=2"></script>
 <script>
 (function () {
+  if (typeof Abacus === 'undefined') {
+    document.getElementById('abacusSlot').innerHTML =
+      '<div style="padding:20px;text-align:center;color:#EF9A9A;font-weight:800;">' +
+      'Abacus component failed to load.<br><span style="font-weight:600;opacity:.8;font-size:.8rem;">' +
+      'Check the Network tab for portal/js/abacus.js</span></div>';
+    return;
+  }
   var abacus = Abacus.mount(document.getElementById('abacusSlot'), { sound: true });
 
   var mode = 'free', target = null, score = { correct: 0, total: 0 };

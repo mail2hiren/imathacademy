@@ -680,6 +680,48 @@
 
       </div>
 
+
+      <!-- ══ ENQUIRIES ══ -->
+      <div id="tab-enquiries" class="tab-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+          <div>
+            <h2 style="font-size:1.1rem;font-weight:900;color:var(--text1)">📬 Enquiries</h2>
+            <p style="font-size:.78rem;color:var(--text3);margin-top:2px;">
+              <span id="enq-count">0</span> total ·
+              <span id="enq-today">0</span> today
+            </p>
+          </div>
+        </div>
+
+        <!-- Filter buttons -->
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+          <button class="btn btn-blue btn-sm enq-filter" onclick="filterEnquiries('all',this)">All</button>
+          <button class="btn btn-ghost btn-sm enq-filter" onclick="filterEnquiries('new',this)">🆕 New</button>
+          <button class="btn btn-ghost btn-sm enq-filter" onclick="filterEnquiries('contacted',this)">✅ Contacted</button>
+          <button class="btn btn-ghost btn-sm enq-filter" onclick="filterEnquiries('converted',this)">🎉 Converted</button>
+        </div>
+
+        <!-- Enquiries table -->
+        <div class="card">
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr>
+                <th>Parent</th>
+                <th>Phone</th>
+                <th>Child</th>
+                <th>Message</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr></thead>
+              <tbody id="enqTbody">
+                <tr><td colspan="7" class="empty">Click Enquiries in the sidebar to load</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /content -->
 
       <!-- PRICING TAB -->
@@ -782,5 +824,6 @@
   <script src="../js/admin-associations.js"></script>
   <script src="../js/admin-subscriptions.js"></script>
   <script src="../js/admin-pricing.js"></script>
+  <script src="../js/admin-enquiries.js"></script>
 </body>
 </html>

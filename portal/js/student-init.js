@@ -17,6 +17,9 @@ async function init() {
     if (error || !profile) { window.location.href = '../../login.html'; return; }
 
     // Determine age group
+    // Load curriculum level names before rendering anything
+    await loadLevels();
+
     const group = getGroup(profile);
 
     // Load stats and notifications in parallel

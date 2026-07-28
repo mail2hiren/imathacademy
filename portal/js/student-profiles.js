@@ -31,11 +31,11 @@ var AGE_PROFILES = {
 
     show: {
       streak:          true,
-      xpBar:           true,
+      xpBar:           false,   // a number means nothing at five — stickers instead
       worksheetCard:   true,
-      stickers:        true,
-      badges:          false,   // stickers instead — badges come later
-      levelProgress:   false,   // an abstract bar means nothing at this age
+      stickers:        true,    // the primary motivator: a collection that grows
+      badges:          false,   // rare achievements come later
+      levelProgress:   false,
       quickActions:    false,   // one action at a time, no menu
       weeklyChallenge: false,
       leaderboard:     false,   // never rank a six-year-old

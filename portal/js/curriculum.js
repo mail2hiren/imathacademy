@@ -70,10 +70,24 @@ async function loadCurriculumRules(level) {
  * @param {number} level         the student's level, 0–8
  * @param {string} [conceptCode] the concept this worksheet covers
  */
-function abacusModeFor(level, conceptCode) {
+function abacusModeFor(level, conceptCode, worksheetOverride) {
   var code  = 'L' + level;
   var rules = CURRICULUM_RULES[code] || {};
-  var mode  = rules.physical_abacus || 'required';
+
+  // A worksheet may override its level. Specific beats general, so
+  // Megha can set one sheet as an Anzan drill without changing the
+  // level and affecting every other sheet at it.
+  var ov = worksheetOverride;
+  if (ov && ov !== 'default') {
+    if (ov === 'mental')   return 'mental';
+    if (ov === 'optional') return 'optional';
+    if (ov === 'required') {
+      var st = (CURRICULUM_STATUS[code] || {})[conceptCode];
+      return st === 'I' ? 'guided' : 'input';
+    }
+  }
+
+  var mode = rules.physical_abacus || 'required';
 
   if (mode === 'not_used') return 'mental';
 

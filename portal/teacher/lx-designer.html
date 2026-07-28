@@ -350,6 +350,15 @@
       <div class="sec-label">5 — Settings</div>
       <div class="form-grid-3" style="margin-bottom:10px;">
         <div class="form-group">
+          <label class="form-label">Abacus</label>
+          <select id="abacusMode">
+            <option value="default" selected>Follow the level</option>
+            <option value="required">Required — beads only</option>
+            <option value="optional">Optional — beads or typing</option>
+            <option value="mental">Mental only — no abacus</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label class="form-label">Difficulty</label>
           <select id="difficulty">
             <option value="very_easy">Very easy</option>
@@ -1456,7 +1465,8 @@ async function assignToStudents() {
       parent_note:  generatedContent.parentnote  || null,
       level:        selectedLevel,
       concept:      selectedConcept,
-      activity:     selectedActivity,
+activity: selectedActivity,
+      abacus_mode: (document.getElementById('abacusMode') || {}).value || 'default',
       batch_id:     batchId   || null,
       student_id:   studentId || null,
       created_by:   session.user.id,

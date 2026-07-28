@@ -717,7 +717,7 @@ function buildAbacusFor(wsId, inputEl) {
 
   var sheet = (allWs || []).find(function (w) { return w.id === wsId; }) || {};
   var level = (currentUser && currentUser.current_level != null) ? currentUser.current_level : 0;
-  var mode  = abacusModeFor(level, sheet.concept || '');
+  var mode  = abacusModeFor(level, sheet.concept || '', sheet.abacus_mode);
 
   var box = document.createElement('div');
   box.className = 'abacus-slot';

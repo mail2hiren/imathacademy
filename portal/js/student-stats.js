@@ -13,6 +13,8 @@ async function loadStats(userId) {
     worksheetsToday:    0,   // worksheets submitted today
     quizDoneThisWeek:   false,
     newWorksheets:      0,
+    worksheetsTotal:     0,   // every worksheet assigned to this student
+    worksheetsCompleted: 0,   // how many they have submitted
   };
 
   try {
@@ -21,16 +23,22 @@ async function loadStats(userId) {
       .from('batch_students').select('batch_id').eq('student_id', userId);
     const batchIds = (batches || []).map(b => b.batch_id);
 
-    if (batchIds.length) {
-      // Homework = pending lx_worksheets not yet submitted
-      const { data: wsResponses } = await sb
-        .from('worksheet_responses').select('worksheet_id').eq('student_id', userId);
-      const doneWsIds = new Set((wsResponses||[]).map(r => r.worksheet_id));
-      const { data: allHw } = await sb.from('lx_worksheets').select('id')
-        .eq('is_active', true)
-        .or('student_id.eq.' + userId + ',batch_id.in.(' + batchIds.join(',') + ')');
-      stats.homeworkPending = (allHw||[]).filter(w => !doneWsIds.has(w.id)).length;
-    }
+    const { data: wsResponses } = await sb
+      .from('worksheet_responses').select('worksheet_id').eq('student_id', userId);
+    const doneWsIds = new Set((wsResponses||[]).map(r => r.worksheet_id));
+
+    // A student who is not in any batch still receives worksheets
+    // assigned to them directly, so this must not sit behind a
+    // batch check — several students have no batch yet.
+    let wsFilter = 'student_id.eq.' + userId;
+    if (batchIds.length) wsFilter += ',batch_id.in.(' + batchIds.join(',') + ')';
+
+    const { data: allHw } = await sb.from('lx_worksheets').select('id')
+      .eq('is_active', true).or(wsFilter);
+
+    stats.worksheetsTotal     = (allHw || []).length;
+    stats.worksheetsCompleted = (allHw || []).filter(w =>  doneWsIds.has(w.id)).length;
+    stats.homeworkPending     = stats.worksheetsTotal - stats.worksheetsCompleted;
 
     // 2. Practice today — check practice_sessions
     const todayStart = new Date();

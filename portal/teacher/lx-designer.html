@@ -271,35 +271,35 @@
     <div class="section">
       <div class="sec-label">3 — Concept focus</div>
       <div class="concept-grid">
-        <label class="concept-opt selected" onclick="selectConcept(this,'add_sub')">
+        <label class="concept-opt selected" data-concept="add_sub" onclick="selectConcept(this,'add_sub')">
           <input type="radio" name="concept" checked>
           <div><div class="concept-opt-name">Addition and subtraction only</div><div class="concept-opt-sub">Focus on this level's A+S difficulty</div></div>
         </label>
-        <label class="concept-opt" onclick="selectConcept(this,'big_friends')">
+        <label class="concept-opt" data-concept="big_friends" onclick="selectConcept(this,'big_friends')">
           <input type="radio" name="concept">
           <div><div class="concept-opt-name">Big friends</div><div class="concept-opt-sub">+10, subtract complement</div></div>
         </label>
-        <label class="concept-opt" onclick="selectConcept(this,'small_friends')">
+        <label class="concept-opt" data-concept="small_friends" onclick="selectConcept(this,'small_friends')">
           <input type="radio" name="concept">
           <div><div class="concept-opt-name">Small friends</div><div class="concept-opt-sub">+5, subtract complement</div></div>
         </label>
-        <label class="concept-opt" onclick="selectConcept(this,'combination')">
+        <label class="concept-opt" data-concept="combination" onclick="selectConcept(this,'combination')">
           <input type="radio" name="concept">
           <div><div class="concept-opt-name">Combination / family formula</div><div class="concept-opt-sub">Mixed big and small friends</div></div>
         </label>
-        <label class="concept-opt" onclick="selectConcept(this,'multiplication')">
+        <label class="concept-opt" data-concept="multiplication" onclick="selectConcept(this,'multiplication')">
           <input type="radio" name="concept">
           <div><div class="concept-opt-name">Multiplication</div><div class="concept-opt-sub">Based on current level</div></div>
         </label>
-        <label class="concept-opt" onclick="selectConcept(this,'division')">
+        <label class="concept-opt" data-concept="division" onclick="selectConcept(this,'division')">
           <input type="radio" name="concept">
           <div><div class="concept-opt-name">Division</div><div class="concept-opt-sub">Based on current level</div></div>
         </label>
-        <label class="concept-opt" onclick="selectConcept(this,'anzan')">
+        <label class="concept-opt" data-concept="anzan" onclick="selectConcept(this,'anzan')">
           <input type="radio" name="concept">
           <div><div class="concept-opt-name">Anzan — mental abacus</div><div class="concept-opt-sub">No physical abacus</div></div>
         </label>
-        <label class="concept-opt" onclick="selectConcept(this,'revision')">
+        <label class="concept-opt" data-concept="revision" onclick="selectConcept(this,'revision')">
           <input type="radio" name="concept">
           <div><div class="concept-opt-name">Full revision — all concepts</div><div class="concept-opt-sub">AI picks balanced mix</div></div>
         </label>
@@ -650,9 +650,11 @@ function filterConceptsForLevel(lv) {
   var selectedStillValid = false;
 
   opts.forEach(function(opt) {
-    var inp = opt.querySelector('input');
-    if (!inp) return;
-    var val = inp.value;
+    // Read the concept from data-concept. The radio inputs carry no value
+    // attribute, so inp.value would return the browser default "on" for
+    // every option and disable the whole panel.
+    var val = opt.getAttribute('data-concept') || '';
+    if (!val) return;
     var isValid = validLxVals.has(val);
     opt.style.opacity = isValid ? '1' : '0.35';
     opt.style.pointerEvents = isValid ? '' : 'none';

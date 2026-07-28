@@ -30,6 +30,16 @@ async function init() {
     injectWorksheetMission(stats.newWorksheets || 0);
     loadVirtualClassCard(session.user.id);
 
+    // Get batch IDs for quest card
+    const { data: bl } = await sb.from('batch_students').select('batch_id').eq('student_id', session.user.id);
+    const batchIds = (bl||[]).map(b => b.batch_id);
+
+    // Today's quest card
+    renderTodaysQuest(session.user.id, batchIds);
+
+    // Voice reading for tiny champs
+    setupVoiceReading(group);
+
   } catch(err) {
     console.error('Dashboard init error:', err);
     document.getElementById('mainContent').innerHTML = `
@@ -213,4 +223,126 @@ async function loadVirtualClassCard(userId) {
         + '</div><span class="vc-join">Join →</span></a>';
     }
   } catch(e) { console.warn('VC card error:', e.message); }
+}
+
+
+// ── TODAY'S QUEST CARD ───────────────────────────────────────
+async function renderTodaysQuest(userId, batchIds) {
+  const card = document.getElementById('todaysQuestCard');
+  if (!card) return;
+  try {
+    const { data: allWs } = await sb.from('lx_worksheets')
+      .select('id, title, questions_count, student_id, batch_id')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (!allWs || !allWs.length) { card.innerHTML = ''; return; }
+
+    const relevant = allWs.filter(w =>
+      w.student_id === userId ||
+      (batchIds && batchIds.includes(w.batch_id))
+    );
+
+    const { data: responses } = await sb.from('worksheet_responses')
+      .select('worksheet_id').eq('student_id', userId);
+    const doneIds = new Set((responses||[]).map(r => r.worksheet_id));
+
+    const quest = relevant.find(w => !doneIds.has(w.id)) || relevant[0];
+    if (!quest) { card.innerHTML = ''; return; }
+
+    const isDone  = doneIds.has(quest.id);
+    const qTitle  = quest.title || 'Practice Quest';
+    const qCount  = quest.questions_count ? quest.questions_count + ' questions' : 'Complete your daily quest';
+
+    card.innerHTML = `
+      <div style="background:linear-gradient(135deg,#1B5E20,#2E7D32);border-radius:18px;padding:16px;margin-bottom:14px;color:#fff;box-shadow:0 4px 16px rgba(27,94,32,.3);position:relative;overflow:hidden;">
+        <div style="position:absolute;right:12px;top:8px;font-size:2.5rem;opacity:.15;pointer-events:none;">🎯</div>
+        <div style="font-size:.6rem;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:#A5D6A7;margin-bottom:4px;">${isDone ? '✅ Quest Complete!' : "Today's Quest"}</div>
+        <div style="font-size:1.05rem;font-weight:900;margin-bottom:4px;">${qTitle}</div>
+        <div style="font-size:.75rem;color:rgba(255,255,255,.7);margin-bottom:12px;">${qCount}</div>
+        ${isDone
+          ? `<button onclick="location.href='worksheets.html'" style="background:rgba(255,255,255,.2);color:#fff;border:1.5px solid rgba(255,255,255,.4);border-radius:50px;padding:9px 18px;font-family:inherit;font-size:.875rem;font-weight:900;cursor:pointer;">📋 View Result</button>`
+          : `<button onclick="location.href='worksheets.html#${quest.id}'" style="background:#fff;color:#1B5E20;border:none;border-radius:50px;padding:9px 18px;font-family:inherit;font-size:.875rem;font-weight:900;cursor:pointer;">🚀 Start Quest</button>`
+        }
+        <div style="position:absolute;right:14px;bottom:14px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:3px 10px;font-size:.72rem;font-weight:900;color:#FFD54F;">+50 XP ⚡</div>
+      </div>`;
+  } catch(e) { console.warn('renderTodaysQuest:', e.message); }
+}
+
+// ── CELEBRATION OVERLAY ──────────────────────────────────────
+function showCelebration(score, total, xp, wsId) {
+  const existing = document.getElementById('celebOverlay');
+  if (existing) existing.remove();
+
+  const pct   = total > 0 ? Math.round(score/total*100) : 0;
+  const emoji = pct===100?'🏆':pct>=80?'🎉':pct>=60?'😊':'💪';
+  const title = pct===100?'Perfect!':pct>=80?'Excellent!':pct>=60?'Good job!':'Keep going!';
+  const color = pct>=80?'#1565C0':pct>=60?'#2E7D32':'#E65100';
+
+  if (!document.getElementById('celebStyle')) {
+    const s = document.createElement('style');
+    s.id = 'celebStyle';
+    s.textContent = '@keyframes celebPop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}';
+    document.head.appendChild(s);
+  }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'celebOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:999;';
+
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:24px;padding:28px 22px;text-align:center;max-width:300px;width:90%;animation:celebPop .4s cubic-bezier(.34,1.56,.64,1);">
+      <div style="font-size:3.5rem;margin-bottom:8px;">${emoji}</div>
+      <div style="font-size:1.5rem;font-weight:900;color:${color};margin-bottom:6px;">${title}</div>
+      <div style="font-size:2rem;font-weight:900;color:#1A1A2E;margin-bottom:4px;">${score}/${total} correct</div>
+      <div style="font-size:1rem;font-weight:800;color:#F57F17;margin-bottom:14px;">+${xp} XP earned! ⚡</div>
+      ${pct>=60 ? `<div style="background:linear-gradient(135deg,#F57F17,#E65100);border-radius:12px;padding:10px 14px;color:#fff;font-size:.82rem;font-weight:800;margin-bottom:14px;line-height:1.5;">🔥 Play again for <strong>DOUBLE XP!</strong><br>Next round: +${xp*2} XP ⚡</div>` : ''}
+      <div style="display:flex;gap:8px;">
+        <button onclick="document.getElementById('celebOverlay').remove()" style="flex:1;padding:11px;border:2px solid #E0E0E0;border-radius:12px;background:#fff;font-family:inherit;font-size:.82rem;font-weight:800;cursor:pointer;color:#555;">🏠 Home</button>
+        <button onclick="document.getElementById('celebOverlay').remove();location.href='worksheets.html#${wsId||''}'" style="flex:2;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#1565C0,#6A1B9A);color:#fff;font-family:inherit;font-size:.875rem;font-weight:900;cursor:pointer;">${pct>=60?'🔄 Play Again (2× XP!)':'🔄 Try Again'}</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  if (pct >= 60) spawnConfetti();
+}
+
+// Check for celebration data when returning from worksheets
+window.addEventListener('load', function() {
+  const raw = sessionStorage.getItem('celebrationData');
+  if (raw) {
+    sessionStorage.removeItem('celebrationData');
+    try {
+      const d = JSON.parse(raw);
+      setTimeout(() => showCelebration(d.score, d.total, d.xp, d.wsId), 800);
+    } catch(e) {}
+  }
+});
+
+// ── VOICE READING FOR TINY CHAMPS (age 5-7) ─────────────────
+function speakText(text) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.rate = 0.85;
+  utt.pitch = 1.1;
+  const voices = window.speechSynthesis.getVoices();
+  const v = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'))
+    || voices.find(v => v.lang.startsWith('en')) || null;
+  if (v) utt.voice = v;
+  window.speechSynthesis.speak(utt);
+}
+
+function setupVoiceReading(group) {
+  if (group !== 'tiny') return;
+  setTimeout(() => {
+    const nameEl = document.querySelector('.tiny-name, .hero-name');
+    const name = nameEl ? nameEl.textContent.replace(/[🌟✨]/g,'').trim() : '';
+    const streakEl = document.querySelector('.tiny-streak-num, .streak-num');
+    const streak = streakEl ? parseInt(streakEl.textContent)||0 : 0;
+    const msg = 'Welcome back' + (name ? ', ' + name.split(' ')[0] : '') + '! ' +
+      (streak > 0 ? 'You have a ' + streak + ' day streak. Amazing!' : "Ready to do some maths magic today?");
+    speakText(msg);
+  }, 1200);
 }

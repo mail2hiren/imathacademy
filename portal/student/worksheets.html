@@ -245,6 +245,7 @@
 </div></nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/student-stickers.js"></script>
 <script>
 const SUPABASE_URL='https://bhullfoajenhkxlkiubs.supabase.co';
 const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
@@ -661,6 +662,13 @@ async function submitWorksheet(wsId, qs){
   showXPPop(`+${xp} XP! 🎉`);
   // Store for dashboard celebration overlay
   try { sessionStorage.setItem('celebrationData', JSON.stringify({score, total, xp, wsId})); } catch(e) {}
+
+  // Award a sticker for finishing this worksheet. awardSticker enforces
+  // the cap — one per worksheet — so redoing a sheet pays nothing.
+  try {
+    const sticker = await awardSticker(currentUser.id, score === total ? 'perfect' : 'worksheet', wsId);
+    if (sticker) showStickerReward(sticker);
+  } catch(e) { console.warn('sticker award:', e); }
 
   // Re-render card with result
   const card=document.getElementById('card-'+wsId);

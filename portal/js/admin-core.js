@@ -76,6 +76,7 @@ function showTab(name, btn) {
   if (name === 'lessons')      renderLessons();
   if (name === 'fees')         renderFees();
     if (name === 'subscriptions') loadSubscriptions();
+  if (name === 'enquiries') loadEnquiries();
   if (name === 'pricing') loadPricing();
 }
 

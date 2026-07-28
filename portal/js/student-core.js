@@ -2,6 +2,32 @@ const SURL = 'https://bhullfoajenhkxlkiubs.supabase.co';
 const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
 const sb = supabase.createClient(SURL, SKEY);
 
+// ── CURRICULUM LEVELS — single source of truth ───────────────
+// Level names come from the curriculum_levels table, which Megha
+// controls through the Curriculum Designer. Never hardcode them.
+var LEVELS = {};
+
+async function loadLevels() {
+  try {
+    const { data, error } = await sb
+      .from('curriculum_levels')
+      .select('level_code, level_name, core_focus')
+      .order('level_code');
+    if (error) throw error;
+    (data || []).forEach(function(l) { LEVELS[l.level_code] = l; });
+  } catch (e) {
+    // Never break the dashboard if the curriculum cannot be read
+    console.warn('Curriculum levels unavailable:', e.message);
+  }
+}
+
+// "Foundation" — falls back to "Level 1" if the curriculum has not loaded
+function levelName(n) {
+  const row = LEVELS['L' + n];
+  return (row && row.level_name) ? row.level_name : ('Level ' + n);
+}
+
+
 function go(url) { location.href = url; }
 
 // ── HELPERS ─────────────────────────────────────────────────
@@ -40,7 +66,7 @@ function getGroup(profile) {
   }
 
   // 3. Fallback: use current_level
-  const level = profile.current_level || 1;
+  const level = profile.current_level ?? 0;
   if (level <= 1) return 'tiny';
   if (level <= 4) return 'rising';
   return 'champions';

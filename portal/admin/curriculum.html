@@ -545,18 +545,30 @@ async function saveLevelDefinition(code) {
   var g = function(id) { var el = document.getElementById(id); return el ? el.value : null; };
   var tb = function(id) { var el = document.getElementById(id); return el ? el.checked : false; };
 
+  // Whole numbers, where zero is a real value.
+  // parseInt(x) || null turns a legitimate 0 into null, because 0 is
+  // falsy in JavaScript. min_number and min_rows can genuinely be 0.
+  var num = function(id) {
+    var el = document.getElementById(id);
+    if (!el) return null;
+    var v = String(el.value).trim();
+    if (v === '') return null;
+    var n = parseInt(v, 10);
+    return isNaN(n) ? null : n;
+  };
+
   var data = {
     level_name:              g('f_name') || null,
     description:             g('f_desc') || null,
     core_focus:              g('f_focus') || null,
-    age_min:                 parseInt(g('f_age_min')) || null,
-    age_max:                 parseInt(g('f_age_max')) || null,
-    min_digits:              parseInt(g('f_min_digits')) || null,
-    max_digits:              parseInt(g('f_max_digits')) || null,
-    min_number:              parseInt(g('f_min_number')) || null,
-    max_number:              parseInt(g('f_max_number')) || null,
-    min_rows:                parseInt(g('f_min_rows')) || null,
-    max_rows:                parseInt(g('f_max_rows')) || null,
+    age_min:                 num('f_age_min'),
+    age_max:                 num('f_age_max'),
+    min_digits:              num('f_min_digits'),
+    max_digits:              num('f_max_digits'),
+    min_number:              num('f_min_number'),
+    max_number:              num('f_max_number'),
+    min_rows:                num('f_min_rows'),
+    max_rows:                num('f_max_rows'),
     allow_zero:              tb('f_allow_zero'),
     physical_abacus:         g('f_physical_abacus') || 'required',
     anzan_allowed:           tb('f_anzan'),

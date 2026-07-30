@@ -529,7 +529,7 @@ async function loadCurriculum() {
   try {
     // Load levels
     var lvRes = await sb.from('curriculum_levels')
-      .select('level_code,level_name,core_focus,age_min,age_max,min_digits,max_digits,min_number,max_number,min_rows,max_rows,anzan_allowed,multiplication_allowed,division_allowed,decimals_allowed,negative_numbers_allowed,physical_abacus');
+      .select('level_code,level_name,core_focus,age_min,age_max,min_digits,max_digits,min_number,max_number,min_rows,max_rows,allow_zero,anzan_allowed,multiplication_allowed,division_allowed,decimals_allowed,negative_numbers_allowed,physical_abacus');
     
     // Load concept progressions with concept names
     var lcRes = await sb.from('curriculum_level_concepts')
@@ -817,19 +817,31 @@ function buildPrompt(preview=false) {
       return f.concept.toLowerCase().replace(/\s+/g,'_').includes(selectedConcept.replace('_','')) ||
              selectedConcept.includes(f.concept.toLowerCase().split(' ')[0]);
     });
+    // Difficulty rule wins over the level rule, level wins over the
+    // fallback. Uses ?? not || because a guardrail of 0 is legitimate
+    // and 0 is falsy — min_number of 0 was being silently replaced.
+    var pick = function(a, b, fallback) {
+      if (a !== null && a !== undefined) return a;
+      if (b !== null && b !== undefined) return b;
+      return fallback;
+    };
     resolvedRules = {
       level_name:     lvData.level_name,
       core_focus:     lvData.core_focus,
       age_range:      (lvData.age_min||'?')+'-'+(lvData.age_max||'?')+' years',
-      min_digits:     diffRule.min_digits || lvData.min_digits || 1,
-      max_digits:     diffRule.max_digits || lvData.max_digits || 2,
-      min_number:     diffRule.min_number || lvData.min_number || 1,
-      max_number:     diffRule.max_number || lvData.max_number || 99,
-      min_rows:       diffRule.min_rows   || lvData.min_rows   || 3,
-      max_rows:       diffRule.max_rows   || lvData.max_rows   || 5,
+      min_digits:     pick(diffRule.min_digits, lvData.min_digits, 1),
+      max_digits:     pick(diffRule.max_digits, lvData.max_digits, 2),
+      min_number:     pick(diffRule.min_number, lvData.min_number, 1),
+      max_number:     pick(diffRule.max_number, lvData.max_number, 99),
+      min_rows:       pick(diffRule.min_rows,   lvData.min_rows,   3),
+      max_rows:       pick(diffRule.max_rows,   lvData.max_rows,   5),
       anzan:          lvData.anzan_allowed || false,
       multiplication: lvData.multiplication_allowed || false,
       division:       lvData.division_allowed || false,
+      decimals:       lvData.decimals_allowed || false,
+      negatives:      lvData.negative_numbers_allowed || false,
+      allow_zero:     lvData.allow_zero || false,
+      abacus_mode:    lvData.physical_abacus || 'required',
       formulas:       activeFormulas,
       diff_notes:     diffRule.notes || '',
     };
@@ -965,7 +977,13 @@ function buildPrompt(preview=false) {
       'Rows per question: ' + resolvedRules.min_rows + ' to ' + resolvedRules.max_rows + '\n' +
       'Anzan: ' + (resolvedRules.anzan ? 'ALLOWED' : 'NOT ALLOWED') + '\n' +
       'Multiplication: ' + (resolvedRules.multiplication ? 'ALLOWED' : 'NOT ALLOWED') + '\n' +
-      'Division: ' + (resolvedRules.division ? 'ALLOWED' : 'NOT ALLOWED') + '\n';
+      'Division: ' + (resolvedRules.division ? 'ALLOWED' : 'NOT ALLOWED') + '\n' +
+      'Decimals: ' + (resolvedRules.decimals ? 'ALLOWED' : 'NOT ALLOWED — use whole numbers only') + '\n' +
+      'Negative numbers: ' + (resolvedRules.negatives ? 'ALLOWED' : 'NOT ALLOWED — every answer must be zero or positive') + '\n' +
+      'Zero as a value: ' + (resolvedRules.allow_zero ? 'allowed' : 'avoid using 0 as a term or an answer') + '\n' +
+      'Abacus: ' + (resolvedRules.abacus_mode === 'not_used'
+                    ? 'this level works mentally, no abacus'
+                    : 'children solve these on a 17-rod abacus, so keep every step physically representable') + '\n';
 
     if (resolvedRules.formulas.length) {
       curriculumSection += '\nFormulas for ' + conceptLabel + ' — use EXACTLY these methods:\n';

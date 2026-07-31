@@ -529,7 +529,7 @@ async function loadCurriculum() {
   try {
     // Load levels
     var lvRes = await sb.from('curriculum_levels')
-      .select('level_code,level_name,core_focus,age_min,age_max,min_digits,max_digits,min_number,max_number,min_rows,max_rows,allow_zero,anzan_allowed,multiplication_allowed,division_allowed,decimals_allowed,negative_numbers_allowed,physical_abacus');
+      .select('level_code,level_name,core_focus,age_min,age_max,min_digits,max_digits,min_number,max_number,min_rows,max_rows,allow_zero,anzan_allowed,multiplication_allowed,division_allowed,decimals_allowed,negative_numbers_allowed,physical_abacus,guardrail_notes');
     
     // Load concept progressions with concept names
     var lcRes = await sb.from('curriculum_level_concepts')
@@ -844,6 +844,7 @@ function buildPrompt(preview=false) {
       abacus_mode:    lvData.physical_abacus || 'required',
       formulas:       activeFormulas,
       diff_notes:     diffRule.notes || '',
+      guardrails:     lvData.guardrail_notes || '',
     };
   }
 
@@ -992,6 +993,10 @@ function buildPrompt(preview=false) {
         if (f.example) curriculumSection += '   Example: ' + f.example + '\n';
         if (f.method)  curriculumSection += '   Method: ' + f.method.slice(0,200) + '\n';
       });
+    }
+    if (resolvedRules.guardrails) {
+      curriculumSection += '\nSTRICT RULES SET BY THE TEACHER FOR THIS LEVEL — these override everything above:\n' +
+                           resolvedRules.guardrails + '\n';
     }
     if (resolvedRules.diff_notes) {
       curriculumSection += '\nDifficulty notes: ' + resolvedRules.diff_notes + '\n';

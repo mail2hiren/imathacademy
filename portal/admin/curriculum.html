@@ -476,11 +476,11 @@ async function configurLevel(code) {
   html += '<div class="tab-pane" id="tab4">';
   html += '<div style="margin-bottom:12px;font-size:.82rem;color:var(--text2);">Define what is absolutely forbidden at ' + code + '. These rules override everything else including AI suggestions.</div>';
   html += '<div class="card"><div class="card-header"><div class="card-title">Forbidden at ' + code + '</div></div><div class="card-body">';
-  html += toggleRow('No numbers above max_number', 'g_max_num', true, 'Strictly enforce the maximum number defined in Level Definition');
-  html += toggleRow('No concepts from higher levels', 'g_future', true, 'Hard difficulty must NOT introduce concepts from ' + (code.replace('L', '') < 8 ? 'L' + (parseInt(code.replace('L',''))+1) : 'any higher level'));
-  html += toggleRow('No operations not in allowed list', 'g_ops', true, 'Only operations explicitly allowed in Level Definition are permitted');
-  html += '<div class="form-group" style="margin-top:16px;"><label>Additional Guardrail Notes</label><textarea id="g_notes" placeholder="Any other strict rules for this level..." rows="3"></textarea></div>';
-  html += '<button class="btn btn-blue" style="margin-top:12px;" onclick="toast(\'Guardrails saved!\',\'success\')">💾 Save Guardrails</button>';
+  html += toggleRow('No numbers above max_number', 'g_max_num', lv.guard_max_number !== false, 'Strictly enforce the maximum number defined in Level Definition');
+  html += toggleRow('No concepts from higher levels', 'g_future', lv.guard_no_future_concepts !== false, 'Hard difficulty must NOT introduce concepts from ' + (code.replace('L', '') < 8 ? 'L' + (parseInt(code.replace('L',''))+1) : 'any higher level'));
+  html += toggleRow('No operations not in allowed list', 'g_ops', lv.guard_allowed_ops_only !== false, 'Only operations explicitly allowed in Level Definition are permitted');
+  html += '<div class="form-group" style="margin-top:16px;"><label>Additional Guardrail Notes</label><textarea id="g_notes" placeholder="Any other strict rules for this level..." rows="3">' + (lv.guardrail_notes || '') + '</textarea></div>';
+  html += '<button class="btn btn-blue" style="margin-top:12px;" onclick="saveGuardrails(\'' + code + '\')">💾 Save Guardrails</button>';
   html += '</div></div></div>';
 
   body.innerHTML = html;
@@ -579,15 +579,54 @@ async function saveLevelDefinition(code) {
     updated_at:              new Date().toISOString(),
   };
 
-  var res = await sb.from('curriculum_levels').update(data).eq('level_code', code);
+  var res = await sb.from('curriculum_levels').update(data).eq('level_code', code).select();
   if (res.error) {
     toast('Error saving: ' + res.error.message, 'error');
+  } else if (!res.data || !res.data.length) {
+    toast('Nothing was saved — you may not have permission to edit the curriculum', 'error');
   } else {
     toast('Level Definition saved! ✅', 'success');
     // Update local cache
     var idx = LEVELS.findIndex(function(l) { return l.level_code === code; });
     if (idx > -1) Object.assign(LEVELS[idx], data);
   }
+}
+
+
+// ── SAVE GUARDRAILS ───────────────────────────────────────────
+// This tab used to be a mockup: the button showed a toast and wrote
+// nothing. Megha's notes are the point of it — they go verbatim into
+// the AI prompt, so they must actually persist.
+async function saveGuardrails(code) {
+  var tb = function(id) { var el = document.getElementById(id); return el ? el.checked : true; };
+  var g  = function(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+
+  var data = {
+    guard_max_number:         tb('g_max_num'),
+    guard_no_future_concepts: tb('g_future'),
+    guard_allowed_ops_only:   tb('g_ops'),
+    guardrail_notes:          g('g_notes') || null,
+    updated_at:               new Date().toISOString(),
+  };
+
+  // .select() makes the update return the rows it changed. Without it
+  // a blocked write looks identical to a successful one — which is how
+  // row level security silently swallowed every curriculum save.
+  var res = await sb.from('curriculum_levels')
+    .update(data).eq('level_code', code).select();
+
+  if (res.error) {
+    toast('Could not save guardrails: ' + res.error.message, 'error');
+    return;
+  }
+  if (!res.data || !res.data.length) {
+    toast('Nothing was saved — you may not have permission to edit the curriculum', 'error');
+    return;
+  }
+
+  toast('Guardrails saved ✅', 'success');
+  var idx = LEVELS.findIndex(function(l) { return l.level_code === code; });
+  if (idx > -1) Object.assign(LEVELS[idx], data);
 }
 
 // ── SAVE CONCEPT PROGRESSION ──────────────────────────────────

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Help &amp; Guide — iMathAcademy</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Baloo+2:wght@800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --blue:#1565C0; --blue-lt:#E3F2FD; --blue-dk:#0D47A1;
+    --purple:#6A1B9A; --green:#2E7D32; --green-lt:#E8F5E9;
+    --amber:#F57F17; --amber-lt:#FFF8E1; --red:#C62828; --red-lt:#FFEBEE;
+    --text1:#1A1A2E; --text2:#444; --text3:#888;
+    --bg:#F7F8FF; --card:#fff; --border:#E4E7F2;
+  }
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text1);line-height:1.65;}
+
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px 80px;}
+
+  header{background:linear-gradient(135deg,var(--blue),var(--purple));color:#fff;padding:32px 20px 28px;margin-bottom:24px;}
+  header .inner{max-width:960px;margin:0 auto;}
+  header h1{font-family:'Baloo 2',sans-serif;font-size:1.9rem;font-weight:900;margin-bottom:6px;}
+  header p{opacity:.85;font-size:.95rem;max-width:640px;}
+  .back{display:inline-block;margin-bottom:14px;color:#fff;opacity:.8;text-decoration:none;font-size:.85rem;font-weight:800;}
+  .back:hover{opacity:1;}
+
+  nav.toc{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:18px 20px;margin-bottom:28px;}
+  nav.toc h2{font-size:.72rem;font-weight:900;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:10px;}
+  nav.toc ol{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:6px 18px;}
+  nav.toc a{color:var(--blue);text-decoration:none;font-weight:700;font-size:.9rem;}
+  nav.toc a:hover{text-decoration:underline;}
+
+  section{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;scroll-margin-top:20px;}
+  section h2{font-family:'Baloo 2',sans-serif;font-size:1.3rem;font-weight:900;color:var(--blue-dk);margin-bottom:4px;}
+  section .lede{color:var(--text2);font-size:.92rem;margin-bottom:18px;}
+  h3{font-size:1rem;font-weight:900;margin:22px 0 8px;color:var(--text1);}
+  h3:first-of-type{margin-top:14px;}
+  p{margin-bottom:10px;font-size:.92rem;color:var(--text2);}
+  ul,ol{margin:0 0 12px 20px;font-size:.92rem;color:var(--text2);}
+  li{margin-bottom:5px;}
+  strong{color:var(--text1);font-weight:800;}
+  code{background:#F0F2FA;border-radius:5px;padding:1px 6px;font-size:.86em;font-family:ui-monospace,Menlo,monospace;color:var(--purple);}
+
+  table{width:100%;border-collapse:collapse;margin:12px 0 16px;font-size:.88rem;}
+  th{background:#F0F2FA;text-align:left;padding:9px 12px;font-weight:900;font-size:.8rem;
+     text-transform:uppercase;letter-spacing:.3px;color:var(--text2);border-bottom:2px solid var(--border);}
+  td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+
+  .note{border-radius:12px;padding:13px 16px;margin:14px 0;font-size:.88rem;}
+  .note strong{display:block;margin-bottom:3px;}
+  .note-tip{background:var(--green-lt);border-left:4px solid var(--green);color:#1B5E20;}
+  .note-warn{background:var(--amber-lt);border-left:4px solid var(--amber);color:#E65100;}
+  .note-info{background:var(--blue-lt);border-left:4px solid var(--blue);color:var(--blue-dk);}
+  .note-soon{background:#F3E5F5;border-left:4px solid var(--purple);color:#4A148C;}
+
+  .steps{counter-reset:s;list-style:none;margin-left:0;}
+  .steps li{counter-increment:s;position:relative;padding-left:34px;margin-bottom:10px;}
+  .steps li::before{content:counter(s);position:absolute;left:0;top:1px;width:23px;height:23px;
+    background:var(--blue);color:#fff;border-radius:50%;font-size:.74rem;font-weight:900;
+    display:flex;align-items:center;justify-content:center;}
+
+  footer{text-align:center;color:var(--text3);font-size:.82rem;padding:28px 20px;}
+  @media(max-width:600px){
+    header h1{font-size:1.5rem;}
+    section{padding:18px 16px;}
+    table{font-size:.82rem;}
+    th,td{padding:7px 9px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="inner">
+    <a class="back" href="dashboard.html">&larr; Back to dashboard</a>
+    <h1>iMathAcademy — Help &amp; Guide</h1>
+    <p>Everything the portal can do, and how the pieces fit together. Written for Megha and anyone teaching alongside her.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#big-picture">1. How it all fits together</a></li>
+    <li><a href="#curriculum">2. The Curriculum Designer</a></li>
+    <li><a href="#lx">3. LX Designer — making worksheets</a></li>
+    <li><a href="#abacus">4. How the abacus behaves</a></li>
+    <li><a href="#student">5. What children see</a></li>
+    <li><a href="#rewards">6. Rewards — XP, badges, stickers, puzzles</a></li>
+    <li><a href="#levels">7. Finishing a level</a></li>
+    <li><a href="#admin">8. Admin — people, batches, money</a></li>
+    <li><a href="#parents">9. The parent portal</a></li>
+    <li><a href="#notyet">10. Not built yet</a></li>
+  </ol>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="big-picture">
+  <h2>1. How it all fits together</h2>
+  <p class="lede">One rule runs through the whole system: the curriculum decides, everything else obeys.</p>
+
+  <p>The <strong>Curriculum Designer</strong> is the top of the chain. What you set there flows outward
+     without anyone editing code:</p>
+
+  <ul>
+    <li>It tells the <strong>LX Designer</strong> what a worksheet at each level may contain — how many
+        digits, how large the numbers, which operations are permitted.</li>
+    <li>It tells the <strong>student app</strong> whether a child works on the abacus or in their head.</li>
+    <li>It defines what <strong>finishing a level</strong> requires.</li>
+    <li>Its <strong>level names</strong> are what children see on their dashboard.</li>
+  </ul>
+
+  <div class="note note-tip">
+    <strong>What this means in practice</strong>
+    If a worksheet comes out wrong, the fix is usually in the Curriculum Designer, not the LX Designer.
+    Change the level rule once and every future worksheet at that level obeys it.
+  </div>
+
+  <h3>Who can do what</h3>
+  <table>
+    <tr><th>Role</th><th>Can do</th></tr>
+    <tr><td><strong>Admin</strong></td><td>Everything — curriculum, users, batches, pricing, subscriptions, enquiries</td></tr>
+    <tr><td><strong>Teacher</strong></td><td>Create worksheets, view their batches, edit the curriculum</td></tr>
+    <tr><td><strong>Parent</strong></td><td>See their own children's progress</td></tr>
+    <tr><td><strong>Student</strong></td><td>Their own lessons, practice, worksheets and progress</td></tr>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="curriculum">
+  <h2>2. The Curriculum Designer</h2>
+  <p class="lede">Admin → Curriculum Designer. Nine levels, L0 through L8, each with five tabs.</p>
+
+  <h3>Tab 1 — Level Definition</h3>
+  <p>The identity of the level and its number rules. Every one of these is passed to the AI when a
+     worksheet is generated, so they are guardrails rather than notes.</p>
+  <table>
+    <tr><th>Setting</th><th>What it controls</th></tr>
+    <tr><td>Level name</td><td>What children see: "Level 1 · Foundation"</td></tr>
+    <tr><td>Core focus</td><td>Shown on the child's progress card</td></tr>
+    <tr><td>Age range</td><td>Guidance only</td></tr>
+    <tr><td>Min / max digits</td><td>Hard limit on how long the numbers may be</td></tr>
+    <tr><td>Min / max number</td><td>Hard limit on the values themselves</td></tr>
+    <tr><td>Min / max rows</td><td>How many numbers appear in one sum</td></tr>
+    <tr><td>Allow zero</td><td>Whether 0 may appear as a term or an answer</td></tr>
+  </table>
+
+  <h3>Abacus Mode &amp; Operations</h3>
+  <p>The same card sets which operations are allowed and how the abacus behaves:</p>
+  <ul>
+    <li><strong>Physical abacus</strong> — <code>required</code>, <code>optional</code> or <code>not_used</code></li>
+    <li><strong>Anzan allowed</strong> — children may solve mentally</li>
+    <li>Multiplication, division, decimals, negative numbers — each on or off</li>
+  </ul>
+
+  <div class="note note-warn">
+    <strong>One thing to confirm</strong>
+    When Anzan is switched on, the app currently allows mental solving <em>only for concepts you have
+    marked Mastered</em>. If you meant that anything at that level may be solved mentally, say so and
+    it will be changed — it is a one-line difference.
+  </div>
+
+  <h3>Tab 2 — Concept Progression</h3>
+  <p>For each concept at this level, where the child is in learning it. This is what decides whether the
+     abacus guides them or lets them work:</p>
+  <table>
+    <tr><th>Status</th><th>Meaning</th><th>What the child gets</th></tr>
+    <tr><td><strong>I</strong> Introduced</td><td>Being taught now</td><td>Guided abacus</td></tr>
+    <tr><td><strong>P</strong> Practised</td><td>Working on it</td><td>Abacus, they set the answer</td></tr>
+    <tr><td><strong>M</strong> Mastered</td><td>Confident</td><td>May work mentally, if Anzan is on</td></tr>
+    <tr><td><strong>R</strong> Revision</td><td>Coming back to it</td><td>Abacus</td></tr>
+    <tr><td><strong>N</strong> Not applicable</td><td>Not at this level</td><td>Never appears</td></tr>
+  </table>
+
+  <h3>Tab 3 — Difficulty Rules</h3>
+  <p>Easy, Medium and Hard within the same level. Anything set here <strong>overrides</strong> the level
+     definition — so Hard at L2 can use bigger numbers than Easy at L2, while both stay inside L2.</p>
+
+  <h3>Tab 4 — Formula Master</h3>
+  <p>The actual abacus rules you teach at this level, in your own words. These go into the AI prompt, so
+     worksheets use the formulas you teach rather than generic arithmetic.</p>
+
+  <h3>Tab 5 — Guardrails</h3>
+  <p>Three switches for what is forbidden, plus a free-text box. Whatever you write in
+     <strong>Additional Guardrail Notes</strong> is passed to the AI word for word, under a heading
+     telling it these rules override everything else.</p>
+
+  <div class="note note-tip">
+    <strong>The most powerful box in the system</strong>
+    Write plainly. "Never use carrying at this level." "Only single-digit answers."
+    "Word problems must be about cricket or food." It is read as an instruction, not a suggestion.
+  </div>
+
+  <h3>Completion criteria</h3>
+  <p>Two further settings decide what finishing this level requires — how many practice sessions, and the
+     pass mark on the level test. Defaults are 20 sessions and 80%.</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="lx">
+  <h2>3. LX Designer — making worksheets</h2>
+  <p class="lede">Teacher → LX Designer. Describe what you want; the AI writes it inside your curriculum rules.</p>
+
+  <ol class="steps">
+    <li><strong>Pick a level.</strong> This loads that level's rules — the concept list narrows to what
+        you teach there.</li>
+    <li><strong>Pick a concept.</strong> Anything dimmed is not taught at this level, per your
+        Concept Progression.</li>
+    <li><strong>Pick an activity</strong> — practice sums, word problems, and so on.</li>
+    <li><strong>Settings.</strong> Abacus mode, difficulty, question count, theme.</li>
+    <li><strong>Assign</strong> to a batch or an individual child.</li>
+    <li><strong>Preview</strong> before generating, to check the questions look right.</li>
+  </ol>
+
+  <h3>The Abacus dropdown</h3>
+  <p>This overrides the level for this worksheet only — so you can set one sheet on the beads and the next
+     as a mental drill, at the same level, in the same week.</p>
+  <table>
+    <tr><th>Choice</th><th>Effect</th></tr>
+    <tr><td>Follow the level</td><td>Uses the curriculum setting</td></tr>
+    <tr><td>Required — beads only</td><td>Abacus shown, typing locked</td></tr>
+    <tr><td>Optional</td><td>Abacus shown, typing also allowed</td></tr>
+    <tr><td>Mental only</td><td>No abacus — an Anzan drill</td></tr>
+  </table>
+
+  <div class="note note-info">
+    <strong>Level tests</strong>
+    A level test is an ordinary worksheet with the level-test box ticked. It uses the same designer and
+    the same scoring — passing it is the third thing a child needs to complete a level.
+  </div>
+
+  <h3>If a worksheet comes out wrong</h3>
+  <ul>
+    <li><strong>Numbers too big or small</strong> — Level Definition, or the Difficulty Rules</li>
+    <li><strong>Wrong kind of question</strong> — the concept, or your Formula Master entries</li>
+    <li><strong>It keeps doing something you don't want</strong> — write it in Guardrail Notes</li>
+  </ul>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="abacus">
+  <h2>4. How the abacus behaves</h2>
+  <p class="lede">A 17-rod soroban, built to your specification, used as the way children answer.</p>
+
+  <ul>
+    <li>Rod 9 is the ones. Rod 8 tens, rod 7 hundreds, continuing leftward.</li>
+    <li>Rod 10 is the first decimal, rod 11 the second, continuing rightward.</li>
+    <li>Unit dots on the divider at rods 3, 6, 9, 12 and 15.</li>
+    <li>Beads slide along the rod. The value updates as the child moves them.</li>
+  </ul>
+
+  <h3>Where it appears</h3>
+  <table>
+    <tr><th>Place</th><th>How it behaves</th></tr>
+    <tr><td>Inside a worksheet</td><td>Below the check button. Moving beads fills the answer box.</td></tr>
+    <tr><td>Learning → Abacus</td><td>Free play, plus practice and challenge modes</td></tr>
+  </table>
+
+  <h3>What the child sees</h3>
+  <table>
+    <tr><th>Mode</th><th>Message</th><th>Can they type?</th></tr>
+    <tr><td>Guided</td><td>Follow the glowing bead</td><td>No</td></tr>
+    <tr><td>Input</td><td>Set your answer on the abacus</td><td>No</td></tr>
+    <tr><td>Optional</td><td>Use the abacus, or type your answer</td><td>Yes</td></tr>
+    <tr><td>Mental</td><td>Solve this one in your head</td><td>Yes — no abacus shown</td></tr>
+  </table>
+
+  <div class="note note-soon">
+    <strong>Guided mode is partly built</strong>
+    The message appears, but no bead glows yet. Making it walk a child through a sum step by step still
+    needs your input on how you teach it at the board.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="student">
+  <h2>5. What children see</h2>
+  <p class="lede">Three age groups, three genuinely different apps. The group follows the child's date of birth.</p>
+
+  <table>
+    <tr><th></th><th>Tiny Champs 5–7</th><th>Rising Stars 8–10</th><th>Champions 11–14</th></tr>
+    <tr><td>Mascot</td><td>🐘 Jumbo</td><td>🦁 Leo</td><td><strong>None</strong></td></tr>
+    <tr><td>Main reward</td><td>Stickers</td><td>XP and badges</td><td>XP and ranking</td></tr>
+    <tr><td>XP bar</td><td>Hidden</td><td>Shown</td><td>Shown</td></tr>
+    <tr><td>Sticker book</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+    <tr><td>Leaderboard</td><td>No</td><td>No</td><td><strong>Yes</strong></td></tr>
+    <tr><td>Timer</td><td>Never</td><td>Optional</td><td>Always</td></tr>
+    <tr><td>Answers</td><td>Tap a choice</td><td>Type</td><td>Type</td></tr>
+    <tr><td>Read aloud</td><td>Yes</td><td>No</td><td>No</td></tr>
+    <tr><td>Session length</td><td>~5 min</td><td>~15 min</td><td>~20 min</td></tr>
+  </table>
+
+  <div class="note note-tip">
+    <strong>Seeing it for yourself</strong>
+    Add <code>?preview=tiny</code>, <code>?preview=rising</code> or <code>?preview=champions</code>
+    to the end of the student dashboard address to view any age group's screen without another login.
+    Nothing is changed — it only alters what is drawn.
+  </div>
+
+  <h3>The pages</h3>
+  <table>
+    <tr><th>Page</th><th>What it is</th></tr>
+    <tr><td>Dashboard</td><td>Streak, today's worksheet, rewards</td></tr>
+    <tr><td>Lessons</td><td>Video lessons</td></tr>
+    <tr><td>Abacus</td><td>The instrument, free to explore</td></tr>
+    <tr><td>Practice</td><td>Self-directed drills. Five right in a row unlocks a puzzle.</td></tr>
+    <tr><td>Worksheets</td><td>What you assigned</td></tr>
+    <tr><td>Weekly Challenge</td><td>The weekly quiz</td></tr>
+    <tr><td>Progress</td><td>Their own history</td></tr>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="rewards">
+  <h2>6. Rewards</h2>
+  <p class="lede">Four systems, deliberately different from each other.</p>
+
+  <h3>XP</h3>
+  <p>Earned from every activity. Drives the level-up ceremony. Champions are ranked on it weekly.
+     Hidden from Tiny Champs — a number means little at five.</p>
+
+  <h3>Badges</h3>
+  <p>Rare, one of each, for real achievements: Speed Star, Perfect Score, 5-Day Fire, Puzzle Pro,
+     Top of Batch, Abacus Ninja. Shown to Rising Stars and Champions.</p>
+
+  <h3>Stickers</h3>
+  <p>The opposite of badges — frequent, and duplicates are the point. A child likes having three cats.
+     Twenty-four to collect across three tiers.</p>
+  <table>
+    <tr><th>Earned by</th><th>Tier</th><th>Limit</th></tr>
+    <tr><td>Finishing a worksheet</td><td>Common</td><td>One per worksheet, ever</td></tr>
+    <tr><td>Full marks on a worksheet</td><td>Rare</td><td>Instead of the common one</td></tr>
+    <tr><td>Keeping the streak</td><td>Common</td><td>One a day</td></tr>
+    <tr><td>Levelling up</td><td>Shiny</td><td>Once per level</td></tr>
+  </table>
+  <p>Redoing a worksheet earns nothing — the limit is enforced in the database, not just the app.</p>
+
+  <h3>Puzzles</h3>
+  <p>Not a menu item. A child unlocks one by getting <strong>five practice questions right in a row</strong>,
+     and it is offered there and then.</p>
+  <table>
+    <tr><th>Age group</th><th>Puzzle</th></tr>
+    <tr><td>Tiny Champs</td><td>Maze</td></tr>
+    <tr><td>Rising Stars</td><td>Sudoku 4×4</td></tr>
+    <tr><td>Champions</td><td>Sudoku 9×9</td></tr>
+  </table>
+
+  <div class="note note-warn">
+    <strong>A gap worth knowing</strong>
+    Practice and puzzles award XP and badges, but no stickers. Since Tiny Champs have no XP bar and
+    stickers are their only visible reward, practice currently looks like nothing happened to them.
+    This is being fixed.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="levels">
+  <h2>7. Finishing a level</h2>
+  <p class="lede">Three things, all three required, then the certificate.</p>
+
+  <ol class="steps">
+    <li><strong>Every worksheet for the level submitted.</strong></li>
+    <li><strong>Enough practice sessions.</strong> You set the number per level.</li>
+    <li><strong>A pass on the level test.</strong> You set the mark per level.</li>
+  </ol>
+
+  <p>Only then does the child earn the certificate and start the next level. Certificates carry a real
+     number — <code>IMA-L1-000042</code> — and only a teacher or admin can award one.</p>
+
+  <div class="note note-soon">
+    <strong>Partly built</strong>
+    The three checks work and the certificate records exist. What is not built yet is the screen
+    showing a child their progress toward these three, and the certificate as something to print.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="admin">
+  <h2>8. Admin</h2>
+  <p class="lede">Admin → Dashboard. Eleven tabs down the left.</p>
+
+  <table>
+    <tr><th>Tab</th><th>What it is for</th></tr>
+    <tr><td>Overview</td><td>Counts at a glance</td></tr>
+    <tr><td>Students</td><td>Add and edit children, set their level, activate or deactivate</td></tr>
+    <tr><td>Teachers</td><td>Teacher accounts</td></tr>
+    <tr><td>Parents</td><td>Parent accounts</td></tr>
+    <tr><td>Batches</td><td>Class groups, with a programme and level</td></tr>
+    <tr><td>Associations</td><td>Who is in which batch; which parent belongs to which child</td></tr>
+    <tr><td>Lessons</td><td>Video lessons</td></tr>
+    <tr><td>Fees</td><td>Class fees — separate from app subscriptions</td></tr>
+    <tr><td>Subscriptions</td><td>Whether a child can log in at all</td></tr>
+    <tr><td>Enquiries</td><td>People who asked about joining. Mark contacted or converted.</td></tr>
+    <tr><td>Pricing</td><td>App prices by country</td></tr>
+  </table>
+
+  <div class="note note-info">
+    <strong>Fees and subscriptions are different things</strong>
+    A <strong>fee</strong> is what you charge for teaching. A <strong>subscription</strong> is what lets
+    a child log in to the app. A child can be fully paid up on fees and still be locked out if their
+    subscription has lapsed.
+  </div>
+
+  <h3>Adding a new child</h3>
+  <ol class="steps">
+    <li>Students → Add Student. They receive a welcome email.</li>
+    <li>Set their level. Everything they see follows from it.</li>
+    <li>Associations → put them in a batch, and link their parent.</li>
+    <li>Subscriptions → give them access.</li>
+  </ol>
+
+  <div class="note note-tip">
+    <strong>A child with no batch still works</strong>
+    They can be assigned worksheets individually and will see them normally.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="parents">
+  <h2>9. The parent portal</h2>
+  <p class="lede">Parents see only their own children.</p>
+  <ul>
+    <li>Progress, streak and recent activity</li>
+    <li>Available in English, Hindi, Gujarati, Marathi, Tamil and Telugu</li>
+    <li>Read aloud, for parents who would rather listen than read</li>
+    <li>Conversation starters — what to ask their child about tonight</li>
+  </ul>
+  <p>A parent with more than one child switches between them at the top.</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<section id="notyet">
+  <h2>10. Not built yet</h2>
+  <p class="lede">Named honestly, so nothing here is a surprise later.</p>
+
+  <table>
+    <tr><th>Thing</th><th>Where it stands</th></tr>
+    <tr><td>Journey map</td><td>Not started. Would show a child their path through the level.</td></tr>
+    <tr><td>Certificate as a document</td><td>Records exist; nothing to print yet.</td></tr>
+    <tr><td>Level progress screen</td><td>The three checks work but no child-facing screen shows them.</td></tr>
+    <tr><td>Guided abacus</td><td>The message appears; no bead glows yet.</td></tr>
+    <tr><td>Monthly competition</td><td>Not started.</td></tr>
+    <tr><td>Daily practice generated automatically</td><td>Not started. Worksheets are assigned by hand.</td></tr>
+    <tr><td>Stickers from practice and puzzles</td><td>Being fixed.</td></tr>
+    <tr><td>Vedic Maths, School Maths, Olympiad</td><td>Deliberately deferred — a separate track.</td></tr>
+  </table>
+</section>
+
+<footer>
+  iMathAcademy — internal guide. If something here does not match what you see, the guide is wrong: tell us.
+</footer>
+
+</div>
+</body>
+</html>

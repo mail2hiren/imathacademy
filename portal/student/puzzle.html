@@ -300,6 +300,17 @@ async function showComplete(xp, title, sub) {
         if (count >= 4) await sb.from('badges').insert({ student_id: session.user.id, badge_type: 'puzzle_pro' });
       }
       await sb.from('practice_sessions').insert({ student_id: session.user.id, questions_correct:1, questions_attempted:1, xp_awarded:xp, topic:'puzzle' });
+
+      // A sticker for solving it. Tiny Champs have no XP bar, so without
+      // this a puzzle looked to them like nothing had happened.
+      // Only the age groups that collect stickers get one.
+      if (typeof awardSticker === 'function' && typeof profileFor === 'function'
+          && profileFor(group).show.stickers) {
+        var earnedSticker = await awardSticker(session.user.id, 'puzzle');
+        if (earnedSticker && typeof showStickerReward === 'function') {
+          setTimeout(function () { showStickerReward(earnedSticker); }, 1400);
+        }
+      }
     } catch(e) { console.error(e); }
   }
 }
@@ -837,6 +848,8 @@ init();
     <a class="bnav-item" href="progress.html"><span class="bnav-icon">📊</span><span class="bnav-label">Progress</span></a>
   </div>
 </nav>
-  <script src="../js/student-nav.js"></script>
+  <script src="../js/student-profiles.js"></script>
+<script src="../js/student-stickers.js"></script>
+<script src="../js/student-nav.js"></script>
 </body>
 </html>

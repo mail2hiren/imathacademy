@@ -58,6 +58,7 @@ var STICKER_RULES = {
   worksheet:  'common',   // finished a worksheet — once per worksheet
   perfect:    'rare',     // full marks on a worksheet — replaces the common one
   streak:     'common',   // kept the streak — once per day
+  puzzle:     'rare',     // solved a puzzle — already earned by 5 right in a row
   quiz:       'rare',     // weekly challenge
   levelup:    'shiny',    // moved up a level
   bonus:      'rare'      // teacher awarded it by hand
@@ -90,6 +91,20 @@ async function canEarnSticker(studentId, reason, refId) {
       var ws = await sb.from('student_stickers')
         .select('id').eq('student_id', studentId).eq('ref_id', refId).limit(1);
       return !(ws.data && ws.data.length);
+    }
+
+    // A puzzle is already earned — five practice questions right in a
+    // row — so it is safe to reward. Capped at three a day so it stays
+    // worth something.
+    if (reason === 'puzzle') {
+      var dayStart = new Date();
+      dayStart.setHours(0, 0, 0, 0);
+      var pz = await sb.from('student_stickers')
+        .select('id')
+        .eq('student_id', studentId)
+        .eq('source', 'puzzle')
+        .gte('earned_at', dayStart.toISOString());
+      return !(pz.data && pz.data.length >= 3);
     }
 
     // One per calendar day for the streak
@@ -127,7 +142,7 @@ async function awardSticker(studentId, reason, refId) {
 
   // The row records how it was earned, not which tier it was
   var source = reason === 'perfect' ? 'worksheet'
-             : (['worksheet', 'streak', 'quiz', 'levelup', 'bonus'].indexOf(reason) > -1 ? reason : 'bonus');
+             : (['worksheet', 'streak', 'puzzle', 'quiz', 'levelup', 'bonus'].indexOf(reason) > -1 ? reason : 'bonus');
 
   try {
     var res = await sb.from('student_stickers').insert({

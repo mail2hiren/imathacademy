@@ -4,15 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Certificates — iMathAcademy</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Baloo+2:wght@700;800&family=Fredoka:wght@500;600;700&family=Comfortaa:wght@500;600;700&family=Archivo:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Fredoka:wght@500;600;700&family=Comfortaa:wght@600;700&family=Great+Vibes&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   :root{
-    --orange:#E67D21;
-    --teal:#04949D;
-    --teal-lt:#40A9A2;
-    --green:#DDF5DD;
-    --blue:#DEEFF7;
+    --orange:#E67D21; --teal:#04949D; --teal-lt:#40A9A2;
     --border:#E4E7F2; --text2:#444; --text3:#888;
   }
   body{font-family:'Nunito',sans-serif;background:#F7F8FF;color:#1A1A2E;}
@@ -20,7 +16,7 @@
   /* ── Chrome, hidden when printing ───────────────────────── */
   .topbar{background:#fff;border-bottom:2px solid var(--border);padding:12px 20px;
           display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
-  .topbar h1{font-family:'Baloo 2',sans-serif;font-size:1.1rem;font-weight:800;}
+  .topbar h1{font-size:1.1rem;font-weight:900;}
   .topbar a{color:var(--text3);text-decoration:none;font-size:.82rem;font-weight:800;}
 
   .layout{max-width:1240px;margin:0 auto;padding:20px;
@@ -36,71 +32,48 @@
         border-radius:8px;font-family:inherit;font-size:.86rem;background:#fff;}
   .fld input:focus,.fld select:focus{outline:none;border-color:var(--teal);}
   .btn{display:block;width:100%;padding:11px;border:none;border-radius:10px;cursor:pointer;
-       font-family:inherit;font-size:.88rem;font-weight:900;margin-bottom:8px;}
-  .btn-print{background:var(--teal);color:#fff;}
+       font-family:inherit;font-size:.88rem;font-weight:900;margin-bottom:8px;
+       background:var(--teal);color:#fff;}
   .hint{font-size:.72rem;color:var(--text3);line-height:1.55;margin-top:6px;}
 
   /* ── The certificate ────────────────────────────────────────
-     Drawn on a 2000 x 1414 canvas, the exact size of the original
-     export, so every position matches the design. The sheet is
-     then scaled to fit the screen, or the printed page.
+     The background is Megha's own Canva design with only the three
+     variable lines erased, so every shape, colour and fixed label
+     is exactly as she drew it. Live text sits on top.
+     Everything is positioned on her original 2000 x 1414 canvas.
      ───────────────────────────────────────────────────────── */
   .sheet{position:relative;width:100%;max-width:1100px;aspect-ratio:2000/1414;margin:0 auto;
          box-shadow:0 6px 30px rgba(0,0,0,.14);overflow:hidden;background:#fff;}
   .canvas{position:absolute;top:0;left:0;width:2000px;height:1414px;
-          transform-origin:top left;overflow:hidden;background:#fff;}
+          transform-origin:top left;overflow:hidden;
+          background:#fff url('../../assets/cert-template.png') 0 0 / 2000px 1414px no-repeat;}
   .canvas > *{position:absolute;}
 
-  /* Background shapes */
-  .circle{border-radius:50%;background:var(--green);}
-  .arch{border:105px solid var(--blue);border-bottom:none;
-        border-radius:50% 50% 0 0 / 46% 46% 0 0;}
-
-  .side{left:0;top:0;width:200px;height:1414px;object-fit:cover;}
-
-  .banner{left:540px;top:137px;width:925px;height:113px;background:var(--orange);
-          display:flex;align-items:center;justify-content:center;}
-  .banner span{font-family:'Archivo',sans-serif;font-weight:800;font-size:52px;
-               color:#fff;letter-spacing:.5px;}
-
-  .msme{left:1618px;top:132px;width:292px;}
-  .msme-cap{left:1600px;top:278px;width:330px;text-align:center;
-            font-family:'Archivo',sans-serif;font-weight:700;font-size:21px;color:#1A1A2E;}
-
-  .badge{left:947px;top:272px;width:111px;}
-
-  .awards{left:0;top:418px;width:2004px;text-align:center;
-          font-family:'Baloo 2',sans-serif;font-weight:800;font-size:82px;color:var(--teal);}
-
-  .name{left:0;top:592px;width:2004px;text-align:center;
-        font-family:'Fredoka',sans-serif;font-weight:600;font-size:112px;color:var(--orange);
+  .name{left:0;top:588px;width:2000px;text-align:center;
+        font-family:'Fredoka',sans-serif;font-weight:600;font-size:116px;color:var(--orange);
         line-height:1.1;}
 
-  .line1{left:0;top:800px;width:2004px;text-align:center;
-         font-family:'Comfortaa',cursive;font-weight:600;font-size:42px;color:var(--teal-lt);
-         letter-spacing:1px;}
-  .line2{left:0;top:862px;width:2004px;text-align:center;
-         font-family:'Comfortaa',cursive;font-weight:600;font-size:42px;color:var(--teal-lt);
-         letter-spacing:1px;}
+  .line1{left:0;top:792px;width:2000px;text-align:center;
+         font-family:'Comfortaa',cursive;font-weight:700;font-size:54px;color:var(--teal-lt);
+         letter-spacing:.5px;line-height:1.15;}
+  .line2{left:0;top:858px;width:2000px;text-align:center;
+         font-family:'Comfortaa',cursive;font-weight:700;font-size:54px;color:var(--teal-lt);
+         letter-spacing:.5px;line-height:1.15;}
 
-  .rule{height:4px;background:var(--orange);top:1103px;}
-  .rule-l{left:565px;width:370px;}
-  .rule-r{left:1130px;width:370px;}
+  /* Signature, sitting on the rule above "Megha Bhatt" */
+  .sign{left:565px;top:1000px;width:370px;text-align:center;
+        font-family:'Great Vibes',cursive;font-size:76px;color:#1A2E5A;line-height:1;}
+  .sign-img{left:565px;top:990px;width:370px;height:105px;
+            object-fit:contain;object-position:center bottom;display:none;}
 
-  .sig-name{left:565px;top:1122px;width:370px;text-align:center;
-            font-family:'Archivo',sans-serif;font-weight:800;font-size:40px;color:var(--orange);}
-  .sig-role{left:565px;top:1182px;width:370px;text-align:center;
-            font-family:'Comfortaa',cursive;font-weight:600;font-size:31px;color:var(--teal-lt);}
-  .date-lbl{left:1130px;top:1122px;width:370px;text-align:center;
-            font-family:'Archivo',sans-serif;font-weight:800;font-size:40px;color:var(--orange);}
-  .date-val{left:1130px;top:1042px;width:370px;text-align:center;
-            font-family:'Comfortaa',cursive;font-weight:600;font-size:34px;color:#1A1A2E;}
+  /* Date, sitting on the rule above the "Date" label */
+  .date-val{left:1130px;top:1035px;width:370px;text-align:center;
+            font-family:'Comfortaa',cursive;font-weight:600;font-size:36px;color:#1A1A2E;}
 
-  .certno{left:0;top:1350px;width:2004px;text-align:center;
-          font-family:'Nunito',sans-serif;font-weight:700;font-size:20px;color:#B0B8C4;
+  .certno{left:0;top:1352px;width:2000px;text-align:center;
+          font-family:'Nunito',sans-serif;font-weight:700;font-size:20px;color:#A9B2BF;
           letter-spacing:1.5px;}
 
-  /* Fields the teacher can click and type into */
   [contenteditable]{outline:none;border-radius:6px;}
   [contenteditable]:hover{background:rgba(4,148,157,.06);}
   [contenteditable]:focus{background:rgba(4,148,157,.10);}
@@ -129,7 +102,6 @@
 
 <div class="layout">
 
-  <!-- ── Controls ──────────────────────────────────────── -->
   <div class="panel">
     <h2>Certificate details</h2>
 
@@ -163,50 +135,26 @@
       <input id="iCert" placeholder="IMA-L4-000001">
     </div>
 
-    <button class="btn btn-print" onclick="window.print()">🖨️ Print / Save as PDF</button>
+    <button class="btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
     <div class="hint">
       In the print dialog choose <strong>Landscape</strong>, <strong>A4</strong>,
       margins <strong>None</strong>, and tick <strong>Background graphics</strong>.
       <br><br>
-      You can also click any text on the certificate itself and type over it.
+      You can also click the name or either teal line on the certificate and type over it.
     </div>
   </div>
 
-  <!-- ── The certificate ───────────────────────────────── -->
   <div class="sheet" id="sheet">
     <div class="canvas" id="canvas">
-
-      <!-- Background shapes -->
-      <div class="circle" style="left:510px;top:-130px;width:470px;height:470px;"></div>
-      <div class="circle" style="left:1145px;top:30px;width:510px;height:510px;"></div>
-      <div class="arch"   style="left:250px;top:390px;width:787px;height:1040px;"></div>
-      <div class="arch"   style="left:932px;top:390px;width:787px;height:1040px;"></div>
-
-      <!-- Artwork lifted from the original design -->
-      <img class="side"  src="../../assets/cert-side.png"  alt="">
-      <img class="msme"  src="../../assets/cert-msme.png"  alt="Ministry of MSME">
-      <div class="msme-cap">Ministry of MSME, Govt. of India</div>
-      <img class="badge" src="../../assets/cert-badge.png" alt="iMath Academy">
-
-      <div class="banner"><span>CERTIFICATE OF ACCOMPLISHMENT</span></div>
-
-      <div class="awards">iMath Academy awards</div>
-
       <div class="name"  id="pName"  contenteditable>Tishaa Rao</div>
       <div class="line1" id="pLine1" contenteditable>Certificate of Completion for Jr Level 4</div>
       <div class="line2" id="pLine2" contenteditable>International ABACUS program</div>
 
-      <div class="rule rule-l"></div>
-      <div class="rule rule-r"></div>
-
-      <div class="sig-name">Megha Bhatt</div>
-      <div class="sig-role">Founder &amp; CEO</div>
+      <img class="sign-img" id="signImg" src="../../assets/signature.png" alt="">
+      <div class="sign" id="signText">Megha Bhatt</div>
 
       <div class="date-val" id="pDate"></div>
-      <div class="date-lbl">Date</div>
-
-      <div class="certno" id="pCert"></div>
-
+      <div class="certno"   id="pCert"></div>
     </div>
   </div>
 
@@ -217,30 +165,37 @@
 /* ============================================================
    Certificate
 
-   Rebuilt from Megha's Canva design as real HTML, so the name,
-   level and date are live text rather than pixels. Everything
-   sits on a 2000 x 1414 canvas — the exact size of her export —
-   so the positions match the original design.
+   The background is Megha's Canva export with only the student
+   name and the two teal lines erased — every shape, colour and
+   fixed label is her original artwork, untouched. The variable
+   text is laid over it as live HTML.
 
-   No AI involved. This is layout and print CSS.
+   No AI. Layout and print CSS.
    ============================================================ */
 
-const SURL = 'https://bhullfoajenhkxlkiubs.supabase.co';
-const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
-const sb = supabase.createClient(SURL, SKEY);
+var SURL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+var SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+var sb = supabase.createClient(SURL, SKEY);
 
 /* ── Scale the 2000px canvas to whatever space we have ────── */
-const sheet  = document.getElementById('sheet');
-const canvas = document.getElementById('canvas');
-
-function fit() {
-  canvas.style.transform = 'scale(' + (sheet.clientWidth / 2000) + ')';
-}
+var sheet  = document.getElementById('sheet');
+var canvas = document.getElementById('canvas');
+function fit() { canvas.style.transform = 'scale(' + (sheet.clientWidth / 2000) + ')'; }
 new ResizeObserver(fit).observe(sheet);
 fit();
 
+/* ── Use a real signature image if one has been uploaded ──── */
+(function () {
+  var img = new Image();
+  img.onload = function () {
+    document.getElementById('signImg').style.display = 'block';
+    document.getElementById('signText').style.display = 'none';
+  };
+  img.src = '../../assets/signature.png';
+})();
+
 /* ── Form and certificate stay in step, both ways ─────────── */
-const PAIRS = [['iName','pName'], ['iLine1','pLine1'], ['iLine2','pLine2']];
+var PAIRS = [['iName','pName'], ['iLine1','pLine1'], ['iLine2','pLine2']];
 
 function prettyDate(iso) {
   if (!iso) return '';
@@ -259,7 +214,6 @@ function sync() {
 
 PAIRS.forEach(function (p) {
   document.getElementById(p[0]).addEventListener('input', sync);
-  // Typing straight onto the certificate feeds back into the form
   document.getElementById(p[1]).addEventListener('input', function () {
     document.getElementById(p[0]).value = this.textContent.trim();
   });
@@ -273,24 +227,24 @@ sync();
 /* ── Load real students so names need not be typed ─────────── */
 (async function loadStudents() {
   var pick = document.getElementById('pick');
+  var levels = {};
+  try {
+    var lv = await sb.from('curriculum_levels').select('level_code, level_name');
+    (lv.data || []).forEach(function (l) { levels[l.level_code] = l.level_name; });
+  } catch (e) { /* level names are a nicety, not a requirement */ }
+
+  var done = {};
+  try {
+    var comp = await sb.from('student_level_completions')
+      .select('student_id, level_code, certificate_number, completed_at');
+    (comp.data || []).forEach(function (c) { done[c.student_id + '|' + c.level_code] = c; });
+  } catch (e) { /* the completions table may not be in place yet */ }
+
   try {
     var res = await sb.from('users')
       .select('id, full_name, current_level')
       .eq('role', 'student').order('full_name');
     if (res.error) throw res.error;
-
-    var levels = {};
-    try {
-      var lv = await sb.from('curriculum_levels').select('level_code, level_name');
-      (lv.data || []).forEach(function (l) { levels[l.level_code] = l.level_name; });
-    } catch (e) { /* level names are a nicety, not a requirement */ }
-
-    var done = {};
-    try {
-      var comp = await sb.from('student_level_completions')
-        .select('student_id, level_code, certificate_number, completed_at');
-      (comp.data || []).forEach(function (c) { done[c.student_id + '|' + c.level_code] = c; });
-    } catch (e) { /* the completions table may not be in place yet */ }
 
     (res.data || []).forEach(function (s) {
       var lvl  = s.current_level != null ? s.current_level : 0;   // zero is a real level

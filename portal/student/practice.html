@@ -198,7 +198,18 @@
     .logout-btn:hover { color:var(--red); }
 
     .main { flex:1; margin-left:220px; display:flex; flex-direction:column; }
-    </style>
+    
+/* A column sum is printed the way the practice books print it —
+   one number per line, right aligned, worked top to bottom. */
+.col-sum{white-space:pre;font-variant-numeric:tabular-nums;line-height:1.35;
+         font-weight:900;letter-spacing:1px;}
+.col-rule{display:inline-block;border-top:3px solid currentColor;margin-top:4px;}
+.oral-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.2);
+            border-radius:20px;padding:5px 14px;font-size:.8rem;font-weight:800;margin-bottom:8px;}
+.replay-btn{background:rgba(255,255,255,.25);border:1.5px solid rgba(255,255,255,.4);
+            color:#fff;border-radius:20px;padding:6px 16px;font-family:inherit;
+            font-size:.82rem;font-weight:800;cursor:pointer;margin-top:8px;}
+</style>
 </head>
 <body>
 <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
@@ -546,6 +557,118 @@ const CARD_COLOURS = {
 };
 
 // ── RENDER QUESTION ──────────────────────────────────────────
+
+/* ── PRACTICE FROM THE CURRICULUM ──────────────────────────────
+   Questions now come from PracticeEngine, which reads the level's
+   row rules and guardrails, instead of being invented here. The
+   old generateQuestions() is kept as a fallback for the case where
+   the curriculum cannot be read, so practice never dead-ends.
+   ─────────────────────────────────────────────────────────── */
+
+// Plausible wrong answers for the tap-a-choice age group
+function makeChoices(answer) {
+  var near = [answer, answer + 1, answer - 1, answer + 10, answer - 10, answer + 2];
+  var seen = {}, out = [];
+  near.forEach(function (v) {
+    if (v > 0 && !seen[v]) { seen[v] = 1; out.push(v); }
+  });
+  return shuffle(out.slice(0, 4));
+}
+
+// Turn an engine question into the shape the card renderer expects
+function engineToCard(q) {
+  var card = { engineType: q.type, answer: q.answer, xp: 10, hint: '' };
+
+  if (q.type === 'column' || q.type === 'oral') {
+    card.question = PracticeEngine.columnText(q);
+    card.column   = true;
+    card.rows     = q.rows;
+    card.mental   = !!q.mental;
+    card.story    = q.type === 'oral' ? '' : (q.mental ? 'Work it out in your head' : '');
+    card.oral     = q.type === 'oral';
+    card.hint     = 'Start at the top and work down the beads';
+    card.xp       = 10 + Math.max(0, q.rows.length - 3) * 2;
+
+  } else if (q.type === 'multiplication' || q.type === 'division') {
+    card.question = q.text + ' = ?';
+    card.story    = q.prompt;
+    card.xp       = 15;
+
+  } else if (q.type === 'beads') {
+    card.question = '';
+    card.story    = 'What number is on the abacus?';
+    card.beads    = true;
+    card.value    = q.value;
+    card.hint     = 'Read the beads touching the bar';
+  }
+
+  card.choices = makeChoices(q.answer);
+  return card;
+}
+
+async function buildEngineQuestions(profile) {
+  var level = profile.current_level != null ? profile.current_level : 0;
+  var session = await PracticeEngine.buildSession(level, { count: 10 });
+  return session.questions.map(engineToCard);
+}
+
+/* ── Orals: the numbers are spoken, not shown ───────────────── */
+function speakOral(rows) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  rows.forEach(function (n, i) {
+    var word = i === 0 ? String(n)
+             : (n < 0 ? 'minus ' + Math.abs(n) : 'plus ' + n);
+    var u = new SpeechSynthesisUtterance(word);
+    u.rate = 0.75;
+    u.pitch = 1.05;
+    window.speechSynthesis.speak(u);
+  });
+}
+
+/* ── Extra card content: vertical columns, orals, bead diagrams ── */
+var practiceAbacus = null;
+
+function decorateCard(q) {
+  var visual = document.getElementById('cardVisual');
+  var qEl    = document.getElementById('cardQuestion');
+
+  if (practiceAbacus) { practiceAbacus.destroy(); practiceAbacus = null; }
+
+  // A column sum, printed the way the books print it
+  if (q.column) {
+    qEl.className = 'col-sum';
+    qEl.style.fontSize = q.rows.length > 8 ? '1.5rem' : '2rem';
+  } else {
+    qEl.className = '';
+    qEl.style.fontSize = '';
+  }
+
+  // Orals — hide the numbers and read them aloud
+  if (q.oral) {
+    qEl.textContent = '🔊';
+    qEl.style.fontSize = '3rem';
+    visual.innerHTML = '<div class="oral-badge">👂 Listening</div>';
+    var btn = document.createElement('button');
+    btn.className = 'replay-btn';
+    btn.textContent = '🔁 Play again';
+    btn.onclick = function () { speakOral(q.rows); };
+    visual.appendChild(btn);
+    setTimeout(function () { speakOral(q.rows); }, 500);
+    return;
+  }
+
+  // Beads to Numbers — show a real abacus set to the value
+  if (q.beads && typeof Abacus !== 'undefined') {
+    visual.innerHTML = '';
+    var host = document.createElement('div');
+    host.style.maxWidth = '100%';
+    visual.appendChild(host);
+    practiceAbacus = Abacus.mount(host, { readonly: true, showValue: false, sound: false });
+    practiceAbacus.setValue(q.value);
+  }
+}
+
 function renderQuestion() {
   if (current >= questions.length) { endSession(); return; }
   answered = false;
@@ -593,6 +716,9 @@ function renderQuestion() {
     document.getElementById('typeWrap').style.display = 'none';
     renderChoices(q);
   }
+
+  // Column sums, orals and bead diagrams need more than plain text
+  decorateCard(q);
 
   // Mascot
   showMascot();
@@ -985,7 +1111,15 @@ async function init() {
     document.getElementById('loaderScreen').style.display = 'none';
     document.getElementById('practiceScreen').style.display = 'block';
 
-    questions = generateQuestions(profile, group);
+    // The curriculum decides what practice looks like. If it cannot
+    // be read, fall back to the old generator rather than dead-end.
+    try {
+      questions = await buildEngineQuestions(profile);
+      if (!questions || !questions.length) throw new Error('no questions');
+    } catch (e) {
+      console.warn('Practice engine unavailable, using fallback:', e.message);
+      questions = generateQuestions(profile, group);
+    }
     renderQuestion();
 
   } catch(err) {
@@ -1030,6 +1164,9 @@ init();
     </a>
   </div>
 </nav>
-  <script src="../js/student-nav.js"></script>
+  <link rel="stylesheet" href="../css/abacus.css">
+<script src="../js/abacus.js"></script>
+<script src="../js/practice-engine.js"></script>
+<script src="../js/student-nav.js"></script>
 </body>
 </html>

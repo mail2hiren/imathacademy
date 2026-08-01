@@ -17,7 +17,7 @@ function renderStudents() {
       </td>
       <td><span class="pill ${s.program==='vedic'?'pill-p':'pill-b'}">${s.program||'—'}</span></td>
       <td>
-        <span style="font-weight:800">L${s.current_level||1}</span>
+        <span style="font-weight:800">L${s.current_level ?? 0}</span>
         ${s.age_group ? `<div style="font-size:.65rem;margin-top:2px;">${s.age_group==='tiny'?'🐣 Tiny':s.age_group==='rising'?'🌟 Rising':'🚀 Champions'}</div>` : s.date_of_birth ? `<div style="font-size:.65rem;color:var(--text3);margin-top:2px;">auto group</div>` : ''}
       </td>
       <td style="font-size:.82rem;color:var(--text2)">${batch ? batch.name : '—'}</td>
@@ -177,7 +177,7 @@ function openEdit(id) {
   document.getElementById('edit-student-fields').style.display = isStudent ? 'block' : 'none';
   if (isStudent) {
     document.getElementById('edit-program').value = user.program || 'abacus';
-    document.getElementById('edit-level').value   = user.current_level || 1;
+    document.getElementById('edit-level').value   = user.current_level ?? 0;
     document.getElementById('edit-mode').value    = user.mode || 'online';
   }
   openModal('editModal');

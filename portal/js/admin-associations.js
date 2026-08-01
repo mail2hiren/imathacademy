@@ -166,11 +166,11 @@ function renderPrograms() {
     </td>
     <td><span class="pill ${s.program==='vedic'?'pill-p':'pill-b'}">${s.program||'—'}</span></td>
     <td>
-        <span style="font-weight:800">L${s.current_level||1}</span>
+        <span style="font-weight:800">L${s.current_level ?? 0}</span>
         ${s.age_group ? `<div style="font-size:.65rem;margin-top:2px;">${s.age_group==='tiny'?'🐣 Tiny':s.age_group==='rising'?'🌟 Rising':'🚀 Champions'}</div>` : s.date_of_birth ? `<div style="font-size:.65rem;color:var(--text3);margin-top:2px;">auto group</div>` : ''}
       </td>
     <td>
-      <button class="btn btn-blue btn-sm" onclick="quickChangeProgram('${s.id}','${s.full_name}','${s.program||'abacus'}',${s.current_level||1})">
+      <button class="btn btn-blue btn-sm" onclick="quickChangeProgram('${s.id}','${s.full_name}','${s.program||'abacus'}',${s.current_level ?? 0})">
         ✏️ Change
       </button>
     </td>

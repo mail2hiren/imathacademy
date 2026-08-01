@@ -102,7 +102,7 @@ function calcAgeGroup(profile) {
     if (age <= 10) return 'rising';
     return 'champions';
   }
-  const lv = profile.current_level || 1;
+  const lv = profile.current_level ?? 0;
   if (lv <= 1) return 'tiny';
   if (lv <= 4) return 'rising';
   return 'champions';
@@ -198,7 +198,7 @@ function populateDropdowns() {
   // Student ↔ Program dropdown
   const spStudent = document.getElementById('sp-student');
   if (spStudent) spStudent.innerHTML = '<option value="">— Select student —</option>' +
-    allStudents.map(s => `<option value="${s.id}">${s.full_name} (${s.program||'—'} L${s.current_level||1})</option>`).join('');
+    allStudents.map(s => `<option value="${s.id}">${s.full_name} (${s.program||'—'} L${s.current_level ?? 0})</option>`).join('');
 }
 
 // ── CREATE USER ─────────────────────────────────────────────

@@ -492,6 +492,11 @@ function setupMazeSwipe() {
 // ── RISING — SUDOKU 4×4 or 6×6 ──────────────────────────────
 // ════════════════════════════════════════════════════════════
 let sudokuSize=4, sudokuBoard=[], sudokuSolution=[], selectedCell=null, sudokuErrors=0;
+// The puzzle as first dealt. A cell is a locked clue only if it was
+// filled here. Checking sudokuSolution instead is always true — that
+// grid is complete — which locked every cell and made the puzzle
+// impossible to play.
+let sudokuGivens=[];
 
 function buildRisingPuzzle(level) {
   puzzleType = 'sudoku';
@@ -505,6 +510,7 @@ function buildRisingPuzzle(level) {
   const {puzzle, solution} = generateSudoku(sudokuSize);
   sudokuBoard    = puzzle.map(r=>[...r]);
   sudokuSolution = solution;
+  sudokuGivens   = puzzle.map(r=>[...r]);
 
   const xpVal = sudokuSize === 4 ? 35 : 45;
   const nums = Array.from({length:sudokuSize},(_,i)=>i+1);
@@ -595,7 +601,7 @@ function renderSudokuGrid() {
   for(let r=0;r<sudokuSize;r++) {
     for(let c=0;c<sudokuSize;c++) {
       const val = sudokuBoard[r][c];
-      const given = sudokuSolution[r]?.[c] !== 0 && sudokuBoard[r][c] !== 0;
+      const given = sudokuGivens[r]?.[c] !== 0 && sudokuGivens[r]?.[c] !== undefined;
       const cell = document.createElement('div');
       cell.className = 'sudoku-cell' + (given?' given':'');
       cell.style.width  = cellPx+'px';
@@ -619,7 +625,7 @@ function selectCell(r,c) {
 function enterNum(n) {
   if(!selectedCell) return;
   const {r,c} = selectedCell;
-  const given = sudokuSolution[r]?.[c]!==0;
+  const given = sudokuGivens[r]?.[c] !== 0 && sudokuGivens[r]?.[c] !== undefined;
   if(given) return;
 
   sudokuBoard[r][c] = n;
@@ -649,8 +655,10 @@ function enterNum(n) {
 
 function isSudokuComplete() {
   for(let r=0;r<sudokuSize;r++)
-    for(let c=0;c<sudokuSize;c++)
-      if(sudokuBoard[r][c]!==sudokuSolution[r]?.[c]) return false;
+    for(let c=0;c<sudokuSize;c++) {
+      if(!sudokuBoard[r][c]) return false;                       // still blank
+      if(sudokuBoard[r][c]!==sudokuSolution[r]?.[c]) return false; // wrong
+    }
   return true;
 }
 
@@ -672,12 +680,18 @@ function useHint() {
 }
 
 function resetSudoku() {
-  // Re-generate
-  buildRisingPuzzle(profile?.current_level||2);
+  // Rebuild the puzzle the student is actually on. This used to always
+  // rebuild the 4x4, so a Champion on the 9x9 was dropped to a 4x4
+  // after three mistakes.
+  if (sudokuSize === 9) buildChampionsPuzzle(profile?.current_level || 5);
+  else                  buildRisingPuzzle(profile?.current_level || 2);
 }
 
 // Keyboard support for sudoku
 document.addEventListener('keydown',e=>{
+  // Only while a sudoku is on screen — otherwise number keys fire
+  // enterNum() during the maze and other puzzles too.
+  if(puzzleType!=='sudoku' && puzzleType!=='sudoku9') return;
   const n=parseInt(e.key);
   if(n>=1&&n<=sudokuSize) enterNum(n);
   if(e.key==='Backspace'||e.key==='Delete') enterNum(0);
@@ -696,6 +710,7 @@ function buildChampionsPuzzle(level) {
   const {puzzle, solution} = generateSudoku9();
   sudokuBoard    = puzzle.map(r=>[...r]);
   sudokuSolution = solution;
+  sudokuGivens   = puzzle.map(r=>[...r]);
 
   document.getElementById('screenContent').innerHTML = `
     <div class="intro-card" style="background:linear-gradient(135deg,#0D47A1,#1A237E);">

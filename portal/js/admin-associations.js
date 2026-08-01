@@ -187,7 +187,8 @@ function quickChangeProgram(id, name, currentProgram, currentLevel) {
 // ── AUTH ────────────────────────────────────────────────────
 // ── SUBSCRIPTIONS ───────────────────────────────────────────
 
-const SUB_PLANS = {
-  monthly:    { label: 'Monthly',     amount: 199,  days: 30  },
-  halfyearly: { label: 'Half-yearly', amount: 1099, days: 180 },
-};
+// SUB_PLANS lives in admin-core.js, which loads first and has the
+// complete set including the annual plan. Redeclaring a const that an
+// earlier script already declared makes the browser throw for this
+// entire file, so nothing in it gets defined — which is what broke
+// three of the four association tabs.

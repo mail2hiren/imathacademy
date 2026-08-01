@@ -1249,6 +1249,68 @@ function extractJsonArray(text) {
   }
 }
 
+
+/* ── QUESTION VALIDATION ──────────────────────────────────────
+   The AI occasionally returns a question a child cannot solve —
+   "9 - ? = ?" has two unknowns — or an answer that does not match
+   its own sum. Nothing used to check, so those reached children.
+   Every generated question is now checked before it can be saved.
+   ─────────────────────────────────────────────────────────── */
+function validateQuestion(q) {
+  var probs = [];
+  var text = (q.question || '').trim();
+  var ans  = String(q.answer === null || q.answer === undefined ? '' : q.answer).trim();
+
+  if (!text) probs.push('The question is empty');
+  if (!ans)  probs.push('No answer given');
+
+  // A question must have exactly one thing to work out
+  var blanks = (text.match(/\?|_{2,}/g) || []).length;
+  if (blanks > 1) {
+    probs.push('Has ' + blanks + ' unknowns — a child cannot solve this');
+  }
+  if (blanks === 0 && q.type !== 'story' && q.type !== 'visual') {
+    probs.push('Nothing to solve — no ? or blank');
+  }
+
+  // Where the sum is simple enough to read, check the arithmetic
+  var m = text.replace(/[\u00D7x]/g, '*').replace(/\u00F7/g, '/')
+              .match(/(-?\d+(?:\.\d+)?)\s*([+\-*\/])\s*(-?\d+(?:\.\d+)?)\s*=\s*(?:\?|_{2,})/);
+  if (m && ans !== '' && !isNaN(parseFloat(ans))) {
+    var a = parseFloat(m[1]), b = parseFloat(m[3]), op = m[2], expect = null;
+    if (op === '+') expect = a + b;
+    else if (op === '-') expect = a - b;
+    else if (op === '*') expect = a * b;
+    else if (b !== 0)    expect = a / b;
+    if (expect !== null && Math.abs(expect - parseFloat(ans)) > 1e-9) {
+      probs.push('Answer should be ' + expect + ', not ' + ans);
+    }
+  }
+
+  // Numbers outside what this level permits
+  if (resolvedRules) {
+    var nums = (text.match(/\d+(?:\.\d+)?/g) || []).map(parseFloat);
+    var over = nums.filter(function (n) { return n > resolvedRules.max_number; });
+    if (over.length) {
+      probs.push('Uses ' + over.join(', ') + ' — above this level\'s limit of ' + resolvedRules.max_number);
+    }
+  }
+
+  return probs;
+}
+
+// Editing a question in the preview writes straight back to what gets saved
+document.addEventListener('input', function (ev) {
+  var el = ev.target;
+  if (!el.dataset || el.dataset.qi === undefined) return;
+  var list = generatedContent && generatedContent.parsedQuestions;
+  if (!list) return;
+  var q = list[+el.dataset.qi];
+  if (!q) return;
+  if (el.dataset.qfield === 'answer') q.answer   = el.value;
+  else                                q.question = el.textContent.trim();
+});
+
 function parseAndRender(text) {
   const cleanText = stripCodeFences(text);
   const sections = {};
@@ -1314,7 +1376,20 @@ function renderOutTab(tab) {
     html += '</div>';
 
     if (questions && questions.length) {
-      // Render as beautiful question cards
+      // Check every question before it can reach a child
+      var allProbs = questions.map(validateQuestion);
+      var badCount = allProbs.filter(function (p) { return p.length; }).length;
+      if (badCount) {
+        html += '<div style="background:#FFEBEE;border:2px solid #E53935;border-radius:12px;' +
+                'padding:12px 14px;margin-top:14px;">' +
+                '<div style="font-weight:900;color:#B71C1C;font-size:.9rem;margin-bottom:3px;">' +
+                '\u26A0\uFE0F ' + badCount + ' question' + (badCount === 1 ? '' : 's') +
+                ' need' + (badCount === 1 ? 's' : '') + ' your attention</div>' +
+                '<div style="font-size:.8rem;color:#C62828;line-height:1.55;">' +
+                'They are marked in red below. Click the question text to correct it, or ' +
+                'press <strong>Generate with AI</strong> again for a fresh set.</div></div>';
+      }
+      // Render as question cards
       html += '<div style="margin-top:16px;">';
       questions.forEach(function(q, i) {
         var isStory  = q.type === 'story';
@@ -1322,6 +1397,8 @@ function renderOutTab(tab) {
         var isVisual = q.type === 'visual';
         var bgColor  = isStory ? '#FFF8E7' : isFill ? '#F0F8FF' : '#FAFAFA';
         var border   = isStory ? '#FFD54F' : isFill ? '#90CAF9' : '#E0E0E0';
+        var probs    = allProbs[i] || [];
+        if (probs.length) { bgColor = '#FFF5F5'; border = '#E53935'; }
 
         html += '<div style="background:' + bgColor + ';border:2px solid ' + border + ';border-radius:14px;padding:16px;margin-bottom:12px;">';
         html += '<div style="display:flex;align-items:flex-start;gap:12px;">';
@@ -1330,7 +1407,23 @@ function renderOutTab(tab) {
 
         // Question text — preserve line breaks
         var qText = (q.question || '').replace(/\n/g, '<br>');
-        html += '<div style="font-size:.95rem;font-weight:700;line-height:1.7;color:#1A1A2E;">' + qText + '</div>';
+        html += '<div contenteditable data-qi="' + i + '" ' +
+                'style="font-size:.95rem;font-weight:700;line-height:1.7;color:#1A1A2E;' +
+                'outline:none;border-radius:6px;padding:2px 4px;cursor:text;">' + qText + '</div>';
+
+        if (probs.length) {
+          html += '<div style="margin-top:7px;">';
+          probs.forEach(function (p) {
+            html += '<div style="font-size:.76rem;font-weight:800;color:#C62828;">\u2022 ' + p + '</div>';
+          });
+          html += '<div style="margin-top:7px;display:flex;align-items:center;gap:7px;">' +
+                  '<label style="font-size:.72rem;font-weight:800;color:#C62828;">Answer</label>' +
+                  '<input data-qi="' + i + '" data-qfield="answer" value="' +
+                  String(q.answer === null || q.answer === undefined ? '' : q.answer).replace(/"/g, '&quot;') + '" ' +
+                  'style="width:110px;padding:5px 8px;border:1.5px solid #E53935;border-radius:7px;' +
+                  'font-family:inherit;font-size:.82rem;font-weight:800;"></div>';
+          html += '</div>';
+        }
 
         // For fill in the blank — add visible blank line
         if (isFill && !qText.includes('___')) {

@@ -409,8 +409,8 @@
     <a class="bnav-item" href="#how">
       <span class="bnav-icon">❓</span><span class="bnav-label">How it works</span>
     </a>
-    <a class="bnav-item" href="subscription.html">
-      <span class="bnav-icon">💳</span><span class="bnav-label">Subscription</span>
+    <a class="bnav-item" href="#" onclick="event.preventDefault();switchTab('money',null);">
+      <span class="bnav-icon">💳</span><span class="bnav-label">Fees</span>
     </a>
   </div>
 </nav>
@@ -902,8 +902,8 @@ async function loadChildStats(childId) {
 
     // Weekly XP from practice sessions
     const weekStart = new Date(); weekStart.setDate(weekStart.getDate()-weekStart.getDay()); weekStart.setHours(0,0,0,0);
-    const { data: ws } = await sb.from('practice_sessions').select('xp_earned').eq('student_id', childId).gte('created_at', weekStart.toISOString());
-    stats.weeklyXP = (ws||[]).reduce((s,r)=>s+(r.xp_earned||0),0);
+    const { data: ws } = await sb.from('practice_sessions').select('xp_awarded').eq('student_id', childId).gte('created_at', weekStart.toISOString());
+    stats.weeklyXP = (ws||[]).reduce((s,r)=>s+(r.xp_awarded||0),0);
 
     // Practice today
     const todayStart = new Date(); todayStart.setHours(0,0,0,0);

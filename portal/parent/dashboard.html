@@ -369,9 +369,9 @@
     <div class="logo"><img src="../../assets/logo.png" alt="iMathAcademy" style="height:32px;width:auto;object-fit:contain;"></div>
     <nav>
       <div class="nav-sec">My children</div>
-      <a class="nav-item active" href="#"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a class="nav-item active" href="#" onclick="event.preventDefault();switchTab('progress',null);"><span class="nav-icon">🏠</span> Dashboard</a>
       <div class="nav-sec">Account</div>
-      <a class="nav-item" href="#"><span class="nav-icon">💳</span> Subscription</a>
+      <a class="nav-item" href="#" onclick="event.preventDefault();switchTab('money',null);"><span class="nav-icon">💳</span> Fees &amp; subscription</a>
     </nav>
     <div class="sidebar-user">
       <div class="av" id="sidebarAv">P</div>
@@ -646,7 +646,7 @@ function renderDashboard(child, stats) {
     </div>
 
     <!-- ── TAB: BADGES ── -->
-    <div id="tab-money" style="display:none;min-height:180px;"></div>
+    <div id="tab-money" style="${activeTab==='money'?'':'display:none'};min-height:180px;"></div>
       <div id="tab-badges" style="${activeTab==='badges'?'':'display:none'}">
 
       <!-- Earned badges -->
@@ -900,6 +900,8 @@ function switchTab(tab, btn) {
   if (window.innerWidth <= 768 && typeof closeSidebar === 'function') closeSidebar();
   activeTab = tab;
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  // Sidebar and bottom nav follow the tab too
+  document.querySelectorAll('.nav-item, .bnav-item').forEach(function(n){ n.classList.remove('active'); });
   btn?.classList.add('active');
   ['progress','badges','money','tips','howworks'].forEach(t=>{
     const el = document.getElementById('tab-'+t);

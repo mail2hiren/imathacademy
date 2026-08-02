@@ -59,6 +59,9 @@ async function init() {
       }
     }
 
+    // The whole path, and what they are working on now
+    fillJourneyMap(session.user.id, profile.current_level ?? 0, group);
+
     // How close they are to finishing the level
     fillLevelJourney(session.user.id, profile.current_level ?? 0, group);
 

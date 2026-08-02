@@ -45,6 +45,7 @@ function buildDashboard(profile, stats, group, session_user_id) {
   if (P.show.stickers)      blocks.push(stickerBlock(ctx));
   if (P.show.badges)        blocks.push(badgeBlock(ctx));
   if (P.show.levelProgress) blocks.push(levelBlock(ctx));
+  blocks.push('<div id="journeyMapSlot"></div>');
   blocks.push('<div id="levelJourneySlot"></div>');
   if (P.show.leaderboard)   blocks.push(leaderboardBlock(ctx));
   if (P.mascot)             blocks.push(mascotBlock(ctx));
@@ -428,4 +429,81 @@ async function fillLevelJourney(studentId, level, group) {
   slot.innerHTML =
     '<div class="section-title">' + headline + '</div>' +
     '<div class="progress-card" style="padding:6px 14px 14px;">' + body + footer + '</div>';
+}
+
+
+/* ── THE JOURNEY MAP ──────────────────────────────────────────
+   The whole programme as a path, and the current level opened up
+   into the concepts it teaches. Both come from the curriculum, so
+   when Megha moves a concept from Introduced to Practised, a
+   child sees it move.
+   ─────────────────────────────────────────────────────────── */
+async function fillJourneyMap(studentId, level, group) {
+  var slot = document.getElementById('journeyMapSlot');
+  if (!slot || typeof allLevels !== 'function') return;
+
+  var levels, done, concepts;
+  try {
+    levels   = await allLevels();
+    done     = await completedLevels(studentId);
+    concepts = await levelConcepts(level);
+  } catch (e) { slot.innerHTML = ''; return; }
+  if (!levels.length) { slot.innerHTML = ''; return; }
+
+  var tiny = group === 'tiny';
+  var hereCode = 'L' + level;
+
+  // ── the path across levels ──
+  var steps = levels.map(function (lv) {
+    var isDone = !!done[lv.level_code];
+    var isHere = lv.level_code === hereCode;
+    var num    = lv.level_code.replace('L', '');
+
+    var bg     = isDone ? '#2E7D32' : isHere ? '#1565C0' : '#E4E7F2';
+    var fg     = (isDone || isHere) ? '#fff' : '#9AA3B2';
+    var size   = isHere ? 40 : 30;
+    var ring   = isHere ? 'box-shadow:0 0 0 4px rgba(21,101,192,.18);' : '';
+
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;">' +
+             '<div title="' + (lv.level_name || '') + '" style="width:' + size + 'px;height:' + size + 'px;' +
+               'border-radius:50%;background:' + bg + ';color:' + fg + ';' + ring +
+               'display:flex;align-items:center;justify-content:center;' +
+               'font-weight:900;font-size:' + (isHere ? '.9' : '.78') + 'rem;">' +
+               (isDone ? '✓' : num) + '</div>' +
+             (isHere ? '<div style="font-size:.6rem;font-weight:900;color:#1565C0;">YOU</div>'
+                     : '<div style="height:12px;"></div>') +
+           '</div>';
+  }).join('<div style="flex:1;height:3px;background:#E4E7F2;min-width:8px;margin-bottom:14px;"></div>');
+
+  // ── the concepts inside this level ──
+  var conceptRows = concepts.length
+    ? concepts.map(function (c) {
+        var s = conceptStanding(c.status);
+        var colour = s.tone === 'done' ? '#2E7D32' : s.tone === 'now' ? '#1565C0' : '#9AA3B2';
+        return '<div style="display:flex;align-items:center;gap:9px;padding:7px 0;' +
+                 (s.tone === 'next' ? 'opacity:.6;' : '') + '">' +
+                 '<span style="color:' + colour + ';font-weight:900;width:14px;">' + s.mark + '</span>' +
+                 '<span style="flex:1;font-size:.85rem;font-weight:800;color:var(--text1);">' + c.name + '</span>' +
+                 '<span style="font-size:.72rem;font-weight:800;color:' + colour + ';">' + s.label + '</span>' +
+               '</div>';
+      }).join('')
+    : '<div style="font-size:.8rem;color:var(--text3);padding:6px 0;">' +
+      'Your teacher has not mapped this level\'s topics yet.</div>';
+
+  var levelRow  = levels.filter(function (l) { return l.level_code === hereCode; })[0] || {};
+  var mastered  = concepts.filter(function (c) { return c.status === 'M'; }).length;
+
+  slot.innerHTML =
+    '<div class="section-title">' + (tiny ? '🗺️ My maths adventure' : '🗺️ Your journey') + '</div>' +
+    '<div class="progress-card" style="padding:16px 14px;">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;">' + steps + '</div>' +
+      '<div style="border-top:1.5px solid var(--border);margin:12px 0 4px;"></div>' +
+      '<div style="font-size:.9rem;font-weight:900;color:var(--text1);margin-bottom:2px;">' +
+        'Level ' + level + ' — ' + (levelRow.level_name || '') + '</div>' +
+      (concepts.length
+        ? '<div style="font-size:.74rem;color:var(--text3);margin-bottom:6px;">' +
+          mastered + ' of ' + concepts.length + ' topics mastered</div>'
+        : '') +
+      conceptRows +
+    '</div>';
 }

@@ -235,3 +235,81 @@ function nextStepFor(p) {
   if (!p.test.passed)          return 'Try the level test again — you need ' + p.test.passMark + '%';
   return 'Ready for your certificate! 🎓';
 }
+
+
+/* ============================================================
+   THE JOURNEY
+   ------------------------------------------------------------
+   Two things a child wants to know: how far along the whole
+   programme they are, and what they are working on right now.
+
+   Both already exist in the curriculum — the levels, and each
+   level's concepts with a status. Nothing showed either.
+   ============================================================ */
+
+/** Every level, in order, with its name. */
+async function allLevels() {
+  try {
+    var res = await sb.from('curriculum_levels')
+      .select('level_code, level_name, core_focus')
+      .order('level_code');
+    if (res.error) throw res.error;
+    return res.data || [];
+  } catch (e) {
+    console.warn('Journey: levels unavailable:', e.message);
+    return [];
+  }
+}
+
+/** Which levels this child has already been certified for. */
+async function completedLevels(studentId) {
+  var done = {};
+  try {
+    var res = await sb.from('student_level_completions')
+      .select('level_code, completed_at')
+      .eq('student_id', studentId);
+    if (res.error) throw res.error;
+    (res.data || []).forEach(function (r) { done[r.level_code] = r.completed_at; });
+  } catch (e) { /* nothing certified yet */ }
+  return done;
+}
+
+/**
+ * The concepts taught at a level, with where the child is on each.
+ * Anything marked N is left out — it is not part of this level.
+ */
+async function levelConcepts(level) {
+  var code = 'L' + level;
+  try {
+    var res = await sb.from('curriculum_level_concepts')
+      .select('status, concept_id, curriculum_concepts(concept_code, concept_name)')
+      .eq('level_code', code);
+    if (res.error) throw res.error;
+
+    var ORDER = { I: 1, P: 2, R: 3, M: 4 };
+    return (res.data || [])
+      .filter(function (r) { return r.status && r.status !== 'N' && r.curriculum_concepts; })
+      .map(function (r) {
+        return {
+          code:   r.curriculum_concepts.concept_code,
+          name:   r.curriculum_concepts.concept_name || r.curriculum_concepts.concept_code,
+          status: r.status
+        };
+      })
+      // Mastered first, then what they are on, then what is coming
+      .sort(function (a, b) { return (ORDER[b.status] || 0) - (ORDER[a.status] || 0); });
+  } catch (e) {
+    console.warn('Journey: concepts unavailable for ' + code + ':', e.message);
+    return [];
+  }
+}
+
+/** How a concept status reads to a child. */
+function conceptStanding(status) {
+  return {
+    M: { mark: '✓', label: 'Mastered',    tone: 'done' },
+    P: { mark: '●', label: 'Practising',  tone: 'now'  },
+    I: { mark: '●', label: 'Just started', tone: 'now' },
+    R: { mark: '↻', label: 'Revising',    tone: 'now'  }
+  }[status] || { mark: '○', label: 'Coming up', tone: 'next' };
+}

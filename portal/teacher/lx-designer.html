@@ -310,8 +310,12 @@
     <div class="section">
       <div class="sec-label">4 — Activity type</div>
       <div class="activity-grid">
-        <label class="activity-opt selected" onclick="selectActivity(this,'flashcards')">
+        <label class="activity-opt selected" onclick="selectActivity(this,'column_sums')">
           <input type="radio" name="activity" checked>
+          <div><div class="activity-opt-name">Column sums ⚡</div><div class="activity-opt-sub">The practice book format. Built instantly, no AI</div></div>
+        </label>
+        <label class="activity-opt" onclick="selectActivity(this,'flashcards')">
+          <input type="radio" name="activity">
           <div><div class="activity-opt-name">Flash cards</div><div class="activity-opt-sub">Young: big cards. Older: speed drill</div></div>
         </label>
         <label class="activity-opt" onclick="selectActivity(this,'picture_sums')">
@@ -476,6 +480,7 @@
 <div id="toast" style="display:none;" class="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/practice-engine.js"></script>
 <script>
 const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
@@ -488,7 +493,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
   function showFlex(id) { const e = document.getElementById(id); if(e) e.style.display = 'flex'; }
 
 let allBatches = [], batchStudents = {}, teacherSession = null;
-let selectedLevel = 1, selectedConcept = 'add_sub', selectedActivity = 'flashcards';
+let selectedLevel = 1, selectedConcept = 'add_sub', selectedActivity = 'column_sums';
 let generatedContent = { worksheet:'', answerkey:'', lessonplan:'', parentnote:'' };
 let currentOutTab = 'worksheet';
 
@@ -1119,8 +1124,126 @@ function buildPrompt(preview=false) {
 
 
 
+
+/* ── GENERATING WITHOUT AI ────────────────────────────────────
+   Arithmetic does not need a language model. The practice engine
+   builds column sums, multiplication and division straight from
+   the curriculum — instantly, at no cost, and without the class
+   of mistake that produced "9 - ? = ?", because each answer is
+   computed as the numbers are made rather than asserted after.
+
+   Word problems and lesson plans still go to the AI. That is
+   writing, which is what it is actually good at.
+   ─────────────────────────────────────────────────────────── */
+var ENGINE_ACTIVITIES = ['column_sums', 'flashcards', 'speed_challenge'];
+
+function usesEngine(activity) {
+  return ENGINE_ACTIVITIES.indexOf(activity) > -1;
+}
+
+function engineQuestionText(q) {
+  if (q.type === 'column') return PracticeEngine.columnText(q);
+  if (q.type === 'multiplication' || q.type === 'division') return q.text + ' = ?';
+  return '';
+}
+
+
+// buildPrompt() is what normally populates resolvedRules. The engine
+// path does not build a prompt, so the rules are loaded directly.
+async function loadCurriculumRulesForLevel() {
+  if (resolvedRules && resolvedRules.level_name) return;
+  try { buildPrompt(true); } catch (e) { /* rules stay at their defaults */ }
+}
+
+async function generateFromEngine() {
+  var count = parseInt(document.getElementById('questionCount').value, 10) || 10;
+  var level = selectedLevel;
+
+  // Ask for extra, then keep only what suits a printed worksheet.
+  // Beads diagrams and orals belong in practice, not on paper.
+  var session = await PracticeEngine.buildSession(level, { count: count * 3 });
+
+  var wanted = session.questions.filter(function (q) {
+    if (q.type === 'beads' || q.type === 'oral') return false;
+    if (selectedActivity === 'column_sums') return q.type === 'column';
+    if (selectedActivity === 'speed_challenge') return q.type === 'column' && q.rows.length <= 5;
+    return true;
+  });
+
+  // Not enough of that shape came out — take whatever columns we have
+  if (wanted.length < count) {
+    wanted = session.questions.filter(function (q) {
+      return q.type === 'column' || q.type === 'multiplication' || q.type === 'division';
+    });
+  }
+  wanted = wanted.slice(0, count);
+
+  var questions = wanted.map(function (q) {
+    return {
+      type:     'calculation',
+      question: engineQuestionText(q),
+      answer:   q.answer,
+      hint:     q.type === 'column' ? 'Work down the column on your abacus' : ''
+    };
+  });
+
+  var answerKey = questions.map(function (q, i) {
+    return (i + 1) + '. ' + q.answer;
+  }).join('\n');
+
+  var levelName = (resolvedRules && resolvedRules.level_name) || ('Level ' + level);
+  var focus     = (resolvedRules && resolvedRules.core_focus) || '';
+
+  var lesson =
+    'Level ' + level + ' — ' + levelName + '\n\n' +
+    (focus ? focus + '\n\n' : '') +
+    'Before they start\n' +
+    '- Check every child has their abacus set to zero\n' +
+    '- Remind them to work down the column, one number at a time\n' +
+    '- The total is written only at the end\n\n' +
+    'While they work\n' +
+    '- Watch the finger movement, not just the answer\n' +
+    '- A child who is counting rather than using the formulas needs slowing down\n\n' +
+    'Afterwards\n' +
+    '- Go through any column where the running total went wrong midway\n' +
+    '- That is usually a friends-formula slip rather than carelessness';
+
+  var parent =
+    'Your child worked on ' + levelName + ' today.\n\n' +
+    'These are column sums — added and subtracted down the column on the abacus, ' +
+    'the same way they are done in class.\n\n' +
+    'A good question to ask tonight: "Show me how you worked out number 3 on your abacus." ' +
+    'Watching them do it matters more than whether the answer was right.';
+
+  var text =
+    '## QUESTIONS\n' + JSON.stringify(questions, null, 2) +
+    '\n\n## ANSWER KEY\n' + answerKey +
+    '\n\n## LESSON PLAN\n' + lesson +
+    '\n\n## PARENT NOTE\n' + parent;
+
+  parseAndRender(text);
+}
+
 async function generateWorksheet() {
   const btn = document.getElementById('genBtn');
+
+  // Arithmetic is built here, instantly. Only the writing goes to the AI.
+  if (usesEngine(selectedActivity) && typeof PracticeEngine !== 'undefined') {
+    btn.disabled = true;
+    btn.innerHTML = '<span>Building…</span>';
+    try {
+      await loadCurriculumRulesForLevel();
+      await generateFromEngine();
+      toast('Worksheet built from the curriculum ⚡', 'success');
+    } catch (e) {
+      console.error('Engine generation failed:', e);
+      toast('Could not build it: ' + e.message, 'error');
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<span>✨ Generate Worksheet</span>';
+    return;
+  }
+
   btn.disabled = true;
   btn.innerHTML = '<span>Generating...</span><span style="font-size:.82rem;opacity:.85;">This takes 10–15 seconds</span>';
 

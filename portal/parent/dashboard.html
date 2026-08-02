@@ -911,7 +911,7 @@ async function loadChildStats(childId) {
     stats.practiceToday = (ts?.length||0)>0;
 
     // Puzzles solved
-    const { data: ps } = await sb.from('practice_sessions').select('id').eq('student_id', childId).eq('session_type','puzzle');
+    const { data: ps } = await sb.from('practice_sessions').select('id').eq('student_id', childId).eq('topic','puzzle');
     stats.puzzlesSolved = ps?.length || 0;
 
     // Homework pending = lx_worksheets not yet submitted

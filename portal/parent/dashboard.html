@@ -907,6 +907,15 @@ function switchTab(tab, btn) {
     const el = document.getElementById('tab-'+t);
     if(el) el.style.display = t===tab?'':'none';
   });
+
+  // The tab panels sit well below the stat cards and the voice card —
+  // on a phone the content lands around 1600px down. Switching tabs
+  // without scrolling looks exactly like nothing happened, which is
+  // what made the Fees tab appear broken.
+  var bar = document.querySelector('.tab-btn') && document.querySelector('.tab-btn').parentElement;
+  if (bar && typeof bar.scrollIntoView === 'function') {
+    bar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
   if (tab === 'money') {
     var slot = document.getElementById('tab-money');
     if (!slot) return;

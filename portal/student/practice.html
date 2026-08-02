@@ -572,12 +572,16 @@ const CARD_COLOURS = {
 
 // Plausible wrong answers for the tap-a-choice age group
 function makeChoices(answer) {
-  var near = [answer, answer + 1, answer - 1, answer + 10, answer - 10, answer + 2];
-  var seen = {}, out = [];
-  near.forEach(function (v) {
-    if (v > 0 && !seen[v]) { seen[v] = 1; out.push(v); }
-  });
-  return shuffle(out.slice(0, 4));
+  // The answer goes in first and unconditionally. Filtering on v > 0
+  // dropped a legitimate total of zero, leaving the child no correct
+  // option to choose.
+  var out = [answer], seen = {};
+  seen[answer] = 1;
+  [answer + 1, answer - 1, answer + 10, answer - 10, answer + 2, answer + 5]
+    .forEach(function (v) {
+      if (v >= 0 && !seen[v] && out.length < 4) { seen[v] = 1; out.push(v); }
+    });
+  return shuffle(out);
 }
 
 // Turn an engine question into the shape the card renderer expects
@@ -618,14 +622,28 @@ async function buildEngineQuestions(profile) {
 }
 
 /* ── Orals: the numbers are spoken, not shown ───────────────── */
-function speakOral(rows) {
+/* Each card gets a token. A queued or delayed read belonging to an
+   earlier card is discarded rather than spoken, otherwise a child
+   hears the previous question's numbers while answering this one —
+   which makes the spoken total disagree with the answer. */
+var oralToken = 0;
+var oralTimer = null;
+
+function stopOral() {
+  oralToken++;
+  if (oralTimer) { clearTimeout(oralTimer); oralTimer = null; }
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+}
+
+function speakOral(rows, token) {
   if (!window.speechSynthesis) return;
+  if (token !== undefined && token !== oralToken) return;   // stale card
   window.speechSynthesis.cancel();
   rows.forEach(function (n, i) {
     var word = i === 0 ? String(n)
              : (n < 0 ? 'minus ' + Math.abs(n) : 'plus ' + n);
     var u = new SpeechSynthesisUtterance(word);
-    u.rate = 0.75;
+    u.rate = 0.7;
     u.pitch = 1.05;
     window.speechSynthesis.speak(u);
   });
@@ -638,6 +656,9 @@ var workingAbacus  = null;   // interactive, for working a column sum
 function decorateCard(q) {
   var visual = document.getElementById('cardVisual');
   var qEl    = document.getElementById('cardQuestion');
+
+  // Silence anything still being read from the previous card
+  stopOral();
 
   if (practiceAbacus) { practiceAbacus.destroy(); practiceAbacus = null; }
   if (workingAbacus)  { workingAbacus.destroy();  workingAbacus  = null; }
@@ -659,9 +680,10 @@ function decorateCard(q) {
     var btn = document.createElement('button');
     btn.className = 'replay-btn';
     btn.textContent = '🔁 Play again';
-    btn.onclick = function () { speakOral(q.rows); };
+    var myToken = oralToken;
+    btn.onclick = function () { speakOral(q.rows, myToken); };
     visual.appendChild(btn);
-    setTimeout(function () { speakOral(q.rows); }, 500);
+    oralTimer = setTimeout(function () { speakOral(q.rows, myToken); }, 600);
     return;
   }
 

@@ -871,8 +871,33 @@ function buildMilestones(child, stats, journey, streak, badges) {
 }
 
 // ── TABS ─────────────────────────────────────────────────────
+
+/* ── SIDEBAR ──────────────────────────────────────────────────
+   These were called in two places but never defined, so every
+   tap on a tab at 768px or narrower threw before it could switch
+   — the tabs have never worked on a phone. The markup uses
+   <aside class="sidebar"> with no id, opened by class "open",
+   and #sidebarOverlay shown by class "show".
+   ─────────────────────────────────────────────────────────── */
+function openSidebar() {
+  document.querySelector('.sidebar')?.classList.add('open');
+  document.getElementById('sidebarOverlay')?.classList.add('show');
+}
+
+function closeSidebar() {
+  document.querySelector('.sidebar')?.classList.remove('open');
+  document.getElementById('sidebarOverlay')?.classList.remove('show');
+}
+
+function toggleSidebar() {
+  var el = document.querySelector('.sidebar');
+  if (!el) return;
+  if (el.classList.contains('open')) closeSidebar();
+  else openSidebar();
+}
+
 function switchTab(tab, btn) {
-  if(window.innerWidth<=768) closeSidebar();
+  if (window.innerWidth <= 768 && typeof closeSidebar === 'function') closeSidebar();
   activeTab = tab;
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   btn?.classList.add('active');

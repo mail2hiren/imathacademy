@@ -116,7 +116,9 @@
     .logout-btn:hover { color:var(--red); }
 
     .main { flex:1; margin-left:220px; display:flex; flex-direction:column; }
-    </style>
+    .q-text.col{white-space:pre;font-variant-numeric:tabular-nums;line-height:1.35;
+            letter-spacing:1px;font-size:1.5rem;}
+</style>
 </head>
 <body>
 <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
@@ -195,37 +197,73 @@ async function checkSub(uid){
 }
 
 // ── GENERATE QUIZ using Edge Function ─────────────────────
-async function generateQuiz(level, group) {
-  const{data:{session}}=await sb.auth.getSession();
-  const prompt = `Generate exactly ${QUIZ_TOTAL} Abacus Level ${level} quiz questions for a ${group==='tiny'?'5-7 year old':group==='rising'?'8-10 year old':'11-12 year old'} student.
-
-Return ONLY a JSON array. Each object:
-{
-  "question": "question text",
-  "options": ["option A", "option B", "option C", "option D"],
-  "answer": "correct option text",
-  "emoji": "relevant emoji"
-}
-
-Rules: All maths correct. Indian names/context. Mix of difficulty. Level ${level} concepts only (${level<=1?'Big/Small friends 2-digit':level<=4?'Combination formula '+level+'-digit':level<=5?'Multiplication 2x1 3x1':'Division and '+level+'-digit'}).
-Return ONLY the JSON array, no other text.`;
-
-  try {
-    const resp = await fetch('https://bhullfoajenhkxlkiubs.supabase.co/functions/v1/generate-worksheet', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`},
-      body: JSON.stringify({prompt, preview:false})
+/* ── THE WEEKLY CHALLENGE ──────────────────────────────────────
+   Built from the curriculum, the same as practice. It used to ask
+   the AI, then fall back to ranges invented here — 100 to 600 at
+   level 3, whatever the level actually permitted. Neither route
+   knew what Megha had set.
+   ─────────────────────────────────────────────────────────── */
+function quizDistractors(answer) {
+  // Plausible near misses. The answer goes in first and always —
+  // filtering on positive alone once dropped a legitimate zero and
+  // left no correct option to pick.
+  var out = [answer], seen = {};
+  seen[answer] = 1;
+  [answer + 1, answer - 1, answer + 10, answer - 10, answer + 2, answer + 5]
+    .forEach(function (v) {
+      if (v >= 0 && !seen[v] && out.length < 4) { seen[v] = 1; out.push(v); }
     });
-    const data = await resp.json();
-    const text = data.text || '';
-    const match = text.match(/\[[\s\S]*\]/);
-    if(match) return JSON.parse(match[0]);
-  } catch(e) { console.error('Quiz gen error:', e); }
-
-  // Fallback: generate locally
-  return generateLocalQuiz(level, QUIZ_TOTAL);
+  return out.sort(function () { return Math.random() - 0.5; }).map(String);
 }
 
+function engineToQuiz(q) {
+  var text, emoji, isCol = false;
+  if (q.type === 'column') {
+    text  = PracticeEngine.columnText(q);
+    emoji = '';
+    isCol = true;
+  } else {
+    text  = q.text + ' = ?';
+    emoji = q.type === 'multiplication' ? '✖️' : '➗';
+  }
+  return {
+    question: text,
+    options:  quizDistractors(q.answer),
+    answer:   String(q.answer),
+    emoji:    emoji,
+    column:   isCol
+  };
+}
+
+async function generateQuiz(level, group) {
+  try {
+    if (typeof PracticeEngine === 'undefined') throw new Error('engine unavailable');
+
+    var session = await PracticeEngine.buildSession(level, { count: QUIZ_TOTAL * 4 });
+
+    // A quiz is timed, so keep the columns short enough to work
+    // under pressure. Beads and orals belong in practice.
+    var usable = session.questions.filter(function (q) {
+      if (q.type === 'column') return q.rows.length <= 6;
+      return q.type === 'multiplication' || q.type === 'division';
+    });
+    if (usable.length < QUIZ_TOTAL) {
+      usable = session.questions.filter(function (q) {
+        return q.type === 'column' || q.type === 'multiplication' || q.type === 'division';
+      });
+    }
+    if (!usable.length) throw new Error('nothing generated');
+
+    return usable.slice(0, QUIZ_TOTAL).map(engineToQuiz);
+  } catch (e) {
+    console.warn('Quiz engine unavailable, using fallback:', e.message);
+    return generateLocalQuiz(level, QUIZ_TOTAL);
+  }
+}
+
+// Only reached if the curriculum cannot be read. The ranges here are
+// arbitrary and ignore the level's guardrails — kept so the quiz
+// never dead-ends, not because they are correct.
 function generateLocalQuiz(level, count) {
   const qs = [];
   for(let i=0; i<count; i++) {
@@ -335,7 +373,7 @@ function showQuestion() {
       <div class="q-num">Q${currentQ+1} of ${questions.length}</div>
       <div class="q-level">Level ${currentUser.current_level||1}</div>
     </div>
-    <div class="q-text">${q.emoji||'🧮'} ${q.question}</div>
+    <div class="q-text${q.column?' col':''}">${q.column ? q.question : (q.emoji||'🧮') + ' ' + q.question}</div>
     ${isInput
       ? `<input class="q-input" id="ansInput" type="text" inputmode="numeric" placeholder="Your answer..." autocomplete="off" onkeydown="if(event.key==='Enter')checkMCQ(null)">`
       : `<div class="options">${(q.options||[]).map((opt,i)=>`<button class="option-btn" id="opt-${i}" onclick="checkMCQ('${opt}')">${opt}</button>`).join('')}</div>`
@@ -544,6 +582,7 @@ init();
     document.getElementById('overlay')?.classList.remove('show');
   }
 </script>
-  <script src="../js/student-nav.js"></script>
+  <script src="../js/practice-engine.js"></script>
+<script src="../js/student-nav.js"></script>
 </body>
 </html>

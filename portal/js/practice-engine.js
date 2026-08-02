@@ -73,14 +73,24 @@ var PracticeEngine = (function () {
     };
 
     try {
+      // Postgres rejects the whole query on one unknown column, so the
+      // guardrails are fetched separately from the session-shape columns.
+      // If a later migration has not run, only the session shape falls
+      // back to defaults instead of every rule being lost at once.
       var lv = await sb.from('curriculum_levels')
         .select('level_code, max_number, allow_zero, negative_numbers_allowed, ' +
-                'multiplication_allowed, division_allowed, ' +
-                'ex_beads_to_numbers, ex_orals, ' +
-                'sums_per_page, pages_per_session, orals_per_session, ' +
-                'min_rows, max_rows')
+                'multiplication_allowed, division_allowed, min_rows, max_rows')
         .eq('level_code', code).single();
       if (lv.error) throw lv.error;
+
+      try {
+        var shape = await sb.from('curriculum_levels')
+          .select('ex_beads_to_numbers, ex_orals, sums_per_page, pages_per_session, orals_per_session')
+          .eq('level_code', code).single();
+        if (!shape.error && shape.data) Object.assign(lv.data, shape.data);
+      } catch (e2) {
+        console.warn('Practice: session-shape columns missing, using defaults');
+      }
       var d = lv.data || {};
       if (d.max_number != null)            rules.maxNumber = d.max_number;
       if (d.allow_zero != null)            rules.allowZero = !!d.allow_zero;

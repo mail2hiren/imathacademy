@@ -446,7 +446,7 @@ async function submitQuiz(timedOut) {
       student_id: session.user.id,
       level: currentUser.current_level||1,
       score, total: questions.length,
-      pct, xp_awarded: xp, time_taken: timeTaken,
+      pct, xp_earned: xp, time_taken: timeTaken,
       week_number: getWeekNumber()
     });
     await sb.from('practice_sessions').insert({

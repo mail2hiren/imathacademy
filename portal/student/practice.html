@@ -589,8 +589,11 @@ function engineToCard(q) {
   var card = { engineType: q.type, answer: q.answer, xp: 10, hint: '' };
 
   if (q.type === 'column' || q.type === 'oral') {
-    card.question = PracticeEngine.columnText(q);
-    card.column   = true;
+    // An oral is heard, not read. Putting the numbers in card.question
+    // and overwriting them a moment later would leave them on screen if
+    // anything downstream failed — so they are never written at all.
+    card.question = q.type === 'oral' ? '🔊' : PracticeEngine.columnText(q);
+    card.column   = q.type !== 'oral';
     card.rows     = q.rows;
     card.mental   = !!q.mental;
     card.story    = q.type === 'oral' ? '' : (q.mental ? 'Work it out in your head' : '');
@@ -628,6 +631,23 @@ async function buildEngineQuestions(profile) {
    which makes the spoken total disagree with the answer. */
 var oralToken = 0;
 var oralTimer = null;
+var speechReady = false;
+
+/* iOS Safari will not speak until speech has been started from a real
+   user gesture. Without this the first oral is silent and a child sees
+   the speaker icon with nothing happening. One silent utterance on the
+   first tap unlocks it for the rest of the session. */
+function unlockSpeech() {
+  if (speechReady || !window.speechSynthesis) return;
+  try {
+    var u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    window.speechSynthesis.speak(u);
+    speechReady = true;
+  } catch (e) { /* not available — the replay button still works */ }
+}
+document.addEventListener('touchstart', unlockSpeech, { once: true, passive: true });
+document.addEventListener('click',      unlockSpeech, { once: true });
 
 function stopOral() {
   oralToken++;
@@ -674,7 +694,6 @@ function decorateCard(q) {
 
   // Orals — hide the numbers and read them aloud
   if (q.oral) {
-    qEl.textContent = '🔊';
     qEl.style.fontSize = '3rem';
     visual.innerHTML = '<div class="oral-badge">👂 Listening</div>';
     var btn = document.createElement('button');

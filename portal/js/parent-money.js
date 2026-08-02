@@ -215,7 +215,14 @@ async function renderParentMoney(childId, childName) {
 
   slot.innerHTML = '<div style="padding:20px;text-align:center;color:#888;font-size:.85rem;">Loading…</div>';
 
-  var data = await loadParentMoney(childId);
+  var data;
+  try {
+    data = await loadParentMoney(childId);
+  } catch (e) {
+    slot.innerHTML = '<div style="padding:18px;text-align:center;color:#B71C1C;' +
+      'font-size:.82rem;font-weight:700;">Could not load: ' + e.message + '</div>';
+    return;
+  }
   var name = (childName || 'Your child').split(' ')[0];
 
   var html =

@@ -646,7 +646,7 @@ function renderDashboard(child, stats) {
     </div>
 
     <!-- ── TAB: BADGES ── -->
-    <div id="tab-money" style="display:none;"></div>
+    <div id="tab-money" style="display:none;min-height:180px;"></div>
       <div id="tab-badges" style="${activeTab==='badges'?'':'display:none'}">
 
       <!-- Earned badges -->
@@ -880,8 +880,27 @@ function switchTab(tab, btn) {
     const el = document.getElementById('tab-'+t);
     if(el) el.style.display = t===tab?'':'none';
   });
-  if (tab === 'money' && typeof renderParentMoney === 'function' && activeChild) {
-    renderParentMoney(activeChild.id, activeChild.full_name);
+  if (tab === 'money') {
+    var slot = document.getElementById('tab-money');
+    if (!slot) return;
+    // An empty panel is indistinguishable from a tab that did not open,
+    // so this always puts something on screen — including the reason
+    // when it cannot show the real thing.
+    if (typeof renderParentMoney !== 'function') {
+      slot.innerHTML = '<div style="padding:18px;text-align:center;color:#B71C1C;' +
+        'font-size:.85rem;font-weight:800;">Fees module did not load.<br>' +
+        '<span style="font-weight:600;opacity:.8;">Try reloading the page.</span></div>';
+    } else if (!activeChild) {
+      slot.innerHTML = '<div style="padding:18px;text-align:center;color:#888;' +
+        'font-size:.85rem;">No child selected yet.</div>';
+    } else {
+      try {
+        renderParentMoney(activeChild.id, activeChild.full_name || activeChild.name || '');
+      } catch (e) {
+        slot.innerHTML = '<div style="padding:18px;text-align:center;color:#B71C1C;' +
+          'font-size:.82rem;font-weight:700;">Could not load fees: ' + e.message + '</div>';
+      }
+    }
   }
 }
 

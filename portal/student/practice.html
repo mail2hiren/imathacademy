@@ -318,6 +318,11 @@
       <div class="swipe-right">Correct →</div>
     </div>
 
+    <!-- The abacus. It needs the full width of the screen for 17 rods,
+         so it sits below the card rather than inside it. -->
+    <div id="practiceAbacusSlot" style="display:none;width:100%;max-width:620px;
+         margin:6px auto 14px;padding:0 10px;"></div>
+
     <!-- Jr: choice buttons -->
     <div class="choices-grid" id="choicesGrid"></div>
 
@@ -660,15 +665,10 @@ function decorateCard(q) {
     return;
   }
 
-  // Beads to Numbers — show a real abacus set to the value
-  if (q.beads && typeof Abacus !== 'undefined') {
-    visual.innerHTML = '';
-    var host = document.createElement('div');
-    host.style.maxWidth = '100%';
-    visual.appendChild(host);
-    practiceAbacus = Abacus.mount(host, { readonly: true, showValue: false, sound: false });
-    practiceAbacus.setValue(q.value);
-  }
+  // Beads to Numbers shows its abacus in the slot below the card,
+  // not inside it. .card-visual is a wrapping flex container, which
+  // collapsed the rods down to almost nothing.
+  if (q.beads) visual.innerHTML = '';
 }
 
 /* A column sum is meant to be worked on the beads. Without an abacus
@@ -680,8 +680,14 @@ function mountWorkingAbacus(q) {
   if (!slot) return;
   slot.innerHTML = '';
 
-  var wantsAbacus = (q.column && !q.mental) || q.oral;
-  if (!wantsAbacus || typeof Abacus === 'undefined') {
+  // Beads to Numbers  -> a fixed abacus to read
+  // Column or oral    -> a working abacus to solve on
+  // Mental, x, /      -> none
+  var mode = q.beads               ? 'read'
+           : ((q.column && !q.mental) || q.oral) ? 'work'
+           : null;
+
+  if (!mode || typeof Abacus === 'undefined') {
     slot.style.display = 'none';
     return;
   }
@@ -690,11 +696,22 @@ function mountWorkingAbacus(q) {
   var label = document.createElement('div');
   label.style.cssText = 'font-size:.78rem;font-weight:800;color:var(--text2);' +
                         'text-align:center;margin-bottom:6px;';
-  label.textContent = '🧮 Work it out on your abacus';
+  label.textContent = mode === 'read'
+    ? '👀 Read the beads — which number is it?'
+    : '🧮 Work it out on your abacus';
   slot.appendChild(label);
 
   var host = document.createElement('div');
   slot.appendChild(host);
+
+  if (mode === 'read') {
+    practiceAbacus = Abacus.mount(host, { readonly: true, showValue: false, sound: false });
+    practiceAbacus.setValue(q.value);
+    // The slot is laid out by the time this runs, so a relayout gives
+    // the rods their real width instead of the fallback.
+    requestAnimationFrame(function () { practiceAbacus.relayout(); });
+    return;
+  }
 
   var typed = document.getElementById('typeInput');
   workingAbacus = Abacus.mount(host, {
@@ -706,6 +723,7 @@ function mountWorkingAbacus(q) {
       }
     }
   });
+  requestAnimationFrame(function () { workingAbacus.relayout(); });
 }
 
 function renderQuestion() {
@@ -1208,6 +1226,5 @@ init();
 <script src="../js/abacus.js"></script>
 <script src="../js/practice-engine.js"></script>
 <script src="../js/student-nav.js"></script>
-<div id="practiceAbacusSlot" style="display:none;max-width:560px;margin:14px auto 0;padding:0 12px;"></div>
 </body>
 </html>

@@ -45,6 +45,7 @@ function buildDashboard(profile, stats, group, session_user_id) {
   if (P.show.stickers)      blocks.push(stickerBlock(ctx));
   if (P.show.badges)        blocks.push(badgeBlock(ctx));
   if (P.show.levelProgress) blocks.push(levelBlock(ctx));
+  blocks.push('<div id="levelJourneySlot"></div>');
   if (P.show.leaderboard)   blocks.push(leaderboardBlock(ctx));
   if (P.mascot)             blocks.push(mascotBlock(ctx));
 
@@ -364,4 +365,67 @@ function getMascotMessage(streak, xpPct, streakInSession=0) {
   if (streak >= 5) return `${streak} days in a row — you are AMAZING! Keep going, superstar! 🌟`;
   if (streak === 0) return "I missed you! Come on, let's do some maths magic together today! 🎉";
   return "Just 2 more right answers and the PUZZLE door opens! You can do it! 🚪✨";
+}
+
+
+/* ── THE ROAD TO THE CERTIFICATE ──────────────────────────────
+   Three gates, all three needed: every worksheet done, enough
+   practice, and a pass on the level test. The logic already
+   existed in curriculum.js and was tested, but nothing showed it
+   to a child — so nobody could see how close they were.
+   ─────────────────────────────────────────────────────────── */
+async function fillLevelJourney(studentId, level, group) {
+  var slot = document.getElementById('levelJourneySlot');
+  if (!slot || typeof levelProgress !== 'function') return;
+
+  var p;
+  try { p = await levelProgress(studentId, level); }
+  catch (e) { slot.innerHTML = ''; return; }
+
+  var tiny = group === 'tiny';
+
+  function gate(done, icon, label, detail) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;' +
+             (done ? '' : 'opacity:.65;') + '">' +
+             '<div style="width:26px;height:26px;border-radius:50%;flex-shrink:0;' +
+               'display:flex;align-items:center;justify-content:center;font-size:.8rem;' +
+               'background:' + (done ? '#2E7D32' : '#E4E7F2') + ';color:' + (done ? '#fff' : '#888') + ';">' +
+               (done ? '✓' : icon) + '</div>' +
+             '<div style="flex:1;min-width:0;">' +
+               '<div style="font-size:.85rem;font-weight:800;color:var(--text1);">' + label + '</div>' +
+               '<div style="font-size:.74rem;color:var(--text3);">' + detail + '</div>' +
+             '</div>' +
+           '</div>';
+  }
+
+  var body =
+    gate(p.worksheets.complete, '1',
+         tiny ? 'Finish your worksheets' : 'All worksheets done',
+         p.worksheets.total ? p.worksheets.done + ' of ' + p.worksheets.total
+                            : 'None set yet') +
+    gate(p.practice.complete, '2',
+         tiny ? 'Lots of practice' : 'Enough practice',
+         p.practice.done + ' of ' + p.practice.required + ' sessions') +
+    gate(p.test.passed, '3',
+         tiny ? 'Pass the big test' : 'Pass the level test',
+         !p.test.exists      ? 'Your teacher has not set it yet'
+         : !p.test.attempted ? 'Not attempted — you need ' + p.test.passMark + '%'
+         : p.test.score + '% (need ' + p.test.passMark + '%)');
+
+  var headline = p.alreadyCompleted
+    ? '🎓 Level complete!'
+    : (tiny ? '🌟 How to finish this level' : '🎯 Road to your certificate');
+
+  var footer = p.alreadyCompleted
+    ? '<div style="background:#E8F5E9;border-radius:10px;padding:10px 12px;margin-top:8px;' +
+        'font-size:.8rem;font-weight:800;color:#1B5E20;">Certificate ' +
+        (p.certificateNumber || 'issued') + ' — well done!</div>'
+    : '<div style="background:' + (p.canComplete ? '#FFF8E1' : '#F0F4FF') + ';border-radius:10px;' +
+        'padding:10px 12px;margin-top:8px;font-size:.8rem;font-weight:800;color:' +
+        (p.canComplete ? '#E65100' : '#1565C0') + ';">' +
+        (typeof nextStepFor === 'function' ? nextStepFor(p) : '') + '</div>';
+
+  slot.innerHTML =
+    '<div class="section-title">' + headline + '</div>' +
+    '<div class="progress-card" style="padding:6px 14px 14px;">' + body + footer + '</div>';
 }

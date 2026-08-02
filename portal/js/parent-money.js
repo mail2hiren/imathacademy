@@ -57,9 +57,9 @@ async function loadParentMoney(childId) {
 
   try {
     var s = await sb.from('subscriptions')
-      .select('plan, amount, status, start_date, end_date, created_at')
+      .select('plan, amount, status, expires_at')
       .eq('student_id', childId)
-      .order('end_date', { ascending: false })
+      .order('expires_at', { ascending: false })
       .limit(1);
     if (s.error) throw s.error;
     out.subscription = (s.data || [])[0] || null;
@@ -86,7 +86,7 @@ function subscriptionCard(sub, childName) {
       'Speak to Megha about setting one up.');
   }
 
-  var left   = daysUntil(sub.end_date);
+  var left   = daysUntil(sub.expires_at);
   var active = sub.status === 'active' && (left === null || left >= 0);
 
   var tone   = active ? (left !== null && left <= 7 ? 'warn' : 'ok') : 'bad';
@@ -101,7 +101,7 @@ function subscriptionCard(sub, childName) {
 
   var detail = (PLAN_LABEL[sub.plan] || sub.plan || 'Plan') +
                (sub.amount ? ' · ' + money(sub.amount) : '') +
-               (sub.end_date ? ' · until ' + shortDate(sub.end_date) : '');
+               (sub.expires_at ? ' · until ' + shortDate(sub.expires_at) : '');
 
   var note = active
     ? 'This is what keeps the app working. It is separate from class fees.'

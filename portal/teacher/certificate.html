@@ -136,6 +136,9 @@
       <input id="iCert" placeholder="IMA-L4-000001">
     </div>
 
+    <div id="readyBox" style="display:none;border-radius:12px;padding:11px 13px;
+         margin-bottom:10px;font-size:.8rem;line-height:1.55;"></div>
+
     <button class="btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
     <div class="hint">
       In the print dialog choose <strong>Landscape</strong>, <strong>A4</strong>,
@@ -162,6 +165,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/curriculum.js"></script>
 <script>
 /* ============================================================
    Certificate
@@ -255,6 +259,7 @@ sync();
       opt.value = s.id;
       opt.textContent = s.full_name + ' — ' + code + (rec ? ' ✓' : '');
       opt.dataset.name = s.full_name;
+      opt.dataset.level = lvl;
       opt.dataset.line = 'Certificate of Completion for Level ' + lvl +
                          (levels[code] ? ' — ' + levels[code] : '');
       if (rec) {
@@ -268,6 +273,94 @@ sync();
   }
 })();
 
+
+/* ── AWARDING ─────────────────────────────────────────────────
+   A certificate should only be issued once a child has actually
+   cleared the three gates. This checks them, and records the
+   completion — which is what generates the certificate number.
+   ─────────────────────────────────────────────────────────── */
+var readyStudentId = null;
+var readyLevelCode = null;
+
+async function checkReadiness(studentId, level) {
+  var box = document.getElementById('readyBox');
+  readyStudentId = studentId;
+  readyLevelCode = 'L' + level;
+
+  if (typeof levelProgress !== 'function') { box.style.display = 'none'; return; }
+
+  var p;
+  try { p = await levelProgress(studentId, level); }
+  catch (e) { box.style.display = 'none'; return; }
+
+  box.style.display = 'block';
+
+  if (p.alreadyCompleted) {
+    box.style.background = '#E8F5E9';
+    box.style.color = '#1B5E20';
+    box.innerHTML = '<strong>Already awarded</strong><br>' +
+                    (p.certificateNumber || '') + '. Print it whenever you need another copy.';
+    return;
+  }
+
+  if (p.canComplete) {
+    box.style.background = '#FFF8E1';
+    box.style.color = '#E65100';
+    box.innerHTML = '<strong>Ready for their certificate ✅</strong><br>' +
+      'Worksheets ' + p.worksheets.done + '/' + p.worksheets.total + ' · ' +
+      'practice ' + p.practice.done + '/' + p.practice.required + ' · ' +
+      'test ' + p.test.score + '%' +
+      '<button id="awardBtn" style="display:block;width:100%;margin-top:9px;padding:9px;' +
+      'border:none;border-radius:9px;background:#2E7D32;color:#fff;font-family:inherit;' +
+      'font-size:.84rem;font-weight:900;cursor:pointer;">🎓 Award this certificate</button>';
+    document.getElementById('awardBtn').addEventListener('click', awardCertificate);
+    return;
+  }
+
+  box.style.background = '#FFEBEE';
+  box.style.color = '#B71C1C';
+  box.innerHTML = '<strong>Not finished yet</strong><br>' +
+    (typeof nextStepFor === 'function' ? nextStepFor(p) : '') +
+    '<br><span style="opacity:.8;">You can still print one, but nothing will be recorded.</span>';
+}
+
+async function awardCertificate() {
+  var btn = document.getElementById('awardBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Awarding…'; }
+
+  try {
+    var p = await levelProgress(readyStudentId, parseInt(readyLevelCode.slice(1), 10));
+    var me = await sb.auth.getUser();
+
+    // .select() so a blocked write returns no rows rather than
+    // silently reporting success — the trap that hid an earlier
+    // row level security problem for a whole evening.
+    var res = await sb.from('student_level_completions').insert({
+      student_id:        readyStudentId,
+      level_code:        readyLevelCode,
+      worksheets_done:   p.worksheets.done,
+      practice_sessions: p.practice.done,
+      test_score:        p.test.score,
+      issued_by:         me.data && me.data.user ? me.data.user.id : null
+    }).select();
+
+    if (res.error) throw res.error;
+    if (!res.data || !res.data.length) {
+      throw new Error('Nothing was saved — you may not have permission to award certificates');
+    }
+
+    var rec = res.data[0];
+    document.getElementById('iCert').value = rec.certificate_number || '';
+    document.getElementById('iDate').value = (rec.completed_at || '').slice(0, 10) ||
+                                             new Date().toISOString().slice(0, 10);
+    sync();
+    await checkReadiness(readyStudentId, parseInt(readyLevelCode.slice(1), 10));
+  } catch (e) {
+    if (btn) { btn.disabled = false; btn.textContent = '🎓 Award this certificate'; }
+    alert('Could not award it: ' + e.message);
+  }
+}
+
 document.getElementById('pick').addEventListener('change', function () {
   var opt = this.selectedOptions[0];
   if (!opt || !opt.value) return;
@@ -276,6 +369,7 @@ document.getElementById('pick').addEventListener('change', function () {
   if (opt.dataset.cert) document.getElementById('iCert').value = opt.dataset.cert;
   if (opt.dataset.date) document.getElementById('iDate').value = opt.dataset.date;
   sync();
+  checkReadiness(opt.value, parseInt(opt.dataset.level, 10) || 0);
 });
 </script>
 </body>

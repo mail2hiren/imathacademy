@@ -450,60 +450,121 @@ async function fillJourneyMap(studentId, level, group) {
   } catch (e) { slot.innerHTML = ''; return; }
   if (!levels.length) { slot.innerHTML = ''; return; }
 
-  var tiny = group === 'tiny';
+  var P        = profileFor(group);
+  var tiny     = group === 'tiny';
   var hereCode = 'L' + level;
+  var hereIx   = levels.findIndex(function (l) { return l.level_code === hereCode; });
+  if (hereIx < 0) hereIx = 0;
 
-  // ── the path across levels ──
-  var steps = levels.map(function (lv) {
+  // A five-year-old staring at eight grey circles reads it as "you have
+  // barely started". Younger children see a window around where they are;
+  // older ones, who can hold the whole programme in mind, see all of it.
+  var shown = levels, offset = 0;
+  if (tiny) {
+    offset = Math.max(0, hereIx - 1);
+    shown  = levels.slice(offset, offset + 4);
+  }
+
+  var dotSize = tiny ? 52 : 38;
+
+  var steps = shown.map(function (lv, i) {
+    var absIx  = offset + i;
     var isDone = !!done[lv.level_code];
     var isHere = lv.level_code === hereCode;
+    var ahead  = absIx > hereIx;
     var num    = lv.level_code.replace('L', '');
 
-    var bg     = isDone ? '#2E7D32' : isHere ? '#1565C0' : '#E4E7F2';
-    var fg     = (isDone || isHere) ? '#fff' : '#9AA3B2';
-    var size   = isHere ? 40 : 30;
-    var ring   = isHere ? 'box-shadow:0 0 0 4px rgba(21,101,192,.18);' : '';
+    var bg   = isDone ? '#2E7D32' : isHere ? '#1565C0' : '#EDF0F7';
+    var fg   = (isDone || isHere) ? '#fff' : '#A8B0BF';
+    var ring = isHere ? 'box-shadow:0 0 0 5px rgba(21,101,192,.16);' : '';
+    var face = isDone ? '✓' : ahead ? '🔒' : num;
 
-    return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;">' +
-             '<div title="' + (lv.level_name || '') + '" style="width:' + size + 'px;height:' + size + 'px;' +
-               'border-radius:50%;background:' + bg + ';color:' + fg + ';' + ring +
-               'display:flex;align-items:center;justify-content:center;' +
-               'font-weight:900;font-size:' + (isHere ? '.9' : '.78') + 'rem;">' +
-               (isDone ? '✓' : num) + '</div>' +
-             (isHere ? '<div style="font-size:.6rem;font-weight:900;color:#1565C0;">YOU</div>'
-                     : '<div style="height:12px;"></div>') +
+    // Short label. The full name lived only in a title attribute,
+    // which a touchscreen never shows.
+    var name = (lv.level_name || '').split(/[\s\u2014-]/)[0];
+
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:5px;' +
+             'flex-shrink:0;width:' + (dotSize + 22) + 'px;scroll-snap-align:center;">' +
+             '<div style="width:' + dotSize + 'px;height:' + dotSize + 'px;border-radius:50%;' +
+               'background:' + bg + ';color:' + fg + ';' + ring +
+               'display:flex;align-items:center;justify-content:center;font-weight:900;' +
+               'font-size:' + (isHere ? (tiny ? '1.3' : '1') : (tiny ? '1.05' : '.85')) + 'rem;">' +
+               face + '</div>' +
+             '<div style="font-size:.62rem;font-weight:900;letter-spacing:.2px;' +
+               'color:' + (isHere ? '#1565C0' : isDone ? '#2E7D32' : '#A8B0BF') + ';' +
+               'text-align:center;line-height:1.15;">L' + num +
+               (name ? '<br><span style="font-weight:700;opacity:.85;">' + name + '</span>' : '') +
+             '</div>' +
            '</div>';
-  }).join('<div style="flex:1;height:3px;background:#E4E7F2;min-width:8px;margin-bottom:14px;"></div>');
+  }).join('<div style="flex:0 0 14px;height:3px;border-radius:2px;background:#E4E7F2;' +
+          'margin-top:' + (dotSize / 2 - 1) + 'px;"></div>');
+
+  var moreAhead = tiny && (offset + shown.length) < levels.length
+    ? '<div style="flex-shrink:0;align-self:center;margin-top:-14px;font-size:.68rem;' +
+      'font-weight:800;color:#A8B0BF;padding-left:6px;">+' +
+      (levels.length - offset - shown.length) + ' more</div>'
+    : '';
 
   // ── the concepts inside this level ──
   var conceptRows = concepts.length
-    ? concepts.map(function (c) {
-        var s = conceptStanding(c.status);
-        var colour = s.tone === 'done' ? '#2E7D32' : s.tone === 'now' ? '#1565C0' : '#9AA3B2';
-        return '<div style="display:flex;align-items:center;gap:9px;padding:7px 0;' +
-                 (s.tone === 'next' ? 'opacity:.6;' : '') + '">' +
-                 '<span style="color:' + colour + ';font-weight:900;width:14px;">' + s.mark + '</span>' +
-                 '<span style="flex:1;font-size:.85rem;font-weight:800;color:var(--text1);">' + c.name + '</span>' +
-                 '<span style="font-size:.72rem;font-weight:800;color:' + colour + ';">' + s.label + '</span>' +
+    ? concepts.map(function (cc) {
+        var s = conceptStanding(cc.status);
+        var colour = s.tone === 'done' ? '#2E7D32' : s.tone === 'now' ? '#1565C0' : '#A8B0BF';
+        var bgRow  = s.tone === 'now' ? 'background:#F0F5FF;' : '';
+        return '<div style="display:flex;align-items:center;gap:9px;padding:8px 10px;' +
+                 'border-radius:9px;' + bgRow + (s.tone === 'next' ? 'opacity:.55;' : '') + '">' +
+                 '<span style="color:' + colour + ';font-weight:900;width:15px;flex-shrink:0;">' + s.mark + '</span>' +
+                 '<span style="flex:1;min-width:0;font-size:.85rem;font-weight:800;color:var(--text1);">' +
+                   cc.name + '</span>' +
+                 '<span style="font-size:.7rem;font-weight:800;color:' + colour + ';flex-shrink:0;">' +
+                   s.label + '</span>' +
                '</div>';
       }).join('')
-    : '<div style="font-size:.8rem;color:var(--text3);padding:6px 0;">' +
+    : '<div style="font-size:.8rem;color:var(--text3);padding:8px 2px;">' +
       'Your teacher has not mapped this level\'s topics yet.</div>';
 
-  var levelRow  = levels.filter(function (l) { return l.level_code === hereCode; })[0] || {};
-  var mastered  = concepts.filter(function (c) { return c.status === 'M'; }).length;
+  var levelRow = levels[hereIx] || {};
+  var mastered = concepts.filter(function (cc) { return cc.status === 'M'; }).length;
+  var pct      = concepts.length ? Math.round(mastered / concepts.length * 100) : 0;
 
   slot.innerHTML =
     '<div class="section-title">' + (tiny ? '🗺️ My maths adventure' : '🗺️ Your journey') + '</div>' +
-    '<div class="progress-card" style="padding:16px 14px;">' +
-      '<div style="display:flex;align-items:flex-start;justify-content:space-between;">' + steps + '</div>' +
-      '<div style="border-top:1.5px solid var(--border);margin:12px 0 4px;"></div>' +
-      '<div style="font-size:.9rem;font-weight:900;color:var(--text1);margin-bottom:2px;">' +
-        'Level ' + level + ' — ' + (levelRow.level_name || '') + '</div>' +
-      (concepts.length
-        ? '<div style="font-size:.74rem;color:var(--text3);margin-bottom:6px;">' +
-          mastered + ' of ' + concepts.length + ' topics mastered</div>'
-        : '') +
-      conceptRows +
+    '<div class="progress-card" style="padding:16px 0 14px;overflow:hidden;">' +
+
+      // Scrollable, so nine levels never squash on a narrow phone
+      '<div id="journeyTrack" style="display:flex;align-items:flex-start;' +
+        'overflow-x:auto;scroll-snap-type:x proximity;padding:0 14px 6px;' +
+        '-webkit-overflow-scrolling:touch;scrollbar-width:none;">' +
+        steps + moreAhead +
+      '</div>' +
+
+      '<div style="border-top:1.5px solid var(--border);margin:10px 14px 12px;"></div>' +
+
+      '<div style="padding:0 14px;">' +
+        '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">' +
+          '<div style="font-size:.92rem;font-weight:900;color:var(--text1);">' +
+            'Level ' + level + (levelRow.level_name ? ' — ' + levelRow.level_name : '') + '</div>' +
+          (concepts.length ? '<div style="font-size:.72rem;font-weight:900;color:#1565C0;flex-shrink:0;">' +
+                             pct + '%</div>' : '') +
+        '</div>' +
+        (concepts.length
+          ? '<div style="height:7px;background:#EDF0F7;border-radius:20px;overflow:hidden;margin:7px 0 10px;">' +
+            '<div style="height:100%;width:' + pct + '%;border-radius:20px;' +
+            'background:linear-gradient(90deg,#2E7D32,#66BB6A);transition:width .8s;"></div></div>' +
+            '<div style="font-size:.72rem;color:var(--text3);margin-bottom:4px;">' +
+            mastered + ' of ' + concepts.length + ' topics mastered</div>'
+          : '<div style="height:6px;"></div>') +
+        conceptRows +
+      '</div>' +
     '</div>';
+
+  // Bring the current level into view rather than leaving a child
+  // scrolled to L0 with no idea where they are
+  var track = document.getElementById('journeyTrack');
+  if (track) {
+    var hereEl = track.children[(hereIx - offset) * 2];
+    if (hereEl && hereEl.offsetLeft !== undefined) {
+      track.scrollLeft = Math.max(0, hereEl.offsetLeft - track.clientWidth / 2 + hereEl.offsetWidth / 2);
+    }
+  }
 }

@@ -416,6 +416,7 @@
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/parent-money.js"></script>
 <script>
 const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
@@ -569,6 +570,7 @@ function renderDashboard(child, stats) {
     <div class="tabs">
       <button class="tab-btn ${activeTab==='progress'?'active':''}" onclick="switchTab('progress',this)">📊 Progress</button>
       <button class="tab-btn ${activeTab==='badges'?'active':''}" onclick="switchTab('badges',this)">🏅 Badges</button>
+        <button class="tab-btn" onclick="switchTab('money',this)">💰 Fees</button>
       <button class="tab-btn ${activeTab==='tips'?'active':''}" onclick="switchTab('tips',this)">💡 Action tips</button>
       <button class="tab-btn ${activeTab==='howworks'?'active':''}" onclick="switchTab('howworks',this)" id="how">❓ How it works</button>
     </div>
@@ -644,7 +646,8 @@ function renderDashboard(child, stats) {
     </div>
 
     <!-- ── TAB: BADGES ── -->
-    <div id="tab-badges" style="${activeTab==='badges'?'':'display:none'}">
+    <div id="tab-money" style="display:none;"></div>
+      <div id="tab-badges" style="${activeTab==='badges'?'':'display:none'}">
 
       <!-- Earned badges -->
       <div class="sec-title">Badges earned by ${child.full_name.split(' ')[0]}</div>
@@ -873,10 +876,13 @@ function switchTab(tab, btn) {
   activeTab = tab;
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   btn?.classList.add('active');
-  ['progress','badges','tips','howworks'].forEach(t=>{
+  ['progress','badges','money','tips','howworks'].forEach(t=>{
     const el = document.getElementById('tab-'+t);
     if(el) el.style.display = t===tab?'':'none';
   });
+  if (tab === 'money' && typeof renderParentMoney === 'function' && activeChild) {
+    renderParentMoney(activeChild.id, activeChild.full_name);
+  }
 }
 
 // ── CHILD SELECTION ──────────────────────────────────────────

@@ -143,6 +143,7 @@ var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 var session = null, parentProfile = null;
 var children = [], fees = [], subs = {}, allSubs = [], plans = [];
+var feesError = null;
 var picked = {};           // fee id -> true, for paying ahead
 var selectedPlan = {};     // child id -> plan_code
 
@@ -183,6 +184,9 @@ async function load(){
   var f = await sb.from('fees')
     .select('id, student_id, amount, due_date, status, paid_at, notes, payment_method, upi_ref, razorpay_payment_id')
     .in('student_id', ids).order('due_date');
+  // "No fees exist" and "we were not allowed to read fees" look identical
+  // once the array is empty, so the error is kept and reported.
+  feesError = f.error ? f.error.message : null;
   fees = f.data || [];
 
   var sres = await sb.from('subscriptions')
@@ -231,7 +235,7 @@ function render(){
   var html = '';
 
   /* Due now */
-  html += '<div class="card due' + (dueTotal? '' : ' clear') + '">';
+  html += '<div class="card due' + (dueTotal ? '' : (feesError || !fees.length ? '' : ' clear')) + '">';
   if(dueTotal){
     html += '<h2>To pay</h2>' +
             '<div class="due-amt">' + money(dueTotal) + '</div>' +
@@ -251,6 +255,15 @@ function render(){
     html += '<button class="btn btn-amber" onclick="payFees(' +
             JSON.stringify(dueNow.map(function(f){return f.id;})).replace(/"/g,'&quot;') +
             ')">Pay ' + money(dueTotal) + '</button>';
+  } else if (feesError) {
+    html += '<h2>Class fees</h2><div class="err">Could not load class fees: ' +
+            esc(feesError) + '</div>';
+  } else if (!fees.length) {
+    html += '<h2>Class fees</h2>' +
+            '<div class="due-amt" style="font-size:1.05rem;color:var(--text2);">None recorded</div>' +
+            '<div class="due-sub">Megha has not added any class fees for ' +
+            (children.length === 1 ? esc(children[0].name.split(' ')[0]) : 'your children') +
+            ' yet. If you pay her directly, they may not be tracked here.</div>';
   } else {
     html += '<div class="due-amt">All paid up ✓</div>' +
             '<div class="due-sub">Nothing outstanding. Thank you.</div>';

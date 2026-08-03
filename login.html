@@ -871,7 +871,10 @@
   }
 
   async function switchAccount() {
-    await sb.auth.signOut();
+    // Local scope only. A full signOut revokes the refresh token and
+    // would kill every saved profile on this device.
+    if (typeof Profiles !== 'undefined') await Profiles.leave();
+    else await sb.auth.signOut({ scope: 'local' });
     document.getElementById('session-banner').style.display = 'none';
     document.getElementById('email').value = '';
     document.getElementById('password').value = '';
@@ -908,7 +911,10 @@ function renderProfilePicker() {
   return true;
 }
 
-function showLoginForm() {
+async function showLoginForm() {
+  // Someone may still be signed in. Leave locally so their saved
+  // profile survives while a second person signs in.
+  try { if (typeof Profiles !== 'undefined') await Profiles.leave(); } catch (e) {}
   ['profilePicker','pinPad'].forEach(function (id) {
     var el = document.getElementById(id); if (el) el.style.display = 'none';
   });

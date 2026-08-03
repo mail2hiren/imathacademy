@@ -171,8 +171,28 @@ var Profiles = (function () {
 
   var ICONS = { student: '🎒', parent: '👤', teacher: '📚', admin: '⚙️' };
 
+  /**
+   * Step away without destroying the stored session.
+   *
+   * A plain signOut() revokes the refresh token on the server, which
+   * kills the saved profile for everyone on this device — sign out to
+   * add a second person and the first can never switch back. Local
+   * scope clears this browser only and leaves the token usable.
+   */
+  async function leave() {
+    try { await sb.auth.signOut({ scope: 'local' }); }
+    catch (e) { try { await sb.auth.signOut(); } catch (e2) {} }
+  }
+
+  /** A real sign-out. The token is revoked, so the profile goes too. */
+  async function signOutFully(id) {
+    if (id) forget(id);
+    try { await sb.auth.signOut(); } catch (e) {}
+  }
+
   return {
     list: list, get: get, remember: remember, forget: forget,
+    leave: leave, signOutFully: signOutFully,
     setPin: setPin, hasPin: hasPin, checkPin: checkPin,
     switchTo: switchTo, initials: initials, colour: colour,
     icon: function (role) { return ICONS[role] || '🎒'; },

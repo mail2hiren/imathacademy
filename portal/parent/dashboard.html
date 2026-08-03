@@ -463,6 +463,7 @@ html,body{max-width:100%;}
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/profiles.js"></script>
 <script src="../js/parent-money.js"></script>
 <script>
 const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
@@ -1049,7 +1050,13 @@ async function loadChildStats(childId) {
 }
 
 // ── AUTH ─────────────────────────────────────────────────────
-async function logout() { await sb.auth.signOut(); window.location.href='../../login.html'; }
+async function logout() {
+  // A real sign-out revokes the token, so drop the saved profile
+  // rather than leave it on the device to fail when next tapped.
+  try {
+    var _s = (await sb.auth.getSession()).data.session;
+    if (_s && typeof Profiles !== 'undefined') await Profiles.signOutFully(_s.user.id);
+  } catch (e) {} await sb.auth.signOut(); window.location.href='../../login.html'; }
 
 // ── INIT ─────────────────────────────────────────────────────
 async function init() {

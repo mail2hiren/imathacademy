@@ -82,6 +82,29 @@
   .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
          background:#1A1A2E;color:#fff;padding:12px 20px;border-radius:11px;
          font-size:.85rem;font-weight:800;display:none;z-index:99;max-width:90%;}
+
+  /* Receipt shown in the page — window.open is blocked by Safari */
+  #receiptOverlay .rc-back{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:80;}
+  #receiptOverlay .rc-sheet{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:92%;max-width:430px;max-height:88vh;overflow:auto;background:#fff;
+    border-radius:16px;padding:20px;z-index:81;}
+  #receiptOverlay .rc-h1{font-size:1.1rem;font-weight:900;}
+  #receiptOverlay .rc-m{color:var(--text3);font-size:.78rem;}
+  #receiptOverlay .rc-t{width:100%;border-collapse:collapse;margin:16px 0;}
+  #receiptOverlay .rc-t td{padding:8px 0;border-bottom:1px solid var(--border);font-size:.85rem;}
+  #receiptOverlay .rc-t td:last-child{text-align:right;font-weight:800;}
+  #receiptOverlay .rc-tot{font-size:1.05rem;font-weight:900;}
+  #receiptOverlay .rc-actions{display:flex;gap:8px;}
+  #receiptOverlay .rc-actions .btn{margin-top:0;}
+
+  @media print{
+    body.printing-receipt > *{display:none !important;}
+    body.printing-receipt #receiptOverlay{display:block !important;}
+    #receiptOverlay .rc-back{display:none;}
+    #receiptOverlay .rc-sheet{position:static;transform:none;max-width:none;
+      width:auto;box-shadow:none;padding:0;max-height:none;}
+    #receiptOverlay .rc-actions{display:none;}
+  }
 </style>
 </head>
 <body>
@@ -504,7 +527,7 @@ function receipt(kind, id){
     var r = allSubs.filter(function(x){ return x.id===id; })[0];
     if(!r) return;
     f = { id:r.id, student_id:r.student_id, amount:r.amount,
-          paid_at: r.starts_at || r.created_at, notes:null, due_date:null };
+          paid_at: r.starts_at || r.created_at };
     what = 'App subscription · ' + (r.plan || '');
     dueRow = '<tr><td>Valid until</td><td>' + shortDate(r.expires_at) + '</td></tr>';
     how = r.razorpay_payment_id ? 'Online · ' + r.razorpay_payment_id
@@ -520,33 +543,44 @@ function receipt(kind, id){
         : (f.payment_method || 'Paid directly');
   }
 
-  var w = window.open('', '_blank');
-  if(!w){ toast('Allow pop-ups to download the receipt'); return; }
-  w.document.write(
-    '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Receipt</title>' +
-    '<style>@page{size:A4;margin:18mm}' +
-    'body{font-family:system-ui,-apple-system,sans-serif;color:#1A1A2E;max-width:620px;margin:0 auto;padding:24px}' +
-    'h1{font-size:1.2rem;margin-bottom:2px}.m{color:#777;font-size:.85rem}' +
-    'table{width:100%;border-collapse:collapse;margin:22px 0}' +
-    'td{padding:9px 0;border-bottom:1px solid #eee;font-size:.9rem}' +
-    'td:last-child{text-align:right;font-weight:700}' +
-    '.tot{font-size:1.15rem;font-weight:900}' +
-    '.btn{padding:10px 18px;border:none;border-radius:8px;background:#1565C0;color:#fff;' +
-    'font-weight:800;cursor:pointer}@media print{.btn{display:none}}</style></head><body>' +
-    '<h1>iMath Academy</h1><div class="m">Receipt</div>' +
-    '<table>' +
-      '<tr><td>Student</td><td>' + esc(childName(f.student_id)) + '</td></tr>' +
-      '<tr><td>Paid by</td><td>' + esc(parentProfile.full_name||'') + '</td></tr>' +
-      '<tr><td>For</td><td>' + esc(what) + '</td></tr>' +
-      dueRow +
-      '<tr><td>Paid on</td><td>' + shortDate(f.paid_at) + '</td></tr>' +
-      '<tr><td>Method</td><td>' + esc(how) + '</td></tr>' +
-      '<tr><td class="tot">Amount</td><td class="tot">' + money(f.amount) + '</td></tr>' +
-    '</table>' +
-    '<div class="m">Reference ' + esc(String(f.id).slice(0,8).toUpperCase()) + '</div>' +
-    '<p><button class="btn" onclick="window.print()">Download / Print</button></p>' +
-    '</body></html>');
-  w.document.close();
+  // Shown in the page rather than a new window. Safari blocks
+  // window.open unless it is a direct gesture, which made the
+  // Receipt button appear to do nothing at all.
+  var old = document.getElementById('receiptOverlay');
+  if(old) old.remove();
+
+  var ov = document.createElement('div');
+  ov.id = 'receiptOverlay';
+  ov.innerHTML =
+    '<div class="rc-back" onclick="closeReceipt()"></div>' +
+    '<div class="rc-sheet" id="receiptSheet">' +
+      '<div class="rc-doc" id="receiptDoc">' +
+        '<div class="rc-h1">iMath Academy</div>' +
+        '<div class="rc-m">Payment receipt</div>' +
+        '<table class="rc-t">' +
+          '<tr><td>Student</td><td>' + esc(childName(f.student_id)) + '</td></tr>' +
+          '<tr><td>Paid by</td><td>' + esc(parentProfile.full_name||'') + '</td></tr>' +
+          '<tr><td>For</td><td>' + esc(what) + '</td></tr>' +
+          dueRow +
+          '<tr><td>Paid on</td><td>' + shortDate(f.paid_at) + '</td></tr>' +
+          '<tr><td>Method</td><td>' + esc(how) + '</td></tr>' +
+          '<tr><td class="rc-tot">Amount</td><td class="rc-tot">' + money(f.amount) + '</td></tr>' +
+        '</table>' +
+        '<div class="rc-m">Reference ' + esc(String(f.id).slice(0,8).toUpperCase()) + '</div>' +
+      '</div>' +
+      '<div class="rc-actions">' +
+        '<button class="btn btn-ghost" onclick="closeReceipt()">Close</button>' +
+        '<button class="btn" onclick="window.print()">Download / Print</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(ov);
+  document.body.classList.add('printing-receipt');
+}
+
+function closeReceipt(){
+  var ov = document.getElementById('receiptOverlay');
+  if(ov) ov.remove();
+  document.body.classList.remove('printing-receipt');
 }
 
 load().catch(function(e){

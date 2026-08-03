@@ -453,6 +453,29 @@
         <!-- Error box -->
         <div class="error-box" id="errorBox"></div>
 
+        <!-- Who uses this phone -->
+        <div id="profilePicker" style="display:none;margin-bottom:18px;">
+          <div style="font-size:.8rem;font-weight:800;color:#555;margin-bottom:10px;">Who is using the app?</div>
+          <div id="profileRow" style="display:flex;gap:12px;flex-wrap:wrap;"></div>
+          <button onclick="showLoginForm()" style="margin-top:14px;background:none;border:none;
+            color:#1565C0;font-family:inherit;font-size:.82rem;font-weight:800;cursor:pointer;
+            padding:6px 0;">+ Use another account</button>
+        </div>
+
+        <!-- PIN entry -->
+        <div id="pinPad" style="display:none;text-align:center;margin-bottom:18px;">
+          <div id="pinAvatar" style="width:64px;height:64px;border-radius:18px;margin:0 auto 10px;
+            display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:1.4rem;"></div>
+          <div id="pinName" style="font-size:1rem;font-weight:900;margin-bottom:3px;"></div>
+          <div style="font-size:.8rem;color:#777;margin-bottom:14px;">Enter your 4-digit PIN</div>
+          <input id="pinInput" type="tel" inputmode="numeric" maxlength="4" autocomplete="off"
+            style="width:150px;text-align:center;letter-spacing:14px;font-size:1.6rem;font-weight:900;
+            padding:10px 0 10px 14px;border:2px solid #DEE2F5;border-radius:14px;font-family:inherit;">
+          <div id="pinError" style="display:none;color:#C62828;font-size:.8rem;font-weight:800;margin-top:8px;"></div>
+          <button onclick="cancelPin()" style="display:block;margin:14px auto 0;background:none;border:none;
+            color:#777;font-family:inherit;font-size:.82rem;font-weight:800;cursor:pointer;">Back</button>
+        </div>
+
         <!-- Already logged in banner -->
         <div id="session-banner" style="display:none; background:#E3F2FD; border:2px solid #1976D2; border-radius:14px; padding:14px 16px; margin-bottom:14px; align-items:center; gap:12px; flex-wrap:wrap;">
           <div style="flex:1;">
@@ -592,6 +615,7 @@
 
 <!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="portal/js/profiles.js"></script>
 <script>
   // ── CONFIG ────────────────────────────────────────────────
   const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
@@ -705,6 +729,18 @@
       if (remember) {
         localStorage.setItem('ima_remember', 'true');
       }
+
+      // Keep them on this device so the next switch needs no password
+      try {
+        var sess = (await sb.auth.getSession()).data.session;
+        Profiles.remember(sess.user, profile, sess);
+        // A child cannot type an email and password. A PIN they can.
+        if (!Profiles.hasPin(sess.user.id)) {
+          var pin = prompt('Set a 4-digit PIN for ' + (profile.full_name || 'this account') +
+                           '.\n\nIt lets them switch back without a password.\n\nLeave blank to skip.');
+          if (pin && /^\d{4}$/.test(pin)) await Profiles.setPin(sess.user.id, pin);
+        }
+      } catch (e) { /* remembering is a convenience, never block the login */ }
 
       // Redirect to correct portal
       window.location.href = ROLE_ROUTES[profile.role] || 'index.html';
@@ -842,7 +878,104 @@
     document.getElementById('email').focus();
   }
 
-  // Run session check on page load
+  
+/* ── WHO IS USING THIS PHONE ──────────────────────────────────
+   One device, whole family. Everyone who has signed in here is
+   offered as a tap-and-PIN, so a child never needs a password.
+   ─────────────────────────────────────────────────────────── */
+var pendingProfile = null;
+
+function renderProfilePicker() {
+  var people = Profiles.list();
+  var picker = document.getElementById('profilePicker');
+  var row    = document.getElementById('profileRow');
+  if (!picker || !row || !people.length) return false;
+
+  row.innerHTML = people.map(function (p) {
+    return '<div onclick="pickProfile(\'' + p.id + '\')" style="cursor:pointer;text-align:center;width:82px;">' +
+      '<div style="width:66px;height:66px;border-radius:18px;margin:0 auto 6px;background:' +
+        Profiles.colour(p.id) + ';color:#fff;display:flex;align-items:center;justify-content:center;' +
+        'font-weight:900;font-size:1.3rem;">' + Profiles.initials(p.name) + '</div>' +
+      '<div style="font-size:.78rem;font-weight:800;line-height:1.2;">' +
+        String(p.name).split(' ')[0] + '</div>' +
+      '<div style="font-size:.68rem;color:#888;">' + Profiles.icon(p.role) + ' ' + p.role + '</div>' +
+    '</div>';
+  }).join('');
+
+  picker.style.display = 'block';
+  var form = document.getElementById('loginForm');
+  if (form) form.style.display = 'none';
+  return true;
+}
+
+function showLoginForm() {
+  ['profilePicker','pinPad'].forEach(function (id) {
+    var el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+  var form = document.getElementById('loginForm');
+  if (form) form.style.display = '';
+}
+
+function pickProfile(id) {
+  var p = Profiles.get(id);
+  if (!p) return;
+  pendingProfile = id;
+
+  if (!Profiles.hasPin(id)) { doSwitch(id, null); return; }
+
+  document.getElementById('profilePicker').style.display = 'none';
+  var pad = document.getElementById('pinPad');
+  var av  = document.getElementById('pinAvatar');
+  av.style.background = Profiles.colour(id);
+  av.textContent = Profiles.initials(p.name);
+  document.getElementById('pinName').textContent = String(p.name).split(' ')[0];
+  document.getElementById('pinError').style.display = 'none';
+  var inp = document.getElementById('pinInput');
+  inp.value = '';
+  pad.style.display = 'block';
+  setTimeout(function () { inp.focus(); }, 100);
+}
+
+function cancelPin() {
+  document.getElementById('pinPad').style.display = 'none';
+  pendingProfile = null;
+  if (!renderProfilePicker()) showLoginForm();
+}
+
+async function doSwitch(id, pin) {
+  var err = document.getElementById('pinError');
+  try {
+    var route = await Profiles.switchTo(id, pin);
+    window.location.href = route;
+  } catch (e) {
+    if (e.message === 'WRONG_PIN') {
+      err.textContent = 'That PIN is not right';
+      err.style.display = 'block';
+      var inp = document.getElementById('pinInput');
+      inp.value = ''; inp.focus();
+    } else if (e.message === 'SESSION_EXPIRED') {
+      alert('It has been a while — please sign in again.');
+      showLoginForm();
+    } else {
+      alert(e.message);
+      showLoginForm();
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  var inp = document.getElementById('pinInput');
+  if (inp) {
+    inp.addEventListener('input', function () {
+      this.value = this.value.replace(/\D/g, '');
+      if (this.value.length === 4 && pendingProfile) doSwitch(pendingProfile, this.value);
+    });
+  }
+  // Show the picker only when there is somebody to pick
+  if (typeof Profiles !== 'undefined') renderProfilePicker();
+});
+
+// Run session check on page load
   checkExistingSession();
 </script>
 </body>

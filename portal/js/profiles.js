@@ -1,0 +1,181 @@
+/* ============================================================
+   iMathAcademy — Device profiles
+   ------------------------------------------------------------
+   One phone, whole family. A child who has to ask a parent to
+   type an email and password will practise less, so switching
+   has to be something a six-year-old can do alone.
+
+   How it works: when someone signs in, their session is kept on
+   this device under their own name. Switching restores that
+   session — no password, no email, just a tap and four digits.
+
+   WHAT THE PIN IS AND IS NOT
+   It stops a sibling opening the wrong account and stops a child
+   wandering into the parent's fees. It is not a security barrier:
+   the session token is already on the device, as it is for any
+   signed-in website. Anyone holding an unlocked phone with
+   technical intent could bypass it. Netflix profiles work the
+   same way, and for the same reason — this is about the right
+   person landing in the right place, not about defence.
+   ============================================================ */
+
+var Profiles = (function () {
+  'use strict';
+
+  var KEY = 'imath_device_profiles';
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
+    catch (e) { return []; }
+  }
+
+  function save(list) {
+    try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {}
+  }
+
+  /* ── PIN hashing ───────────────────────────────────────────
+     Salted SHA-256 so the PIN itself is never written down, even
+     though the store is local.
+     ──────────────────────────────────────────────────────── */
+  function randomSalt() {
+    var a = new Uint8Array(16);
+    (window.crypto || window.msCrypto).getRandomValues(a);
+    return Array.from(a).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+
+  async function hashPin(pin, salt) {
+    var data = new TextEncoder().encode(salt + '|' + pin);
+    var buf  = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(buf))
+      .map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+
+  /* ── Remembering someone ──────────────────────────────────── */
+  function list() {
+    return load().sort(function (a, b) { return (b.last_used || 0) - (a.last_used || 0); });
+  }
+
+  function get(id) {
+    return load().filter(function (p) { return p.id === id; })[0] || null;
+  }
+
+  /**
+   * Keep this person on the device after a successful sign-in.
+   * Called with the live session so the tokens can be restored later.
+   */
+  function remember(user, profile, session) {
+    if (!user || !session) return;
+    var all = load();
+    var existing = all.filter(function (p) { return p.id === user.id; })[0];
+    var entry = existing || { id: user.id };
+
+    entry.name    = profile.full_name || user.email || 'Student';
+    entry.role    = profile.role || 'student';
+    entry.email   = user.email || '';
+    entry.access_token  = session.access_token;
+    entry.refresh_token = session.refresh_token;
+    entry.last_used = Date.now();
+    // pin_hash and pin_salt are left alone if already set
+
+    if (!existing) all.push(entry);
+    save(all);
+  }
+
+  async function setPin(id, pin) {
+    var all = load();
+    var p = all.filter(function (x) { return x.id === id; })[0];
+    if (!p) return false;
+    if (!pin) { delete p.pin_hash; delete p.pin_salt; save(all); return true; }
+    p.pin_salt = randomSalt();
+    p.pin_hash = await hashPin(pin, p.pin_salt);
+    save(all);
+    return true;
+  }
+
+  function hasPin(id) {
+    var p = get(id);
+    return !!(p && p.pin_hash);
+  }
+
+  async function checkPin(id, pin) {
+    var p = get(id);
+    if (!p || !p.pin_hash) return true;      // no pin set — nothing to check
+    var h = await hashPin(pin, p.pin_salt || '');
+    return h === p.pin_hash;
+  }
+
+  function forget(id) {
+    save(load().filter(function (p) { return p.id !== id; }));
+  }
+
+  /**
+   * Become this person. Restores their stored session; Supabase
+   * refreshes it from the refresh token if the access token has
+   * aged out. Returns the route their role should land on.
+   */
+  async function switchTo(id, pin) {
+    var p = get(id);
+    if (!p) throw new Error('That profile is no longer on this device');
+
+    if (p.pin_hash) {
+      var ok = await checkPin(id, pin);
+      if (!ok) throw new Error('WRONG_PIN');
+    }
+
+    var res = await sb.auth.setSession({
+      access_token:  p.access_token,
+      refresh_token: p.refresh_token
+    });
+    if (res.error) {
+      // The refresh token has expired or been revoked — they must
+      // sign in again, so the stale entry is cleared rather than
+      // left to fail the same way tomorrow.
+      forget(id);
+      throw new Error('SESSION_EXPIRED');
+    }
+
+    // Keep the refreshed tokens, or the next switch uses stale ones
+    var s = res.data && res.data.session;
+    if (s) {
+      var all = load();
+      var e = all.filter(function (x) { return x.id === id; })[0];
+      if (e) {
+        e.access_token  = s.access_token;
+        e.refresh_token = s.refresh_token;
+        e.last_used = Date.now();
+        save(all);
+      }
+    }
+
+    return ROUTES[p.role] || 'index.html';
+  }
+
+  var ROUTES = {
+    student: 'portal/student/dashboard.html',
+    parent:  'portal/parent/dashboard.html',
+    teacher: 'portal/teacher/dashboard.html',
+    admin:   'portal/admin/dashboard.html'
+  };
+
+  function initials(name) {
+    return (name || 'S').split(' ').map(function (n) { return n[0]; })
+      .join('').toUpperCase().slice(0, 2);
+  }
+
+  var COLOURS = ['#1565C0','#2E7D32','#6A1B9A','#E65100','#00838F','#C2185B'];
+  function colour(id) {
+    var n = 0;
+    for (var i = 0; i < (id || '').length; i++) n += id.charCodeAt(i);
+    return COLOURS[n % COLOURS.length];
+  }
+
+  var ICONS = { student: '🎒', parent: '👤', teacher: '📚', admin: '⚙️' };
+
+  return {
+    list: list, get: get, remember: remember, forget: forget,
+    setPin: setPin, hasPin: hasPin, checkPin: checkPin,
+    switchTo: switchTo, initials: initials, colour: colour,
+    icon: function (role) { return ICONS[role] || '🎒'; },
+    routes: ROUTES
+  };
+})();

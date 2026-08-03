@@ -358,7 +358,43 @@
     *, *::before, *::after { box-sizing: border-box; }
     html, body { overflow-x: hidden; }
 
-  </style>
+  
+/* ── FITTING A PHONE ──────────────────────────────────────────
+   The language bar is a flex row of six languages with no wrap
+   and no scroll, so it forced the page wider than the screen.
+   With overflow-x hidden on the body, everything past the right
+   edge became unreachable rather than merely off-screen — text
+   was cut mid-sentence with no way to reach it.
+
+   Flex items also refuse to shrink below their content unless
+   min-width is cleared, so long words pushed cards wide too.
+   ─────────────────────────────────────────────────────────── */
+.lang-bar{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  flex-wrap:nowrap;
+}
+.lang-bar::-webkit-scrollbar{display:none;}
+.lang-btn{flex-shrink:0;}
+
+/* Nothing may be wider than the screen */
+.main,.content{min-width:0;max-width:100%;}
+.content > *{max-width:100%;}
+
+/* Long words and unbroken text wrap instead of stretching a card */
+.card,.hero,.stat-card,.tip-card,.progress-card{
+  min-width:0;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* Rows of cards wrap onto the next line rather than running off */
+.stats,.stat-cards,.stats-row,.cards-row{flex-wrap:wrap;}
+
+/* A last resort: if something still overflows, allow reaching it */
+html,body{max-width:100%;}
+</style>
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="apple-touch-icon" sizes="152x152" href="/assets/icon-152.png">

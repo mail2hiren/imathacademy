@@ -1,4 +1,10 @@
 async function logout() {
+  // Signing out revokes the token, so the remembered profile is
+  // dropped rather than left to fail when next tapped.
+  try {
+    var s = (await sb.auth.getSession()).data.session;
+    if (s && typeof Profiles !== 'undefined') { Profiles.forget(s.user.id); }
+  } catch (e) {}
   await sb.auth.signOut();
   window.location.href = '../../login.html';
 }

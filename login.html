@@ -705,6 +705,7 @@
 
       if (!profile.is_active) {
         showError('Your account has been deactivated. Please contact the administrator.');
+        try { if (typeof Profiles !== 'undefined') Profiles.forget(data.user.id); } catch (e) {}
         await sb.auth.signOut();
         setLoading(false);
         return;

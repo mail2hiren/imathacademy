@@ -808,6 +808,17 @@
 
     // Show "already logged in" banner instead of auto-redirecting
     // This lets testers switch accounts easily
+    // Launched from the installed app, an already signed-in user should
+    // land on their own dashboard. The banner stays for browser use so
+    // testers can still switch accounts.
+    var fromApp = window.matchMedia('(display-mode: standalone)').matches
+               || window.navigator.standalone === true
+               || new URLSearchParams(location.search).get('app') === '1';
+    if (fromApp && ROLE_ROUTES[profile.role]) {
+      window.location.replace(ROLE_ROUTES[profile.role]);
+      return;
+    }
+
     const banner = document.getElementById('session-banner');
     const bannerName = document.getElementById('banner-name');
     const bannerRole = document.getElementById('banner-role');

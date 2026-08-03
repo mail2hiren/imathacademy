@@ -368,7 +368,7 @@ function speakText(text) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const utt = new SpeechSynthesisUtterance(text);
-  utt.rate = 0.85;
+  utt.rate = 0.78;   // children found this too fast
   utt.pitch = 1.1;
   const voices = window.speechSynthesis.getVoices();
   const v = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'))

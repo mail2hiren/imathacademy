@@ -673,18 +673,64 @@ function stopOral() {
   if (window.speechSynthesis) window.speechSynthesis.cancel();
 }
 
+/* Speed, as a child would describe it. The gap between numbers
+   matters far more than how fast each one is spoken — a child has
+   to move beads before the next number arrives. Queueing them all
+   at once, as this did, left no working time at all. */
+var ORAL_SPEEDS = {
+  slow:   { label: '🐢 Slow',   rate: 0.60, gap: 2800 },
+  normal: { label: '🚶 Normal', rate: 0.75, gap: 2000 },
+  fast:   { label: '🐇 Fast',   rate: 0.90, gap: 1300 }
+};
+
+function oralSpeed() {
+  try {
+    var s = localStorage.getItem('imath_oral_speed');
+    if (s && ORAL_SPEEDS[s]) return s;
+  } catch (e) {}
+  return 'slow';   // a child new to orals needs room, not pace
+}
+
+function setOralSpeed(s) {
+  try { localStorage.setItem('imath_oral_speed', s); } catch (e) {}
+  var q = questions[current];
+  if (q && q.oral) { decorateCard(q); mountWorkingAbacus(q); }
+}
+
 function speakOral(rows, token) {
   if (!window.speechSynthesis) return;
   if (token !== undefined && token !== oralToken) return;   // stale card
   window.speechSynthesis.cancel();
-  rows.forEach(function (n, i) {
-    var word = i === 0 ? String(n)
+
+  var sp  = ORAL_SPEEDS[oralSpeed()];
+  var pos = 0;
+
+  function next() {
+    if (token !== undefined && token !== oralToken) return;  // moved on
+    if (pos >= rows.length) return;
+
+    var n = rows[pos];
+    var word = pos === 0 ? String(n)
              : (n < 0 ? 'minus ' + Math.abs(n) : 'plus ' + n);
+    pos++;
+
     var u = new SpeechSynthesisUtterance(word);
-    u.rate = 0.7;
+    u.rate  = sp.rate;
     u.pitch = 1.05;
+
+    // Longer numbers need longer to work out, so the pause grows
+    // with the number rather than being the same for 4 and 4728.
+    var digits = String(Math.abs(n)).length;
+    var wait   = sp.gap + (digits - 1) * 500;
+
+    u.onend = function () { oralTimer = setTimeout(next, wait); };
+    // If the voice fails to fire onend, keep the sequence moving
+    u.onerror = function () { oralTimer = setTimeout(next, wait); };
+
     window.speechSynthesis.speak(u);
-  });
+  }
+
+  next();
 }
 
 /* ── Extra card content: vertical columns, orals, bead diagrams ── */
@@ -720,6 +766,21 @@ function decorateCard(q) {
     var myToken = oralToken;
     btn.onclick = function () { speakOral(q.rows, myToken); };
     visual.appendChild(btn);
+
+    // Children told us it was too fast, so they choose the pace
+    var speeds = document.createElement('div');
+    speeds.style.cssText = 'display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap;';
+    var cur = oralSpeed();
+    Object.keys(ORAL_SPEEDS).forEach(function (k) {
+      var b = document.createElement('button');
+      b.className = 'replay-btn';
+      b.style.cssText = 'padding:5px 12px;font-size:.75rem;' +
+        (k === cur ? 'background:rgba(255,255,255,.55);color:#1A1A2E;' : '');
+      b.textContent = ORAL_SPEEDS[k].label;
+      b.onclick = function () { setOralSpeed(k); };
+      speeds.appendChild(b);
+    });
+    visual.appendChild(speeds);
     oralTimer = setTimeout(function () { speakOral(q.rows, myToken); }, 600);
     return;
   }

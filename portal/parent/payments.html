@@ -119,7 +119,7 @@ var RAZORPAY_KEY = 'rzp_live_TI9Cunr3LEPlup';
 var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 var session = null, parentProfile = null;
-var children = [], fees = [], subs = {}, plans = [];
+var children = [], fees = [], subs = {}, allSubs = [], plans = [];
 var picked = {};           // fee id -> true, for paying ahead
 var selectedPlan = {};     // child id -> plan_code
 
@@ -163,9 +163,12 @@ async function load(){
   fees = f.data || [];
 
   var sres = await sb.from('subscriptions')
-    .select('id, student_id, plan, amount, status, expires_at')
+    .select('id, student_id, plan, amount, status, starts_at, expires_at, created_at, ' +
+            'payment_method, razorpay_payment_id, reference')
     .in('student_id', ids).order('expires_at', { ascending:false });
-  (sres.data||[]).forEach(function(r){ if(!subs[r.student_id]) subs[r.student_id]=r; });
+  allSubs = sres.data || [];
+  // The newest per child drives the status card; the rest are history.
+  allSubs.forEach(function(r){ if(!subs[r.student_id]) subs[r.student_id]=r; });
 
   var p = await sb.from('pricing_plans')
     .select('plan_code, plan_name, amount, duration_days, country_code, is_active')
@@ -288,22 +291,46 @@ function render(){
     html += '</div>';
   });
 
-  /* History */
+  /* History — class fees and subscriptions together, newest first.
+     A subscription payment lives in its own table, so listing only
+     fees made a parent who had paid see an empty history. */
+  var history = paid.map(function(f){
+    return {
+      kind:'fee', id:f.id, student_id:f.student_id, amount:f.amount,
+      when: f.paid_at,
+      what: f.notes || 'Class fees',
+      how:  f.razorpay_payment_id ? 'Card / UPI online'
+          : f.upi_ref ? 'UPI · ' + f.upi_ref
+          : (f.payment_method || 'Paid to Megha')
+    };
+  }).concat(allSubs.map(function(r){
+    return {
+      kind:'sub', id:r.id, student_id:r.student_id, amount:r.amount,
+      when: r.starts_at || r.created_at,
+      what: 'App subscription · ' + (r.plan || ''),
+      how:  r.razorpay_payment_id ? 'Card / UPI online'
+          : r.reference ? 'Ref ' + r.reference
+          : (r.payment_method || 'Recorded by Megha'),
+      expires: r.expires_at
+    };
+  })).filter(function(h){ return h.amount; })
+     .sort(function(a,b){ return new Date(b.when||0) - new Date(a.when||0); });
+
   html += '<div class="card"><h2>Payment history</h2>';
-  if(!paid.length){
+  if(!history.length){
     html += '<div class="empty" style="padding:14px;">Nothing paid yet.</div>';
   } else {
-    paid.slice(0,20).forEach(function(f){
-      var how = f.razorpay_payment_id ? 'Card / UPI online'
-              : f.upi_ref ? 'UPI · ' + esc(f.upi_ref)
-              : (f.payment_method ? esc(f.payment_method) : 'Paid to Megha');
+    history.slice(0,25).forEach(function(h){
       html += '<div class="row">' +
         '<div class="row-main">' +
-          '<div class="row-amt">' + money(f.amount) + '</div>' +
-          '<div class="row-sub">' + esc(childName(f.student_id)) + ' · ' + how +
-            ' · ' + shortDate(f.paid_at) + '</div>' +
+          '<div class="row-amt">' + money(h.amount) +
+            ' <span style="font-size:.7rem;font-weight:800;color:' +
+            (h.kind==='sub'?'var(--blue)':'var(--text3)') + ';">' +
+            (h.kind==='sub'?'SUBSCRIPTION':'FEE') + '</span></div>' +
+          '<div class="row-sub">' + esc(childName(h.student_id)) + ' · ' + esc(h.what) +
+            ' · ' + esc(h.how) + ' · ' + shortDate(h.when) + '</div>' +
         '</div>' +
-        '<button class="chip" onclick="receipt(\'' + f.id + '\')">Receipt</button>' +
+        '<button class="chip" onclick="receipt(\'' + h.kind + '\',\'' + h.id + '\')">Receipt</button>' +
       '</div>';
     });
   }
@@ -471,12 +498,27 @@ function openRazorpay(opt){
    Built from the record on demand, like the certificate, so there
    is nothing to store and it works for any past payment.
    ─────────────────────────────────────────────────────────── */
-function receipt(feeId){
-  var f = fees.filter(function(x){ return x.id===feeId; })[0];
-  if(!f) return;
-  var how = f.razorpay_payment_id ? 'Online · ' + f.razorpay_payment_id
-          : f.upi_ref ? 'UPI · ' + f.upi_ref
-          : (f.payment_method || 'Paid directly');
+function receipt(kind, id){
+  var f, how, what, dueRow;
+  if(kind === 'sub'){
+    var r = allSubs.filter(function(x){ return x.id===id; })[0];
+    if(!r) return;
+    f = { id:r.id, student_id:r.student_id, amount:r.amount,
+          paid_at: r.starts_at || r.created_at, notes:null, due_date:null };
+    what = 'App subscription · ' + (r.plan || '');
+    dueRow = '<tr><td>Valid until</td><td>' + shortDate(r.expires_at) + '</td></tr>';
+    how = r.razorpay_payment_id ? 'Online · ' + r.razorpay_payment_id
+        : r.reference ? 'Ref ' + r.reference
+        : (r.payment_method || 'Recorded by Megha');
+  } else {
+    f = fees.filter(function(x){ return x.id===id; })[0];
+    if(!f) return;
+    what = f.notes || 'Class fees';
+    dueRow = '<tr><td>Due date</td><td>' + shortDate(f.due_date) + '</td></tr>';
+    how = f.razorpay_payment_id ? 'Online · ' + f.razorpay_payment_id
+        : f.upi_ref ? 'UPI · ' + f.upi_ref
+        : (f.payment_method || 'Paid directly');
+  }
 
   var w = window.open('', '_blank');
   if(!w){ toast('Allow pop-ups to download the receipt'); return; }
@@ -495,8 +537,8 @@ function receipt(feeId){
     '<table>' +
       '<tr><td>Student</td><td>' + esc(childName(f.student_id)) + '</td></tr>' +
       '<tr><td>Paid by</td><td>' + esc(parentProfile.full_name||'') + '</td></tr>' +
-      '<tr><td>For</td><td>' + esc(f.notes || 'Class fees') + '</td></tr>' +
-      '<tr><td>Due date</td><td>' + shortDate(f.due_date) + '</td></tr>' +
+      '<tr><td>For</td><td>' + esc(what) + '</td></tr>' +
+      dueRow +
       '<tr><td>Paid on</td><td>' + shortDate(f.paid_at) + '</td></tr>' +
       '<tr><td>Method</td><td>' + esc(how) + '</td></tr>' +
       '<tr><td class="tot">Amount</td><td class="tot">' + money(f.amount) + '</td></tr>' +

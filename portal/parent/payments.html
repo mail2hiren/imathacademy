@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fees &amp; Payments — iMathAcademy</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --blue:#1565C0; --blue-dk:#0D47A1; --green:#2E7D32; --amber:#E65100;
+    --red:#C62828; --text1:#1A1A2E; --text2:#555; --text3:#8892A4;
+    --bg:#F5F7FC; --card:#fff; --border:#E4E7F2;
+  }
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text1);
+       padding-bottom:40px;-webkit-font-smoothing:antialiased;}
+
+  .topbar{background:var(--card);border-bottom:1.5px solid var(--border);
+          padding:13px 16px;display:flex;align-items:center;gap:12px;
+          position:sticky;top:0;z-index:10;}
+  .topbar a{color:var(--text3);text-decoration:none;font-size:1.3rem;line-height:1;}
+  .topbar h1{font-size:1.02rem;font-weight:900;}
+
+  .wrap{max-width:640px;margin:0 auto;padding:14px 14px 0;}
+
+  .card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;
+        padding:16px;margin-bottom:14px;}
+  .card h2{font-size:.68rem;font-weight:900;letter-spacing:.6px;text-transform:uppercase;
+           color:var(--text3);margin-bottom:11px;}
+
+  /* Due — the reason a parent came */
+  .due{background:linear-gradient(140deg,#FFF6E9,#FFEFDC);border:2px solid #FFB74D;}
+  .due.clear{background:#F1F8F2;border-color:#A5D6A7;}
+  .due-amt{font-size:2rem;font-weight:900;line-height:1.1;color:var(--amber);}
+  .due.clear .due-amt{font-size:1.15rem;color:var(--green);}
+  .due-sub{font-size:.79rem;color:var(--text2);margin-top:3px;}
+
+  .row{display:flex;align-items:center;gap:11px;padding:11px 0;
+       border-bottom:1px solid var(--border);}
+  .row:last-child{border-bottom:none;}
+  .row-main{flex:1;min-width:0;}
+  .row-amt{font-size:.92rem;font-weight:900;}
+  .row-sub{font-size:.73rem;color:var(--text3);margin-top:1px;}
+  .row-tag{font-size:.71rem;font-weight:900;flex-shrink:0;}
+
+  .tick{width:22px;height:22px;flex-shrink:0;accent-color:var(--blue);}
+
+  .btn{display:block;width:100%;padding:14px;border:none;border-radius:13px;
+       font-family:inherit;font-size:.98rem;font-weight:900;cursor:pointer;
+       margin-top:12px;color:#fff;background:var(--blue);
+       box-shadow:0 3px 10px rgba(21,101,192,.25);}
+  .btn:active{transform:translateY(1px);}
+  .btn[disabled]{opacity:.55;cursor:default;box-shadow:none;}
+  .btn-amber{background:var(--amber);box-shadow:0 3px 10px rgba(230,81,0,.25);}
+  .btn-ghost{background:#fff;color:var(--text2);border:1.5px solid var(--border);
+             box-shadow:none;font-size:.85rem;padding:11px;}
+
+  .chips{display:flex;gap:7px;flex-wrap:wrap;margin:11px 0 3px;}
+  .chip{padding:8px 14px;border-radius:22px;border:1.5px solid var(--border);
+        background:#fff;font-family:inherit;font-size:.79rem;font-weight:800;
+        color:var(--text2);cursor:pointer;}
+  .chip.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+
+  .plan{border:2px solid var(--border);border-radius:13px;padding:13px;
+        margin-bottom:9px;cursor:pointer;display:flex;align-items:center;gap:11px;}
+  .plan.on{border-color:var(--blue);background:#F2F7FF;}
+  .plan-name{font-size:.9rem;font-weight:900;}
+  .plan-sub{font-size:.73rem;color:var(--text3);}
+  .plan-amt{font-size:1.05rem;font-weight:900;color:var(--blue);flex-shrink:0;}
+
+  .pill{display:inline-block;padding:3px 9px;border-radius:20px;
+        font-size:.68rem;font-weight:900;}
+  .pill-ok{background:#E6F4EA;color:var(--green);}
+  .pill-warn{background:#FFF3E0;color:var(--amber);}
+  .pill-bad{background:#FDECEA;color:var(--red);}
+
+  .note{font-size:.75rem;color:var(--text3);line-height:1.55;margin-top:9px;}
+  .empty{text-align:center;padding:26px 14px;color:var(--text3);font-size:.85rem;}
+  .err{background:#FDECEA;border-radius:11px;padding:11px 13px;
+       font-size:.79rem;color:var(--red);line-height:1.5;font-weight:700;}
+
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
+         background:#1A1A2E;color:#fff;padding:12px 20px;border-radius:11px;
+         font-size:.85rem;font-weight:800;display:none;z-index:99;max-width:90%;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="dashboard.html">&larr;</a>
+  <h1>Fees &amp; Payments</h1>
+</div>
+
+<div class="wrap" id="wrap">
+  <div class="empty">Loading…</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+/* ============================================================
+   Parent payments
+
+   Everything a parent owes, in one place, for all their children
+   at once — because a parent thinks "what do I owe", not "what
+   does each child owe".
+
+   Every amount comes from the admin screens. Class fees are rows
+   the admin creates; subscription prices come from pricing_plans.
+   Nothing is calculated here, so there is no second place for a
+   price to drift.
+   ============================================================ */
+
+var SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+var RAZORPAY_KEY = 'rzp_live_TI9Cunr3LEPlup';
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+var session = null, parentProfile = null;
+var children = [], fees = [], subs = {}, plans = [];
+var picked = {};           // fee id -> true, for paying ahead
+var selectedPlan = {};     // child id -> plan_code
+
+function money(n){ return '₹' + Number(n||0).toLocaleString('en-IN'); }
+function shortDate(d){ return d ? new Date(d).toLocaleDateString('en-IN',
+  {day:'numeric',month:'short',year:'numeric'}) : '—'; }
+function daysUntil(d){
+  if(!d) return null;
+  return Math.round((new Date(d).setHours(0,0,0,0) - new Date().setHours(0,0,0,0))/86400000);
+}
+function toast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.style.display='block';
+  setTimeout(function(){ t.style.display='none'; }, 3200);
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+/* ── Load ─────────────────────────────────────────────────── */
+async function load(){
+  var s = await sb.auth.getSession();
+  session = s.data.session;
+  if(!session){ location.href = '../../login.html'; return; }
+
+  var me = await sb.from('users').select('full_name, email, phone').eq('id', session.user.id).single();
+  parentProfile = me.data || {};
+
+  var links = await sb.from('parent_student')
+    .select('student_id, users!student_id(id, full_name)')
+    .eq('parent_id', session.user.id);
+  children = (links.data||[]).map(function(l){
+    return { id: l.student_id, name: (l.users && l.users.full_name) || 'Student' };
+  });
+  if(!children.length){ render(); return; }
+
+  var ids = children.map(function(c){ return c.id; });
+
+  var f = await sb.from('fees')
+    .select('id, student_id, amount, due_date, status, paid_at, notes, payment_method, upi_ref, razorpay_payment_id')
+    .in('student_id', ids).order('due_date');
+  fees = f.data || [];
+
+  var sres = await sb.from('subscriptions')
+    .select('id, student_id, plan, amount, status, expires_at')
+    .in('student_id', ids).order('expires_at', { ascending:false });
+  (sres.data||[]).forEach(function(r){ if(!subs[r.student_id]) subs[r.student_id]=r; });
+
+  var p = await sb.from('pricing_plans')
+    .select('plan_code, plan_name, amount, duration_days, country_code, is_active')
+    .eq('country_code','IN').order('duration_days');
+  plans = (p.data||[]).filter(function(x){ return x.is_active !== false; });
+
+  render();
+}
+
+/* ── Helpers ──────────────────────────────────────────────── */
+function childName(id){
+  var c = children.filter(function(x){ return x.id===id; })[0];
+  return c ? c.name.split(' ')[0] : '';
+}
+function isOverdue(f){ return f.status!=='paid' && daysUntil(f.due_date) < 0; }
+function isDueNow(f){ return f.status!=='paid' && daysUntil(f.due_date) <= 0; }
+function isAhead(f){  return f.status!=='paid' && daysUntil(f.due_date) > 0; }
+
+/* ── Render ───────────────────────────────────────────────── */
+function render(){
+  var wrap = document.getElementById('wrap');
+
+  if(!children.length){
+    wrap.innerHTML = '<div class="card"><div class="empty">' +
+      'No children are linked to your account yet.<br>Ask Megha to link them.</div></div>';
+    return;
+  }
+
+  var dueNow = fees.filter(isDueNow);
+  var ahead  = fees.filter(isAhead);
+  var paid   = fees.filter(function(f){ return f.status==='paid'; })
+                   .sort(function(a,b){ return new Date(b.paid_at||0)-new Date(a.paid_at||0); });
+
+  var dueTotal = dueNow.reduce(function(s,f){ return s + Number(f.amount||0); }, 0);
+  var overdue  = dueNow.filter(isOverdue).length;
+
+  var html = '';
+
+  /* Due now */
+  html += '<div class="card due' + (dueTotal? '' : ' clear') + '">';
+  if(dueTotal){
+    html += '<h2>To pay</h2>' +
+            '<div class="due-amt">' + money(dueTotal) + '</div>' +
+            '<div class="due-sub">' + dueNow.length + ' fee' + (dueNow.length===1?'':'s') +
+            (overdue ? ' · <strong>' + overdue + ' overdue</strong>' : '') + '</div>';
+    dueNow.forEach(function(f){
+      html += '<div class="row">' +
+        '<div class="row-main">' +
+          '<div class="row-amt">' + money(f.amount) + '</div>' +
+          '<div class="row-sub">' + esc(childName(f.student_id)) +
+            (f.notes ? ' · ' + esc(f.notes) : '') + ' · due ' + shortDate(f.due_date) + '</div>' +
+        '</div>' +
+        '<div class="row-tag" style="color:' + (isOverdue(f)?'var(--red)':'var(--amber)') + '">' +
+          (isOverdue(f) ? 'Overdue' : 'Due') + '</div>' +
+      '</div>';
+    });
+    html += '<button class="btn btn-amber" onclick="payFees(' +
+            JSON.stringify(dueNow.map(function(f){return f.id;})).replace(/"/g,'&quot;') +
+            ')">Pay ' + money(dueTotal) + '</button>';
+  } else {
+    html += '<div class="due-amt">All paid up ✓</div>' +
+            '<div class="due-sub">Nothing outstanding. Thank you.</div>';
+  }
+  html += '</div>';
+
+  /* Pay ahead */
+  if(ahead.length){
+    var picks = ahead.filter(function(f){ return picked[f.id]; });
+    var aheadTotal = picks.reduce(function(s,f){ return s+Number(f.amount||0); },0);
+    html += '<div class="card"><h2>Pay ahead</h2>' +
+      '<div class="note" style="margin:0 0 4px;">Settle the coming months now. ' +
+      'The amount is the same either way — this just saves you doing it each month.</div>' +
+      '<div class="chips">' +
+        '<button class="chip' + (picks.length===3?' on':'') + '" onclick="quickPick(3)">3 months</button>' +
+        '<button class="chip' + (picks.length===6?' on':'') + '" onclick="quickPick(6)">6 months</button>' +
+        '<button class="chip' + (picks.length===12?' on':'') + '" onclick="quickPick(12)">12 months</button>' +
+        '<button class="chip" onclick="quickPick(0)">Clear</button>' +
+      '</div>';
+    ahead.forEach(function(f){
+      html += '<label class="row" style="cursor:pointer;">' +
+        '<input type="checkbox" class="tick" ' + (picked[f.id]?'checked':'') +
+          ' onchange="togglePick(\'' + f.id + '\')">' +
+        '<div class="row-main">' +
+          '<div class="row-amt">' + money(f.amount) + '</div>' +
+          '<div class="row-sub">' + esc(childName(f.student_id)) +
+            (f.notes ? ' · ' + esc(f.notes) : '') + ' · due ' + shortDate(f.due_date) + '</div>' +
+        '</div></label>';
+    });
+    html += '<button class="btn" ' + (aheadTotal?'':'disabled') + ' onclick="payFees(' +
+            JSON.stringify(picks.map(function(f){return f.id;})).replace(/"/g,'&quot;') +
+            ')">' + (aheadTotal ? 'Pay ' + money(aheadTotal) : 'Choose months to pay') + '</button>';
+    html += '</div>';
+  }
+
+  /* Subscription, one card per child */
+  children.forEach(function(ch){
+    var sub  = subs[ch.id];
+    var left = sub ? daysUntil(sub.expires_at) : null;
+    var live = sub && sub.status==='active' && (left===null || left>=0);
+    var pill = live ? (left!==null && left<=7
+                        ? '<span class="pill pill-warn">Ends in ' + left + ' day' + (left===1?'':'s') + '</span>'
+                        : '<span class="pill pill-ok">Active</span>')
+                    : '<span class="pill pill-bad">' + (sub?'Expired':'None') + '</span>';
+
+    html += '<div class="card"><h2>App subscription — ' + esc(ch.name.split(' ')[0]) + '</h2>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">' +
+        '<div style="font-size:.84rem;font-weight:800;">' +
+          (sub ? esc(sub.plan||'') + ' · until ' + shortDate(sub.expires_at) : 'Not set up yet') +
+        '</div>' + pill +
+      '</div>' +
+      '<div class="note" style="margin:0 0 10px;">This keeps the app working for ' +
+        esc(ch.name.split(' ')[0]) + '. It is separate from class fees.</div>';
+
+    if(live && left>7){
+      html += '<button class="btn btn-ghost" onclick="showPlans(\'' + ch.id + '\')">Renew early</button>' +
+              '<div id="plans-' + ch.id + '" style="display:none;"></div>';
+    } else {
+      html += '<div id="plans-' + ch.id + '">' + planCards(ch.id) + '</div>';
+    }
+    html += '</div>';
+  });
+
+  /* History */
+  html += '<div class="card"><h2>Payment history</h2>';
+  if(!paid.length){
+    html += '<div class="empty" style="padding:14px;">Nothing paid yet.</div>';
+  } else {
+    paid.slice(0,20).forEach(function(f){
+      var how = f.razorpay_payment_id ? 'Card / UPI online'
+              : f.upi_ref ? 'UPI · ' + esc(f.upi_ref)
+              : (f.payment_method ? esc(f.payment_method) : 'Paid to Megha');
+      html += '<div class="row">' +
+        '<div class="row-main">' +
+          '<div class="row-amt">' + money(f.amount) + '</div>' +
+          '<div class="row-sub">' + esc(childName(f.student_id)) + ' · ' + how +
+            ' · ' + shortDate(f.paid_at) + '</div>' +
+        '</div>' +
+        '<button class="chip" onclick="receipt(\'' + f.id + '\')">Receipt</button>' +
+      '</div>';
+    });
+  }
+  html += '</div>';
+
+  wrap.innerHTML = html;
+}
+
+function planCards(childId){
+  if(!plans.length){
+    return '<div class="err">No plans are set up yet. Ask Megha to add them in the admin screen.</div>';
+  }
+  var sel = selectedPlan[childId] || plans[0].plan_code;
+  selectedPlan[childId] = sel;
+  var out = plans.map(function(p){
+    var months = Math.round((p.duration_days||30)/30);
+    return '<div class="plan' + (p.plan_code===sel?' on':'') + '" onclick="pickPlan(\'' +
+      childId + '\',\'' + p.plan_code + '\')">' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div class="plan-name">' + esc(p.plan_name || p.plan_code) + '</div>' +
+        '<div class="plan-sub">' + months + ' month' + (months===1?'':'s') + ' of access</div>' +
+      '</div>' +
+      '<div class="plan-amt">' + money(p.amount) + '</div>' +
+    '</div>';
+  }).join('');
+  var chosen = plans.filter(function(p){ return p.plan_code===sel; })[0] || plans[0];
+  out += '<button class="btn" onclick="paySubscription(\'' + childId + '\')">Pay ' +
+         money(chosen.amount) + '</button>';
+  return out;
+}
+
+/* ── Picking ──────────────────────────────────────────────── */
+function togglePick(id){ picked[id] = !picked[id]; render(); }
+
+function quickPick(n){
+  picked = {};
+  fees.filter(isAhead).slice(0, n).forEach(function(f){ picked[f.id] = true; });
+  render();
+}
+
+function pickPlan(childId, code){ selectedPlan[childId] = code; render(); }
+
+function showPlans(childId){
+  var el = document.getElementById('plans-' + childId);
+  if(!el) return;
+  el.innerHTML = planCards(childId);
+  el.style.display = 'block';
+}
+
+/* ── Paying ───────────────────────────────────────────────────
+   The order is opened for the exact total, and every fee in the
+   selection is settled together. No partial payments — a fee is
+   paid in full or not at all.
+   ─────────────────────────────────────────────────────────── */
+function payFees(ids){
+  if(!ids || !ids.length) return;
+  var chosen = fees.filter(function(f){ return ids.indexOf(f.id) > -1 && f.status !== 'paid'; });
+  if(!chosen.length){ toast('Those fees are already paid'); return; }
+
+  var total = chosen.reduce(function(s,f){ return s + Number(f.amount||0); }, 0);
+  var names = chosen.map(function(f){ return childName(f.student_id); })
+                    .filter(function(v,i,a){ return a.indexOf(v)===i; }).join(', ');
+
+  openRazorpay({
+    amount: total,
+    label: 'Class fees',
+    description: chosen.length + ' fee' + (chosen.length===1?'':'s') + ' for ' + names,
+    notes: { kind:'fees', fee_ids: chosen.map(function(f){return f.id;}).join(','),
+             parent_id: session.user.id },
+    onPaid: async function(res){
+      var upd = {
+        status: 'paid',
+        paid_at: new Date().toISOString(),
+        payment_method: 'razorpay',
+        razorpay_payment_id: res.razorpay_payment_id || null,
+        razorpay_order_id:   res.razorpay_order_id   || null
+      };
+      var w = await sb.from('fees').update(upd)
+        .in('id', chosen.map(function(f){return f.id;})).select();
+      if(w.error) throw w.error;
+      if(!w.data || !w.data.length){
+        throw new Error('Payment went through but could not be recorded. Please send Megha the payment id: ' +
+                        (res.razorpay_payment_id||'—'));
+      }
+      picked = {};
+      toast('Paid ' + money(total) + ' — thank you');
+      await load();
+    }
+  });
+}
+
+function paySubscription(childId){
+  var code = selectedPlan[childId];
+  var plan = plans.filter(function(p){ return p.plan_code===code; })[0];
+  if(!plan){ toast('Choose a plan first'); return; }
+
+  openRazorpay({
+    amount: plan.amount,
+    label: 'App subscription',
+    description: (plan.plan_name||code) + ' for ' + childName(childId),
+    notes: { kind:'subscription', student_id: childId, plan: code,
+             parent_id: session.user.id },
+    onPaid: async function(res){
+      var old = subs[childId];
+      if(old && old.id){
+        await sb.from('subscriptions').update({ status:'expired' }).eq('id', old.id);
+      }
+      var expires = new Date();
+      expires.setDate(expires.getDate() + (plan.duration_days || 30));
+      var w = await sb.from('subscriptions').insert({
+        student_id: childId,
+        plan: code,
+        amount: plan.amount,
+        status: 'active',
+        starts_at: new Date().toISOString(),
+        expires_at: expires.toISOString(),
+        payment_method: 'razorpay',
+        razorpay_payment_id: res.razorpay_payment_id || null,
+        razorpay_order_id:   res.razorpay_order_id   || null
+      }).select();
+      if(w.error) throw w.error;
+      if(!w.data || !w.data.length){
+        throw new Error('Payment went through but could not be recorded. Please send Megha the payment id: ' +
+                        (res.razorpay_payment_id||'—'));
+      }
+      toast('Subscription renewed — thank you');
+      await load();
+    }
+  });
+}
+
+function openRazorpay(opt){
+  if(typeof Razorpay === 'undefined'){
+    alert('The payment window could not load. Check your connection and try again.');
+    return;
+  }
+  var rzp = new Razorpay({
+    key: RAZORPAY_KEY,
+    amount: Math.round(opt.amount * 100),   // paise
+    currency: 'INR',
+    name: 'iMath Academy',
+    description: opt.description,
+    image: '/assets/logo.png',
+    notes: opt.notes,
+    prefill: {
+      name:    parentProfile.full_name || '',
+      email:   parentProfile.email || session.user.email || '',
+      contact: parentProfile.phone || ''
+    },
+    theme: { color: '#1565C0' },
+    handler: async function(res){
+      try { await opt.onPaid(res); }
+      catch(e){
+        // The money has left their account, so this must never be a
+        // silent failure — they need the payment id to give Megha.
+        alert(e.message);
+      }
+    },
+    modal: { ondismiss: function(){ toast('Payment cancelled'); } }
+  });
+  rzp.open();
+}
+
+/* ── Receipt ──────────────────────────────────────────────────
+   Built from the record on demand, like the certificate, so there
+   is nothing to store and it works for any past payment.
+   ─────────────────────────────────────────────────────────── */
+function receipt(feeId){
+  var f = fees.filter(function(x){ return x.id===feeId; })[0];
+  if(!f) return;
+  var how = f.razorpay_payment_id ? 'Online · ' + f.razorpay_payment_id
+          : f.upi_ref ? 'UPI · ' + f.upi_ref
+          : (f.payment_method || 'Paid directly');
+
+  var w = window.open('', '_blank');
+  if(!w){ toast('Allow pop-ups to download the receipt'); return; }
+  w.document.write(
+    '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Receipt</title>' +
+    '<style>@page{size:A4;margin:18mm}' +
+    'body{font-family:system-ui,-apple-system,sans-serif;color:#1A1A2E;max-width:620px;margin:0 auto;padding:24px}' +
+    'h1{font-size:1.2rem;margin-bottom:2px}.m{color:#777;font-size:.85rem}' +
+    'table{width:100%;border-collapse:collapse;margin:22px 0}' +
+    'td{padding:9px 0;border-bottom:1px solid #eee;font-size:.9rem}' +
+    'td:last-child{text-align:right;font-weight:700}' +
+    '.tot{font-size:1.15rem;font-weight:900}' +
+    '.btn{padding:10px 18px;border:none;border-radius:8px;background:#1565C0;color:#fff;' +
+    'font-weight:800;cursor:pointer}@media print{.btn{display:none}}</style></head><body>' +
+    '<h1>iMath Academy</h1><div class="m">Receipt</div>' +
+    '<table>' +
+      '<tr><td>Student</td><td>' + esc(childName(f.student_id)) + '</td></tr>' +
+      '<tr><td>Paid by</td><td>' + esc(parentProfile.full_name||'') + '</td></tr>' +
+      '<tr><td>For</td><td>' + esc(f.notes || 'Class fees') + '</td></tr>' +
+      '<tr><td>Due date</td><td>' + shortDate(f.due_date) + '</td></tr>' +
+      '<tr><td>Paid on</td><td>' + shortDate(f.paid_at) + '</td></tr>' +
+      '<tr><td>Method</td><td>' + esc(how) + '</td></tr>' +
+      '<tr><td class="tot">Amount</td><td class="tot">' + money(f.amount) + '</td></tr>' +
+    '</table>' +
+    '<div class="m">Reference ' + esc(String(f.id).slice(0,8).toUpperCase()) + '</div>' +
+    '<p><button class="btn" onclick="window.print()">Download / Print</button></p>' +
+    '</body></html>');
+  w.document.close();
+}
+
+load().catch(function(e){
+  document.getElementById('wrap').innerHTML =
+    '<div class="card"><div class="err">Could not load: ' + esc(e.message) + '</div></div>';
+});
+</script>
+</body>
+</html>

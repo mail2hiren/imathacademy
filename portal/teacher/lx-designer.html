@@ -1228,13 +1228,13 @@ async function generateFromEngine() {
     return {
       type:     'calculation',
       question: engineQuestionText(q),
-      answer:   q.answer,
+      answer:   String(q.answer),
       hint:     q.type === 'column' ? 'Work down the column on your abacus' : ''
     };
   });
 
   var answerKey = questions.map(function (q, i) {
-    return (i + 1) + '. ' + q.answer;
+    return (i + 1) + '. ' + String(q.answer);
   }).join('\n');
 
   var levelName = (resolvedRules && resolvedRules.level_name) || ('Level ' + level);
@@ -1395,7 +1395,13 @@ async function generatePreview() {
 }
 
 function escapeHtml(text) {
-  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // The engine returns numeric answers where the AI returns strings,
+  // and .replace() on a number throws. Coercing here means no caller
+  // has to remember which kind it is holding.
+  if (text === null || text === undefined) return '';
+  return String(text)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
 }
 
 function stripCodeFences(text) {

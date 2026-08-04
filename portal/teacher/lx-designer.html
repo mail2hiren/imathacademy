@@ -777,6 +777,13 @@ function selectLevelByValue(lv) {
 }
 
 // ── BUILD PROMPT ─────────────────────────────────────────────
+/* The curriculum rules for the level currently selected.
+   This lived inside buildPrompt() as a local, so everything outside
+   that function — the engine path and validateQuestion — threw a
+   ReferenceError on it. Reading an undeclared name throws; only
+   assigning to one creates it. */
+var resolvedRules = null;
+
 function buildPrompt(preview=false) {
   const batchName   = document.getElementById('batchSel').options[document.getElementById('batchSel').selectedIndex]?.text || 'the batch';
   const studentOpt  = document.getElementById('studentSel').options[document.getElementById('studentSel').selectedIndex];
@@ -823,7 +830,7 @@ function buildPrompt(preview=false) {
 
   // Resolve curriculum rules
   var currData = CURRICULUM[selectedLevel];
-  var resolvedRules = null;
+  resolvedRules = null;   // assigns the global declared above
   if (currData && currData.level) {
     var lvData = currData.level;
     var diffKey = difficulty.toLowerCase();

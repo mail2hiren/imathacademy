@@ -190,8 +190,29 @@ var Profiles = (function () {
     try { await sb.auth.signOut(); } catch (e) {}
   }
 
+  /**
+   * Supabase rotates the refresh token every time it is used, so the
+   * copy saved in a profile goes stale as soon as the app refreshes a
+   * session in the background. Without this the PIN appears to "expire"
+   * after an hour or a page load. Listening keeps the stored copy current.
+   */
+  function keepFresh() {
+    if (typeof sb === 'undefined' || !sb.auth || !sb.auth.onAuthStateChange) return;
+    sb.auth.onAuthStateChange(function (event, session) {
+      if (!session || !session.user) return;
+      if (event !== 'TOKEN_REFRESHED' && event !== 'SIGNED_IN') return;
+      var all = load();
+      var e = all.filter(function (p) { return p.id === session.user.id; })[0];
+      if (!e) return;
+      e.access_token  = session.access_token;
+      e.refresh_token = session.refresh_token;
+      e.last_used = Date.now();
+      save(all);
+    });
+  }
+
   return {
-    list: list, get: get, remember: remember, forget: forget,
+    list: list, get: get, remember: remember, forget: forget, keepFresh: keepFresh,
     leave: leave, signOutFully: signOutFully,
     setPin: setPin, hasPin: hasPin, checkPin: checkPin,
     switchTo: switchTo, initials: initials, colour: colour,
@@ -199,3 +220,6 @@ var Profiles = (function () {
     routes: ROUTES
   };
 })();
+
+// Start watching as soon as this file loads
+try { Profiles.keepFresh(); } catch (e) {}

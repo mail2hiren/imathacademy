@@ -1166,11 +1166,39 @@ function engineQuestionText(q) {
 }
 
 
-// buildPrompt() is what normally populates resolvedRules. The engine
-// path does not build a prompt, so the rules are loaded directly.
+// The engine needs the level's rules but not a prompt. Calling
+// buildPrompt() just for its side effect dragged in DOM reads and
+// prompt assembly that can fail for reasons unrelated to the rules,
+// so the few fields the engine actually uses are read directly.
 async function loadCurriculumRulesForLevel() {
-  if (resolvedRules && resolvedRules.level_name) return;
-  try { buildPrompt(true); } catch (e) { /* rules stay at their defaults */ }
+  var curr = CURRICULUM[selectedLevel];
+  if (!curr || !curr.level) { resolvedRules = null; return; }
+  var lv = curr.level;
+
+  // 0 is a legitimate guardrail, so a null check rather than || here
+  var pick = function (a, b, fallback) {
+    if (a !== null && a !== undefined) return a;
+    if (b !== null && b !== undefined) return b;
+    return fallback;
+  };
+
+  var diffKey  = (document.getElementById('difficulty') || {}).value || 'medium';
+  var diffRule = (curr.diffRules && curr.diffRules[String(diffKey).toLowerCase()]) || {};
+
+  resolvedRules = {
+    level_name:     lv.level_name,
+    core_focus:     lv.core_focus,
+    max_number:     pick(diffRule.max_number, lv.max_number, 99),
+    min_number:     pick(diffRule.min_number, lv.min_number, 1),
+    max_digits:     pick(diffRule.max_digits, lv.max_digits, 2),
+    min_digits:     pick(diffRule.min_digits, lv.min_digits, 1),
+    max_rows:       pick(diffRule.max_rows,   lv.max_rows,   5),
+    min_rows:       pick(diffRule.min_rows,   lv.min_rows,   3),
+    multiplication: !!lv.multiplication_allowed,
+    division:       !!lv.division_allowed,
+    formulas:       (curr.formulas || []),
+    guardrails:     lv.guardrail_notes || ''
+  };
 }
 
 async function generateFromEngine() {
@@ -1226,7 +1254,7 @@ async function generateFromEngine() {
     '- Go through any column where the running total went wrong midway\n' +
     '- That is usually a friends-formula slip rather than carelessness';
 
-  var parent =
+  var parentNote =
     'Your child worked on ' + levelName + ' today.\n\n' +
     'These are column sums — added and subtracted down the column on the abacus, ' +
     'the same way they are done in class.\n\n' +
@@ -1237,8 +1265,11 @@ async function generateFromEngine() {
     '## QUESTIONS\n' + JSON.stringify(questions, null, 2) +
     '\n\n## ANSWER KEY\n' + answerKey +
     '\n\n## LESSON PLAN\n' + lesson +
-    '\n\n## PARENT NOTE\n' + parent;
+    '\n\n## PARENT NOTE\n' + parentNote;
 
+  if (typeof text !== 'string') {
+    throw new Error('The worksheet could not be assembled — please try again');
+  }
   parseAndRender(text);
 }
 

@@ -127,17 +127,33 @@ function renderPricingGrid(countryCode) {
 }
 
 
-function toggleSidebar() {
-  var s = document.getElementById('sidebar');
-  var o = document.getElementById('overlay');
-  if (s) s.classList.toggle('open');
-  if (o) o.style.display = s && s.classList.contains('open') ? 'block' : 'none';
+/* The admin sidebar is <aside class="sidebar"> with no id, so
+   getElementById('sidebar') returned null and the hamburger did
+   nothing at all. It is found by class, and both overlay ids are
+   handled because the markup carries one of each. */
+function _sidebarEl()  { return document.getElementById('sidebar') || document.querySelector('.sidebar'); }
+function _overlayEls() {
+  return [document.getElementById('overlay'),
+          document.getElementById('sidebarOverlay')].filter(Boolean);
 }
+
+function toggleSidebar() {
+  var s = _sidebarEl();
+  if (!s) return;
+  var open = s.classList.toggle('open');
+  _overlayEls().forEach(function (o) {
+    o.style.display = open ? 'block' : 'none';
+    o.classList.toggle('show', open);
+  });
+}
+
 function closeSidebar() {
-  var s = document.getElementById('sidebar');
-  var o = document.getElementById('overlay');
+  var s = _sidebarEl();
   if (s) s.classList.remove('open');
-  if (o) o.style.display = 'none';
+  _overlayEls().forEach(function (o) {
+    o.style.display = 'none';
+    o.classList.remove('show');
+  });
 }
 
 

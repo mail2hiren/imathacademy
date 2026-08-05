@@ -204,6 +204,33 @@
   .logout-label{display:none;}
   .logout-btn{padding:6px 10px;}
 }
+
+/* ── SIDE BY SIDE ON A LAPTOP ─────────────────────────────────
+   Same reasoning as practice: a phone cannot show a long column
+   and a tappable abacus at once, but a wide screen can. The sum
+   sits on the left, the abacus on the right, nothing scrolls.
+
+   Only applies when an abacus is actually present, so a mental
+   question keeps the full width to itself.
+   ─────────────────────────────────────────────────────────── */
+@media (min-width: 980px) {
+  .fs-body.has-abacus > div:first-child{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(380px,520px);
+    gap:32px;
+    align-items:start;
+    max-width:1160px;
+    margin-left:auto;margin-right:auto;
+  }
+  .fs-body.has-abacus > div:first-child > *{grid-column:1;}
+  .fs-body.has-abacus > div:first-child > .abacus-slot{
+    grid-column:2;
+    grid-row:1 / span 30;
+    position:sticky;top:14px;
+    margin-top:0;
+    align-self:start;
+  }
+}
 </style>
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
@@ -957,7 +984,20 @@ function showFsQuestion() {
   // Abacus below the check button, per Megha's layout:
   // question -> answer box -> check -> abacus
   var ab = buildAbacusFor(fsCurrentWsId, input);
-  if (ab) wrap.appendChild(ab);
+  var fsBodyEl = document.getElementById('fsBody');
+  if (ab) {
+    wrap.appendChild(ab);
+    // Turns on the two-column desktop layout defined in the stylesheet
+    if (fsBodyEl) fsBodyEl.classList.add('has-abacus');
+    // The grid changes the slot width, so measure again once it applies
+    var inst = abacusInstances[fsCurrentWsId];
+    if (inst && inst.relayout) {
+      requestAnimationFrame(function () { inst.relayout(); });
+      setTimeout(function () { inst.relayout(); }, 70);
+    }
+  } else if (fsBodyEl) {
+    fsBodyEl.classList.remove('has-abacus');
+  }
 
   body.appendChild(wrap);
   setTimeout(function() { input.focus(); }, 100);

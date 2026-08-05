@@ -176,3 +176,37 @@
       color: #fff;
       border-color: var(--blue);
     }
+
+/* ── Visible sign-out, and a hamburger that can appear ─────────
+   The sign-out control was the character ⇥ at .9rem in muted grey,
+   which nobody could see. The hamburger carried an inline
+   display:none and no rule ever turned it back on, so an admin on
+   a phone had no way to open the sidebar at all.
+   ─────────────────────────────────────────────────────────── */
+.logout-btn{
+  display:flex !important;align-items:center;gap:7px;
+  min-width:44px;min-height:44px;padding:6px 12px;
+  border-radius:10px;
+  border:1.5px solid rgba(198,40,40,.25) !important;
+  background:rgba(198,40,40,.06) !important;
+  color:#C62828 !important;
+  font-family:inherit;font-size:.82rem;font-weight:800;cursor:pointer;
+}
+.logout-btn:active{background:rgba(198,40,40,.14) !important;}
+.logout-btn svg{flex-shrink:0;}
+.logout-label{white-space:nowrap;}
+
+.hamburger-mobile{display:none;}
+.hamburger-mobile span{display:block;width:22px;height:2.5px;background:#1A1A2E;border-radius:3px;}
+
+@media(max-width:768px){
+  .hamburger-mobile{
+    display:flex !important;flex-direction:column;gap:5px;
+    align-items:center;justify-content:center;
+    min-width:44px;min-height:44px;
+  }
+}
+@media(max-width:600px){
+  .logout-label{display:none;}
+  .logout-btn{padding:6px 10px;}
+}

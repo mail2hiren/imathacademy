@@ -292,71 +292,69 @@ html,body{max-width:100%;}
   #practiceScreen .screen.has-abacus .col-sum{font-size:1.25rem !important;}
 }
 
-/* Landscape on a phone has room for two columns, the same as a
-   laptop — so the sum and the abacus sit side by side and nothing
-   scrolls at all. */
+/* ── A PHONE HELD SIDEWAYS ────────────────────────────────────
+   Roughly 800 x 390, and the bottom navigation takes 70 of those
+   390. The first attempt sized the sum for a laptop and pushed the
+   answer box and Check button off the bottom entirely — a child
+   could see the question and the beads but had nowhere to answer.
+
+   Here everything is sized to the height available, the navigation
+   steps aside, and the answer stays in view.
+   ─────────────────────────────────────────────────────────── */
 @media (orientation: landscape) and (max-height: 560px) {
+  /* The bottom bar costs more than it is worth on a short screen */
+  .bottom-nav, .bnav, #bottomNav { display: none !important; }
+  body { padding-bottom: 0 !important; }
+
   #practiceScreen .screen.has-abacus{
     display:grid;
     grid-template-columns:minmax(0,1fr) minmax(300px,46%);
-    gap:16px;
+    gap:14px;
     align-items:start;
+    padding-top:4px;
   }
   #practiceScreen .screen.has-abacus > *{grid-column:1;}
   #practiceScreen .screen.has-abacus > #practiceAbacusSlot{
     grid-column:2;grid-row:1 / span 30;
-    position:sticky;top:6px;margin:0;max-width:none;width:100%;
+    position:sticky;top:4px;margin:0;max-width:none;width:100%;
   }
-  #practiceScreen .screen.has-abacus .card-wrap{position:static;padding-top:0;}
-  #practiceScreen .screen.has-abacus .flash-card{padding:12px 14px;min-height:0;}
-  #practiceScreen .screen.has-abacus .col-sum{font-size:1.15rem !important;}
-  /* the chrome above the card is not worth the height here */
+
+  /* Nothing sticky in landscape — it is all on screen already */
+  #practiceScreen .screen.has-abacus .card-wrap{
+    position:static;padding-top:0;margin-bottom:8px;
+  }
+  #practiceScreen .screen.has-abacus .flash-card{
+    padding:10px 12px;min-height:0;
+  }
+
+  /* The inline size set while drawing the rows has to be overridden */
+  #practiceScreen .screen.has-abacus .col-rows{font-size:1.15rem !important;}
+  #practiceScreen .screen.has-abacus .col-row{padding:0 10px;line-height:1.28;}
+  #practiceScreen .screen.has-abacus .col-rule{margin-top:3px;}
+  #practiceScreen .screen.has-abacus .step-tap{margin-top:5px;font-size:.7rem;}
+
+  /* Chrome that is not worth the height */
   #practiceScreen .stats-row,
-  #practiceScreen .swipe-hint{display:none !important;}
+  #practiceScreen .swipe-hint,
+  #practiceScreen .turn-hint,
+  #practiceScreen .card-label,
+  #practiceScreen .card-hint,
+  #practiceScreen .card-decoration { display:none !important; }
+
+  /* The answer must always be reachable */
+  #practiceScreen .type-wrap,
+  #practiceScreen .choices-grid { margin-bottom:6px; }
+  #practiceScreen .type-input{padding:9px 12px;font-size:1rem;}
+  #practiceScreen .submit-btn{padding:10px;font-size:.9rem;}
+  #practiceScreen .choices-grid{gap:7px;}
+  #practiceScreen .choice-btn{padding:10px 6px;font-size:1rem;}
+
+  /* Keep the abacus compact enough that the rest fits beside it */
+  #practiceScreen .imath-abacus .ab-value{margin-bottom:3px;}
+  #practiceScreen .imath-abacus .ab-value-num{font-size:1rem;}
+  #practiceScreen .imath-abacus .ab-value-label{font-size:.5rem;}
 }
 
-/* Shown only in portrait, only when an abacus is on screen */
-.turn-hint{
-  display:none;
-  font-size:.74rem;font-weight:800;color:var(--text3,#8892A4);
-  text-align:center;margin:2px 0 8px;
-}
-@media (max-width:979px) and (orientation: portrait){
-  .has-abacus .turn-hint{display:block;}
-}
-
-/* ── KEEPING YOUR PLACE ───────────────────────────────────────
-   On paper a child keeps a finger on the row they are working. On
-   screen there was nothing, so they had to track their own place
-   in the column while also moving beads.
-
-   Below Level 4 the current row is marked and a tap moves on, so
-   only one number is ever being held in mind. From Level 4 the
-   marking stops, because holding your place is part of the skill
-   by then.
-   ─────────────────────────────────────────────────────────── */
-.col-rows{
-  display:inline-block;text-align:right;
-  font-variant-numeric:tabular-nums;letter-spacing:1px;
-}
-.col-row{
-  padding:2px 12px;border-radius:8px;
-  font-weight:900;line-height:1.35;
-  transition:background .18s, color .18s, opacity .18s;
-}
-.col-rows.stepped .col-row{opacity:.32;}
-.col-rows.stepped .col-row.done{opacity:.55;}
-.col-rows.stepped .col-row.now{
-  opacity:1;background:#FFF3D6;color:#B26A00;
-  box-shadow:0 0 0 2px #FFCC66 inset;
-}
-.col-rule{border-top:3px solid currentColor;margin:5px 12px 0;}
-.step-tap{
-  margin-top:9px;font-size:.76rem;font-weight:800;
-  color:var(--blue,#1565C0);text-align:center;cursor:pointer;
-  user-select:none;
-}
-.step-tap.finished{color:var(--green,#2E7D32);}
 </style>
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
@@ -813,6 +811,15 @@ function unlockSpeech() {
   } catch (e) { /* not available — the replay button still works */ }
 }
 document.addEventListener('touchstart', unlockSpeech, { once: true, passive: true });
+
+// Turning the phone changes the width of the abacus column, so it is
+// measured again — otherwise it keeps its portrait size in landscape.
+window.addEventListener('orientationchange', function () {
+  setTimeout(function () {
+    if (workingAbacus  && workingAbacus.relayout)  workingAbacus.relayout();
+    if (practiceAbacus && practiceAbacus.relayout) practiceAbacus.relayout();
+  }, 220);
+});
 document.addEventListener('click',      unlockSpeech, { once: true });
 
 function stopOral() {

@@ -231,6 +231,33 @@
     align-self:start;
   }
 }
+
+/* Same reasoning as practice: the sum must stay in sight while the
+   beads are worked, and a phone in landscape has room for both. */
+@media (max-width: 979px) {
+  .fs-body.has-abacus .fs-question-wrap{
+    position:sticky;top:0;z-index:5;
+    background:var(--bg,#F5F7FC);
+    padding:8px 0 6px;
+  }
+  .fs-body.has-abacus .fs-question{font-size:1.3rem;line-height:1.35;}
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .fs-body.has-abacus > div:first-child{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(300px,46%);
+    gap:16px;align-items:start;
+  }
+  .fs-body.has-abacus > div:first-child > *{grid-column:1;}
+  .fs-body.has-abacus > div:first-child > .abacus-slot{
+    grid-column:2;grid-row:1 / span 30;
+    position:sticky;top:6px;margin-top:0;
+  }
+  .fs-body.has-abacus .fs-question-wrap{position:static;padding:0;}
+  .fs-body.has-abacus .fs-question{font-size:1.15rem;}
+  .fs-body.has-abacus .fs-emoji{display:none;}
+}
 </style>
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">

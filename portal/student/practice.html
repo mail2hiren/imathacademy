@@ -266,6 +266,64 @@ html,body{max-width:100%;}
   /* The card no longer competes with the abacus for width */
   #practiceScreen .screen.has-abacus .flash-card{min-height:210px;}
 }
+
+/* ── KEEPING THE SUM IN SIGHT ─────────────────────────────────
+   A child who scrolls away from the column has to hold the numbers
+   in their head while moving beads — a harder task than the one on
+   the page. In class they keep a finger on the row. On a phone the
+   equivalent is simply never letting the sum leave the screen.
+   ─────────────────────────────────────────────────────────── */
+@media (max-width: 979px) {
+  #practiceScreen .screen.has-abacus .card-wrap{
+    position:sticky;
+    top:0;
+    z-index:5;
+    background:var(--bg,#F5F7FC);
+    padding-top:6px;
+    margin-bottom:8px;
+  }
+  /* Compact so the sticky block does not eat the screen */
+  #practiceScreen .screen.has-abacus .flash-card{
+    padding:14px 16px;
+    min-height:0;
+  }
+  #practiceScreen .screen.has-abacus .card-label,
+  #practiceScreen .screen.has-abacus .card-hint{display:none;}
+  #practiceScreen .screen.has-abacus .col-sum{font-size:1.25rem !important;}
+}
+
+/* Landscape on a phone has room for two columns, the same as a
+   laptop — so the sum and the abacus sit side by side and nothing
+   scrolls at all. */
+@media (orientation: landscape) and (max-height: 560px) {
+  #practiceScreen .screen.has-abacus{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(300px,46%);
+    gap:16px;
+    align-items:start;
+  }
+  #practiceScreen .screen.has-abacus > *{grid-column:1;}
+  #practiceScreen .screen.has-abacus > #practiceAbacusSlot{
+    grid-column:2;grid-row:1 / span 30;
+    position:sticky;top:6px;margin:0;max-width:none;width:100%;
+  }
+  #practiceScreen .screen.has-abacus .card-wrap{position:static;padding-top:0;}
+  #practiceScreen .screen.has-abacus .flash-card{padding:12px 14px;min-height:0;}
+  #practiceScreen .screen.has-abacus .col-sum{font-size:1.15rem !important;}
+  /* the chrome above the card is not worth the height here */
+  #practiceScreen .stats-row,
+  #practiceScreen .swipe-hint{display:none !important;}
+}
+
+/* Shown only in portrait, only when an abacus is on screen */
+.turn-hint{
+  display:none;
+  font-size:.74rem;font-weight:800;color:var(--text3,#8892A4);
+  text-align:center;margin:2px 0 8px;
+}
+@media (max-width:979px) and (orientation: portrait){
+  .has-abacus .turn-hint{display:block;}
+}
 </style>
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
@@ -388,6 +446,7 @@ html,body{max-width:100%;}
 
     <!-- The abacus. It needs the full width of the screen for 17 rods,
          so it sits below the card rather than inside it. -->
+    <div class="turn-hint">↻ Turn your phone sideways to see the sum and abacus together</div>
     <div id="practiceAbacusSlot" style="display:none;width:100%;max-width:620px;
          margin:6px auto 14px;padding:0 10px;"></div>
 

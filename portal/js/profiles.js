@@ -104,6 +104,22 @@ var Profiles = (function () {
     return h === p.pin_hash;
   }
 
+  /** Drop only the session, keeping the name, role and PIN. */
+  function clearTokens(id) {
+    var all = load();
+    var p = all.filter(function (x) { return x.id === id; })[0];
+    if (!p) return;
+    delete p.access_token;
+    delete p.refresh_token;
+    save(all);
+  }
+
+  /** Is this profile still able to sign in without a password? */
+  function isLive(id) {
+    var p = get(id);
+    return !!(p && p.refresh_token);
+  }
+
   function forget(id) {
     save(load().filter(function (p) { return p.id !== id; }));
   }
@@ -127,14 +143,19 @@ var Profiles = (function () {
       refresh_token: p.refresh_token
     });
     if (res.error) {
-      // Only drop the profile when the token itself is dead. A network
-      // blip used to delete it permanently, which is why saved logins
-      // seemed to disappear on their own.
       var msg = String(res.error.message || '').toLowerCase();
       var dead = msg.indexOf('refresh') > -1 || msg.indexOf('invalid') > -1 ||
                  msg.indexOf('expired') > -1 || msg.indexOf('jwt') > -1 ||
                  res.error.status === 400 || res.error.status === 401;
-      if (dead) { forget(id); throw new Error('SESSION_EXPIRED'); }
+      if (dead) {
+        // Clear the dead tokens but KEEP the person and their PIN.
+        // Deleting the whole profile meant a child had to sign in by
+        // email and set a PIN all over again, which is the bug that
+        // made this feel unreliable. A lapsed session is not a reason
+        // to forget who somebody is.
+        clearTokens(id);
+        throw new Error('SESSION_EXPIRED');
+      }
       throw new Error('Could not switch just now — please try again');
     }
 
@@ -217,6 +238,7 @@ var Profiles = (function () {
 
   return {
     list: list, get: get, remember: remember, forget: forget, keepFresh: keepFresh,
+    clearTokens: clearTokens, isLive: isLive,
     leave: leave, signOutFully: signOutFully,
     setPin: setPin, hasPin: hasPin, checkPin: checkPin,
     switchTo: switchTo, initials: initials, colour: colour,

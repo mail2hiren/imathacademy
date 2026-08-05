@@ -736,6 +736,8 @@
 
         // First time on this device: set a PIN in the page, not in a
         // browser prompt. After this they never type the email again.
+        // hasPin survives a lapsed session, so this only fires the
+        // very first time on this device
         if (!Profiles.hasPin(sess.user.id)) {
           setLoading(false);
           openPinScreen(sess.user.id, 'create',
@@ -920,7 +922,9 @@ function renderProfilePicker() {
       '<div style="font-size:.82rem;font-weight:800;line-height:1.2;color:#1A1A2E;">' +
         String(p.name).split(' ')[0] + '</div>' +
       '<div style="font-size:.7rem;color:#888;margin-top:1px;">' +
-        Profiles.icon(p.role) + ' ' + p.role + '</div>' +
+        (Profiles.isLive && !Profiles.isLive(p.id)
+          ? '🔑 tap to sign in'
+          : Profiles.icon(p.role) + ' ' + p.role) + '</div>' +
     '</button>';
   }).join('');
 
@@ -1005,6 +1009,18 @@ function openPinScreen(profileId, mode, afterRoute) {
 }
 
 function pickProfile(id) {
+  // The session may have lapsed even though we still know this person.
+  // Their PIN is kept, so after one email sign-in they are straight
+  // back to tapping their face — they are not asked to set it again.
+  if (Profiles.isLive && !Profiles.isLive(id)) {
+    var p = Profiles.get(id);
+    showScreen('loginForm');
+    var em = document.getElementById('email');
+    if (em && p && p.email) em.value = p.email;
+    showError('Please sign in once more for ' + String(p && p.name || '').split(' ')[0] +
+              '. Your PIN is still set.');
+    return;
+  }
   if (!Profiles.hasPin(id)) { doSwitch(id, null); return; }
   openPinScreen(id, 'enter');
 }

@@ -3,6 +3,13 @@ const SURL = 'https://bhullfoajenhkxlkiubs.supabase.co';
 const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
 const sb = supabase.createClient(SURL, SKEY);
 
+/* Both of these were used by createUser() but never declared — they
+   did not survive the split of the old single admin file, so pressing
+   "Create student" threw before it reached the network. SUPABASE_KEY
+   is the same anon key as SKEY, under the name the call site expects. */
+const CREATE_USER_FN = SURL + '/functions/v1/create-user';
+const SUPABASE_KEY   = SKEY;
+
 // ── GLOBAL SHARED STATE ──────────────────────────────────────
 // Declared here so all split JS files can access them
 var allStudents  = [];

@@ -234,6 +234,38 @@ html,body{max-width:100%;}
   .logout-label{display:none;}
   .logout-btn{padding:6px 10px;}
 }
+
+/* ── SIDE BY SIDE ON A LAPTOP ─────────────────────────────────
+   A phone cannot show a long column and a usable abacus at once —
+   shrink the beads enough to fit and a child cannot tap them. On a
+   wider screen there is no such conflict, so the question sits on
+   the left and the abacus on the right, both fully visible with no
+   scrolling.
+
+   The grid only applies when there is actually an abacus, so a
+   mental question still uses the full width.
+   ─────────────────────────────────────────────────────────── */
+@media (min-width: 980px) {
+  #practiceScreen .screen.has-abacus{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(380px,520px);
+    gap:30px;
+    align-items:start;
+    max-width:1160px;
+    margin-left:auto;margin-right:auto;
+  }
+  #practiceScreen .screen.has-abacus > *{grid-column:1;}
+  #practiceScreen .screen.has-abacus > #practiceAbacusSlot{
+    grid-column:2;
+    grid-row:1 / span 30;      /* spans whatever the left column needs */
+    position:sticky;top:18px;
+    max-width:none;width:100%;
+    margin:0;padding:0;
+    align-self:start;
+  }
+  /* The card no longer competes with the abacus for width */
+  #practiceScreen .screen.has-abacus .flash-card{min-height:210px;}
+}
 </style>
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
@@ -825,11 +857,16 @@ function mountWorkingAbacus(q) {
            : ((q.column && !q.mental) || q.oral) ? 'work'
            : null;
 
+  // The two-column desktop layout only makes sense with an abacus
+  var screenEl = document.querySelector('#practiceScreen .screen');
+
   if (!mode || typeof Abacus === 'undefined') {
     slot.style.display = 'none';
+    if (screenEl) screenEl.classList.remove('has-abacus');
     return;
   }
   slot.style.display = 'block';
+  if (screenEl) screenEl.classList.add('has-abacus');
 
   var label = document.createElement('div');
   label.style.cssText = 'font-size:.78rem;font-weight:800;color:var(--text2);' +
@@ -847,7 +884,10 @@ function mountWorkingAbacus(q) {
     practiceAbacus.setValue(q.value);
     // The slot is laid out by the time this runs, so a relayout gives
     // the rods their real width instead of the fallback.
-    requestAnimationFrame(function () { practiceAbacus.relayout(); });
+    requestAnimationFrame(function () {
+      practiceAbacus.relayout();
+      setTimeout(function () { if (practiceAbacus) practiceAbacus.relayout(); }, 60);
+    });
     return;
   }
 
@@ -861,7 +901,11 @@ function mountWorkingAbacus(q) {
       }
     }
   });
-  requestAnimationFrame(function () { workingAbacus.relayout(); });
+  requestAnimationFrame(function () {
+    workingAbacus.relayout();
+    // The grid changes the slot's width, so measure once more after it applies
+    setTimeout(function () { if (workingAbacus) workingAbacus.relayout(); }, 60);
+  });
 }
 
 function renderQuestion() {

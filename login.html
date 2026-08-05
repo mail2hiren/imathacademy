@@ -717,20 +717,12 @@
         return;
       }
 
-      // Verify role matches selection
-      if (profile.role !== selectedRole) {
-        showError(`This account is registered as a ${profile.role}. Please select "${profile.role}" from the role buttons above.`);
-        // Auto-select correct role
-        document.querySelectorAll('.role-btn').forEach(btn => {
-          btn.classList.remove('active');
-          if (btn.querySelector('.role-label').textContent.toLowerCase() === profile.role) {
-            btn.classList.add('active');
-            selectedRole = profile.role;
-          }
-        });
-        setLoading(false);
-        return;
-      }
+      // The account's own role decides where they land. Asking the
+      // person to pick it first added no security — the database
+      // already knows — and rejected the first attempt whenever the
+      // buttons happened to show a different role.
+      selectedRole = profile.role;
+
 
       // Store remember me preference
       if (remember) {

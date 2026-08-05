@@ -127,11 +127,15 @@ var Profiles = (function () {
       refresh_token: p.refresh_token
     });
     if (res.error) {
-      // The refresh token has expired or been revoked — they must
-      // sign in again, so the stale entry is cleared rather than
-      // left to fail the same way tomorrow.
-      forget(id);
-      throw new Error('SESSION_EXPIRED');
+      // Only drop the profile when the token itself is dead. A network
+      // blip used to delete it permanently, which is why saved logins
+      // seemed to disappear on their own.
+      var msg = String(res.error.message || '').toLowerCase();
+      var dead = msg.indexOf('refresh') > -1 || msg.indexOf('invalid') > -1 ||
+                 msg.indexOf('expired') > -1 || msg.indexOf('jwt') > -1 ||
+                 res.error.status === 400 || res.error.status === 401;
+      if (dead) { forget(id); throw new Error('SESSION_EXPIRED'); }
+      throw new Error('Could not switch just now — please try again');
     }
 
     // Keep the refreshed tokens, or the next switch uses stale ones

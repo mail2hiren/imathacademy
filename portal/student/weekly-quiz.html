@@ -118,6 +118,24 @@
     .main { flex:1; margin-left:220px; display:flex; flex-direction:column; }
     .q-text.col{white-space:pre;font-variant-numeric:tabular-nums;line-height:1.35;
             letter-spacing:1px;font-size:1.5rem;}
+
+/* The logout control was the character ⇥ at .9rem in muted grey —
+   effectively invisible. A drawn icon plus a label reads at any size,
+   and the label hides itself when there is no room. */
+.logout-btn{
+  display:flex !important;align-items:center;gap:7px;
+  min-width:44px;min-height:44px;padding:6px 12px;
+  border-radius:10px;border:1.5px solid rgba(198,40,40,.25) !important;
+  background:rgba(198,40,40,.06) !important;color:#C62828 !important;
+  font-family:inherit;font-size:.82rem;font-weight:800;cursor:pointer;
+}
+.logout-btn:active{background:rgba(198,40,40,.14) !important;}
+.logout-btn svg{flex-shrink:0;}
+.logout-label{white-space:nowrap;}
+@media(max-width:600px){
+  .logout-label{display:none;}
+  .logout-btn{padding:6px 10px;}
+}
 </style>
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
@@ -159,7 +177,7 @@
         <div class="user-name" id="userName">Loading...</div>
         <div class="user-role">Student</div>
       </div>
-      <button class="logout-btn" onclick="logout()">⇥</button>
+      <button class="logout-btn" onclick="logout()"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="logout-label">Sign out</span></button>
     </div>
   </aside>
 

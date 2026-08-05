@@ -324,6 +324,39 @@ html,body{max-width:100%;}
 @media (max-width:979px) and (orientation: portrait){
   .has-abacus .turn-hint{display:block;}
 }
+
+/* ── KEEPING YOUR PLACE ───────────────────────────────────────
+   On paper a child keeps a finger on the row they are working. On
+   screen there was nothing, so they had to track their own place
+   in the column while also moving beads.
+
+   Below Level 4 the current row is marked and a tap moves on, so
+   only one number is ever being held in mind. From Level 4 the
+   marking stops, because holding your place is part of the skill
+   by then.
+   ─────────────────────────────────────────────────────────── */
+.col-rows{
+  display:inline-block;text-align:right;
+  font-variant-numeric:tabular-nums;letter-spacing:1px;
+}
+.col-row{
+  padding:2px 12px;border-radius:8px;
+  font-weight:900;line-height:1.35;
+  transition:background .18s, color .18s, opacity .18s;
+}
+.col-rows.stepped .col-row{opacity:.32;}
+.col-rows.stepped .col-row.done{opacity:.55;}
+.col-rows.stepped .col-row.now{
+  opacity:1;background:#FFF3D6;color:#B26A00;
+  box-shadow:0 0 0 2px #FFCC66 inset;
+}
+.col-rule{border-top:3px solid currentColor;margin:5px 12px 0;}
+.step-tap{
+  margin-top:9px;font-size:.76rem;font-weight:800;
+  color:var(--blue,#1565C0);text-align:center;cursor:pointer;
+  user-select:none;
+}
+.step-tap.finished{color:var(--green,#2E7D32);}
 </style>
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
@@ -748,7 +781,13 @@ function engineToCard(q) {
 async function buildEngineQuestions(profile) {
   var level = profile.current_level != null ? profile.current_level : 0;
   var session = await PracticeEngine.buildSession(level, { count: 10 });
-  return session.questions.map(engineToCard);
+  return session.questions.map(function (q) {
+    var card = engineToCard(q);
+    card.level = level;
+    // Marking the row is scaffolding for the early levels only
+    card.stepped = card.column && level <= 3;
+    return card;
+  });
 }
 
 /* ── Orals: the numbers are spoken, not shown ───────────────── */
@@ -846,7 +885,50 @@ function speakOral(rows, token) {
 var practiceAbacus = null;   // read-only, for Beads to Numbers
 var workingAbacus  = null;   // interactive, for working a column sum
 
+
+/* Draw the column as rows so one can be marked. Without stepping
+   every row simply shows plainly, which is the same thing the
+   books do — the marking is the only difference. */
+var stepIndex = 0;
+
+function renderColumnRows(q) {
+  var size = q.rows.length > 8 ? '1.4rem' : '1.85rem';
+  var html = '<div class="col-rows' + (q.stepped ? ' stepped' : '') +
+             '" style="font-size:' + size + ';">';
+  q.rows.forEach(function (n, i) {
+    var txt = i === 0 ? String(n) : (n < 0 ? '\u2212 ' + Math.abs(n) : '+ ' + n);
+    var cls = 'col-row';
+    if (q.stepped) {
+      if (i < stepIndex) cls += ' done';
+      else if (i === stepIndex) cls += ' now';
+    }
+    html += '<div class="' + cls + '">' + txt + '</div>';
+  });
+  html += '<div class="col-rule"></div></div>';
+
+  if (q.stepped) {
+    var left = q.rows.length - stepIndex;
+    html += '<div class="step-tap' + (left <= 0 ? ' finished' : '') + '" id="stepTap">' +
+      (left <= 0 ? '\u2713 All done — now answer below'
+                 : 'Tap when you have added this one  \u2192') + '</div>';
+  }
+  return html;
+}
+
+function wireStepTap(q) {
+  var t = document.getElementById('stepTap');
+  if (!t) return;
+  t.onclick = function () {
+    if (stepIndex >= q.rows.length) return;
+    stepIndex++;
+    var qEl = document.getElementById('cardQuestion');
+    qEl.innerHTML = renderColumnRows(q);
+    wireStepTap(q);
+  };
+}
+
 function decorateCard(q) {
+  stepIndex = 0;   // each question starts at its first row
   var visual = document.getElementById('cardVisual');
   var qEl    = document.getElementById('cardQuestion');
 
@@ -858,8 +940,13 @@ function decorateCard(q) {
 
   // A column sum, printed the way the books print it
   if (q.column) {
-    qEl.className = 'col-sum';
-    qEl.style.fontSize = q.rows.length > 8 ? '1.5rem' : '2rem';
+    qEl.className = '';
+    qEl.style.fontSize = '';
+    qEl.innerHTML = renderColumnRows(q);
+    if (q.stepped) wireStepTap(q);
+  } else if (q.oral) {
+    qEl.className = '';
+    qEl.style.fontSize = '';
   } else {
     qEl.className = '';
     qEl.style.fontSize = '';

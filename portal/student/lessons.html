@@ -442,14 +442,14 @@ document.addEventListener('keydown', e => {
 init();
 
   function toggleSidebar() {
-    const s = document.getElementById('sidebar');
-    const o = document.getElementById('overlay');
+    const s = document.getElementById('sidebar') || document.querySelector('.sidebar');
+    const o = document.getElementById('overlay') || document.getElementById('sidebarOverlay');
     s?.classList.toggle('open');
     o?.classList.toggle('show');
   }
   function closeSidebar() {
-    document.getElementById('sidebar')?.classList.remove('open');
-    document.getElementById('overlay')?.classList.remove('show');
+    (document.getElementById('sidebar')||document.querySelector('.sidebar'))?.classList.remove('open');
+    (document.getElementById('overlay')||document.getElementById('sidebarOverlay'))?.classList.remove('show');
   }
 </script>
 

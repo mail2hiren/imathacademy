@@ -62,7 +62,15 @@ function showConfirm(title, msg, onOk, okLabel = 'Confirm', danger = true) {
   openModal('confirmDialog');
 }
 function closeConfirm() { closeModal('confirmDialog'); confirmCallback = null; }
-function doConfirm()    { closeConfirm(); if (confirmCallback) confirmCallback(); }
+function doConfirm() {
+  // closeConfirm() sets confirmCallback to null, so testing it after
+  // the close meant it was always null and nothing ever ran. Every
+  // confirm dialog in the admin was affected, not only deleting a
+  // batch — the dialog appeared, Confirm did nothing.
+  var cb = confirmCallback;
+  closeConfirm();
+  if (cb) cb();
+}
 
 // ── TAB NAVIGATION ──────────────────────────────────────────
 function showTab(name, btn) {
@@ -121,6 +129,45 @@ function statusPill(active) {
 }
 
 // ── LOAD ALL DATA ───────────────────────────────────────────
+/* The level dropdowns were written into the HTML by hand and had
+   drifted apart — Student to Program offered Levels 1 to 6, missing
+   L0, L7 and L8 entirely, while Create Student listed nine levels
+   with descriptions nobody had checked against the curriculum.
+   Megha's own level names are the only correct source. */
+var LEVELS_CACHE = null;
+
+async function loadCurriculumLevels() {
+  if (LEVELS_CACHE) return LEVELS_CACHE;
+  try {
+    const { data, error } = await sb.from('curriculum_levels')
+      .select('level_code, level_name, core_focus')
+      .order('level_code');
+    if (error) throw error;
+    LEVELS_CACHE = data || [];
+  } catch (e) {
+    console.warn('Curriculum levels unavailable:', e.message);
+    LEVELS_CACHE = [];
+  }
+  return LEVELS_CACHE;
+}
+
+async function fillLevelSelects() {
+  const levels = await loadCurriculumLevels();
+  if (!levels.length) return;   // leave whatever is there rather than empty it
+
+  ['s-level', 'sp-level', 'b-level', 'f_level'].forEach(function (id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const keep = el.value;
+    el.innerHTML = levels.map(function (l) {
+      const n = String(l.level_code).replace(/^L/, '');
+      return '<option value="' + n + '">Level ' + n +
+             (l.level_name ? ' — ' + l.level_name : '') + '</option>';
+    }).join('');
+    if (keep !== '' && el.querySelector('option[value="' + keep + '"]')) el.value = keep;
+  });
+}
+
 async function loadAll() {
   // Users and batches first — fees loaded separately to avoid breaking everything
   const [uRes, bRes] = await Promise.all([
@@ -149,6 +196,7 @@ async function loadAll() {
 
   // Populate dropdowns
   populateDropdowns();
+  await fillLevelSelects();
 
   // Recent activity
   const { data: notifs } = await sb.from('notifications').select('title,created_at').order('created_at', { ascending: false }).limit(8);

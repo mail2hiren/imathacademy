@@ -282,8 +282,13 @@ async function deleteBatch(id, name) {
   showConfirm(`Delete batch "${name}"?`, 'This will remove all student assignments from this batch.', async () => {
     try {
       await sb.from('batch_students').delete().eq('batch_id', id);
-      const { error } = await sb.from('batches').delete().eq('id', id);
+      // .select() so a delete blocked by row level security reports
+      // honestly instead of looking like it worked
+      const { data, error } = await sb.from('batches').delete().eq('id', id).select();
       if (error) throw error;
+      if (!data || !data.length) {
+        throw new Error('Nothing was deleted — you may not have permission to remove batches');
+      }
       toast(`✅ Batch deleted`, 'success');
       await loadAll(); renderBatches();
     } catch(err) { toast('❌ ' + err.message, 'error'); }

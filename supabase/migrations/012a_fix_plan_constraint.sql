@@ -30,21 +30,33 @@ select plan_code, plan_name, amount, duration_days
 from pricing_plans order by duration_days;
 
 
--- ── PART 1 — LET THE PRICING TABLE DECIDE ───────────────────
--- The list of valid plans belongs in pricing_plans, which Megha
--- edits. A second hardcoded copy in a CHECK constraint can only
--- fall out of step with it. 'trial' is kept as a permanent extra
--- because it is a state rather than something she sells.
+-- ── PART 1 — WIDEN THE LIST ─────────────────────────────────
+-- Postgres does not allow a subquery inside a CHECK, so the list
+-- cannot read from pricing_plans directly. It is enumerated here
+-- instead, with quarterly included ahead of need.
+--
+-- BE AWARE: this is a second copy of the valid plans, and Megha
+-- edits the first one in the admin Pricing screen. If she ever adds
+-- a plan code that is not in this list, subscriptions to it will
+-- fail with exactly the error that brought us here. Add the code
+-- below at the same time, or drop the constraint entirely and let
+-- pricing_plans be the only authority.
 
 alter table subscriptions drop constraint if exists subscriptions_plan_check;
 
 alter table subscriptions
   add constraint subscriptions_plan_check
-  check (
-    plan = 'trial'
-    or plan in (select plan_code from pricing_plans)
-    or plan in ('monthly','quarterly','halfyearly','annual')
-  );
+  check (plan in (
+    'trial','free',
+    'monthly','quarterly','halfyearly','annual','lifetime'
+  ));
+
+-- Should a plan code ever be added that is not listed above, this
+-- finds it before it causes a failure:
+--
+--   select distinct plan_code from pricing_plans
+--   where plan_code not in ('trial','free','monthly','quarterly',
+--                           'halfyearly','annual','lifetime');
 
 
 -- ── PART 2 — PAYMENT METHOD MAY HAVE THE SAME PROBLEM ───────

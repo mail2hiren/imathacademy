@@ -454,7 +454,7 @@
         <div class="error-box" id="errorBox"></div>
 
         <!-- Who uses this phone -->
-        <div id="profilePicker" style="display:none;">
+        <div id="profilePicker" style="display:none;margin-bottom:20px;">
           <div style="font-size:.95rem;font-weight:900;margin-bottom:4px;">Welcome back</div>
           <div style="font-size:.82rem;color:#777;margin-bottom:16px;">Tap your name to continue</div>
           <div id="profileRow" style="display:flex;gap:14px;flex-wrap:wrap;justify-content:flex-start;"></div>
@@ -886,56 +886,70 @@
 
   
 /* ── SIGNING IN ON A FAMILY DEVICE ────────────────────────────
-   Email and password once, on the first sign-in. After that the
-   person is a face on this screen and a four-digit PIN — which a
-   six-year-old can manage and an email address is not.
+   The saved faces are a SHORTCUT, never a gate.
 
-   Three screens: the faces, the PIN pad, the email form.
+   They used to replace the email form, so any problem in the
+   profile path — a lapsed token, a missing PIN, a thrown error —
+   left a parent with no visible way to sign in at all. Families
+   reported faces that would not respond and having to type an
+   email every time.
+
+   Now the email form is always on screen. The faces sit above it
+   and can only ever save someone typing. If anything about them
+   fails, they are hidden and the form is still there.
    ─────────────────────────────────────────────────────────── */
-var pinMode = null;        // 'enter' | 'create' | 'confirm'
+var pinMode = null;         // 'enter' | 'create' | 'confirm'
 var pinProfileId = null;
-var pinAfterCreate = null; // where to go once a PIN is set
-var pinFirstEntry = '';    // holds the first of the two entries
+var pinAfterCreate = null;
+var pinFirstEntry = '';
 var pinDigits = '';
 
-function showScreen(which) {
-  ['profilePicker','pinScreen','loginForm'].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) el.style.display = (id === which) ? '' : 'none';
-  });
-  var banner = document.getElementById('session-banner');
-  if (banner && which !== 'banner') banner.style.display = 'none';
+function hideEl(id) { var el = document.getElementById(id); if (el) el.style.display = 'none'; }
+function showEl(id) { var el = document.getElementById(id); if (el) el.style.display = ''; }
+
+/** The email form is the floor. It is never hidden for long. */
+function showEmailForm() {
+  hideEl('pinScreen');
+  showEl('loginForm');
+  showEl('profilePicker');      // the faces stay available above it
+}
+
+async function useAnotherAccount() {
+  try { if (typeof Profiles !== 'undefined') await Profiles.leave(); } catch (e) {}
+  showEmailForm();
+  var em = document.getElementById('email');
+  if (em) { em.value = ''; em.focus(); }
 }
 
 /* ── The faces ─────────────────────────────────────────────── */
 function renderProfilePicker() {
-  var people = Profiles.list();
-  var row = document.getElementById('profileRow');
-  if (!row || !people.length) return false;
+  var picker = document.getElementById('profilePicker');
+  var row    = document.getElementById('profileRow');
+  if (!picker || !row) return;
+
+  var people = [];
+  try { people = (typeof Profiles !== 'undefined') ? Profiles.list() : []; } catch (e) { people = []; }
+
+  // Only people we can actually sign in without a password are worth
+  // showing. A face that cannot work is worse than no face.
+  people = people.filter(function (p) {
+    try { return Profiles.isLive(p.id) && Profiles.hasPin(p.id); } catch (e) { return false; }
+  });
+
+  if (!people.length) { picker.style.display = 'none'; return; }
 
   row.innerHTML = people.map(function (p) {
     return '<button type="button" onclick="pickProfile(\'' + p.id + '\')" ' +
       'style="background:none;border:none;padding:0;cursor:pointer;text-align:center;width:88px;font-family:inherit;">' +
-      '<div style="width:72px;height:72px;border-radius:20px;margin:0 auto 8px;background:' +
+      '<div style="width:70px;height:70px;border-radius:20px;margin:0 auto 7px;background:' +
         Profiles.colour(p.id) + ';color:#fff;display:flex;align-items:center;justify-content:center;' +
-        'font-weight:900;font-size:1.4rem;">' + Profiles.initials(p.name) + '</div>' +
-      '<div style="font-size:.82rem;font-weight:800;line-height:1.2;color:#1A1A2E;">' +
+        'font-weight:900;font-size:1.35rem;">' + Profiles.initials(p.name) + '</div>' +
+      '<div style="font-size:.8rem;font-weight:800;line-height:1.2;color:#1A1A2E;">' +
         String(p.name).split(' ')[0] + '</div>' +
-      '<div style="font-size:.7rem;color:#888;margin-top:1px;">' +
-        (Profiles.isLive && !Profiles.isLive(p.id)
-          ? '🔑 tap to sign in'
-          : Profiles.icon(p.role) + ' ' + p.role) + '</div>' +
     '</button>';
   }).join('');
 
-  showScreen('profilePicker');
-  return true;
-}
-
-async function useAnotherAccount() {
-  // Leave locally so the people already saved here keep working
-  try { await Profiles.leave(); } catch (e) {}
-  showScreen('loginForm');
+  picker.style.display = 'block';
 }
 
 /* ── The PIN pad ───────────────────────────────────────────── */
@@ -948,20 +962,15 @@ function renderPinBoxes() {
     html += '<div style="width:52px;height:60px;border-radius:14px;border:2px solid ' +
       (filled ? '#1565C0' : '#DEE2F5') + ';background:' + (filled ? '#F2F7FF' : '#fff') +
       ';display:flex;align-items:center;justify-content:center;' +
-      'font-size:1.6rem;font-weight:900;color:#1A1A2E;">' +
-      (filled ? '●' : '') + '</div>';
+      'font-size:1.6rem;font-weight:900;color:#1A1A2E;">' + (filled ? '\u25CF' : '') + '</div>';
   }
   wrap.innerHTML = html;
 
-  // One hidden field does the typing; the boxes are only a picture of it
   var inp = document.getElementById('pinHidden');
   if (!inp) {
     inp = document.createElement('input');
-    inp.id = 'pinHidden';
-    inp.type = 'tel';
-    inp.inputMode = 'numeric';
-    inp.autocomplete = 'off';
-    inp.maxLength = 4;
+    inp.id = 'pinHidden'; inp.type = 'tel'; inp.inputMode = 'numeric';
+    inp.autocomplete = 'off'; inp.maxLength = 4;
     inp.style.cssText = 'position:absolute;opacity:0;height:1px;width:1px;pointer-events:none;';
     document.getElementById('pinScreen').appendChild(inp);
     inp.addEventListener('input', onPinType);
@@ -975,54 +984,44 @@ function focusPin() {
 }
 
 function openPinScreen(profileId, mode, afterRoute) {
-  var p = Profiles.get(profileId);
-  if (!p) { showScreen('loginForm'); return; }
+  var p = null;
+  try { p = Profiles.get(profileId); } catch (e) {}
+  if (!p) { showEmailForm(); return; }
 
-  pinProfileId = profileId;
-  pinMode = mode;
+  pinProfileId = profileId; pinMode = mode;
   pinAfterCreate = afterRoute || null;
-  pinFirstEntry = '';
-  pinDigits = '';
+  pinFirstEntry = ''; pinDigits = '';
 
   var av = document.getElementById('pinAvatar');
   av.style.background = Profiles.colour(profileId);
   av.textContent = Profiles.initials(p.name);
   document.getElementById('pinName').textContent = String(p.name).split(' ')[0];
-
   document.getElementById('pinPrompt').textContent =
     mode === 'create' ? 'Choose a 4-digit PIN' : 'Enter your PIN';
 
   var hint = document.getElementById('pinHint');
   if (mode === 'create') {
-    hint.textContent = 'From now on you can sign in with just this PIN — no email needed.';
+    hint.textContent = 'Next time you can tap your name and type this PIN instead of your email.';
     hint.style.display = 'block';
-  } else {
-    hint.style.display = 'none';
-  }
+  } else { hint.style.display = 'none'; }
 
   document.getElementById('pinError').style.display = 'none';
-  document.getElementById('pinBack').textContent = mode === 'create' ? 'Skip for now' : 'Back';
+  document.getElementById('pinBack').textContent =
+    mode === 'create' ? 'Skip for now' : 'Use email instead';
 
-  showScreen('pinScreen');
-  renderPinBoxes();
-  focusPin();
+  hideEl('profilePicker'); hideEl('loginForm'); showEl('pinScreen');
+  renderPinBoxes(); focusPin();
 }
 
 function pickProfile(id) {
-  // The session may have lapsed even though we still know this person.
-  // Their PIN is kept, so after one email sign-in they are straight
-  // back to tapping their face — they are not asked to set it again.
-  if (Profiles.isLive && !Profiles.isLive(id)) {
-    var p = Profiles.get(id);
-    showScreen('loginForm');
-    var em = document.getElementById('email');
-    if (em && p && p.email) em.value = p.email;
-    showError('Please sign in once more for ' + String(p && p.name || '').split(' ')[0] +
-              '. Your PIN is still set.');
-    return;
+  // Anything unexpected here must land on the email form, never on
+  // a dead end.
+  try {
+    if (!Profiles.hasPin(id) || !Profiles.isLive(id)) { showEmailForm(); return; }
+    openPinScreen(id, 'enter');
+  } catch (e) {
+    showEmailForm();
   }
-  if (!Profiles.hasPin(id)) { doSwitch(id, null); return; }
-  openPinScreen(id, 'enter');
 }
 
 async function onPinType() {
@@ -1035,14 +1034,10 @@ async function onPinType() {
   var entered = pinDigits;
   pinDigits = ''; inp.value = '';
 
-  if (pinMode === 'enter') {
-    await doSwitch(pinProfileId, entered);
-    return;
-  }
+  if (pinMode === 'enter')  { await doSwitch(pinProfileId, entered); return; }
 
   if (pinMode === 'create') {
-    pinFirstEntry = entered;
-    pinMode = 'confirm';
+    pinFirstEntry = entered; pinMode = 'confirm';
     document.getElementById('pinPrompt').textContent = 'Type it once more';
     document.getElementById('pinError').style.display = 'none';
     renderPinBoxes(); focusPin();
@@ -1051,32 +1046,30 @@ async function onPinType() {
 
   if (pinMode === 'confirm') {
     if (entered !== pinFirstEntry) {
-      pinMode = 'create';
-      pinFirstEntry = '';
+      pinMode = 'create'; pinFirstEntry = '';
       document.getElementById('pinPrompt').textContent = 'Choose a 4-digit PIN';
       showPinError('Those did not match — try again');
       renderPinBoxes(); focusPin();
       return;
     }
-    await Profiles.setPin(pinProfileId, entered);
+    try { await Profiles.setPin(pinProfileId, entered); } catch (e) {}
     window.location.href = pinAfterCreate || 'index.html';
   }
 }
 
 function showPinError(msg) {
   var e = document.getElementById('pinError');
-  e.textContent = msg;
-  e.style.display = 'block';
+  e.textContent = msg; e.style.display = 'block';
 }
 
 function pinGoBack() {
   if (pinMode === 'create' || pinMode === 'confirm') {
-    // Skipping PIN setup still signs them in
     window.location.href = pinAfterCreate || 'index.html';
     return;
   }
   pinProfileId = null; pinDigits = '';
-  if (!renderProfilePicker()) showScreen('loginForm');
+  showEmailForm();
+  renderProfilePicker();
 }
 
 async function doSwitch(id, pin) {
@@ -1087,19 +1080,19 @@ async function doSwitch(id, pin) {
     if (e.message === 'WRONG_PIN') {
       showPinError('That PIN is not right');
       pinDigits = ''; renderPinBoxes(); focusPin();
-    } else if (e.message === 'SESSION_EXPIRED') {
-      showPinError('Please sign in with your email once more');
-      setTimeout(function () { showScreen('loginForm'); }, 1600);
     } else {
-      showPinError(e.message);
+      // Whatever went wrong, the email form still works
+      showEmailForm();
+      renderProfilePicker();
+      showError('Please sign in with your email this once.');
     }
   }
 }
 
-// Faces first when anybody is saved on this device
+// The form is shown from the start; faces are added if any are usable
 document.addEventListener('DOMContentLoaded', function () {
-  if (typeof Profiles === 'undefined') return;
-  if (!renderProfilePicker()) showScreen('loginForm');
+  showEl('loginForm');
+  try { renderProfilePicker(); } catch (e) { hideEl('profilePicker'); }
 });
 
 // Run session check on page load

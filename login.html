@@ -477,7 +477,10 @@
           <div id="pinHint" style="display:none;font-size:.76rem;color:#888;margin-top:10px;
             line-height:1.5;"></div>
 
-          <button type="button" id="pinBack" onclick="pinGoBack()" style="display:block;margin:18px auto 0;
+          <button type="button" id="pinForgot" onclick="forgotPin()" style="display:block;margin:16px auto 0;
+            background:none;border:none;color:#1565C0;font-family:inherit;font-size:.84rem;
+            font-weight:800;cursor:pointer;">Forgot your PIN?</button>
+          <button type="button" id="pinBack" onclick="pinGoBack()" style="display:block;margin:10px auto 0;
             background:none;border:none;color:#777;font-family:inherit;font-size:.84rem;
             font-weight:800;cursor:pointer;">Back</button>
         </div>
@@ -684,6 +687,9 @@
 
     const email    = document.getElementById('emailInput').value.trim();
     const password = document.getElementById('passwordInput').value;
+      // Held in memory only, so a PIN can be set moments from now.
+      // The PIN encrypts this; it is never written down in the clear.
+      try { if (typeof Profiles !== 'undefined') Profiles.stashPassword(password); } catch (e) {}
     const remember = document.getElementById('rememberMe').checked;
 
     try {
@@ -732,12 +738,12 @@
       // Keep them on this device so future sign-ins need only a PIN
       try {
         var sess = (await sb.auth.getSession()).data.session;
-        Profiles.remember(sess.user, profile, sess);
+        Profiles.remember(sess.user, profile);
 
         // First time on this device: set a PIN in the page, not in a
         // browser prompt. After this they never type the email again.
-        // hasPin survives a lapsed session, so this only fires the
-        // very first time on this device
+        // Offered whenever this person has no working PIN — first time
+        // on the device, or after they said they had forgotten it.
         if (!Profiles.hasPin(sess.user.id)) {
           setLoading(false);
           openPinScreen(sess.user.id, 'create',
@@ -1072,13 +1078,34 @@ function pinGoBack() {
   renderProfilePicker();
 }
 
+/**
+ * Forgotten PIN. Nothing to recover — the child signs in by email
+ * once and chooses a new one. Their old PIN simply stops working.
+ */
+function forgotPin() {
+  var p = null;
+  try { p = Profiles.get(pinProfileId); } catch (e) {}
+  try { if (pinProfileId) Profiles.clearPin(pinProfileId); } catch (e) {}
+  showEmailForm();
+  renderProfilePicker();
+  var em = document.getElementById('email');
+  if (em && p && p.email) em.value = p.email;
+  var pw = document.getElementById('passwordInput');
+  if (pw) pw.focus();
+  showError('Sign in with your password, then you can choose a new PIN.');
+}
+
 async function doSwitch(id, pin) {
   try {
     var route = await Profiles.switchTo(id, pin);
     window.location.href = route;
   } catch (e) {
     if (e.message === 'WRONG_PIN') {
-      showPinError('That PIN is not right');
+      var n = 0;
+      try { n = Profiles.failCount(id); } catch (e2) {}
+      showPinError(n >= 3
+        ? 'Still not right — tap "Forgot your PIN?" below'
+        : 'That PIN is not right');
       pinDigits = ''; renderPinBoxes(); focusPin();
     } else {
       // Whatever went wrong, the email form still works. Pre-fill the
@@ -1089,7 +1116,7 @@ async function doSwitch(id, pin) {
       try { pf = Profiles.get(id); } catch (e2) {}
       var em = document.getElementById('email');
       if (em && pf && pf.email) em.value = pf.email;
-      showError('Your saved sign-in has expired. Enter the password once and your PIN will work again.');
+      showError('Please sign in with your password once, then set your PIN again.');
     }
   }
 }

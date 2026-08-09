@@ -90,10 +90,13 @@ var Beads = (function () {
     return stepKinds(value, delta).indexOf(formula) > -1;
   }
 
-  /** Every step from this value that is purely direct movement. */
-  function directOptions(value, max, allowZero) {
+  /** Every step from this value that is purely direct movement.
+      maxStep lets two-digit addends be considered, which is what
+      Megha's own L0 examples use — 11+23, 52+47, 44-23. */
+  function directOptions(value, max, allowZero, maxStep) {
     var out = { add: [], sub: [] };
-    for (var n = 1; n <= 9; n++) {
+    var top = maxStep || 9;
+    for (var n = 1; n <= top; n++) {
       if (value + n <= max && isDirect(value, n)) out.add.push(n);
       var floorV = allowZero ? 0 : 1;
       if (value - n >= floorV && isDirect(value, -n)) out.sub.push(n);
@@ -102,9 +105,10 @@ var Beads = (function () {
   }
 
   /** Every step from this value that demands the named formula. */
-  function formulaOptions(value, max, allowZero, formula) {
+  function formulaOptions(value, max, allowZero, formula, maxStep) {
     var out = { add: [], sub: [] };
-    for (var n = 1; n <= 9; n++) {
+    var top = maxStep || 9;
+    for (var n = 1; n <= top; n++) {
       if (value + n <= max && needs(value, n, formula)) out.add.push(n);
       var floorV = allowZero ? 0 : 1;
       if (value - n >= floorV && needs(value, -n, formula)) out.sub.push(n);

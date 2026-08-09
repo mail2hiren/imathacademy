@@ -36,19 +36,24 @@ var ColumnGen = (function () {
     var allowZero = !!opts.allowZero;
     var floorV   = allowZero ? 0 : 1;
 
+    // How wide may a single number be? Capping this at 9 meant the
+    // generator never used the two-digit range, so a page could only
+    // ever reach nine different answers.
+    var maxStep = opts.maxStep || max;
+
     for (var attempt = 0; attempt < 220; attempt++) {
-      // Start somewhere a first move is possible from
-      var start = randInt(1, Math.min(9, max));
+      // Start anywhere in range, not just at a single digit
+      var start = randInt(1, Math.max(1, Math.floor(max * 0.6)));
       var value = start;
       var out   = [start];
       var got   = 0;
       var ok    = true;
 
       for (var i = 1; i < rows; i++) {
-        var direct  = Beads.directOptions(value, max, allowZero);
+        var direct  = Beads.directOptions(value, max, allowZero, maxStep);
         var formula = mode === 'direct'
           ? { add: [], sub: [] }
-          : Beads.formulaOptions(value, max, allowZero, mode);
+          : Beads.formulaOptions(value, max, allowZero, mode, maxStep);
 
         // Take the formula steps first while any are still owed
         var stillNeeded = need - got;

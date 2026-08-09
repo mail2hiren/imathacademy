@@ -99,9 +99,11 @@ var ColumnGen = (function () {
       guard++;
       var through = out.length / count;      // 0 at the start, 1 at the end
 
-      // Rows and range both grow across the page
+      // Rows and range both grow across the page. The range starts at
+      // single digits — a child on their first day should not meet a
+      // two-digit sum as question one — and climbs from there.
       var rows = Math.round(minRows + (maxRows - minRows) * through);
-      var ceiling = Math.max(9, Math.round(max * (0.45 + 0.55 * through)));
+      var ceiling = Math.max(9, Math.round(9 + (max - 9) * Math.pow(through, 1.4)));
 
       // The formula is asked for more insistently later on
       var require = mode === 'direct' ? 0 : (through < 0.35 ? 1 : 2);

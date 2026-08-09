@@ -221,7 +221,12 @@ var PracticeEngine = (function () {
               rows: built.rows, answer: built.answer, movement: mode };
       }
     }
-    if (!q) q = makeColumn(rules, rule.digit_pattern, n);
+    // NO SILENT FALLBACK. The old makeColumn() knows nothing about
+    // beads — it only checks a running total against a ceiling. When
+    // it stood in for the real generator it produced sums like
+    // 81 + 34 at Level 0, which needs both complements and runs past
+    // 99. Better to hand back nothing and let the caller try again.
+    if (!q) return null;
 
     q.mental = !!mental;
     q.prompt = mental ? 'Work this out in your head' : 'Add and subtract on your abacus';
@@ -265,6 +270,41 @@ var PracticeEngine = (function () {
     return q;
   }
 
+
+/* ── THE LAST GATE ────────────────────────────────────────────
+   Nothing reaches a child on trust. Every column is walked step by
+   step against the bead rules for its level, and anything that
+   breaks them is thrown away rather than served.
+
+   This is the check that was missing. Each earlier failure — the
+   forbidden formula, the total past the level's maximum — would
+   have been caught here before a child ever saw it.
+   ─────────────────────────────────────────────────────────── */
+function columnIsAllowed(q, rules) {
+  if (!q || q.type !== 'column' && q.type !== 'oral') return true;
+  if (typeof Beads === 'undefined') return true;
+  if (!q.rows || !q.rows.length) return false;
+
+  var allowSmall = rules.formulas.indexOf('small') > -1;
+  var allowBig   = rules.formulas.indexOf('big')   > -1;
+  var floorV     = rules.allowZero ? 0 : 1;
+  var v = q.rows[0];
+
+  if (v > rules.maxNumber || v < floorV) return false;
+
+  for (var i = 1; i < q.rows.length; i++) {
+    var kinds = Beads.stepKinds(v, q.rows[i]);
+    for (var k = 0; k < kinds.length; k++) {
+      if (kinds[k] === 'small' && !allowSmall) return false;
+      if (kinds[k] === 'big'   && !allowBig)   return false;
+    }
+    v += q.rows[i];
+    if (v > rules.maxNumber) return false;
+    if (v < floorV) return false;
+  }
+  return v === q.answer;
+}
+
   /* ── A session ─────────────────────────────────────────────
      A child does both abacus and mental work every session, so a
      session mixes them. Multiplication, division, beads and orals
@@ -293,10 +333,14 @@ var PracticeEngine = (function () {
       else if (rules.multiplication && r < 0.30) q = multiplication(rules);
       else if (rules.division && r < 0.42)       q = division(rules);
       else {
-        // try a few times for an answer not already on this page
-        for (var tries = 0; tries < 12; tries++) {
-          q = columnSum(rules, Math.random() < 0.4, thr);
-          if (!seenAnswers[q.answer]) break;
+        // Try for a column that is both allowed and not a repeat.
+        q = null;
+        for (var tries = 0; tries < 25; tries++) {
+          var cand = columnSum(rules, Math.random() < 0.4, thr);
+          if (!cand) continue;
+          if (!columnIsAllowed(cand, rules)) continue;   // never serve it
+          if (seenAnswers[cand.answer] && tries < 18) continue;
+          q = cand; break;
         }
       }
       if (q) { seenAnswers[q.answer] = true; out.push(q); }

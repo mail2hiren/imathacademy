@@ -1076,7 +1076,7 @@ async function logout() {
     // Keep the profile: the child should be able to tap their face
     // and use their PIN again without signing in by email.
     if (_s && typeof Profiles !== 'undefined') await Profiles.leave();
-  } catch (e) {} await sb.auth.signOut(); window.location.href='../../login.html'; }
+  } catch (e) {} window.location.href='../../login.html'; }
 
 // ── INIT ─────────────────────────────────────────────────────
 async function init() {

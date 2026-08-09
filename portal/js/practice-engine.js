@@ -69,7 +69,8 @@ var PracticeEngine = (function () {
       sumsPerPage: 20,
       pagesPerSession: 3,
       oralsPerSession: 10,
-      rowRules: []
+      rowRules: [],
+      formulas: []      // 'big' and/or 'small', empty means direct only
     };
 
     try {
@@ -107,6 +108,21 @@ var PracticeEngine = (function () {
       console.warn('Practice: level rules unavailable for ' + code + ':', e.message);
       rules._flatRows = { min: 3, max: 5 };
     }
+
+    // Which movements may a column demand here? At L0 Megha forbids
+    // both complements, so every step must be direct. At L1 the
+    // complement is the lesson, so it has to be required rather than
+    // merely allowed.
+    try {
+      var cs = await sb.from('curriculum_level_concepts')
+        .select('status, curriculum_concepts(concept_code)')
+        .eq('level_code', code);
+      var live = (cs.data || [])
+        .filter(function (r) { return r.status && r.status !== 'N' && r.curriculum_concepts; })
+        .map(function (r) { return r.curriculum_concepts.concept_code; });
+      if (live.indexOf('big_friends') > -1)   rules.formulas.push('big');
+      if (live.indexOf('small_friends') > -1) rules.formulas.push('small');
+    } catch (e2) { /* no concepts mapped — direct movement only */ }
 
     try {
       var rr = await sb.from('curriculum_row_rules')
@@ -181,10 +197,32 @@ var PracticeEngine = (function () {
 
   /* ── Exercise builders ─────────────────────────────────────── */
 
-  function columnSum(rules, mental) {
+  function columnSum(rules, mental, progress) {
     var rule = pick(rules.rowRules);
     var n    = randInt(rule.min_rows, rule.max_rows);
-    var q    = makeColumn(rules, rule.digit_pattern, n);
+    var q;
+
+    // The bead-aware generator is the correct one: it only produces
+    // steps a child can actually make, and can insist on the formula
+    // being taught. The old generator is kept as a fallback because
+    // it never fails, only sometimes asks the impossible.
+    if (typeof ColumnGen !== 'undefined' && typeof Beads !== 'undefined') {
+      var mode = rules.formulas.length ? pick(rules.formulas) : 'direct';
+      var thr  = typeof progress === 'number' ? progress : Math.random();
+      var built = ColumnGen.column({
+        max:       Math.max(9, Math.round(rules.maxNumber * (0.45 + 0.55 * thr))),
+        rows:      n,
+        mode:      mode,
+        require:   mode === 'direct' ? 0 : (thr < 0.35 ? 1 : 2),
+        allowZero: rules.allowZero
+      });
+      if (built) {
+        q = { type: 'column', pattern: rule.digit_pattern,
+              rows: built.rows, answer: built.answer, movement: mode };
+      }
+    }
+    if (!q) q = makeColumn(rules, rule.digit_pattern, n);
+
     q.mental = !!mental;
     q.prompt = mental ? 'Work this out in your head' : 'Add and subtract on your abacus';
     return q;
@@ -243,12 +281,25 @@ var PracticeEngine = (function () {
     var oralCount = rules.orals ? Math.min(Math.round(total * 0.2),
                                            rules.oralsPerSession) : 0;
 
-    for (var i = 0; i < total - oralCount; i++) {
+    // Megha asks that every answer on a page be different, and that
+    // the work builds from easy to harder as the page goes on.
+    var seenAnswers = {};
+    var plain = total - oralCount;
+    for (var i = 0; i < plain; i++) {
+      var thr = plain > 1 ? i / (plain - 1) : 0.5;   // 0 at the start, 1 at the end
       var r = Math.random();
-      if (rules.beadsToNumbers && r < 0.15)               out.push(beadsToNumbers(rules));
-      else if (rules.multiplication && r < 0.30)          out.push(multiplication(rules));
-      else if (rules.division && r < 0.42)                out.push(division(rules));
-      else                                                out.push(columnSum(rules, Math.random() < 0.4));
+      var q;
+      if (rules.beadsToNumbers && r < 0.15)      q = beadsToNumbers(rules);
+      else if (rules.multiplication && r < 0.30) q = multiplication(rules);
+      else if (rules.division && r < 0.42)       q = division(rules);
+      else {
+        // try a few times for an answer not already on this page
+        for (var tries = 0; tries < 12; tries++) {
+          q = columnSum(rules, Math.random() < 0.4, thr);
+          if (!seenAnswers[q.answer]) break;
+        }
+      }
+      if (q) { seenAnswers[q.answer] = true; out.push(q); }
     }
 
     for (var j = 0; j < oralCount; j++) out.push(oral(rules));

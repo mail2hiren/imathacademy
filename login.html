@@ -1081,10 +1081,15 @@ async function doSwitch(id, pin) {
       showPinError('That PIN is not right');
       pinDigits = ''; renderPinBoxes(); focusPin();
     } else {
-      // Whatever went wrong, the email form still works
+      // Whatever went wrong, the email form still works. Pre-fill the
+      // address so it is one password away, not a fresh start.
       showEmailForm();
       renderProfilePicker();
-      showError('Please sign in with your email this once.');
+      var pf = null;
+      try { pf = Profiles.get(id); } catch (e2) {}
+      var em = document.getElementById('email');
+      if (em && pf && pf.email) em.value = pf.email;
+      showError('Your saved sign-in has expired. Enter the password once and your PIN will work again.');
     }
   }
 }

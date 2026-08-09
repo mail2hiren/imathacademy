@@ -148,11 +148,7 @@ var Profiles = (function () {
                  msg.indexOf('expired') > -1 || msg.indexOf('jwt') > -1 ||
                  res.error.status === 400 || res.error.status === 401;
       if (dead) {
-        // Clear the dead tokens but KEEP the person and their PIN.
-        // Deleting the whole profile meant a child had to sign in by
-        // email and set a PIN all over again, which is the bug that
-        // made this feel unreliable. A lapsed session is not a reason
-        // to forget who somebody is.
+        // Keep the person and their PIN; only the session is gone.
         clearTokens(id);
         throw new Error('SESSION_EXPIRED');
       }

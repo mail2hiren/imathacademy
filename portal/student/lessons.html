@@ -394,7 +394,13 @@ function closePlayer(e) {
 }
 
 // ── INIT ──────────────────────────────────────────────────
-async function logout() { await sb.auth.signOut(); window.location.href='../../login.html'; }
+async function logout() {
+  // Local sign-out only: a full signOut revokes the refresh token and
+  // breaks the saved PIN login for this device.
+  try {
+    if (typeof Profiles !== 'undefined' && Profiles.leave) await Profiles.leave();
+    else await sb.auth.signOut({ scope: 'local' });
+  } catch (e) { try { await sb.auth.signOut({ scope: 'local' }); } catch (e2) {} } window.location.href='../../login.html'; }
 
 async function init() {
   document.getElementById('topbarDate').textContent =

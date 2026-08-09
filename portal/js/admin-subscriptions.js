@@ -177,7 +177,12 @@ async function extendSubCustom(studentId, name) {
 }
 
 async function logout() {
-  await sb.auth.signOut();
+  // Local only. A full signOut revokes the refresh token, which breaks
+  // the saved PIN sign-in for everyone on this device.
+  try {
+    if (typeof Profiles !== 'undefined' && Profiles.leave) await Profiles.leave();
+    else await sb.auth.signOut({ scope: 'local' });
+  } catch (e) { try { await sb.auth.signOut({ scope: 'local' }); } catch (e2) {} }
   window.location.href = '../../login.html';
 }
 

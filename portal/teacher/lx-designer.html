@@ -335,7 +335,7 @@
         </label>
         <label class="activity-opt" onclick="selectActivity(this,'story_problems')">
           <input type="radio" name="activity">
-          <div><div class="activity-opt-name">Story problems</div><div class="activity-opt-sub">Word problems with context</div></div>
+          <div><div class="activity-opt-name">Story problems ⚡</div><div class="activity-opt-sub">Sums in words, read aloud. Built instantly, no AI</div></div>
         </label>
         <label class="activity-opt" onclick="selectActivity(this,'fill_blank')">
           <input type="radio" name="activity">
@@ -1157,7 +1157,7 @@ function buildPrompt(preview=false) {
    Word problems and lesson plans still go to the AI. That is
    writing, which is what it is actually good at.
    ─────────────────────────────────────────────────────────── */
-var ENGINE_ACTIVITIES = ['column_sums', 'flashcards', 'speed_challenge'];
+var ENGINE_ACTIVITIES = ['column_sums', 'flashcards', 'speed_challenge', 'story_problems'];
 
 function usesEngine(activity) {
   return ENGINE_ACTIVITIES.indexOf(activity) > -1;
@@ -1205,9 +1205,91 @@ async function loadCurriculumRulesForLevel() {
   };
 }
 
+/* A word problem is a sum in clothing. The sum is generated and
+   checked against the bead rules for the level FIRST — only then
+   does it get words. The AI used to invent both, which is how
+   "9 + 2" reached a Level 1 child inside a story about a superhero.
+   Nine plus two is Big Friends.
+
+   Two or three numbers only. A five-row column makes a sentence no
+   child can follow, let alone one having it read aloud. */
+async function generateStoryProblems(count, level) {
+  var rules = await PracticeEngine.loadLevelRules(level);
+  var mode  = rules.formulas.length ? rules.formulas[0] : 'direct';
+
+  var out = [], seen = {}, guard = 0;
+  while (out.length < count && guard < count * 40) {
+    guard++;
+    var through = out.length / count;
+    var ceiling = Math.max(9, Math.round(9 + (rules.maxNumber - 9) * Math.pow(through, 1.4)));
+
+    var sum = ColumnGen.column({
+      max:       ceiling,
+      rows:      Math.random() < 0.55 ? 2 : 3,   // short enough to read
+      mode:      mode,
+      require:   mode === 'direct' ? 0 : 1,
+      allowZero: rules.allowZero
+    });
+    if (!sum) continue;
+
+    // The same last gate the columns go through
+    var v = sum.rows[0], legal = true;
+    for (var i = 1; i < sum.rows.length; i++) {
+      var kinds = Beads.stepKinds(v, sum.rows[i]);
+      for (var k = 0; k < kinds.length; k++) {
+        if (kinds[k] === 'small' && rules.formulas.indexOf('small') < 0) legal = false;
+        if (kinds[k] === 'big'   && rules.formulas.indexOf('big')   < 0) legal = false;
+      }
+      v += sum.rows[i];
+      if (v > rules.maxNumber || v < 0) legal = false;
+    }
+    if (!legal || v !== sum.answer) continue;
+    if (seen[sum.answer] && out.length < count - 2) continue;   // vary the answers
+    seen[sum.answer] = true;
+
+    var w = WordProblems.dress(sum);
+    if (!w) continue;
+    out.push({
+      type:     'story',
+      question: w.question,
+      answer:   String(w.answer),
+      emoji:    w.emoji,
+      speak:    true,            // read aloud: they cannot read it themselves
+      hint:     'Work it out on your abacus'
+    });
+  }
+  return out;
+}
+
 async function generateFromEngine() {
   var count = parseInt(document.getElementById('questionCount').value, 10) || 10;
   var level = selectedLevel;
+
+  // Word problems take a different shape from column work
+  if (selectedActivity === 'story_problems') {
+    var stories = await generateStoryProblems(count, level);
+    if (!stories.length) throw new Error('Could not build word problems for this level');
+
+    var storyKey = stories.map(function (q, i) { return (i + 1) + '. ' + q.answer; }).join('\n');
+    var lvName = (resolvedRules && resolvedRules.level_name) || ('Level ' + level);
+    var storyText =
+      '## QUESTIONS\n' + JSON.stringify(stories, null, 2) +
+      '\n\n## ANSWER KEY\n' + storyKey +
+      '\n\n## LESSON PLAN\n' +
+      'Level ' + level + ' — ' + lvName + '\n\n' +
+      'These are the same sums as the column work, in words.\n\n' +
+      '- Read each one aloud to the younger children; they cannot read it themselves\n' +
+      '- The abacus is still the tool. The words only say which numbers to move\n' +
+      '- A child who can do the column but not the story is stuck on reading, not maths\n' +
+      '- Watch for the ones who guess the operation from a keyword rather than the sense' +
+      '\n\n## PARENT NOTE\n' +
+      'Today your child worked on word problems. The numbers are exactly what they ' +
+      'practise on the abacus — the story just says which ones to move.\n\n' +
+      'If they find these hard, it is usually the reading rather than the maths. ' +
+      'Reading the question aloud together is the most useful thing you can do.';
+    parseAndRender(storyText);
+    return;
+  }
 
   // Ask for extra, then keep only what suits a printed worksheet.
   // Beads diagrams and orals belong in practice, not on paper.

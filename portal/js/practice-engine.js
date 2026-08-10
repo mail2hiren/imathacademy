@@ -305,6 +305,85 @@ function columnIsAllowed(q, rules) {
   return v === q.answer;
 }
 
+
+/* ── WHERE THIS CHILD IS WITHIN THE LEVEL ─────────────────────
+   A page used to span the whole level, so a beginner met five-row
+   two-digit work as question twenty on their first day. It now
+   centres on how far this particular child has actually come.
+
+   The position moves on their own results, drifts down as well as
+   up, and never falls below a floor a teacher has set. It decides
+   what they practise today — not when they move up a level, which
+   stays the three gates.
+   ─────────────────────────────────────────────────────────── */
+async function loadPosition(studentId, level) {
+  var code = 'L' + level;
+  var def  = { position: 0.10, floor: 0, sessions: 0 };
+  if (!studentId) return def;
+  try {
+    var res = await sb.from('student_level_position')
+      .select('position, floor_pos, sessions')
+      .eq('student_id', studentId).eq('level_code', code).single();
+    if (res.error || !res.data) return def;
+    return {
+      position: Number(res.data.position),
+      floor:    Number(res.data.floor_pos || 0),
+      sessions: res.data.sessions || 0
+    };
+  } catch (e) { return def; }
+}
+
+/**
+ * Move the position after a session.
+ *
+ * Steps are small so it drifts rather than lurches — one bad
+ * afternoon should not undo a fortnight. It can go backwards, but
+ * more slowly than it goes forward, and never below the teacher's
+ * floor.
+ */
+async function recordOutcome(studentId, level, correct, attempted) {
+  if (!studentId || !attempted) return;
+  var code = 'L' + level;
+  try {
+    var cur = await loadPosition(studentId, level);
+    var pct = correct / attempted;
+
+    var step = pct >= 0.90 ? 0.040
+             : pct >= 0.70 ? 0.015
+             : -0.020;                       // back down, gently
+
+    var next = cur.position + step;
+    if (next > 1) next = 1;
+    if (next < cur.floor) next = cur.floor;  // the teacher's floor holds
+    if (next < 0) next = 0;
+
+    await sb.from('student_level_position').upsert({
+      student_id: studentId,
+      level_code: code,
+      position:   Number(next.toFixed(3)),
+      sessions:   (cur.sessions || 0) + 1,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'student_id,level_code' });
+  } catch (e) {
+    console.warn('Could not record progress:', e.message);
+  }
+}
+
+/**
+ * The slice of the level a page should cover. Narrower than the
+ * whole level, and aimed where this child is working.
+ */
+function bandFor(rules, pos) {
+  var lo = 9;
+  var hi = rules.maxNumber;
+  var centre = lo + (hi - lo) * Math.pow(pos, 1.3);
+
+  return {
+    start: Math.max(lo, Math.round(centre * 0.55)),
+    end:   Math.min(hi, Math.max(lo + 4, Math.round(centre * 1.15)))
+  };
+}
+
   /* ── A session ─────────────────────────────────────────────
      A child does both abacus and mental work every session, so a
      session mixes them. Multiplication, division, beads and orals
@@ -314,6 +393,15 @@ function columnIsAllowed(q, rules) {
     var o = opts || {};
     var rules = await loadLevelRules(level);
     var total = o.count || rules.sumsPerPage;
+
+    // Aim the page at where this child actually is
+    var pos  = o.position;
+    if (pos === undefined && o.studentId) {
+      var st = await loadPosition(o.studentId, level);
+      pos = st.position;
+    }
+    if (pos === undefined) pos = 0.10;
+    var band = bandFor(rules, pos);
 
     var out = [];
 
@@ -326,7 +414,11 @@ function columnIsAllowed(q, rules) {
     var seenAnswers = {};
     var plain = total - oralCount;
     for (var i = 0; i < plain; i++) {
-      var thr = plain > 1 ? i / (plain - 1) : 0.5;   // 0 at the start, 1 at the end
+      // Within the page, run from the easy end of this child's band to
+      // the hard end — not from the easiest sum in the level to the
+      // hardest, which is what made question twenty impossible.
+      var acrossPage = plain > 1 ? i / (plain - 1) : 0.5;
+      var thr = (band.start + (band.end - band.start) * acrossPage) / Math.max(1, rules.maxNumber);
       var r = Math.random();
       var q;
       if (rules.beadsToNumbers && r < 0.15)      q = beadsToNumbers(rules);
@@ -365,6 +457,7 @@ function columnIsAllowed(q, rules) {
   }
 
   return {
+    loadPosition: loadPosition, recordOutcome: recordOutcome, bandFor: bandFor,
     loadLevelRules: loadLevelRules,
     buildSession:   buildSession,
     columnSum:      columnSum,

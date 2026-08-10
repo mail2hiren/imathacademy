@@ -155,8 +155,8 @@ function render(){
         '<div class="knob" style="left:'+(pos*100)+'%"></div>' +
       '</div>' +
       '<input type="range" min="0" max="100" value="'+Math.round(pos*100)+'" ' +
-        'oninput="preview(\\''+s.id+'\\',\\''+code+'\\',this.value)" ' +
-        'onchange="savePos(\\''+s.id+'\\',\\''+code+'\\',this.value)">' +
+        'oninput="preview(\''+s.id+'\',\''+code+'\',this.value)" ' +
+        'onchange="savePos(\''+s.id+'\',\''+code+'\',this.value)">' +
       '<div class="rangelabel"><span>just arrived</span><span>full range</span></div>' +
 
       '<div class="band" id="band-'+s.id+'">Getting numbers '+band.start+'–'+band.end+
@@ -166,9 +166,9 @@ function render(){
         : 'No floor set')+'</div>' +
 
       '<div class="row">' +
-        '<button class="btn btn-floor" onclick="setFloor(\\''+s.id+'\\',\\''+code+'\\')">' +
+        '<button class="btn btn-floor" onclick="setFloor(\''+s.id+'\',\''+code+'\')">' +
           'Set floor here</button>' +
-        (floor>0 ? '<button class="btn" onclick="clearFloor(\\''+s.id+'\\',\\''+code+'\\')">Remove floor</button>' : '') +
+        (floor>0 ? '<button class="btn" onclick="clearFloor(\''+s.id+'\',\''+code+'\')">Remove floor</button>' : '') +
       '</div>' +
     '</div>';
   }).join('');

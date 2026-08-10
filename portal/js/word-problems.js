@@ -1,0 +1,136 @@
+/* ============================================================
+   iMathAcademy — Word problems
+   ------------------------------------------------------------
+   THE RULE: the engine makes the sum, the words are only clothing.
+
+   The AI used to invent both, and it does not know what a bead can
+   do — which is how "9 + 2" reached a Level 1 child in a story
+   about a superhero. Nine plus two is Big Friends.
+
+   So a word problem starts life as a sum that has already passed
+   the bead rules for that child's level and position. Only then
+   does it get dressed. Two or three numbers, never five: a
+   five-row column makes an unreadable story.
+
+   Every sentence is one clause. A six-year-old is going to have
+   this read aloud to them, and long sentences do not survive that.
+   ============================================================ */
+
+var WordProblems = (function () {
+  'use strict';
+
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+
+  /* Gender is carried so the second sentence can say "she" instead
+     of repeating the name. Read aloud, "Meera had 1 pencil. Meera
+     was given 10 pencils." is stilted; children hear the repetition. */
+  var NAMES = [
+    { n:'Aarav',   they:'he'  }, { n:'Riya',    they:'she' },
+    { n:'Kabir',   they:'he'  }, { n:'Ananya',  they:'she' },
+    { n:'Vihaan',  they:'he'  }, { n:'Meera',   they:'she' },
+    { n:'Arjun',   they:'he'  }, { n:'Diya',    they:'she' },
+    { n:'Ishaan',  they:'he'  }, { n:'Saanvi',  they:'she' },
+    { n:'Reyansh', they:'he'  }, { n:'Aadhya',  they:'she' },
+    { n:'Kiaan',   they:'he'  }, { n:'Myra',    they:'she' },
+    { n:'Advik',   they:'he'  }, { n:'Anika',   they:'she' }
+  ];
+
+  /* Things a child has actually held. Each carries how it is
+     gained and lost, so the sentence stays true to the object —
+     you do not "eat" a marble or "spend" a mango. */
+  var THINGS = [
+    { one:'sticker',  many:'stickers',  emoji:'⭐',
+      got:['was given','found','earned'],           lost:['gave away','used','lost'] },
+    { one:'mango',    many:'mangoes',   emoji:'🥭',
+      got:['picked','was given','bought'],          lost:['ate','gave away','shared'] },
+    { one:'marble',   many:'marbles',   emoji:'🔵',
+      got:['won','found','was given'],              lost:['lost','gave away','traded'] },
+    { one:'pencil',   many:'pencils',   emoji:'✏️',
+      got:['bought','was given'],                   lost:['gave away','lost'] },
+    { one:'laddoo',   many:'laddoos',   emoji:'🍬',
+      got:['made','was given'],                     lost:['ate','shared'] },
+    { one:'flower',   many:'flowers',   emoji:'🌸',
+      got:['picked','was given'],                   lost:['gave away'] },
+    { one:'shell',    many:'shells',    emoji:'🐚',
+      got:['found','collected'],                    lost:['gave away','lost'] },
+    { one:'balloon',  many:'balloons',  emoji:'🎈',
+      got:['was given','bought'],                   lost:['popped','gave away'] },
+    { one:'rupee',    many:'rupees',    emoji:'💰',
+      got:['saved','was given','earned'],           lost:['spent','gave away'] },
+    { one:'book',     many:'books',     emoji:'📚',
+      got:['borrowed','was given'],                 lost:['returned','lent'] }
+  ];
+
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function count(n, t) { return n + ' ' + (n === 1 ? t.one : t.many); }
+
+  /**
+   * Dress a sum that has ALREADY been checked against the bead
+   * rules. Nothing here changes a number.
+   *
+   * @param sum.rows   e.g. [12, 8, -5] — two or three entries
+   * @param sum.answer the total
+   */
+  function dress(sum) {
+    var rows = sum.rows || [];
+    if (rows.length < 2 || rows.length > 3) return null;   // stories need short sums
+
+    var who   = pick(NAMES);
+    var name  = who.n;
+    var they  = who.they;
+    var thing = pick(THINGS);
+    var start = rows[0];
+
+    var lines = [name + ' had ' + count(start, thing) + '.'];
+
+    // Do not use the same verb twice in one story — a child hears it
+    var used = {};
+    function verb(bank) {
+      var free = bank.filter(function (v) { return !used[v]; });
+      var v = pick(free.length ? free : bank);
+      used[v] = true;
+      return v;
+    }
+
+    for (var i = 1; i < rows.length; i++) {
+      var n = rows[i];
+      var lead = (i === 1 ? cap(they) : 'Then ' + they);   // "She ..." / "Then she ..."
+      if (n > 0) lines.push(lead + ' ' + verb(thing.got)  + ' ' + count(n, thing) + '.');
+      else       lines.push(lead + ' ' + verb(thing.lost) + ' ' + count(-n, thing) + '.');
+    }
+
+    // The question follows whatever happened last, so it reads naturally
+    var last = rows[rows.length - 1];
+    lines.push(last > 0
+      ? 'How many ' + thing.many + ' does ' + name + ' have now?'
+      : 'How many ' + thing.many + ' are left?');
+
+    return {
+      type:     'story',
+      question: lines.join(' '),
+      lines:    lines,          // kept separate so speech can pause between them
+      answer:   sum.answer,
+      emoji:    thing.emoji,
+      rows:     rows,           // the abacus still works the same sum
+      speak:    true            // read aloud: they cannot read it themselves
+    };
+  }
+
+  /**
+   * Turn a page of sums into word problems, keeping only the short
+   * ones. Long columns stay as columns.
+   */
+  function fromSums(sums, howMany) {
+    var out = [];
+    for (var i = 0; i < sums.length && out.length < (howMany || 5); i++) {
+      if (!sums[i] || !sums[i].rows) continue;
+      if (sums[i].rows.length > 3) continue;
+      var w = dress(sums[i]);
+      if (w) out.push(w);
+    }
+    return out;
+  }
+
+  return { dress: dress, fromSums: fromSums, NAMES: NAMES, THINGS: THINGS };
+})();

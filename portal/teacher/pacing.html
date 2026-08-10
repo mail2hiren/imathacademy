@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pacing — iMathAcademy</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--blue:#1565C0;--green:#2E7D32;--amber:#E65100;--text1:#1A1A2E;
+        --text2:#555;--text3:#8892A4;--border:#E4E7F2;}
+  body{font-family:'Nunito',sans-serif;background:#F5F7FC;color:var(--text1);padding-bottom:60px;}
+  .topbar{background:#fff;border-bottom:1.5px solid var(--border);padding:13px 16px;
+          display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;}
+  .topbar a{color:var(--text3);text-decoration:none;font-size:1.3rem;}
+  .topbar h1{font-size:1.02rem;font-weight:900;}
+  .wrap{max-width:820px;margin:0 auto;padding:16px 14px 0;}
+  .intro{background:#EAF2FF;border-radius:14px;padding:14px 16px;margin-bottom:16px;
+         font-size:.83rem;color:#0D47A1;line-height:1.6;}
+  .card{background:#fff;border:1.5px solid var(--border);border-radius:16px;
+        padding:16px;margin-bottom:12px;}
+  .head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:3px;}
+  .name{font-size:1rem;font-weight:900;}
+  .lvl{font-size:.75rem;font-weight:800;color:var(--text3);}
+  .meta{font-size:.74rem;color:var(--text3);margin-bottom:12px;}
+  .track{position:relative;height:34px;margin:6px 0 4px;}
+  .rail{position:absolute;top:14px;left:0;right:0;height:7px;border-radius:6px;background:#EDF0F7;}
+  .fill{position:absolute;top:14px;left:0;height:7px;border-radius:6px;
+        background:linear-gradient(90deg,#66BB6A,#2E7D32);}
+  .floor{position:absolute;top:8px;width:3px;height:19px;border-radius:2px;background:var(--amber);}
+  .knob{position:absolute;top:8px;width:20px;height:20px;border-radius:50%;
+        background:#fff;border:3px solid var(--blue);margin-left:-10px;}
+  input[type=range]{width:100%;margin:0;accent-color:var(--blue);}
+  .rangelabel{display:flex;justify-content:space-between;font-size:.7rem;
+              color:var(--text3);font-weight:800;margin-top:2px;}
+  .band{font-size:.82rem;font-weight:800;color:var(--blue);margin:10px 0 2px;}
+  .bandsub{font-size:.73rem;color:var(--text3);}
+  .row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+  .btn{padding:9px 14px;border:1.5px solid var(--border);border-radius:10px;background:#fff;
+       font-family:inherit;font-size:.79rem;font-weight:800;color:var(--text2);cursor:pointer;}
+  .btn-save{background:var(--blue);border-color:var(--blue);color:#fff;}
+  .btn-floor{background:#FFF3E0;border-color:#FFCC80;color:var(--amber);}
+  .empty{text-align:center;padding:40px 16px;color:var(--text3);font-size:.88rem;}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1A1A2E;
+         color:#fff;padding:11px 20px;border-radius:11px;font-size:.85rem;font-weight:800;display:none;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="dashboard.html">&larr;</a>
+  <h1>Pacing within a level</h1>
+</div>
+
+<div class="wrap">
+  <div class="intro">
+    Each child works inside a slice of their level rather than the whole of it.
+    This shows where they are and what numbers they are being given.
+    <br><br>
+    It moves on its own from their results — up quickly, down slowly. Set a
+    <strong>floor</strong> for a child you know is capable and it will never fall below it,
+    however one bad afternoon goes.
+  </div>
+  <div id="list"><div class="empty">Loading…</div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   Pacing
+   ------------------------------------------------------------
+   A number a teacher cannot see or correct is a black box. Megha
+   knows things the data never will — that a child was ill, or is
+   bored, or has a parent drilling them at home. So the position is
+   shown plainly, in the numbers it actually produces, and she can
+   move it or pin a floor under it.
+   ============================================================ */
+
+var SURL='https://bhullfoajenhkxlkiubs.supabase.co';
+var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+var sb = supabase.createClient(SURL, SKEY);
+
+var students = [], positions = {}, levels = {}, me = null;
+
+function toast(m){ var t=document.getElementById('toast'); t.textContent=m;
+  t.style.display='block'; setTimeout(function(){t.style.display='none';},2400); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+/* The same band the generator uses, so what she sees is what a
+   child gets. If one changes, the other must change with it. */
+function bandFor(maxNumber, pos) {
+  var lo = 9, hi = maxNumber;
+  var centre = lo + (hi - lo) * Math.pow(pos, 1.3);
+  return {
+    start: Math.max(lo, Math.round(centre * 0.55)),
+    end:   Math.min(hi, Math.max(lo + 4, Math.round(centre * 1.15)))
+  };
+}
+function rowsFor(pos, minRows, maxRows) {
+  return Math.round(minRows + (maxRows - minRows) * pos);
+}
+
+async function load(){
+  var s = await sb.auth.getSession();
+  if(!s.data.session){ location.href='../../login.html'; return; }
+  me = s.data.session.user.id;
+
+  try {
+    var lv = await sb.from('curriculum_levels')
+      .select('level_code, level_name, max_number, min_rows, max_rows');
+    (lv.data||[]).forEach(function(l){ levels[l.level_code]=l; });
+  } catch(e){}
+
+  var st = await sb.from('users')
+    .select('id, full_name, current_level')
+    .eq('role','student').eq('is_active',true).order('full_name');
+  students = st.data || [];
+
+  try {
+    var ps = await sb.from('student_level_position')
+      .select('student_id, level_code, position, floor_pos, sessions, updated_at');
+    (ps.data||[]).forEach(function(p){ positions[p.student_id+'|'+p.level_code]=p; });
+  } catch(e){}
+
+  render();
+}
+
+function render(){
+  var el = document.getElementById('list');
+  if(!students.length){ el.innerHTML='<div class="empty">No active students.</div>'; return; }
+
+  el.innerHTML = students.map(function(s){
+    var lvl  = s.current_level != null ? s.current_level : 0;
+    var code = 'L'+lvl;
+    var lv   = levels[code] || { max_number:99, min_rows:3, max_rows:5, level_name:'' };
+    var p    = positions[s.id+'|'+code] || { position:0.10, floor_pos:0, sessions:0 };
+    var pos  = Number(p.position), floor = Number(p.floor_pos||0);
+    var band = bandFor(lv.max_number, pos);
+    var rows = rowsFor(pos, lv.min_rows||3, lv.max_rows||5);
+
+    return '<div class="card">' +
+      '<div class="head"><div class="name">'+esc(s.full_name)+'</div>' +
+        '<div class="lvl">Level '+lvl+(lv.level_name?' · '+esc(lv.level_name):'')+'</div></div>' +
+      '<div class="meta">'+(p.sessions||0)+' session'+((p.sessions||0)===1?'':'s')+
+        (p.updated_at ? ' · last moved '+new Date(p.updated_at).toLocaleDateString('en-IN',
+          {day:'numeric',month:'short'}) : '')+'</div>' +
+
+      '<div class="track">' +
+        '<div class="rail"></div>' +
+        '<div class="fill" style="width:'+(pos*100)+'%"></div>' +
+        (floor>0 ? '<div class="floor" style="left:'+(floor*100)+'%" title="floor"></div>' : '') +
+        '<div class="knob" style="left:'+(pos*100)+'%"></div>' +
+      '</div>' +
+      '<input type="range" min="0" max="100" value="'+Math.round(pos*100)+'" ' +
+        'oninput="preview(\\''+s.id+'\\',\\''+code+'\\',this.value)" ' +
+        'onchange="savePos(\\''+s.id+'\\',\\''+code+'\\',this.value)">' +
+      '<div class="rangelabel"><span>just arrived</span><span>full range</span></div>' +
+
+      '<div class="band" id="band-'+s.id+'">Getting numbers '+band.start+'–'+band.end+
+        ', about '+rows+' rows</div>' +
+      '<div class="bandsub">'+(floor>0
+        ? 'Floor set at '+Math.round(floor*100)+'% — cannot drop below this'
+        : 'No floor set')+'</div>' +
+
+      '<div class="row">' +
+        '<button class="btn btn-floor" onclick="setFloor(\\''+s.id+'\\',\\''+code+'\\')">' +
+          'Set floor here</button>' +
+        (floor>0 ? '<button class="btn" onclick="clearFloor(\\''+s.id+'\\',\\''+code+'\\')">Remove floor</button>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* Move the slider and the numbers update as you drag — she is
+   choosing a range of sums, not an abstract score. */
+function preview(id, code, v){
+  var pos = v/100;
+  var lvl = levels[code] || { max_number:99, min_rows:3, max_rows:5 };
+  var b = bandFor(lvl.max_number, pos);
+  var r = rowsFor(pos, lvl.min_rows||3, lvl.max_rows||5);
+  var el = document.getElementById('band-'+id);
+  if(el) el.textContent = 'Getting numbers '+b.start+'–'+b.end+', about '+r+' rows';
+}
+
+async function savePos(id, code, v){
+  var pos = Number(v)/100;
+  var cur = positions[id+'|'+code] || {};
+  var floor = Number(cur.floor_pos||0);
+  if (pos < floor) { pos = floor; toast('Held at the floor you set'); }
+  await write(id, code, { position: pos.toFixed(3) }, 'Moved');
+}
+
+async function setFloor(id, code){
+  var cur = positions[id+'|'+code] || { position:0.10 };
+  await write(id, code, { floor_pos: Number(cur.position).toFixed(3) },
+              'Floor set — this child will not drop below here');
+}
+
+async function clearFloor(id, code){
+  await write(id, code, { floor_pos: 0 }, 'Floor removed');
+}
+
+async function write(id, code, patch, msg){
+  try{
+    var body = Object.assign({ student_id:id, level_code:code,
+      set_by: me, set_at: new Date().toISOString(),
+      updated_at: new Date().toISOString() }, patch);
+    // .select() so a blocked write says so instead of looking fine
+    var res = await sb.from('student_level_position')
+      .upsert(body, { onConflict:'student_id,level_code' }).select();
+    if(res.error) throw res.error;
+    if(!res.data || !res.data.length) throw new Error('Nothing was saved — check your permissions');
+    positions[id+'|'+code] = res.data[0];
+    toast(msg);
+    render();
+  }catch(e){ toast('Could not save: '+e.message); }
+}
+
+load().catch(function(e){
+  document.getElementById('list').innerHTML =
+    '<div class="empty">Could not load: '+esc(e.message)+'</div>';
+});
+</script>
+</body>
+</html>

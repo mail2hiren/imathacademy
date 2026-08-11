@@ -1342,6 +1342,9 @@ async function generateFromEngine() {
       'If they find these hard, it is usually the reading rather than the maths. ' +
       'Reading the question aloud together is the most useful thing you can do.';
     parseAndRender(storyText);
+    // The teacher assigns it, not the app. Generating a worksheet
+    // and quietly sending it to a batch would take that choice away.
+    showEl('assignBtn');
     return;
   }
 
@@ -1411,6 +1414,9 @@ async function generateFromEngine() {
     throw new Error('The worksheet could not be assembled — please try again');
   }
   parseAndRender(text);
+    // The teacher assigns it, not the app. Generating a worksheet
+    // and quietly sending it to a batch would take that choice away.
+    showEl('assignBtn');
 }
 
 async function generateWorksheet() {
@@ -1420,6 +1426,7 @@ async function generateWorksheet() {
   if (usesEngine(selectedActivity) && typeof PracticeEngine !== 'undefined') {
     btn.disabled = true;
     btn.innerHTML = '<span>Building…</span>';
+    hideEl('assignBtn');   // the previous worksheet's button must not linger
     try {
       await loadCurriculumRulesForLevel();
       await generateFromEngine();

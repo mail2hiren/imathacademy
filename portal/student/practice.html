@@ -828,8 +828,13 @@ function engineToCard(q) {
 async function buildEngineQuestions(profile) {
   var level = profile.current_level != null ? profile.current_level : 0;
   // Passing the child lets the engine aim at where they actually are
+  // 'session' was referenced inside its own declaration, so it was
+  // always undefined and the child's id could silently be missing —
+  // which would quietly give everyone the beginner band.
+  var me = null;
+  try { me = (await sb.auth.getSession()).data.session.user.id; } catch (e) {}
   var session = await PracticeEngine.buildSession(level,
-    { count: 10, studentId: profile.id || (session && session.user && session.user.id) });
+    { count: 10, studentId: profile.id || me });
   return session.questions.map(function (q) {
     var card = engineToCard(q);
     card.level = level;

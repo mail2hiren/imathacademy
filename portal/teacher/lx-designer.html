@@ -331,7 +331,7 @@
         </label>
         <label class="activity-opt" onclick="selectActivity(this,'picture_sums')">
           <input type="radio" name="activity">
-          <div><div class="activity-opt-name">Visual picture sums</div><div class="activity-opt-sub">Objects to count (ages 5–7)</div></div>
+          <div><div class="activity-opt-name">Visual picture sums ⚡</div><div class="activity-opt-sub">Built instantly from the curriculum, no AI</div></div>
         </label>
         <label class="activity-opt" onclick="selectActivity(this,'story_problems')">
           <input type="radio" name="activity">
@@ -339,11 +339,11 @@
         </label>
         <label class="activity-opt" onclick="selectActivity(this,'fill_blank')">
           <input type="radio" name="activity">
-          <div><div class="activity-opt-name">Fill in the blank</div><div class="activity-opt-sub">3 + ___ = 7 style</div></div>
+          <div><div class="activity-opt-name">Fill in the blank ⚡</div><div class="activity-opt-sub">Built instantly from the curriculum, no AI</div></div>
         </label>
         <label class="activity-opt" onclick="selectActivity(this,'match_pairs')">
           <input type="radio" name="activity">
-          <div><div class="activity-opt-name">Match the pairs</div><div class="activity-opt-sub">Sum on left, answer on right</div></div>
+          <div><div class="activity-opt-name">Match the pairs ⚡</div><div class="activity-opt-sub">Built instantly from the curriculum, no AI</div></div>
         </label>
         <label class="activity-opt" onclick="selectActivity(this,'speed_challenge')">
           <input type="radio" name="activity">
@@ -351,11 +351,11 @@
         </label>
         <label class="activity-opt" onclick="selectActivity(this,'colour_answer')">
           <input type="radio" name="activity">
-          <div><div class="activity-opt-name">Colour by answer</div><div class="activity-opt-sub">Solve and colour (ages 5–8)</div></div>
+          <div><div class="activity-opt-name">Colour by answer ⚡</div><div class="activity-opt-sub">Built instantly from the curriculum, no AI</div></div>
         </label>
         <label class="activity-opt" onclick="selectActivity(this,'mixed')">
           <input type="radio" name="activity">
-          <div><div class="activity-opt-name">Mixed variety</div><div class="activity-opt-sub">AI picks best mix for age</div></div>
+          <div><div class="activity-opt-name">Mixed variety ⚡</div><div class="activity-opt-sub">Built instantly from the curriculum, no AI</div></div>
         </label>
       </div>
     </div>
@@ -495,6 +495,7 @@
 <script src="../js/bead-rules.js"></script>
 <script src="../js/column-gen.js"></script>
 <script src="../js/word-problems.js"></script>
+<script src="../js/exercises.js"></script>
 <script src="../js/practice-engine.js"></script>
 <script>
 const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
@@ -1157,7 +1158,12 @@ function buildPrompt(preview=false) {
    Word problems and lesson plans still go to the AI. That is
    writing, which is what it is actually good at.
    ─────────────────────────────────────────────────────────── */
-var ENGINE_ACTIVITIES = ['column_sums', 'flashcards', 'speed_challenge', 'story_problems'];
+// Every activity is now generated here. Nothing is left to the AI,
+// which never knew what a bead could do — that is how "9 + 2"
+// reached a Level 1 child and 81 + 34 reached Level 0.
+var ENGINE_ACTIVITIES = ['column_sums', 'flashcards', 'speed_challenge',
+                         'story_problems', 'fill_blank', 'match_pairs',
+                         'picture_sums', 'colour_answer', 'mixed'];
 
 function usesEngine(activity) {
   return ENGINE_ACTIVITIES.indexOf(activity) > -1;
@@ -1264,6 +1270,54 @@ async function generateStoryProblems(count, level) {
 async function generateFromEngine() {
   var count = parseInt(document.getElementById('questionCount').value, 10) || 10;
   var level = selectedLevel;
+
+  // Fill blank, Match pairs, Picture sums, Colour and Mixed are the
+  // same checked sums shown differently — Exercises builds them all.
+  var OTHER = ['fill_blank', 'match_pairs', 'picture_sums', 'colour_answer', 'mixed'];
+  if (OTHER.indexOf(selectedActivity) > -1) {
+    var rulesX = await PracticeEngine.loadLevelRules(level);
+    var items  = Exercises.page(selectedActivity, rulesX, count);
+    if (!items.length) throw new Error('Could not build this activity for the level');
+
+    var qs = items.map(function (q) {
+      return {
+        type:     q.type,
+        question: q.question,
+        answer:   String(q.answer),
+        hint:     q.hint || '',
+        pairs:    q.pairs || undefined,
+        items:    q.items || undefined,
+        beadsFor: q.beadsFor,
+        speak:    q.speak || undefined
+      };
+    });
+
+    var keyX = qs.map(function (q, i) { return (i + 1) + '. ' + q.answer; }).join('\n');
+    var nameX = (resolvedRules && resolvedRules.level_name) || ('Level ' + level);
+    var labelX = {
+      fill_blank:    'missing number',
+      match_pairs:   'matching',
+      picture_sums:  'picture sums',
+      colour_answer: 'colour by answer',
+      mixed:         'mixed practice'
+    }[selectedActivity];
+
+    parseAndRender(
+      '## QUESTIONS\n' + JSON.stringify(qs, null, 2) +
+      '\n\n## ANSWER KEY\n' + keyX +
+      '\n\n## LESSON PLAN\nLevel ' + level + ' — ' + nameX + '\n\n' +
+      'These are ' + labelX + ' questions. The arithmetic is the same work\n' +
+      'they do in the column sums — only the presentation differs.\n\n' +
+      '- The abacus is still the tool for every one of them\n' +
+      '- A missing number cannot be guessed at: the child has to use the formula\n' +
+      '- Watch for children who find the sum easy but the format confusing;\n' +
+      '  that is a reading problem, not a maths one' +
+      '\n\n## PARENT NOTE\n' +
+      'Today your child practised ' + labelX + '. The numbers are exactly what\n' +
+      'they work on the abacus — only the way the question is written changes.'
+    );
+    return;
+  }
 
   // Word problems take a different shape from column work
   if (selectedActivity === 'story_problems') {

@@ -20,7 +20,12 @@ var Exercises = (function () {
   /** A sum for this level that a child can actually work. */
   function makeSum(rules, ceiling, rows, mode) {
     var m = mode || (rules.formulas.length ? pick(rules.formulas) : 'direct');
-    for (var t = 0; t < 40; t++) {
+    // If this movement cannot exist at this ceiling, try the others
+    // before giving up — silence here shows as a blank worksheet.
+    var tryModes = mode ? [mode] : (rules.formulas.length ? rules.formulas.concat(['direct']) : ['direct']);
+    var mi = 0;
+    for (var t = 0; t < 60; t++) {
+      if (t > 0 && t % 20 === 0 && mi + 1 < tryModes.length) { mi++; m = tryModes[mi]; }
       var s = ColumnGen.column({
         max: ceiling, rows: rows, mode: m,
         require: m === 'direct' ? 0 : 1,
@@ -189,10 +194,15 @@ var Exercises = (function () {
       return c ? [c] : [];
     }
 
-    while (out.length < n && guard < n * 30) {
+    /* A Big Friends step always carries into the tens, so it cannot
+       exist below a total of ten. Starting the ramp at 9 asked for
+       the impossible and returned nothing. */
+    var FLOOR = rules.formulas.indexOf('big') > -1 ? 20 : 9;
+
+    while (out.length < n && guard < n * 40) {
       guard++;
       var through = out.length / n;
-      var ceiling = Math.max(9, Math.round(9 + (rules.maxNumber - 9) * Math.pow(through, 1.4)));
+      var ceiling = Math.max(FLOOR, Math.round(FLOOR + (rules.maxNumber - FLOOR) * Math.pow(through, 1.4)));
       var q = kind === 'fill_blank'   ? fillBlank(rules, ceiling)
             : kind === 'picture_sums' ? pictureSum(rules, ceiling)
             : mixed(rules, ceiling);

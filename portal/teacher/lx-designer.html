@@ -1250,13 +1250,30 @@ async function loadCurriculumRulesForLevel() {
    child can follow, let alone one having it read aloud. */
 async function generateStoryProblems(count, level) {
   var rules = await PracticeEngine.loadLevelRules(level);
-  var mode  = rules.formulas.length ? rules.formulas[0] : 'direct';
+
+  /* Big Friends always carries into the tens, so its answer is never
+     below 10 — and the difficulty ramp starts its ceiling at 9. Every
+     early attempt asked for something arithmetically impossible, the
+     generator returned nothing each time, and the page came back
+     empty. That is why Level 1 story problems produced nothing while
+     every other activity worked.
+
+     The floor now depends on which movement is being asked for. */
+  var FLOOR = { direct: 9, small: 9, big: 20 };
 
   var out = [], seen = {}, guard = 0;
-  while (out.length < count && guard < count * 40) {
+  while (out.length < count && guard < count * 60) {
     guard++;
     var through = out.length / count;
-    var ceiling = Math.max(9, Math.round(9 + (rules.maxNumber - 9) * Math.pow(through, 1.4)));
+
+    // Alternate between the formulas a level teaches, rather than
+    // fixing on the first one — a Level 1 sheet should exercise both.
+    var mode = rules.formulas.length
+      ? rules.formulas[out.length % rules.formulas.length]
+      : 'direct';
+
+    var floor   = FLOOR[mode] || 9;
+    var ceiling = Math.max(floor, Math.round(floor + (rules.maxNumber - floor) * Math.pow(through, 1.4)));
 
     var sum = ColumnGen.column({
       max:       ceiling,
@@ -1353,7 +1370,10 @@ async function generateFromEngine() {
   // Word problems take a different shape from column work
   if (selectedActivity === 'story_problems') {
     var stories = await generateStoryProblems(count, level);
-    if (!stories.length) throw new Error('Could not build word problems for this level');
+    if (!stories.length) {
+      throw new Error('No word problems could be built for Level ' + level +
+        '. The level may be asking for a formula its number range cannot reach.');
+    }
 
     var storyKey = stories.map(function (q, i) { return (i + 1) + '. ' + q.answer; }).join('\n');
     var lvName = (resolvedRules && resolvedRules.level_name) || ('Level ' + level);

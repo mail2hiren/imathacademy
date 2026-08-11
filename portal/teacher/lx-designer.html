@@ -226,8 +226,30 @@
           <select id="studentSel" onchange="onStudentChange()">
             <option value="">— Entire batch —</option>
           </select>
+          <button type="button" id="pickManyBtn" onclick="togglePickMany()"
+            style="margin-top:7px;background:none;border:none;color:var(--blue,#1565C0);
+                   font-family:inherit;font-size:.79rem;font-weight:800;cursor:pointer;padding:2px 0;">
+            + Choose several children
+          </button>
         </div>
       </div>
+      <!-- Choosing several children at once. Some worksheets suit a
+           handful of children rather than a whole batch or one child. -->
+      <div id="pickMany" style="display:none;margin-top:10px;border:1.5px solid var(--border,#E4E7F2);
+           border-radius:12px;padding:11px 12px;background:#FAFBFF;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+          <div style="font-size:.78rem;font-weight:900;color:var(--text2,#555);">Give it to</div>
+          <div>
+            <button type="button" onclick="pickAll(true)" style="background:none;border:none;
+              color:var(--blue,#1565C0);font-family:inherit;font-size:.74rem;font-weight:800;cursor:pointer;">All</button>
+            <button type="button" onclick="pickAll(false)" style="background:none;border:none;
+              color:var(--text3,#8892A4);font-family:inherit;font-size:.74rem;font-weight:800;cursor:pointer;">None</button>
+          </div>
+        </div>
+        <div id="pickList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px;"></div>
+        <div id="pickCount" style="font-size:.74rem;color:var(--text3,#8892A4);margin-top:8px;"></div>
+      </div>
+
       <div id="ageHint" style="display:none;" class="age-hint"></div>
     </div>
 
@@ -725,6 +747,13 @@ function selectActivity(el, val) {
 }
 
 async function onBatchChange() {
+  // Keep the tick list in step with the batch above it
+  try {
+    if (document.getElementById('pickMany') &&
+        document.getElementById('pickMany').style.display !== 'none') {
+      renderPickList(); updatePickCount();
+    }
+  } catch (e) {}
   const batchId = document.getElementById('batchSel').value;
   const sel = document.getElementById('studentSel');
   sel.innerHTML = '<option value="">— Entire batch —</option>';
@@ -1883,6 +1912,71 @@ async function loadBatches(teacherId, role) {
 
 // ── INIT ─────────────────────────────────────────────────────
 // ── ASSIGN TO STUDENTS ──────────────────────────────────────
+
+/* ── GIVING IT TO SEVERAL CHILDREN ────────────────────────────
+   A worksheet went to one child or a whole batch, with nothing in
+   between — but a teacher often wants the three who are struggling
+   with Small Friends, not everyone.
+
+   Each chosen child gets their own copy. That keeps every existing
+   thing working unchanged: their worksheet list, their score, their
+   progress. One row shared between them would have needed a new
+   table and changes everywhere a worksheet is read.
+   ─────────────────────────────────────────────────────────── */
+function togglePickMany() {
+  var box = document.getElementById('pickMany');
+  var on  = box.style.display === 'none';
+  box.style.display = on ? 'block' : 'none';
+  document.getElementById('pickManyBtn').textContent =
+    on ? '− Just one child, or the whole batch' : '+ Choose several children';
+  if (on) renderPickList();
+  else    document.getElementById('pickList').innerHTML = '';
+  // The single-student dropdown and the tick list would contradict
+  // each other, so only one is in play at a time.
+  document.getElementById('studentSel').disabled = on;
+  if (on) document.getElementById('studentSel').value = '';
+  updatePickCount();
+}
+
+function renderPickList() {
+  var batchId = document.getElementById('batchSel').value;
+  var list = document.getElementById('pickList');
+  var kids = batchId ? (batchStudents[batchId] || []) : allStudents;
+
+  if (!kids || !kids.length) {
+    list.innerHTML = '<div style="font-size:.78rem;color:var(--text3,#8892A4);">' +
+      (batchId ? 'No children in this batch yet.' : 'Choose a batch first, or add students.') + '</div>';
+    return;
+  }
+  list.innerHTML = kids.map(function (s) {
+    return '<label style="display:flex;align-items:center;gap:7px;font-size:.82rem;' +
+      'font-weight:700;cursor:pointer;padding:4px 2px;">' +
+      '<input type="checkbox" class="pick-kid" value="' + s.id + '" ' +
+      'data-name="' + String(s.full_name || '').replace(/"/g, '&quot;') + '" ' +
+      'onchange="updatePickCount()" style="width:17px;height:17px;accent-color:#1565C0;">' +
+      '<span>' + (s.full_name || 'Student') + '</span></label>';
+  }).join('');
+}
+
+function pickAll(on) {
+  document.querySelectorAll('.pick-kid').forEach(function (b) { b.checked = on; });
+  updatePickCount();
+}
+
+function chosenKids() {
+  return Array.prototype.slice.call(document.querySelectorAll('.pick-kid:checked'))
+    .map(function (b) { return { id: b.value, name: b.dataset.name }; });
+}
+
+function updatePickCount() {
+  var el = document.getElementById('pickCount');
+  if (!el) return;
+  var n = chosenKids().length;
+  el.textContent = n === 0 ? 'Nobody chosen yet'
+                 : n === 1 ? '1 child chosen'
+                 : n + ' children chosen — each gets their own copy';
+}
+
 async function assignToStudents() {
   const batchId   = document.getElementById('batchSel').value;
   const studentId = document.getElementById('studentSel').value;
@@ -1890,7 +1984,15 @@ async function assignToStudents() {
   const content   = generatedContent.worksheet || Object.values(generatedContent).find(v=>v) || '';
 
   if (!content) { toast('No worksheet generated yet', 'error'); return; }
-  if (!batchId && !studentId) { toast('Please select a batch or student first', 'error'); return; }
+
+  // Several children chosen by hand takes priority over the dropdowns
+  var many = (document.getElementById('pickMany') || {}).style &&
+             document.getElementById('pickMany').style.display !== 'none'
+             ? chosenKids() : [];
+
+  if (!many.length && !batchId && !studentId) {
+    toast('Choose a batch, a student, or tick some children', 'error'); return;
+  }
 
   const btn = document.getElementById('assignBtn');
   btn.textContent = 'Assigning...';
@@ -1898,6 +2000,49 @@ async function assignToStudents() {
 
   try {
     const { data: { session } } = await sb.auth.getSession();
+
+    // One copy each, so every child keeps their own score and history
+    if (many.length) {
+      var rows = many.map(function (kid) {
+        return {
+          title:       'Level ' + selectedLevel + ' — ' + kid.name + ' — ' +
+                       new Date().toLocaleDateString('en-IN', { day:'numeric', month:'short' }),
+          content:     content,
+          answer_key:  generatedContent.answerkey  || null,
+          lesson_plan: generatedContent.lessonplan || null,
+          parent_note: generatedContent.parentnote || null,
+          level:       selectedLevel,
+          concept:     selectedConcept,
+          activity:    selectedActivity,
+          abacus_mode: (document.getElementById('abacusMode') || {}).value || 'default',
+          batch_id:    null,
+          student_id:  kid.id,
+          created_by:  session.user.id,
+          created_at:  new Date().toISOString(),
+          is_active:   true
+        };
+      });
+
+      // .select() so a blocked insert says so rather than looking fine
+      var res = await sb.from('lx_worksheets').insert(rows).select('id');
+      if (res.error) throw res.error;
+      if (!res.data || res.data.length !== rows.length) {
+        throw new Error('Only ' + ((res.data || []).length) + ' of ' + rows.length +
+                        ' could be assigned — check your permissions');
+      }
+
+      await sb.from('notifications').insert(many.map(function (kid) {
+        return { user_id: kid.id, type: 'worksheet',
+                 title: '📋 New worksheet assigned!',
+                 message: 'Level ' + selectedLevel + ' — check your Worksheets section.' };
+      }));
+
+      toast('Assigned to ' + many.length + ' child' + (many.length === 1 ? '' : 'ren'), 'success');
+      btn.textContent = '✓ Assigned to ' + many.length;
+      btn.disabled = false;
+      pickAll(false);
+      return;
+    }
 
     // Save to lx_worksheets table
     const { data: ws, error } = await sb.from('lx_worksheets').insert({

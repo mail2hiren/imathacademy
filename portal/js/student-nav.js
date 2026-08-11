@@ -66,3 +66,31 @@ if (document.readyState === 'loading') {
 } else {
   renderStudentNav();
 }
+
+
+/* ── SIGNING OFF ──────────────────────────────────────────────
+   The sidebar is on every student page and carries a sign-out
+   button, but logout() only existed in student-init.js, which just
+   the dashboard loads. On practice, worksheets and the weekly quiz
+   the button threw and did nothing — a child had to walk back to
+   the dashboard to get out.
+
+   It lives here now, beside the sidebar that uses it. Any page
+   defining its own still wins, so nothing is disturbed.
+
+   Local scope only: a full signOut revokes the refresh token, and
+   the saved PIN sign-in for everyone on this device with it.
+   ─────────────────────────────────────────────────────────── */
+if (typeof window.logout !== 'function') {
+  window.logout = async function () {
+    try {
+      if (typeof Profiles !== 'undefined' && Profiles.leave) await Profiles.leave();
+      else if (typeof sb !== 'undefined') await sb.auth.signOut({ scope: 'local' });
+    } catch (e) {
+      try { if (typeof sb !== 'undefined') await sb.auth.signOut({ scope: 'local' }); } catch (e2) {}
+    }
+    // Work out how deep this page sits so the redirect lands correctly
+    var depth = location.pathname.indexOf('/portal/') > -1 ? '../../' : './';
+    window.location.href = depth + 'login.html';
+  };
+}

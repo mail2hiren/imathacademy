@@ -1253,6 +1253,10 @@ function fsTryAnswer() {
      Math.abs(parseFloat(given) - parseFloat(expected)) < 0.001)
   );
 
+  // Colour the choices, so a child who cannot read the feedback line
+  // still sees what happened
+  fsMarkChoices(expected, isCorrect);
+
   if (!responses[fsCurrentWsId]) responses[fsCurrentWsId] = {answers:{},correct:{},currentQ:0};
   responses[fsCurrentWsId].answers[fsCurrentQIdx] = val;
   responses[fsCurrentWsId].correct[fsCurrentQIdx] = isCorrect;

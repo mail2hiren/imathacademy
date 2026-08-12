@@ -239,15 +239,12 @@
 }
 
 /* ── THE ORDER A CHILD ACTUALLY WORKS IN ──────────────────────
-   Read the sum, move the beads, write what the beads say.
+   Read the sum, move the beads, choose what the beads say.
 
-   The answer box was stranded in the left column under the question,
-   so a child worked the abacus on the right and then had to look
-   back across the screen to find where the answer goes. It belongs
-   directly under the beads, with Check under that.
-
-   The question is the thing being read, so it gets real size — it
-   was set at the body's default and looked like a footnote.
+   The sum sits centred on the left. The beads are top right with the
+   four choices beneath them, where the child is already looking.
+   Check answer sits under the sum, bottom left — away from the
+   choices, so it is not tapped by accident while choosing.
    ─────────────────────────────────────────────────────────── */
 .fs-body{max-width:100%;}
 .fs-question{min-height:1.2em;}
@@ -255,14 +252,29 @@
 .abacus-slot{margin-top:14px;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .fs-question-wrap{width:100%;max-width:560px;margin:0 auto;}
 
-/* On a phone the same order, stacked: sum, beads, answer.
-   The markup puts the answer before the abacus, so it is moved. */
+/* Four options, big enough for a small finger */
+.fs-actions{width:100%;display:flex;flex-direction:column;gap:10px;margin-top:14px;}
+.fs-actions .fs-btn{width:100%;}
+.fs-choices{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;width:100%;margin-top:4px;
+}
+.fs-choice{
+  padding:18px 10px;border:2.5px solid var(--border);border-radius:16px;
+  background:#fff;font-family:inherit;font-size:1.6rem;font-weight:900;
+  color:var(--text1);cursor:pointer;min-height:64px;
+  transition:transform .08s, border-color .15s, background .15s;
+}
+.fs-choice:active{transform:scale(.97);}
+.fs-choice.picked{border-color:#1565C0;background:#EAF2FF;color:#0D47A1;}
+
 @media (max-width: 1099px){
   .fs-question-wrap{display:flex;flex-direction:column;}
   .fs-question-wrap > .fs-emoji     {order:1;}
   .fs-question-wrap > .fs-question  {order:2;}
   .fs-question-wrap > .abacus-slot  {order:3;}
   .fs-question-wrap > .fs-input-wrap{order:4;margin-top:14px;}
+  .fs-question-wrap > .fs-actions   {order:5;}
 }
 
 @media (min-width: 1100px){
@@ -270,44 +282,38 @@
     display:grid;
     grid-template-columns:340px minmax(0,1fr);
     grid-template-rows:auto auto;
-    column-gap:40px;
+    column-gap:44px;
     align-items:start;
     width:100%;
     max-width:1320px !important;
     margin:0 auto;
-    padding-top:10px;
+    padding-top:14px;
   }
 
-  /* The sum, down the left, at a size a child can read across a room */
+  /* The sum, centred in its own column */
   .fs-body > .fs-question-wrap > .fs-question{
-    grid-column:1;
-    grid-row:1 / span 2;
-    text-align:left;
-    font-size:2.1rem;
-    line-height:1.45;
-    font-weight:900;
-    margin:0;
-    align-self:start;
+    grid-column:1;grid-row:1;
+    text-align:center;
+    font-size:2.1rem;line-height:1.45;font-weight:900;
+    margin:0;align-self:center;
   }
 
   /* Beads top right */
   .fs-body > .fs-question-wrap > .abacus-slot{
-    grid-column:2;
-    grid-row:1;
-    margin-top:0;
-    min-width:0;
+    grid-column:2;grid-row:1;margin-top:0;min-width:0;
   }
 
-  /* Answer and Check directly beneath them */
+  /* Choices under the beads; Check answer under the sum */
   .fs-body > .fs-question-wrap > .fs-input-wrap{
-    grid-column:2;
-    grid-row:2;
-    margin-top:16px;
-    align-items:stretch;
-    max-width:520px;
+    grid-column:2;grid-row:2;
+    margin-top:18px;align-items:stretch;max-width:560px;
   }
   .fs-body > .fs-question-wrap > .fs-input-wrap .fs-input{max-width:none;}
 
+  .fs-body > .fs-question-wrap > .fs-actions{
+    grid-column:1;grid-row:2;
+    align-self:start;margin-top:18px;
+  }
   .fs-body > .fs-question-wrap > .fs-emoji{display:none;}
 }
 </style>
@@ -1050,6 +1056,29 @@ function closeFullScreen() {
   fsCurrentWsId = null;
 }
 
+/**
+ * Four options: the answer and three near misses. Wrong ones are the
+ * mistakes a child actually makes — one bead out, ten out — so a
+ * guess is not as good as working it.
+ */
+function fsChoicesFor(answer) {
+  var a = parseInt(String(answer).replace(/[^0-9-]/g, ''), 10);
+  if (isNaN(a)) return [String(answer)];
+
+  var near = [a + 1, a - 1, a + 10, a - 10, a + 2, a - 2, a + 5];
+  var out = [a], seen = {};
+  seen[a] = true;
+  for (var i = 0; i < near.length && out.length < 4; i++) {
+    if (near[i] >= 0 && !seen[near[i]]) { seen[near[i]] = true; out.push(near[i]); }
+  }
+  // shuffle, so the answer is not always in the same place
+  for (var j = out.length - 1; j > 0; j--) {
+    var k = Math.floor(Math.random() * (j + 1));
+    var t = out[j]; out[j] = out[k]; out[k] = t;
+  }
+  return out.map(String);
+}
+
 function showFsQuestion() {
   if (!fsQuestions.length) return;
   var q     = fsQuestions[fsCurrentQIdx];
@@ -1078,6 +1107,11 @@ function showFsQuestion() {
   wrap.appendChild(qtext);
   var inputWrap = document.createElement('div');
   inputWrap.className = 'fs-input-wrap';
+
+  /* A five-year-old works the beads and then has to say what they
+     see. Typing it is a second, unrelated skill — the Tiny Champs
+     profile has always said "tap a choice", but the worksheet solver
+     only ever offered a text box. */
   var input = document.createElement('input');
   input.className = 'fs-input';
   input.id = 'fsInput';
@@ -1086,7 +1120,30 @@ function showFsQuestion() {
   input.placeholder = 'Your answer...';
   input.autocomplete = 'off';
   input.addEventListener('keydown', function(e) { if (e.key === 'Enter') fsTryAnswer(); });
-  inputWrap.appendChild(input);
+
+  if (group === 'tiny') {
+    // The box still exists so the beads have somewhere to write to,
+    // and so fsTryAnswer keeps working unchanged — it is just hidden.
+    input.style.display = 'none';
+    inputWrap.appendChild(input);
+
+    var grid = document.createElement('div');
+    grid.className = 'fs-choices';
+    fsChoicesFor(q.answer).forEach(function (opt) {
+      var b = document.createElement('button');
+      b.className = 'fs-choice';
+      b.textContent = opt;
+      b.addEventListener('click', function () {
+        input.value = opt;
+        Array.prototype.forEach.call(grid.children, function (x) { x.classList.remove('picked'); });
+        b.classList.add('picked');
+      });
+      grid.appendChild(b);
+    });
+    inputWrap.appendChild(grid);
+  } else {
+    inputWrap.appendChild(input);
+  }
   var fb = document.createElement('div');
   fb.className = 'fs-feedback';
   fb.id = 'fsFeedback';
@@ -1095,7 +1152,16 @@ function showFsQuestion() {
   checkBtn.className = 'fs-btn';
   checkBtn.textContent = 'Check answer';
   checkBtn.addEventListener('click', fsTryAnswer);
-  inputWrap.appendChild(checkBtn);
+
+  /* Kept out of the choices block so it cannot be tapped by accident
+     while a child is choosing. On a wide screen it sits under the sum
+     on the left; on a phone it simply follows everything else. */
+  var actions = document.createElement('div');
+  actions.className = 'fs-actions';
+  actions.appendChild(checkBtn);
+  wrap.appendChild(inputWrap);
+  wrap.appendChild(actions);
+
   if (fsCurrentQIdx > 0) {
     var prevBtn = document.createElement('button');
     prevBtn.className = 'fs-btn-skip';

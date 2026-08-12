@@ -238,55 +238,76 @@
   .fs-question-wrap{max-width:780px;}
 }
 
-/* ── SIDE BY SIDE, WITHOUT LOSING THE QUESTION ────────────────
-   The question and answer sit left, the beads right.
+/* ── THE ORDER A CHILD ACTUALLY WORKS IN ──────────────────────
+   Read the sum, move the beads, write what the beads say.
 
-   What went wrong before: the abacus was position:sticky and spanned
-   every row, so as soon as the column was taller than the window the
-   question and the answer box scrolled away while the beads stayed
-   put — a child was left looking at a Check answer button and an
-   abacus, with nothing to read.
+   The answer box was stranded in the left column under the question,
+   so a child worked the abacus on the right and then had to look
+   back across the screen to find where the answer goes. It belongs
+   directly under the beads, with Check under that.
 
-   Now the whole thing is sized to fit without scrolling: a fixed
-   question column, the abacus given the rest and allowed to scroll
-   inside its own column rather than pushing anything out of view.
-   Nothing is sticky, so the question cannot leave the screen.
+   The question is the thing being read, so it gets real size — it
+   was set at the body's default and looked like a footnote.
    ─────────────────────────────────────────────────────────── */
 .fs-body{max-width:100%;}
 .fs-question{min-height:1.2em;}
 .fs-input-wrap{width:100%;}
 .abacus-slot{margin-top:14px;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.fs-question-wrap{width:100%;max-width:560px;margin:0 auto;}
 
-/* Narrow screens keep the simple stack: question, answer, then beads */
-.fs-question-wrap{width:100%;max-width:560px;margin:0 auto;display:block;}
+/* On a phone the same order, stacked: sum, beads, answer.
+   The markup puts the answer before the abacus, so it is moved. */
+@media (max-width: 1099px){
+  .fs-question-wrap{display:flex;flex-direction:column;}
+  .fs-question-wrap > .fs-emoji     {order:1;}
+  .fs-question-wrap > .fs-question  {order:2;}
+  .fs-question-wrap > .abacus-slot  {order:3;}
+  .fs-question-wrap > .fs-input-wrap{order:4;margin-top:14px;}
+}
 
 @media (min-width: 1100px){
   .fs-body > .fs-question-wrap{
     display:grid;
-    grid-template-columns:320px minmax(0,1fr);
-    column-gap:34px;
+    grid-template-columns:340px minmax(0,1fr);
+    grid-template-rows:auto auto;
+    column-gap:40px;
     align-items:start;
     width:100%;
-    max-width:1300px !important;
+    max-width:1320px !important;
     margin:0 auto;
-    text-align:left;
+    padding-top:10px;
   }
-  .fs-body > .fs-question-wrap > *{grid-column:1;min-width:0;}
+
+  /* The sum, down the left, at a size a child can read across a room */
+  .fs-body > .fs-question-wrap > .fs-question{
+    grid-column:1;
+    grid-row:1 / span 2;
+    text-align:left;
+    font-size:2.1rem;
+    line-height:1.45;
+    font-weight:900;
+    margin:0;
+    align-self:start;
+  }
+
+  /* Beads top right */
   .fs-body > .fs-question-wrap > .abacus-slot{
     grid-column:2;
-    grid-row:1 / span 20;    /* beside everything in the left column */
+    grid-row:1;
     margin-top:0;
-    align-self:start;
-    /* deliberately NOT sticky — sticky is what let the question
-       scroll away while the beads stayed on screen */
+    min-width:0;
   }
-  .fs-body > .fs-question-wrap > .fs-question{
-    text-align:left;
-    margin-bottom:18px;
-    font-size:1.5rem;
+
+  /* Answer and Check directly beneath them */
+  .fs-body > .fs-question-wrap > .fs-input-wrap{
+    grid-column:2;
+    grid-row:2;
+    margin-top:16px;
+    align-items:stretch;
+    max-width:520px;
   }
-  .fs-body > .fs-question-wrap > .fs-input-wrap{align-items:stretch;}
   .fs-body > .fs-question-wrap > .fs-input-wrap .fs-input{max-width:none;}
+
   .fs-body > .fs-question-wrap > .fs-emoji{display:none;}
 }
 </style>
@@ -905,7 +926,7 @@ function buildAbacusFor(wsId, inputEl) {
   // way in. Typing would let a child bypass what they came to learn.
   if (inputEl && !typingAllowed(mode)) {
     inputEl.readOnly    = true;
-    inputEl.placeholder = 'Use the abacus below';
+    inputEl.placeholder = 'Your answer from the abacus';
     inputEl.style.cursor = 'default';
   }
 

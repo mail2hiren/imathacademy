@@ -1151,10 +1151,25 @@ function showFsQuestion() {
   input.autocomplete = 'off';
   input.addEventListener('keydown', function(e) { if (e.key === 'Enter') fsTryAnswer(); });
 
-  if (group === 'tiny') {
+  /* Choices are shown to everyone whose answer box they cannot type
+     into, plus the youngest. The old test was group === 'tiny', which
+     depends on users.age_group holding exactly that string — any other
+     value and a child was left with a read-only box and no way to
+     answer at all. Not worth risking on a string comparison. */
+  var mode = (typeof abacusModeFor === 'function') ? abacusModeFor(fsCurrentWsId) : null;
+  var cannotType = (typeof typingAllowed === 'function') ? !typingAllowed(mode) : false;
+  var showChoices = (group === 'tiny') || cannotType || (currentUser && (currentUser.current_level || 0) <= 1);
+
+  if (showChoices) {
     // The box still exists so the beads have somewhere to write to,
-    // and so fsTryAnswer keeps working unchanged — it is just hidden.
-    input.style.display = 'none';
+    // and so fsTryAnswer keeps working unchanged. It is shown small
+    // and read-only above the choices, so a child can see what the
+    // beads say and match it to an option.
+    input.readOnly = true;
+    input.style.textAlign = 'center';
+    input.style.fontSize = '1.5rem';
+    input.style.marginBottom = '12px';
+    input.placeholder = 'Move the beads';
     inputWrap.appendChild(input);
 
     var grid = document.createElement('div');

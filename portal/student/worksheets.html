@@ -356,13 +356,41 @@ async function checkSub(uid){
 }
 
 // ── PARSE QUESTIONS from JSON or raw text ──────────────────
+/**
+ * Pull out the first complete top-level [ ... ] by counting brackets,
+ * so nested arrays and objects inside a question survive intact.
+ * Returns the same shape a regex match would, so callers are unchanged.
+ */
+function extractOuterArray(text){
+  const start = text.indexOf('[');
+  if(start < 0) return null;
+  let depth = 0, inStr = false, esc = false;
+  for(let i = start; i < text.length; i++){
+    const ch = text[i];
+    if(esc){ esc = false; continue; }
+    if(ch === '\\'){ esc = true; continue; }
+    if(ch === '"'){ inStr = !inStr; continue; }
+    if(inStr) continue;
+    if(ch === '[' || ch === '{') depth++;
+    else if(ch === ']' || ch === '}'){
+      depth--;
+      if(depth === 0) return [text.slice(start, i + 1), text.slice(start, i + 1)];
+    }
+  }
+  return null;
+}
+
 function parseQuestions(content){
   // ── Step 1: Try clean JSON array ──────────────────────────
   // Strip markdown code fences if present
   const stripped = content.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
 
-  // Try to find a JSON array anywhere in the content
-  const jsonMatch = stripped.match(/(\[\s*\{[\s\S]*?\}\s*\])/);
+  // Find the outer array by counting brackets. The old pattern was
+  // non-greedy, so it stopped at the first "}]" it met — which for a
+  // matching or colouring worksheet is the end of the NESTED pairs
+  // array, not the end of the questions. The JSON was truncated,
+  // parsing failed, and the child was shown an abacus and no questions.
+  const jsonMatch = extractOuterArray(stripped);
   if(jsonMatch){
     try {
       const parsed = JSON.parse(jsonMatch[1]);
@@ -370,11 +398,23 @@ function parseQuestions(content){
         // Clean up each question — strip markdown, separate answer from question
         return parsed.map(q => {
           const ans = cleanAnswer(q.answer);
+          // Answer-stripping exists because the AI used to write the
+          // answer into the question. Engine-built questions never do,
+          // and stripping wrecks them: "30 + ___ = 50" became
+          // "30 + ___ = ?", which cannot be answered at all.
+          const engineBuilt = q.type === 'fill_blank' || q.type === 'calculation' ||
+                              q.type === 'column' || q.type === 'picture' ||
+                              q.type === 'match_pairs' || q.type === 'colour';
           return {
-            question: stripAnswerFromQuestion(q.question, ans),
+            question: engineBuilt ? cleanText(q.question)
+                                  : stripAnswerFromQuestion(q.question, ans),
             answer:   ans,
             emoji:    q.emoji || '🧮',
             type:     q.type  || 'calculation',
+            pairs:    q.pairs,
+            items:    q.items,
+            beadsFor: q.beadsFor,
+            speak:    q.speak,
           };
         });
       }
@@ -978,7 +1018,11 @@ function showFsQuestion() {
   var qtext = document.createElement('div');
   qtext.className = 'fs-question';
   qtext.style.fontSize = fsize;
+  // A column sum is written one number per line. Without this the
+  // line breaks collapse and it reads as "21 + 1 − 21" across the page.
   qtext.textContent = q.question;
+  qtext.style.whiteSpace = (q.question || '').indexOf('\n') > -1 ? 'pre-line' : '';
+  qtext.style.lineHeight = (q.question || '').indexOf('\n') > -1 ? '1.35' : '';
   wrap.appendChild(qtext);
   var inputWrap = document.createElement('div');
   inputWrap.className = 'fs-input-wrap';

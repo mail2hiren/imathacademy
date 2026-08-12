@@ -214,21 +214,40 @@
    question keeps the full width to itself.
    ─────────────────────────────────────────────────────────── */
 @media (min-width: 980px) {
-  .fs-body.has-abacus > div:first-child{
+  /* .fs-question-wrap already carries max-width:500px. The grid was
+     applied to that same element without lifting the cap, so the whole
+     two-column layout was squeezed into 500px — the abacus column got
+     about 288px while the abacus needs roughly 900px. It overflowed
+     and covered the question and the answer box, leaving a child with
+     a Check answer button and nothing to answer. */
+  .fs-body.has-abacus > .fs-question-wrap{
     display:grid;
-    grid-template-columns:minmax(180px,24%) minmax(0,1fr);
-    gap:32px;
+    grid-template-columns:minmax(200px,26%) minmax(0,1fr);
+    gap:28px;
     align-items:start;
-    max-width:1160px;
+    width:100%;
+    max-width:1180px !important;
     margin-left:auto;margin-right:auto;
   }
-  .fs-body.has-abacus > div:first-child > *{grid-column:1;}
-  .fs-body.has-abacus > div:first-child > .abacus-slot{
+  .fs-body.has-abacus > .fs-question-wrap > *{grid-column:1;min-width:0;}
+  .fs-body.has-abacus > .fs-question-wrap > .abacus-slot{
     grid-column:2;
     grid-row:1 / span 30;
     position:sticky;top:14px;
     margin-top:0;
     align-self:start;
+    min-width:0;
+    overflow-x:auto;          /* never push the question off the page */
+  }
+  /* The question and the answer box read left-aligned in a column */
+  .fs-body.has-abacus > .fs-question-wrap > .fs-question{
+    text-align:left;margin-bottom:16px;
+  }
+  .fs-body.has-abacus > .fs-question-wrap > .fs-input-wrap{
+    align-items:stretch;
+  }
+  .fs-body.has-abacus > .fs-question-wrap > .fs-input-wrap .fs-input{
+    max-width:none;
   }
 }
 
@@ -244,20 +263,27 @@
 }
 
 @media (orientation: landscape) and (max-height: 560px) {
-  .fs-body.has-abacus > div:first-child{
+  .fs-body.has-abacus > .fs-question-wrap{
     display:grid;
     grid-template-columns:minmax(120px,26%) minmax(0,1fr);
     gap:16px;align-items:start;
+    width:100%;max-width:none !important;
   }
-  .fs-body.has-abacus > div:first-child > *{grid-column:1;}
-  .fs-body.has-abacus > div:first-child > .abacus-slot{
+  .fs-body.has-abacus > .fs-question-wrap > *{grid-column:1;min-width:0;}
+  .fs-body.has-abacus > .fs-question-wrap > .abacus-slot{
     grid-column:2;grid-row:1 / span 30;
-    position:sticky;top:6px;margin-top:0;
+    position:sticky;top:6px;margin-top:0;min-width:0;overflow-x:auto;
   }
   .fs-body.has-abacus .fs-question-wrap{position:static;padding:0;}
   .fs-body.has-abacus .fs-question{font-size:1.15rem;}
   .fs-body.has-abacus .fs-emoji{display:none;}
 }
+
+/* Whatever else happens, the question and the answer box must be
+   reachable. An overflowing abacus must never hide them. */
+.fs-body{max-width:100%;overflow-x:hidden;}
+.fs-question{min-height:1.2em;}
+.fs-input-wrap{width:100%;}
 </style>
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How the class is doing — iMathAcademy</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--blue:#1565C0;--green:#2E7D32;--amber:#E65100;--red:#C62828;
+        --text1:#1A1A2E;--text2:#555;--text3:#8892A4;--border:#E4E7F2;}
+  body{font-family:'Nunito',sans-serif;background:#F5F7FC;color:var(--text1);padding-bottom:60px;}
+  .topbar{background:#fff;border-bottom:1.5px solid var(--border);padding:13px 16px;
+          display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;}
+  .topbar a{color:var(--text3);text-decoration:none;font-size:1.3rem;}
+  .topbar h1{font-size:1.02rem;font-weight:900;}
+  .wrap{max-width:900px;margin:0 auto;padding:16px 14px 0;}
+
+  .tabs{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;}
+  .tab{padding:9px 15px;border-radius:20px;border:1.5px solid var(--border);background:#fff;
+       font-family:inherit;font-size:.82rem;font-weight:800;color:var(--text2);cursor:pointer;}
+  .tab.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+
+  .card{background:#fff;border:1.5px solid var(--border);border-radius:16px;
+        padding:15px;margin-bottom:11px;}
+  .name{font-size:.98rem;font-weight:900;}
+  .sub{font-size:.74rem;color:var(--text3);}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));
+         gap:9px;margin-top:11px;}
+  .stat{background:#F7F9FF;border-radius:11px;padding:9px 8px;text-align:center;}
+  .stat-n{font-size:1.15rem;font-weight:900;line-height:1.1;}
+  .stat-l{font-size:.63rem;font-weight:800;color:var(--text3);text-transform:uppercase;
+          letter-spacing:.3px;margin-top:2px;}
+  .flag{margin-top:10px;border-radius:10px;padding:9px 11px;font-size:.78rem;
+        font-weight:800;line-height:1.45;}
+  .flag-warn{background:#FFF4E5;color:var(--amber);}
+  .flag-bad{background:#FDECEA;color:var(--red);}
+  .flag-good{background:#E9F5EC;color:var(--green);}
+
+  .ws{display:flex;align-items:center;gap:11px;padding:11px 0;
+      border-bottom:1px solid var(--border);}
+  .ws:last-child{border-bottom:none;}
+  .ws-main{flex:1;min-width:0;}
+  .ws-t{font-size:.86rem;font-weight:800;}
+  .ws-s{font-size:.72rem;color:var(--text3);margin-top:1px;}
+  .btn-x{padding:7px 12px;border:1.5px solid #FFCDD2;border-radius:9px;background:#FFF5F5;
+         font-family:inherit;font-size:.75rem;font-weight:800;color:var(--red);cursor:pointer;flex-shrink:0;}
+  .empty{text-align:center;padding:36px 16px;color:var(--text3);font-size:.86rem;}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1A1A2E;
+         color:#fff;padding:11px 20px;border-radius:11px;font-size:.85rem;font-weight:800;display:none;z-index:99;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="dashboard.html">&larr;</a>
+  <h1>How the class is doing</h1>
+</div>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab on" id="tab-children"   onclick="show('children')">Children</button>
+    <button class="tab"    id="tab-worksheets" onclick="show('worksheets')">Worksheets</button>
+  </div>
+  <div id="body"><div class="empty">Loading…</div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   How the class is doing
+   ------------------------------------------------------------
+   A teacher could see worksheet scores and nothing else — not
+   practice, not the weekly quiz, which between them are most of
+   what a child does. And an assigned worksheet could never be
+   taken back: one sent by mistake stayed in a child's list.
+
+   Both are here. The point is not the numbers but who needs
+   attention, so anything worth acting on is said in words.
+   ============================================================ */
+
+var SURL='https://bhullfoajenhkxlkiubs.supabase.co';
+var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+var sb = supabase.createClient(SURL, SKEY);
+
+var me=null, myRole=null, kids=[], sheets=[], view='children';
+var practice={}, quizzes={}, responses={};
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function toast(m){ var t=document.getElementById('toast'); t.textContent=m;
+  t.style.display='block'; setTimeout(function(){t.style.display='none';},2600); }
+function dmy(d){ return d ? new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '—'; }
+function daysAgo(d){ if(!d) return null;
+  return Math.floor((Date.now()-new Date(d).getTime())/86400000); }
+
+async function load(){
+  var s = await sb.auth.getSession();
+  if(!s.data.session){ location.href='../../login.html'; return; }
+  me = s.data.session.user.id;
+
+  var meRow = await sb.from('users').select('role').eq('id',me).single();
+  myRole = (meRow.data||{}).role;
+
+  // An admin sees everyone; a teacher sees the children in their batches
+  var ids = null;
+  if(myRole !== 'admin'){
+    var b = await sb.from('batches').select('id').eq('teacher_id', me);
+    var bIds = (b.data||[]).map(function(x){return x.id;});
+    if(bIds.length){
+      var bs = await sb.from('batch_students').select('student_id').in('batch_id', bIds);
+      ids = (bs.data||[]).map(function(x){return x.student_id;});
+    } else ids = [];
+  }
+
+  var q = sb.from('users').select('id, full_name, current_level, last_active')
+            .eq('role','student').eq('is_active',true).order('full_name');
+  if(ids) { if(!ids.length){ kids=[]; render(); return; } q = q.in('id', ids); }
+  kids = (await q).data || [];
+  var kidIds = kids.map(function(k){return k.id;});
+  if(!kidIds.length){ render(); return; }
+
+  // Each of these is wrapped alone: one missing permission should not
+  // blank the whole screen, it should blank one column.
+  try {
+    var p = await sb.from('practice_sessions')
+      .select('student_id, questions_correct, questions_attempted, session_date, created_at')
+      .in('student_id', kidIds);
+    (p.data||[]).forEach(function(r){
+      var a = practice[r.student_id] || (practice[r.student_id]={n:0,c:0,a:0,last:null});
+      a.n++; a.c += r.questions_correct||0; a.a += r.questions_attempted||0;
+      var when = r.created_at || r.session_date;
+      if(!a.last || when > a.last) a.last = when;
+    });
+  } catch(e){ console.warn('practice unavailable', e.message); }
+
+  try {
+    var z = await sb.from('quiz_results')
+      .select('student_id, pct, score, total, created_at').in('student_id', kidIds);
+    (z.data||[]).forEach(function(r){
+      var a = quizzes[r.student_id] || (quizzes[r.student_id]={n:0,pct:0,last:null});
+      a.n++; a.pct += (r.pct != null ? r.pct : (r.total ? r.score/r.total*100 : 0));
+      if(!a.last || r.created_at > a.last) a.last = r.created_at;
+    });
+  } catch(e){ console.warn('quizzes unavailable', e.message); }
+
+  try {
+    var w = await sb.from('worksheet_responses')
+      .select('student_id, score, total, submitted_at').in('student_id', kidIds);
+    (w.data||[]).forEach(function(r){
+      var a = responses[r.student_id] || (responses[r.student_id]={n:0,pct:0,last:null});
+      a.n++; a.pct += (r.total ? r.score/r.total*100 : 0);
+      if(!a.last || r.submitted_at > a.last) a.last = r.submitted_at;
+    });
+  } catch(e){ console.warn('worksheet results unavailable', e.message); }
+
+  try {
+    var ws = await sb.from('lx_worksheets')
+      .select('id, title, level, activity, student_id, batch_id, created_at, is_active')
+      .eq('is_active', true).order('created_at', {ascending:false}).limit(60);
+    sheets = ws.data || [];
+  } catch(e){ console.warn('worksheets unavailable', e.message); }
+
+  render();
+}
+
+function show(v){
+  view = v;
+  document.getElementById('tab-children').className   = 'tab' + (v==='children'?' on':'');
+  document.getElementById('tab-worksheets').className = 'tab' + (v==='worksheets'?' on':'');
+  render();
+}
+
+function render(){
+  document.getElementById('body').innerHTML =
+    view === 'children' ? renderChildren() : renderWorksheets();
+}
+
+function renderChildren(){
+  if(!kids.length) return '<div class="empty">No children in your batches yet.</div>';
+
+  return kids.map(function(k){
+    var p = practice[k.id]  || {n:0,c:0,a:0,last:null};
+    var z = quizzes[k.id]   || {n:0,pct:0,last:null};
+    var w = responses[k.id] || {n:0,pct:0,last:null};
+
+    var pAcc = p.a ? Math.round(p.c/p.a*100) : null;
+    var zAvg = z.n ? Math.round(z.pct/z.n)   : null;
+    var wAvg = w.n ? Math.round(w.pct/w.n)   : null;
+
+    // The most recent sign of life anywhere
+    var last = [p.last, z.last, w.last, k.last_active]
+      .filter(Boolean).sort().pop();
+    var quiet = daysAgo(last);
+
+    // What is worth saying out loud
+    var flag = '';
+    if(quiet !== null && quiet >= 7)
+      flag = '<div class="flag flag-bad">Nothing for ' + quiet + ' days — worth a message home</div>';
+    else if(!p.n && !w.n)
+      flag = '<div class="flag flag-warn">Has not started anything yet</div>';
+    else if(pAcc !== null && pAcc < 60)
+      flag = '<div class="flag flag-bad">Getting ' + pAcc + '% in practice — the level may be too hard</div>';
+    else if(wAvg !== null && wAvg < 60)
+      flag = '<div class="flag flag-warn">Worksheets averaging ' + wAvg + '% — worth sitting with them</div>';
+    else if(pAcc !== null && pAcc >= 90 && p.n >= 5)
+      flag = '<div class="flag flag-good">' + pAcc + '% in practice — ready for harder work</div>';
+
+    function stat(n, label, colour){
+      return '<div class="stat"><div class="stat-n"' + (colour?' style="color:'+colour+'"':'') + '>' +
+             n + '</div><div class="stat-l">' + label + '</div></div>';
+    }
+    var col = function(v){ return v==null ? '' : v>=80 ? 'var(--green)' : v>=60 ? 'var(--amber)' : 'var(--red)'; };
+
+    return '<div class="card">' +
+      '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:9px;">' +
+        '<div class="name">' + esc(k.full_name) + '</div>' +
+        '<div class="sub">Level ' + (k.current_level != null ? k.current_level : 0) + '</div>' +
+      '</div>' +
+      '<div class="sub">Last seen ' + (quiet===null ? 'never' : quiet===0 ? 'today' :
+        quiet===1 ? 'yesterday' : quiet + ' days ago') + '</div>' +
+      '<div class="stats">' +
+        stat(p.n, 'practice') +
+        stat(pAcc==null?'—':pAcc+'%', 'accuracy', col(pAcc)) +
+        stat(w.n, 'worksheets') +
+        stat(wAvg==null?'—':wAvg+'%', 'ws avg', col(wAvg)) +
+        stat(z.n, 'quizzes') +
+        stat(zAvg==null?'—':zAvg+'%', 'quiz avg', col(zAvg)) +
+      '</div>' + flag +
+    '</div>';
+  }).join('');
+}
+
+function renderWorksheets(){
+  if(!sheets.length) return '<div class="empty">Nothing assigned yet.</div>';
+
+  var byId = {};
+  kids.forEach(function(k){ byId[k.id]=k.full_name; });
+
+  return '<div class="card">' +
+    '<div class="sub" style="margin-bottom:9px;">Removing a worksheet takes it off the ' +
+    'children\'s list straight away. Nothing is deleted, so it can be put back.</div>' +
+    sheets.map(function(s){
+      return '<div class="ws">' +
+        '<div class="ws-main">' +
+          '<div class="ws-t">' + esc(s.title || 'Worksheet') + '</div>' +
+          '<div class="ws-s">Level ' + s.level + ' · ' + esc(s.activity || '') + ' · ' +
+            (s.student_id ? esc(byId[s.student_id] || 'one child') : 'whole batch') +
+            ' · ' + dmy(s.created_at) + '</div>' +
+        '</div>' +
+        '<button class="btn-x" onclick="retire(\'' + s.id + '\')">Remove</button>' +
+      '</div>';
+    }).join('') + '</div>';
+}
+
+async function retire(id){
+  var s = sheets.filter(function(x){ return x.id===id; })[0];
+  if(!s) return;
+  if(!confirm('Remove "' + (s.title||'this worksheet') + '" from the children\'s list?')) return;
+  try{
+    // .select() so a blocked update reports honestly instead of
+    // looking as though it worked
+    var res = await sb.from('lx_worksheets').update({ is_active:false }).eq('id', id).select();
+    if(res.error) throw res.error;
+    if(!res.data || !res.data.length)
+      throw new Error('Nothing changed — you may not have permission');
+    sheets = sheets.filter(function(x){ return x.id!==id; });
+    toast('Removed'); render();
+  }catch(e){ toast('Could not remove it: ' + e.message); }
+}
+
+load().catch(function(e){
+  document.getElementById('body').innerHTML =
+    '<div class="empty">Could not load: ' + esc(e.message) + '</div>';
+});
+</script>
+</body>
+</html>

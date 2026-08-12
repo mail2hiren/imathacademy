@@ -1156,9 +1156,8 @@ function showFsQuestion() {
      depends on users.age_group holding exactly that string — any other
      value and a child was left with a read-only box and no way to
      answer at all. Not worth risking on a string comparison. */
-  var mode = (typeof abacusModeFor === 'function') ? abacusModeFor(fsCurrentWsId) : null;
-  var cannotType = (typeof typingAllowed === 'function') ? !typingAllowed(mode) : false;
-  var showChoices = (group === 'tiny') || cannotType || (currentUser && (currentUser.current_level || 0) <= 1);
+  var lvl = (currentUser && currentUser.current_level != null) ? currentUser.current_level : 0;
+  var showChoices = (group === 'tiny') || (group === 'rising') || lvl <= 4;
 
   if (showChoices) {
     // The box still exists so the beads have somewhere to write to,

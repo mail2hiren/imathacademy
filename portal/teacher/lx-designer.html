@@ -1304,6 +1304,77 @@ function showAudit(bad, rules) {
   out.insertBefore(box, out.firstChild);
 }
 
+/* A red banner puts the problem on the teacher. It should not exist:
+   if a sum breaks the level's rules the generator should replace it,
+   not report it. Every sheet is swept before it is shown, and any
+   offending sum is rebuilt until it is legal. The banner stays only
+   as proof, and turns red only if a sum could not be rebuilt at all. */
+function sumIsLegal(rows, rules) {
+  if (!rows || rows.length < 2 || typeof Beads === 'undefined') return true;
+  var v = rows[0];
+  if (v > rules.maxNumber) return false;
+  for (var i = 1; i < rows.length; i++) {
+    var kinds = Beads.stepKinds(v, rows[i]);
+    for (var k = 0; k < kinds.length; k++) {
+      if (kinds[k] === 'small' && rules.formulas.indexOf('small') < 0) return false;
+      if (kinds[k] === 'big'   && rules.formulas.indexOf('big')   < 0) return false;
+    }
+    v += rows[i];
+    if (v > rules.maxNumber || v < 0) return false;
+  }
+  return true;
+}
+
+/** One fresh, legal column of the same shape. */
+function freshColumn(rules, rowCount, ceiling) {
+  var mode = rules.formulas.length ? rules.formulas[0] : 'direct';
+  var floor = mode === 'big' ? 20 : 9;
+  for (var t = 0; t < 60; t++) {
+    var s = ColumnGen.column({
+      max: Math.max(floor, ceiling || rules.maxNumber),
+      rows: rowCount || 3,
+      mode: mode,
+      require: mode === 'direct' ? 0 : 1,
+      allowZero: rules.allowZero
+    });
+    if (s && sumIsLegal(s.rows, rules)) return s;
+  }
+  return null;
+}
+
+/** Replace anything illegal. Returns how many could not be saved. */
+function healQuestions(questions, rules) {
+  var stuck = 0;
+  questions.forEach(function (q, i) {
+    if (!q.rows) return;
+    if (sumIsLegal(q.rows, rules)) return;
+    var repl = freshColumn(rules, q.rows.length, rules.maxNumber);
+    if (repl) {
+      q.rows     = repl.rows;
+      q.answer   = String(repl.answer);
+      q.question = PracticeEngine.columnText(repl);
+    } else stuck++;
+  });
+  return stuck;
+}
+
+/** Megha can swap any single sum she does not like. */
+async function regenerateOne(idx) {
+  try {
+    var list = generatedContent && generatedContent.parsedQuestions;
+    if (!list || !list[idx]) return;
+    var rules = await PracticeEngine.loadLevelRules(selectedLevel);
+    var old = list[idx];
+    var repl = freshColumn(rules, (old.rows && old.rows.length) || 3, rules.maxNumber);
+    if (!repl) { toast('Could not build another sum for this level', 'error'); return; }
+    old.rows     = repl.rows;
+    old.answer   = String(repl.answer);
+    old.question = PracticeEngine.columnText(repl);
+    renderOutTab();
+    toast('Sum ' + (idx + 1) + ' replaced', 'success');
+  } catch (e) { toast('Could not replace it: ' + e.message, 'error'); }
+}
+
 async function generateStoryProblems(count, level) {
   var rules = await PracticeEngine.loadLevelRules(level);
 
@@ -1482,6 +1553,13 @@ async function generateFromEngine() {
       hint:     q.type === 'column' ? 'Work down the column on your abacus' : ''
     };
   });
+
+  // Nothing illegal reaches the teacher: replace it here, quietly
+  try {
+    var lvlRules = await PracticeEngine.loadLevelRules(level);
+    var stuck = healQuestions(questions, lvlRules);
+    if (stuck) console.warn(stuck + ' sum(s) could not be rebuilt for this level');
+  } catch (e) { console.warn('Could not sweep the sums:', e.message); }
 
   var answerKey = questions.map(function (q, i) {
     return (i + 1) + '. ' + String(q.answer);
@@ -1843,6 +1921,10 @@ function renderOutTab(tab) {
 
         // Question text — preserve line breaks
         var qText = (q.question || '').replace(/\n/g, '<br>');
+        html += '<button onclick="regenerateOne(' + i + ')" title="Give me a different sum" ' +
+                'style="float:right;margin-left:8px;background:#fff;border:1.5px solid #E0E0E0;' +
+                'border-radius:8px;padding:4px 9px;font-family:inherit;font-size:.72rem;' +
+                'font-weight:800;color:#555;cursor:pointer;">\u21bb Replace</button>';
         html += '<div contenteditable data-qi="' + i + '" ' +
                 'style="font-size:.95rem;font-weight:700;line-height:1.7;color:#1A1A2E;' +
                 'outline:none;border-radius:6px;padding:2px 4px;cursor:text;">' + qText + '</div>';

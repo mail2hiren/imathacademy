@@ -72,14 +72,36 @@ var WordProblems = (function () {
    * @param sum.rows   e.g. [12, 8, -5] — two or three entries
    * @param sum.answer the total
    */
-  function dress(sum) {
+  /* The theme picker fed only the AI prompt. When every activity moved
+     to the engine nothing read it any more, so choosing a theme
+     silently did nothing. These are the same objects grouped by
+     setting, so a theme actually changes what a child reads. */
+  var THEMED = {
+    festival: ['laddoo','flower','balloon','rupee'],
+    market:   ['mango','rupee','book','pencil'],
+    school:   ['pencil','book','sticker','marble'],
+    nature:   ['flower','shell','mango'],
+    space:    ['marble','sticker','balloon'],
+    animals:  ['flower','shell','mango'],
+    sports:   ['marble','balloon','sticker','rupee'],
+    food:     ['mango','laddoo','rupee']
+  };
+
+  function thingsFor(theme) {
+    var keys = THEMED[String(theme || '').toLowerCase()];
+    if (!keys) return THINGS;
+    var picked = THINGS.filter(function (t) { return keys.indexOf(t.one) > -1; });
+    return picked.length ? picked : THINGS;
+  }
+
+  function dress(sum, theme) {
     var rows = sum.rows || [];
     if (rows.length < 2 || rows.length > 3) return null;   // stories need short sums
 
     var who   = pick(NAMES);
     var name  = who.n;
     var they  = who.they;
-    var thing = pick(THINGS);
+    var thing = pick(thingsFor(theme));
     var start = rows[0];
 
     var lines = [name + ' had ' + count(start, thing) + '.'];

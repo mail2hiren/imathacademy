@@ -1248,6 +1248,62 @@ async function loadCurriculumRulesForLevel() {
 
    Two or three numbers only. A five-row column makes a sentence no
    child can follow, let alone one having it read aloud. */
+/* Megha reported Level 0 sheets still containing the friend formulas.
+   Rather than argue about it, every generated sum is now walked
+   against the level's rules and the result is stated on screen. If a
+   sheet is clean it says so; if not it names the offending sums. */
+function auditGenerated(questions, rules) {
+  if (typeof Beads === 'undefined' || !rules) return null;
+  var bad = [];
+  questions.forEach(function (q, i) {
+    var rows = q.rows;
+    if (!rows) {
+      // recover the column from the printed text
+      var lines = String(q.question || '').split('\n')
+        .map(function (l) { return l.replace(/[^0-9+\-\u2212]/g, '').replace('\u2212', '-'); })
+        .filter(function (l) { return l !== ''; });
+      if (lines.length < 2) return;
+      rows = lines.map(function (l, k) { return k === 0 ? parseInt(l, 10) : parseInt(l, 10); });
+      if (rows.some(isNaN)) return;
+    }
+    var v = rows[0];
+    for (var j = 1; j < rows.length; j++) {
+      var kinds = Beads.stepKinds(v, rows[j]);
+      for (var k2 = 0; k2 < kinds.length; k2++) {
+        if (kinds[k2] === 'small' && rules.formulas.indexOf('small') < 0)
+          bad.push((i + 1) + ': needs Small Friends');
+        if (kinds[k2] === 'big' && rules.formulas.indexOf('big') < 0)
+          bad.push((i + 1) + ': needs Big Friends');
+      }
+      v += rows[j];
+      if (v > rules.maxNumber) bad.push((i + 1) + ': runs past ' + rules.maxNumber);
+    }
+  });
+  return bad;
+}
+
+function showAudit(bad, rules) {
+  var out = document.getElementById('outWorksheet') || document.getElementById('outputArea');
+  if (!out) return;
+  var box = document.createElement('div');
+  box.id = 'beadAudit';
+  var allowed = rules.formulas.length ? rules.formulas.join(' and ') + ' friends allowed'
+                                      : 'direct bead movement only';
+  if (!bad || !bad.length) {
+    box.style.cssText = 'background:#E8F5E9;border-left:4px solid #2E7D32;border-radius:10px;' +
+      'padding:11px 13px;margin:12px 0;font-size:.82rem;font-weight:800;color:#1B5E20;';
+    box.textContent = '\u2713 Every sum checked against the beads — ' + allowed;
+  } else {
+    box.style.cssText = 'background:#FFEBEE;border-left:4px solid #C62828;border-radius:10px;' +
+      'padding:11px 13px;margin:12px 0;font-size:.82rem;font-weight:800;color:#B71C1C;';
+    box.innerHTML = '\u26A0 ' + bad.length + ' sum(s) break this level\'s rules (' + allowed + ')<br>' +
+      '<span style="font-weight:600;">' + bad.slice(0, 6).join(' \u00b7 ') + '</span>';
+  }
+  var old = document.getElementById('beadAudit');
+  if (old) old.remove();
+  out.insertBefore(box, out.firstChild);
+}
+
 async function generateStoryProblems(count, level) {
   var rules = await PracticeEngine.loadLevelRules(level);
 
@@ -1299,7 +1355,7 @@ async function generateStoryProblems(count, level) {
     if (seen[sum.answer] && out.length < count - 2) continue;   // vary the answers
     seen[sum.answer] = true;
 
-    var w = WordProblems.dress(sum);
+    var w = WordProblems.dress(sum, (document.getElementById('theme') || {}).value);
     if (!w) continue;
     out.push({
       type:     'story',
@@ -1465,6 +1521,10 @@ async function generateFromEngine() {
     throw new Error('The worksheet could not be assembled — please try again');
   }
   parseAndRender(text);
+  try {
+    var rr2 = await PracticeEngine.loadLevelRules(level);
+    showAudit(auditGenerated(questions, rr2), rr2);
+  } catch (e) {}
     // The teacher assigns it, not the app. Generating a worksheet
     // and quietly sending it to a batch would take that choice away.
     showEl('assignBtn');

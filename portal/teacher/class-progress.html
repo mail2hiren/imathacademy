@@ -319,6 +319,12 @@ function extractArray(text){
   return null;
 }
 
+function jumpToQ(i){
+  var el = document.querySelectorAll('#body .card')[0];
+  var all = document.querySelectorAll('[data-qrow]');
+  if (all[i]) all[i].scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
 function renderMarks(ws, qs, rows, names){
   var head = '<button class="tab" onclick="show(\'worksheets\')" ' +
     'style="margin-bottom:12px;">&larr; Back</button>' +
@@ -346,7 +352,7 @@ function renderMarks(ws, qs, rows, names){
       var ok   = done && want != null && normalise(mine) === normalise(want);
       if(done){ tried[i]++; if(!ok) missed[i]++; }
 
-      cells += '<div title="Q' + (i+1) + (done ? ': answered ' + esc(mine) : ': not attempted') +
+      cells += '<div onclick="jumpToQ(' + i + ')" style="cursor:pointer;" title="Q' + (i+1) + (done ? ': answered ' + esc(mine) : ': not attempted') +
         (want != null ? ', correct ' + esc(want) : '') + '" ' +
         'style="width:30px;height:30px;border-radius:7px;display:flex;align-items:center;' +
         'justify-content:center;font-size:.68rem;font-weight:900;' +
@@ -367,25 +373,80 @@ function renderMarks(ws, qs, rows, names){
     '</div>';
   }).join('');
 
-  // the questions the class as a whole found hard
+  /* A tooltip was the wrong place for this. It needs a steady mouse,
+     does nothing on a touchscreen, and cannot show a column sum that
+     runs over four lines. The questions belong on the page, with the
+     sum written out and who got it wrong named underneath. */
+  var byQ = '';
+  if (qs.length) {
+    byQ = '<div class="card"><div class="name" style="margin-bottom:4px;">Question by question</div>' +
+      '<div class="sub" style="margin-bottom:10px;">The sum as the child saw it, and who missed it.</div>';
+
+    for (var qi = 0; qi < n; qi++) {
+      var q = qs[qi] || {};
+      var wrongOnes = [], blankOnes = [];
+      rows.forEach(function (r2) {
+        var g = {};
+        try { g = JSON.parse(r2.answers || '{}'); } catch (e) {}
+        var mine = g[qi];
+        var nm = names[r2.student_id] || 'Student';
+        if (mine === undefined || mine === null || String(mine) === '') { blankOnes.push(nm); return; }
+        if (q.answer != null && normalise(mine) !== normalise(q.answer))
+          wrongOnes.push(nm + ' said ' + esc(mine));
+      });
+
+      var total = rows.length;
+      var gotIt = total - wrongOnes.length - blankOnes.length;
+      var classHard = total >= 2 && (wrongOnes.length + blankOnes.length) / total >= 0.5;
+
+      byQ += '<div data-qrow="' + qi + '" style="border-top:1px solid var(--border);padding:12px 0;' +
+        (classHard ? 'background:#FFF8ED;margin:0 -15px;padding-left:15px;padding-right:15px;' : '') + '">' +
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="font-size:.7rem;font-weight:900;color:var(--text3);">Q' + (qi + 1) +
+              (classHard ? ' &middot; most of the class missed this' : '') + '</div>' +
+            '<div style="white-space:pre-line;font-weight:900;font-size:1rem;line-height:1.4;' +
+              'margin:4px 0 2px;font-variant-numeric:tabular-nums;">' +
+              esc(String(q.question || '')) + '</div>' +
+            '<div style="font-size:.76rem;color:var(--green);font-weight:800;">Answer: ' +
+              esc(String(q.answer == null ? '—' : q.answer)) + '</div>' +
+          '</div>' +
+          '<div style="text-align:right;flex-shrink:0;">' +
+            '<div style="font-size:1.1rem;font-weight:900;color:' +
+              (classHard ? 'var(--red)' : 'var(--green)') + ';">' + gotIt + '/' + total + '</div>' +
+            '<div style="font-size:.63rem;font-weight:800;color:var(--text3);' +
+              'text-transform:uppercase;">got it</div>' +
+          '</div>' +
+        '</div>' +
+        (wrongOnes.length
+          ? '<div style="font-size:.76rem;color:var(--red);margin-top:7px;line-height:1.6;">' +
+            wrongOnes.join(' &middot; ') + '</div>' : '') +
+        (blankOnes.length
+          ? '<div style="font-size:.74rem;color:var(--text3);margin-top:4px;">' +
+            'Not attempted: ' + blankOnes.join(', ') + '</div>' : '') +
+      '</div>';
+    }
+    byQ += '</div>';
+  } else {
+    byQ = '<div class="card"><div class="sub">The questions could not be read back for this ' +
+          'worksheet, so only the marks are shown. It was probably made before the current ' +
+          'generator.</div></div>';
+  }
+
+  // what to reteach, said plainly
   var hard = [];
   for(var i = 0; i < n; i++){
-    if(tried[i] >= 2 && missed[i] / tried[i] >= 0.5){
-      hard.push('Q' + (i+1) + ' (' + missed[i] + ' of ' + tried[i] + ')' +
-        (qs[i] ? ' — ' + esc(String(qs[i].question).replace(/\n/g, ' ')).slice(0,40) : ''));
-    }
+    if(tried[i] >= 2 && missed[i] / tried[i] >= 0.5) hard.push('Q' + (i+1));
   }
   var note = hard.length
     ? '<div class="card" style="background:#FFF4E5;border-color:#FFCC80;">' +
-      '<div style="font-size:.85rem;font-weight:900;color:var(--amber);margin-bottom:5px;">' +
-      'Most of the class struggled with these</div>' +
-      '<div style="font-size:.79rem;color:var(--amber);line-height:1.6;">' +
-      hard.join('<br>') + '</div>' +
-      '<div style="font-size:.74rem;color:var(--text3);margin-top:8px;">' +
-      'Worth going over at the board rather than child by child.</div></div>'
+      '<div style="font-size:.85rem;font-weight:900;color:var(--amber);">' +
+      'Most of the class struggled with ' + hard.join(', ') + '</div>' +
+      '<div style="font-size:.76rem;color:var(--text3);margin-top:6px;">' +
+      'Those sums are marked below. Worth going over at the board rather than child by child.</div></div>'
     : '';
 
-  return head + note + body;
+  return head + note + byQ + body;
 }
 
 async function retire(id){

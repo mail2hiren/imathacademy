@@ -1230,6 +1230,28 @@ function showFsQuestion() {
   wrap.appendChild(inputWrap);
   wrap.appendChild(actions);
 
+  /* Coming back to a question that has been answered shows what was
+     given and leaves it alone — it cannot be answered twice. */
+  var prior = responses[fsCurrentWsId] && responses[fsCurrentWsId].answers[fsCurrentQIdx];
+  if (prior !== undefined) {
+    input.value = prior;
+    input.readOnly = true;
+    var wasRight = responses[fsCurrentWsId].correct[fsCurrentQIdx];
+    input.classList.add(wasRight ? 'correct' : 'wrong');
+    setTimeout(function () {
+      fsMarkChoices(cleanAnswer(String(q.answer || '')), wasRight);
+      document.querySelectorAll('.fs-choice').forEach(function (x) { x.style.pointerEvents = 'none'; });
+      var cb2 = document.querySelector('.fs-actions .fs-btn');
+      if (cb2) { cb2.disabled = true; cb2.style.opacity = '.5'; }
+      var fb = document.getElementById('fsFeedback');
+      if (fb) {
+        fb.className = 'fs-feedback ' + (wasRight ? 'correct' : 'wrong');
+        fb.textContent = wasRight ? 'You got this one right'
+                                  : 'You said ' + prior + ' — the answer was ' + cleanAnswer(String(q.answer || ''));
+      }
+    }, 0);
+  }
+
   if (fsCurrentQIdx > 0) {
     var prevBtn = document.createElement('button');
     prevBtn.className = 'fs-btn-skip';
@@ -1289,28 +1311,50 @@ function fsTryAnswer() {
      Math.abs(parseFloat(given) - parseFloat(expected)) < 0.001)
   );
 
-  // Colour the choices, so a child who cannot read the feedback line
-  // still sees what happened
+  if (!responses[fsCurrentWsId]) responses[fsCurrentWsId] = {answers:{},correct:{},currentQ:0};
+  var store = responses[fsCurrentWsId];
+
+  /* A wrong answer used to say "try again", and each attempt
+     overwrote the last — so whatever was saved was always the answer
+     the child eventually got right. Every worksheet came back at
+     100% and told the teacher nothing.
+
+     The first answer is the answer. It is recorded once and cannot
+     be changed, which is what makes the marks mean something. */
+  if (store.answers[fsCurrentQIdx] !== undefined) {
+    feedback.className = 'fs-feedback';
+    feedback.textContent = 'You have already answered this one.';
+    return;
+  }
+
   fsMarkChoices(expected, isCorrect);
 
-  if (!responses[fsCurrentWsId]) responses[fsCurrentWsId] = {answers:{},correct:{},currentQ:0};
-  responses[fsCurrentWsId].answers[fsCurrentQIdx] = val;
-  responses[fsCurrentWsId].correct[fsCurrentQIdx] = isCorrect;
-  responses[fsCurrentWsId].currentQ = fsCurrentQIdx;
+  store.answers[fsCurrentQIdx] = val;
+  store.correct[fsCurrentQIdx] = isCorrect;
+  store.currentQ = fsCurrentQIdx;
 
   input.classList.add(isCorrect ? 'correct' : 'wrong');
+  input.readOnly = true;
+  var cb = document.querySelector('.fs-actions .fs-btn');
+  if (cb) { cb.disabled = true; cb.style.opacity = '.5'; }
+  document.querySelectorAll('.fs-choice').forEach(function (x) {
+    x.style.pointerEvents = 'none';
+  });
 
   if (isCorrect) {
     feedback.className = 'fs-feedback correct';
     var cheers = ['Correct!','Brilliant!','Amazing!','Perfect!','Excellent!'];
     feedback.textContent = cheers[Math.floor(Math.random()*cheers.length)];
     input.classList.add('celebrate');
-    setTimeout(function(){ fsNav(1); }, 800);
+    setTimeout(function(){ fsNav(1); }, 900);
   } else {
+    // Say what it should have been. A child who is only told "wrong"
+    // learns nothing from it.
     feedback.className = 'fs-feedback wrong';
-    feedback.textContent = 'Not quite — try again!';
+    feedback.textContent = 'The answer was ' + expected;
     input.classList.add('shake');
-    setTimeout(function(){
+    setTimeout(function(){ fsNav(1); }, 1800);
+    var _unused = setTimeout(function(){
       input.classList.remove('shake','wrong');
       feedback.textContent = '';
       feedback.className = 'fs-feedback';

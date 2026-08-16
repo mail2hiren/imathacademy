@@ -463,9 +463,30 @@
         <label class="output-opt"><input type="checkbox" id="out-parentnote"> Parent summary note</label>
         <label class="output-opt"><input type="checkbox" id="out-flashcards"> Vocabulary flash cards</label>
       </div>
+      <!-- Free text needed something that reads English. The engine
+           reads numbers and rules, so a typed instruction was quietly
+           ignored. These are the same intentions, in a form it can
+           actually honour. -->
       <div class="form-group">
-        <label class="form-label">Special instructions (optional)</label>
-        <textarea id="specialInstructions" placeholder="e.g. Avoid numbers above 50. Use Indian names. Keep it fun for shy students."></textarea>
+        <label class="form-label">Restrict this sheet (optional)</label>
+        <div class="output-opts">
+          <label class="output-opt"><input type="checkbox" id="con-addonly"> Addition only</label>
+          <label class="output-opt"><input type="checkbox" id="con-subonly"> Subtraction only</label>
+          <label class="output-opt"><input type="checkbox" id="con-nozero"> Never land on zero</label>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;margin-top:9px;">
+          <label class="form-label" style="margin:0;white-space:nowrap;">Keep totals under</label>
+          <input id="con-ceiling" type="number" min="5" max="9999" placeholder="level limit"
+                 style="width:120px;padding:8px 10px;border:1.5px solid var(--border);
+                        border-radius:8px;font-family:inherit;font-size:.86rem;">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Hand in by (optional)</label>
+        <input id="dueDate" type="date"
+               style="width:100%;padding:9px 11px;border:1.5px solid var(--border);
+                      border-radius:8px;font-family:inherit;font-size:.86rem;">
       </div>
     </div>
 
@@ -1309,6 +1330,65 @@ function showAudit(bad, rules) {
    not report it. Every sheet is swept before it is shown, and any
    offending sum is rebuilt until it is legal. The banner stays only
    as proof, and turns red only if a sum could not be rebuilt at all. */
+/* Everything the teacher chose, in a form the generator can use.
+   Half of this form used to feed only the AI prompt; once every
+   activity moved to the engine, nothing read it. */
+function teacherOptions() {
+  function on(id){ var e = document.getElementById(id); return !!(e && e.checked); }
+  function val(id){ var e = document.getElementById(id); return e ? e.value : ''; }
+  var ceil = parseInt(val('con-ceiling'), 10);
+  return {
+    addOnly:  on('con-addonly'),
+    subOnly:  on('con-subonly'),
+    noZero:   on('con-nozero'),
+    ceiling:  isNaN(ceil) ? null : ceil,
+    theme:    val('theme'),
+    difficulty: (val('difficulty') || 'medium').toLowerCase(),
+    dueDate:  val('dueDate') || null,
+    timeLimit: val('timeLimit') === 'none' ? null : (parseInt(val('timeLimit'), 10) || null),
+    abacusMode: val('abacusMode') || 'default',
+    want: {
+      worksheet:  on('out-worksheet'),
+      answerkey:  on('out-answerkey'),
+      hints:      on('out-hints'),
+      lessonplan: on('out-lessonplan'),
+      parentnote: on('out-parentnote')
+    }
+  };
+}
+
+/* Megha's Easy / Medium / Hard live in curriculum_difficulty_rules,
+   which the engine never read. Where she has set them they win; where
+   she has not, the level's own range is used. */
+function applyDifficulty(rules, opts) {
+  var out = { max: rules.maxNumber, minRows: 3, maxRows: 5 };
+  try {
+    var curr = CURRICULUM[selectedLevel];
+    var dr = curr && curr.diffRules && curr.diffRules[opts.difficulty];
+    if (dr) {
+      if (dr.max_number != null) out.max = dr.max_number;
+      if (dr.min_rows   != null) out.minRows = dr.min_rows;
+      if (dr.max_rows   != null) out.maxRows = dr.max_rows;
+    }
+  } catch (e) {}
+  if (opts.ceiling) out.max = Math.min(out.max, opts.ceiling);
+  return out;
+}
+
+/* Addition only, subtraction only, never land on zero. */
+function obeysConstraints(sum, opts) {
+  if (!sum || !sum.rows) return true;
+  for (var i = 1; i < sum.rows.length; i++) {
+    if (opts.addOnly && sum.rows[i] < 0) return false;
+    if (opts.subOnly && sum.rows[i] > 0) return false;
+  }
+  if (opts.noZero) {
+    var v = sum.rows[0];
+    for (var j = 1; j < sum.rows.length; j++) { v += sum.rows[j]; if (v === 0) return false; }
+  }
+  return true;
+}
+
 function sumIsLegal(rows, rules) {
   if (!rows || rows.length < 2 || typeof Beads === 'undefined') return true;
   var v = rows[0];
@@ -1578,6 +1658,22 @@ async function generateFromEngine() {
   // Nothing illegal reaches the teacher: replace it here, quietly
   try {
     var lvlRules = await PracticeEngine.loadLevelRules(level);
+    var tOpts = teacherOptions();
+
+    // Anything breaking what she asked for is rebuilt until it obeys
+    var band = applyDifficulty(lvlRules, tOpts);
+    questions.forEach(function (q) {
+      if (obeysConstraints(q, tOpts)) return;
+      for (var t = 0; t < 50; t++) {
+        var repl = freshColumn(lvlRules, (q.rows && q.rows.length) || 3, band.max);
+        if (repl && obeysConstraints(repl, tOpts)) {
+          q.rows = repl.rows; q.answer = String(repl.answer);
+          q.question = PracticeEngine.columnText(repl);
+          return;
+        }
+      }
+    });
+
     var stuck = healQuestions(questions, lvlRules);
     if (stuck) console.warn(stuck + ' sum(s) could not be rebuilt for this level');
   } catch (e) { console.warn('Could not sweep the sums:', e.message); }

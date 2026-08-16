@@ -851,7 +851,7 @@ async function submitWorksheet(wsId, qs){
 
     // Notify the teacher who assigned this worksheet
     try {
-      const { data: wsData } = await sb.from('lx_worksheets').select('created_by, title').eq('id',wsId).single();
+      const { data: wsData } = await sb.from('lx_worksheets').select('created_by, title,due_date,time_limit_mins').eq('id',wsId).single();
       if (wsData?.created_by) {
         await sb.from('notifications').insert({
           user_id: wsData.created_by,
@@ -1044,6 +1044,28 @@ function openFullScreen(wsId) {
   fsCurrentQIdx = responses[wsId].currentQ || 0;
 
   document.getElementById('fsTitle').textContent = worksheet.title || 'Worksheet';
+  // A deadline and a time limit are the teacher's choice, so they are
+  // shown but nothing is locked or cut off — a child mid-sum should
+  // never lose their work to a clock.
+  try {
+    var wsRow = worksheets.filter(function (x) { return x.id === fsCurrentWsId; })[0];
+    var note = document.getElementById('fsDue') || (function () {
+      var el = document.createElement('div');
+      el.id = 'fsDue';
+      el.style.cssText = 'font-size:.72rem;font-weight:800;color:var(--text3);margin-top:2px;';
+      document.getElementById('fsTitle').parentNode.appendChild(el);
+      return el;
+    })();
+    var bits = [];
+    if (wsRow && wsRow.due_date) {
+      var days = Math.round((new Date(wsRow.due_date) - new Date().setHours(0,0,0,0)) / 86400000);
+      bits.push(days < 0 ? 'Was due ' + Math.abs(days) + ' day(s) ago'
+              : days === 0 ? 'Due today'
+              : 'Due in ' + days + ' day' + (days === 1 ? '' : 's'));
+    }
+    if (wsRow && wsRow.time_limit_mins) bits.push('About ' + wsRow.time_limit_mins + ' minutes');
+    note.textContent = bits.join(' · ');
+  } catch (e) {}
   document.getElementById('fsSolver').classList.add('show');
 
   if (getStatus(worksheet) === 'done') {

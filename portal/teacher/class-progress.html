@@ -43,6 +43,9 @@
   .ws-main{flex:1;min-width:0;}
   .ws-t{font-size:.86rem;font-weight:800;}
   .ws-s{font-size:.72rem;color:var(--text3);margin-top:1px;}
+  .btn-mark{padding:7px 12px;border:1.5px solid #BBDEFB;border-radius:9px;background:#F2F8FF;
+         font-family:inherit;font-size:.75rem;font-weight:800;color:#1565C0;cursor:pointer;
+         flex-shrink:0;margin-right:6px;}
   .btn-x{padding:7px 12px;border:1.5px solid #FFCDD2;border-radius:9px;background:#FFF5F5;
          font-family:inherit;font-size:.75rem;font-weight:800;color:var(--red);cursor:pointer;flex-shrink:0;}
   .empty{text-align:center;padding:36px 16px;color:var(--text3);font-size:.86rem;}
@@ -250,9 +253,139 @@ function renderWorksheets(){
             (s.student_id ? esc(byId[s.student_id] || 'one child') : 'whole batch') +
             ' · ' + dmy(s.created_at) + '</div>' +
         '</div>' +
+        '<button class="btn-mark" onclick="openMarks(\'' + s.id + '\')">Marks</button>' +
         '<button class="btn-x" onclick="retire(\'' + s.id + '\')">Remove</button>' +
       '</div>';
     }).join('') + '</div>';
+}
+
+
+/* ── WHICH SUMS WENT WRONG ────────────────────────────────────
+   A score tells a teacher a child struggled. It does not tell her
+   with what. The answers each child gave were already being stored,
+   question by question — nothing ever read them back.
+
+   This lays them out: every child down the side, every question
+   across, right in green and wrong in red with what they actually
+   answered. A column that is red for most of the class is a teaching
+   point, not a child problem, and that is the thing worth seeing.
+   ─────────────────────────────────────────────────────────── */
+function normalise(v){
+  return String(v == null ? '' : v).trim().replace(/[^0-9.\-]/g, '');
+}
+
+async function openMarks(wsId){
+  var el = document.getElementById('body');
+  el.innerHTML = '<div class="empty">Loading marks…</div>';
+  try{
+    var ws = await sb.from('lx_worksheets')
+      .select('id,title,level,activity,content,answer_key').eq('id', wsId).single();
+    if(ws.error) throw ws.error;
+
+    var qs = [];
+    try{
+      var m = extractArray(String(ws.data.content || ''));
+      if(m) qs = JSON.parse(m);
+    }catch(e){ qs = []; }
+
+    var rs = await sb.from('worksheet_responses')
+      .select('student_id, answers, score, total, submitted_at').eq('worksheet_id', wsId);
+    var rows = rs.data || [];
+
+    var names = {};
+    kids.forEach(function(k){ names[k.id] = k.full_name; });
+
+    el.innerHTML = renderMarks(ws.data, qs, rows, names);
+  }catch(e){
+    el.innerHTML = '<div class="empty">Could not load marks: ' + esc(e.message) + '</div>';
+  }
+}
+
+/* Same bracket-counting reader the student page uses, so nested
+   content in a question does not truncate the list. */
+function extractArray(text){
+  var s = text.indexOf('[');
+  if(s < 0) return null;
+  var depth = 0, inStr = false, esc2 = false;
+  for(var i = s; i < text.length; i++){
+    var ch = text[i];
+    if(esc2){ esc2 = false; continue; }
+    if(ch === '\\'){ esc2 = true; continue; }
+    if(ch === '"'){ inStr = !inStr; continue; }
+    if(inStr) continue;
+    if(ch === '[' || ch === '{') depth++;
+    else if(ch === ']' || ch === '}'){ depth--; if(depth === 0) return text.slice(s, i+1); }
+  }
+  return null;
+}
+
+function renderMarks(ws, qs, rows, names){
+  var head = '<button class="tab" onclick="show(\'worksheets\')" ' +
+    'style="margin-bottom:12px;">&larr; Back</button>' +
+    '<div class="card"><div class="name">' + esc(ws.title || 'Worksheet') + '</div>' +
+    '<div class="sub">Level ' + ws.level + ' · ' + esc(ws.activity || '') + ' · ' +
+    rows.length + ' submitted</div></div>';
+
+  if(!rows.length)
+    return head + '<div class="empty">Nobody has submitted this yet.</div>';
+
+  var n = qs.length || 10;
+
+  // how often each question was missed, across the class
+  var missed = new Array(n).fill(0), tried = new Array(n).fill(0);
+
+  var body = rows.map(function(r){
+    var given = {};
+    try{ given = JSON.parse(r.answers || '{}'); }catch(e){}
+
+    var cells = '';
+    for(var i = 0; i < n; i++){
+      var mine = given[i];
+      var want = qs[i] ? qs[i].answer : null;
+      var done = mine !== undefined && mine !== null && String(mine) !== '';
+      var ok   = done && want != null && normalise(mine) === normalise(want);
+      if(done){ tried[i]++; if(!ok) missed[i]++; }
+
+      cells += '<div title="Q' + (i+1) + (done ? ': answered ' + esc(mine) : ': not attempted') +
+        (want != null ? ', correct ' + esc(want) : '') + '" ' +
+        'style="width:30px;height:30px;border-radius:7px;display:flex;align-items:center;' +
+        'justify-content:center;font-size:.68rem;font-weight:900;' +
+        (!done ? 'background:#EEF1F7;color:#A8B0BF;'
+               : ok ? 'background:#E8F5E9;color:#1B5E20;'
+                    : 'background:#FFEBEE;color:#B71C1C;') + '">' +
+        (!done ? '·' : ok ? '\u2713' : esc(mine).slice(0,3)) + '</div>';
+    }
+
+    var pct = r.total ? Math.round(r.score / r.total * 100) : 0;
+    return '<div class="card">' +
+      '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">' +
+        '<div class="name">' + esc(names[r.student_id] || 'Student') + '</div>' +
+        '<div class="sub" style="font-weight:900;color:' +
+          (pct >= 80 ? 'var(--green)' : pct >= 60 ? 'var(--amber)' : 'var(--red)') + '">' +
+          pct + '%</div></div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;">' + cells + '</div>' +
+    '</div>';
+  }).join('');
+
+  // the questions the class as a whole found hard
+  var hard = [];
+  for(var i = 0; i < n; i++){
+    if(tried[i] >= 2 && missed[i] / tried[i] >= 0.5){
+      hard.push('Q' + (i+1) + ' (' + missed[i] + ' of ' + tried[i] + ')' +
+        (qs[i] ? ' — ' + esc(String(qs[i].question).replace(/\n/g, ' ')).slice(0,40) : ''));
+    }
+  }
+  var note = hard.length
+    ? '<div class="card" style="background:#FFF4E5;border-color:#FFCC80;">' +
+      '<div style="font-size:.85rem;font-weight:900;color:var(--amber);margin-bottom:5px;">' +
+      'Most of the class struggled with these</div>' +
+      '<div style="font-size:.79rem;color:var(--amber);line-height:1.6;">' +
+      hard.join('<br>') + '</div>' +
+      '<div style="font-size:.74rem;color:var(--text3);margin-top:8px;">' +
+      'Worth going over at the board rather than child by child.</div></div>'
+    : '';
+
+  return head + note + body;
 }
 
 async function retire(id){

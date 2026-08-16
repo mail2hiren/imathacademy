@@ -1605,9 +1605,9 @@ async function generateFromEngine() {
 
     var storyKey = stories.map(function (q, i) { return (i + 1) + '. ' + q.answer; }).join('\n');
     var lvName = (resolvedRules && resolvedRules.level_name) || ('Level ' + level);
-    var storyText =
-      '## QUESTIONS\n' + JSON.stringify(stories, null, 2) +
-      '\n\n## ANSWER KEY\n' + storyKey +
+    var wantS = teacherOptions().want;
+    var storyText = '## QUESTIONS\n' + JSON.stringify(stories, null, 2) +
+      (wantS.answerkey ? '\n\n## ANSWER KEY\n' + storyKey : '') +
       '\n\n## LESSON PLAN\n' +
       'Level ' + level + ' — ' + lvName + '\n\n' +
       'These are the same sums as the column work, in words.\n\n' +
@@ -1706,11 +1706,13 @@ async function generateFromEngine() {
     'A good question to ask tonight: "Show me how you worked out number 3 on your abacus." ' +
     'Watching them do it matters more than whether the answer was right.';
 
-  var text =
-    '## QUESTIONS\n' + JSON.stringify(questions, null, 2) +
-    '\n\n## ANSWER KEY\n' + answerKey +
-    '\n\n## LESSON PLAN\n' + lesson +
-    '\n\n## PARENT NOTE\n' + parentNote;
+  /* The output tickboxes were never read, so all six sections were
+     always produced whatever she chose. */
+  var want = teacherOptions().want;
+  var text = '## QUESTIONS\n' + JSON.stringify(questions, null, 2);
+  if (want.answerkey)  text += '\n\n## ANSWER KEY\n' + answerKey;
+  if (want.lessonplan) text += '\n\n## LESSON PLAN\n' + lesson;
+  if (want.parentnote) text += '\n\n## PARENT NOTE\n' + parentNote;
 
   if (typeof text !== 'string') {
     throw new Error('The worksheet could not be assembled — please try again');
@@ -2282,6 +2284,7 @@ async function assignToStudents() {
 
     // One copy each, so every child keeps their own score and history
     if (many.length) {
+      var tOpt = teacherOptions();
       var rows = many.map(function (kid) {
         return {
           title:       'Level ' + selectedLevel + ' — ' + kid.name + ' — ' +
@@ -2293,7 +2296,15 @@ async function assignToStudents() {
           level:       selectedLevel,
           concept:     selectedConcept,
           activity:    selectedActivity,
-          abacus_mode: (document.getElementById('abacusMode') || {}).value || 'default',
+          abacus_mode: tOpt.abacusMode,
+          due_date:        tOpt.dueDate,
+          time_limit_mins: tOpt.timeLimit,
+          theme:           tOpt.theme || null,
+          difficulty:      tOpt.difficulty,
+          constraints:     JSON.stringify({
+            addOnly: tOpt.addOnly, subOnly: tOpt.subOnly,
+            noZero: tOpt.noZero, ceiling: tOpt.ceiling
+          }),
           batch_id:    null,
           student_id:  kid.id,
           created_by:  session.user.id,

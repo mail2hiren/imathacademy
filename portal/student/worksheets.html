@@ -826,6 +826,66 @@ function prevQ(wsId){
   solver.classList.add('open');
 }
 
+
+/* Once a worksheet is handed in a child should see how it went —
+   which ones they got and what the right answer was on the rest.
+   Before this they saw a score and nothing else, which teaches
+   nobody anything. */
+function showWorksheetResults(wsId){
+  var r = responses[wsId];
+  if(!r) return;
+  var qs = fsQuestions || [];
+  var right = 0, total = qs.length || Object.keys(r.answers).length;
+
+  var rowsHtml = qs.map(function(q, i){
+    var mine = r.answers[i];
+    var ok   = r.correct[i];
+    if(ok) right++;
+    var want = cleanAnswer(String(q.answer || ''));
+    var done = mine !== undefined && mine !== null && String(mine) !== '';
+
+    return '<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;' +
+             'border-bottom:1px solid var(--border);">' +
+      '<div style="width:34px;height:34px;border-radius:10px;flex-shrink:0;display:flex;' +
+        'align-items:center;justify-content:center;font-weight:900;font-size:.95rem;' +
+        (!done ? 'background:#EEF1F7;color:#A8B0BF;' :
+          ok ? 'background:#E8F5E9;color:#1B5E20;' : 'background:#FFEBEE;color:#B71C1C;') + '">' +
+        (!done ? '\u00b7' : ok ? '\u2713' : '\u2717') + '</div>' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="white-space:pre-line;font-weight:900;font-variant-numeric:tabular-nums;' +
+          'line-height:1.35;font-size:.98rem;">' + String(q.question || '') + '</div>' +
+        '<div style="font-size:.8rem;margin-top:4px;color:' +
+          (ok ? 'var(--green)' : 'var(--text2)') + ';">' +
+          (!done ? 'You did not answer this one. The answer was ' + want
+                 : ok ? 'You said ' + mine
+                      : 'You said ' + mine + ' \u00b7 the answer was ' + want) +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  var pct = total ? Math.round(right / total * 100) : 0;
+  var word = pct >= 90 ? 'Brilliant work' : pct >= 70 ? 'Well done'
+           : pct >= 50 ? 'Good effort' : 'Keep going';
+
+  var body = document.getElementById('fsBody');
+  if(!body) return;
+  body.innerHTML =
+    '<div style="max-width:620px;margin:0 auto;padding:8px 4px 30px;">' +
+      '<div style="text-align:center;padding:18px 0 10px;">' +
+        '<div style="font-size:2.6rem;font-weight:900;color:' +
+          (pct >= 70 ? 'var(--green)' : pct >= 50 ? '#E65100' : 'var(--red)') + ';">' +
+          right + ' / ' + total + '</div>' +
+        '<div style="font-size:1.05rem;font-weight:900;margin-top:2px;">' + word + '</div>' +
+        '<div style="font-size:.8rem;color:var(--text3);margin-top:4px;">' +
+          'Your teacher can see this too</div>' +
+      '</div>' +
+      '<div style="background:#fff;border:1.5px solid var(--border);border-radius:16px;' +
+        'padding:4px 16px;margin-top:14px;">' + rowsHtml + '</div>' +
+      '<button class="fs-btn" style="margin-top:18px;width:100%;" onclick="closeFs()">Done</button>' +
+    '</div>';
+}
+
 async function submitWorksheet(wsId, qs){
   const r=responses[wsId]||{};
   const score=Object.values(r.correct||{}).filter(Boolean).length;
@@ -834,6 +894,8 @@ async function submitWorksheet(wsId, qs){
   const xp=Math.max(5,Math.round(pct/100*25));
 
   responses[wsId]={...r, submitted:true, score, pct, xp};
+  // Show the child what they actually got, question by question
+  try { showWorksheetResults(wsId); } catch (e) {}
 
   try{
     const{data:{session}}=await sb.auth.getSession();

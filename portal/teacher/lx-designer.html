@@ -502,7 +502,8 @@
       <div class="output-header">
         <div class="output-title" id="outputTitle">Generated worksheet</div>
         <div class="output-actions" style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="out-btn" onclick="assignToStudents()" id="assignBtn" style="display:none;background:var(--green,#43A047);color:#fff;border-color:#1B5E20;font-weight:800;">📤 Assign to students</button>
+          <button onclick="previewAsChild()" style="width:100%;padding:12px;margin-bottom:9px;border:1.5px solid var(--border);border-radius:11px;background:#fff;font-family:inherit;font-size:.88rem;font-weight:800;color:var(--text2);cursor:pointer;">👀 See it as the child will</button>
+        <button class="out-btn" onclick="assignToStudents()" id="assignBtn" style="display:none;background:var(--green,#43A047);color:#fff;border-color:#1B5E20;font-weight:800;">📤 Assign to students</button>
           <button class="out-btn" onclick="copyOutput()" id="copyBtn" style="display:none;">📋 Copy</button>
         </div>
       </div>
@@ -2299,6 +2300,97 @@ async function contentForChild(studentId, level, baseQuestions) {
     console.warn('Could not pitch for this child:', e.message);
     return null;
   }
+}
+
+/* Megha asked to see the cards before assigning. The preview tab
+   shows the worksheet as a teacher's list; this shows one question
+   at a time the way a child meets it — same sum, same abacus label,
+   same choices for the younger groups. */
+function previewAsChild() {
+  var qs = generatedContent && generatedContent.parsedQuestions;
+  if (!qs || !qs.length) { toast('Generate a worksheet first', 'error'); return; }
+
+  var i = 0;
+  var ov = document.createElement('div');
+  ov.id = 'childPreview';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(20,24,40,.55);z-index:9999;' +
+                     'display:flex;align-items:center;justify-content:center;padding:18px;';
+
+  function choicesFor(ans) {
+    var a = parseInt(String(ans).replace(/[^0-9-]/g, ''), 10);
+    if (isNaN(a)) return null;
+    var out = [a], seen = {}; seen[a] = 1;
+    [a+1, a-1, a+10, a-10, a+2].forEach(function (v) {
+      if (v >= 0 && !seen[v] && out.length < 4) { seen[v] = 1; out.push(v); }
+    });
+    return out.sort(function () { return Math.random() - 0.5; });
+  }
+
+  function draw() {
+    var q = qs[i];
+    var young = selectedLevel <= 4;
+    var opts = young ? choicesFor(q.answer) : null;
+
+    ov.innerHTML =
+      '<div style="background:#F5F7FC;border-radius:20px;max-width:860px;width:100%;' +
+        'max-height:92vh;overflow:auto;padding:20px;">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">' +
+          '<div style="font-size:.78rem;font-weight:900;color:#8892A4;">' +
+            'As the child sees it &middot; ' + (i+1) + ' of ' + qs.length + '</div>' +
+          '<button onclick="closeChildPreview()" style="background:none;border:none;' +
+            'font-size:1.4rem;cursor:pointer;color:#8892A4;">&times;</button>' +
+        '</div>' +
+
+        '<div style="display:grid;grid-template-columns:280px 1fr;gap:28px;' +
+          'align-items:start;margin-top:16px;">' +
+
+          '<div style="background:#fff;border-radius:16px;padding:22px;text-align:center;">' +
+            '<div style="white-space:pre-line;font-size:1.9rem;font-weight:900;' +
+              'font-variant-numeric:tabular-nums;line-height:1.4;">' +
+              String(q.question || '') + '</div>' +
+          '</div>' +
+
+          '<div>' +
+            '<div style="font-size:.8rem;font-weight:800;color:#555;margin-bottom:6px;">' +
+              '🧮 Set your answer on the abacus</div>' +
+            '<div style="background:#fff;border-radius:14px;padding:26px;text-align:center;' +
+              'color:#8892A4;font-size:.82rem;">the abacus appears here</div>' +
+            (opts
+              ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:14px;">' +
+                opts.map(function (o) {
+                  return '<div style="padding:16px;border:2.5px solid ' +
+                    (String(o) === String(q.answer) ? '#2E7D32' : '#E4E7F2') + ';border-radius:14px;' +
+                    'background:#fff;font-size:1.4rem;font-weight:900;text-align:center;">' + o + '</div>';
+                }).join('') + '</div>'
+              : '<div style="margin-top:14px;padding:14px;border:2px solid #E4E7F2;' +
+                'border-radius:12px;background:#fff;color:#8892A4;">Your answer…</div>') +
+            '<div style="font-size:.74rem;color:#8892A4;margin-top:10px;">Answer: ' +
+              String(q.answer) + (opts ? ' — outlined in green above' : '') + '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div style="display:flex;gap:9px;justify-content:center;margin-top:18px;">' +
+          '<button onclick="childPreviewStep(-1)" ' + (i === 0 ? 'disabled' : '') +
+            ' style="padding:10px 20px;border:1.5px solid #E4E7F2;border-radius:10px;' +
+            'background:#fff;font-family:inherit;font-weight:800;cursor:pointer;">Back</button>' +
+          '<button onclick="childPreviewStep(1)" ' + (i === qs.length-1 ? 'disabled' : '') +
+            ' style="padding:10px 20px;border:none;border-radius:10px;background:#1565C0;' +
+            'color:#fff;font-family:inherit;font-weight:800;cursor:pointer;">Next</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  window.childPreviewStep = function (d) {
+    i = Math.max(0, Math.min(qs.length - 1, i + d));
+    draw();
+  };
+  window.closeChildPreview = function () {
+    var el = document.getElementById('childPreview');
+    if (el) el.remove();
+  };
+
+  draw();
+  document.body.appendChild(ov);
 }
 
 async function assignToStudents() {

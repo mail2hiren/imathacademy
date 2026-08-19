@@ -15,6 +15,22 @@ var Exercises = (function () {
   'use strict';
 
   function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+
+  /* A plain column of numbers has nothing to theme, but the exercises
+     that carry pictures or objects do. Choosing a theme used to change
+     nothing outside word problems. */
+  var THEME_EMOJI = {
+    festival: ['🪔','🎆','🌸','🍬'], market: ['🥭','🛒','💰','🍎'],
+    school:   ['✏️','📚','🎒','📐'], nature: ['🌸','🍃','🐚','🌳'],
+    space:    ['⭐','🚀','🪐','🌙'], animals: ['🐘','🦁','🐢','🦜'],
+    sports:   ['⚽','🏏','🏸','🥇'], food:    ['🥭','🍬','🍪','🍎']
+  };
+
+  function themeEmoji(theme) {
+    var set = THEME_EMOJI[String(theme || '').toLowerCase()];
+    return set ? pick(set) : '🧮';
+  }
+
   function randInt(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
 
   /** A sum for this level that a child can actually work. */
@@ -59,7 +75,7 @@ var Exercises = (function () {
      child cannot reach the answer without the formula — there is
      nowhere to guess from.
      ─────────────────────────────────────────────────────── */
-  function fillBlank(rules, ceiling) {
+  function fillBlank(rules, ceiling, theme) {
     var s = makeSum(rules, ceiling, randInt(2, 3));
     if (!s) return null;
 
@@ -74,6 +90,7 @@ var Exercises = (function () {
 
     return {
       type: 'fill_blank',
+      emoji: themeEmoji(theme),
       question: shown + ' = ' + s.answer,
       answer: String(Math.abs(s.rows[hide])),
       hint: 'Which number is missing?',
@@ -82,7 +99,7 @@ var Exercises = (function () {
   }
 
   /* ── Match pairs ──────────────────────────────────────────── */
-  function matchPairs(rules, ceiling, howMany) {
+  function matchPairs(rules, ceiling, howMany, theme) {
     var pairs = [], seen = {};
     for (var t = 0; t < (howMany || 5) * 12 && pairs.length < (howMany || 5); t++) {
       var s = makeSum(rules, ceiling, 2);
@@ -93,6 +110,7 @@ var Exercises = (function () {
     if (pairs.length < 2) return null;
     return {
       type: 'match_pairs',
+      emoji: themeEmoji(theme),
       question: 'Match each sum to its answer',
       pairs: pairs,
       answer: pairs.map(function (p) { return p.left + ' = ' + p.right; }).join('; '),
@@ -104,11 +122,12 @@ var Exercises = (function () {
      Beads on a rod rather than digits. A child who cannot yet read
      numbers confidently can still count what they see.
      ─────────────────────────────────────────────────────── */
-  function pictureSum(rules, ceiling) {
+  function pictureSum(rules, ceiling, theme) {
     var s = makeSum(rules, Math.min(ceiling, 20), 2);
     if (!s) return null;
     return {
       type: 'picture',
+      emoji: themeEmoji(theme),
       question: sumText(s.rows) + ' = ?',
       beadsFor: s.rows[0],       // the abacus shows the starting number
       answer: String(s.answer),
@@ -152,10 +171,10 @@ var Exercises = (function () {
   }
 
   /* ── Mixed ────────────────────────────────────────────────── */
-  function mixed(rules, ceiling) {
+  function mixed(rules, ceiling, theme) {
     var makers = [
-      function () { return fillBlank(rules, ceiling); },
-      function () { return pictureSum(rules, ceiling); },
+      function () { return fillBlank(rules, ceiling, theme); },
+      function () { return pictureSum(rules, ceiling, theme); },
       function () {
         var s = makeSum(rules, ceiling, randInt(2, 3));
         return s ? { type: 'calculation', question: sumText(s.rows) + ' = ?',
@@ -164,7 +183,7 @@ var Exercises = (function () {
       function () {
         var s = makeSum(rules, ceiling, randInt(2, 3));
         return s && typeof WordProblems !== 'undefined' ? (function () {
-          var w = WordProblems.dress(s);
+          var w = WordProblems.dress(s, theme);
           return w ? { type: 'story', question: w.question, answer: String(w.answer),
                        emoji: w.emoji, speak: true, rows: s.rows } : null;
         })() : null;
@@ -180,13 +199,13 @@ var Exercises = (function () {
   /**
    * A whole page of one kind, getting harder as it goes.
    */
-  function page(kind, rules, count) {
+  function page(kind, rules, count, theme) {
     var out = [], guard = 0;
     var n = count || 10;
 
     // These make one question containing many parts, not many questions
     if (kind === 'match_pairs') {
-      var m = matchPairs(rules, rules.maxNumber, Math.min(6, n));
+      var m = matchPairs(rules, rules.maxNumber, Math.min(6, n), theme);
       return m ? [m] : [];
     }
     if (kind === 'colour_answer') {
@@ -203,9 +222,9 @@ var Exercises = (function () {
       guard++;
       var through = out.length / n;
       var ceiling = Math.max(FLOOR, Math.round(FLOOR + (rules.maxNumber - FLOOR) * Math.pow(through, 1.4)));
-      var q = kind === 'fill_blank'   ? fillBlank(rules, ceiling)
-            : kind === 'picture_sums' ? pictureSum(rules, ceiling)
-            : mixed(rules, ceiling);
+      var q = kind === 'fill_blank'   ? fillBlank(rules, ceiling, theme)
+            : kind === 'picture_sums' ? pictureSum(rules, ceiling, theme)
+            : mixed(rules, ceiling, theme);
       if (q) out.push(q);
     }
     return out;

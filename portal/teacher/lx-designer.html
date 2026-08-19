@@ -1547,7 +1547,7 @@ async function generateFromEngine() {
   var OTHER = ['fill_blank', 'match_pairs', 'picture_sums', 'colour_answer', 'mixed'];
   if (OTHER.indexOf(selectedActivity) > -1) {
     var rulesX = await PracticeEngine.loadLevelRules(level);
-    var items  = Exercises.page(selectedActivity, rulesX, count);
+    var items  = Exercises.page(selectedActivity, rulesX, count, teacherOptions().theme);
     if (!items.length) throw new Error('Could not build this activity for the level');
 
     var qs = items.map(function (q) {

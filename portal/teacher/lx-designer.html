@@ -247,6 +247,10 @@
           </div>
         </div>
         <div id="pickList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:6px;"></div>
+        <label class="output-opt" style="margin-top:10px;">
+          <input type="checkbox" id="pitchPerChild" checked>
+          Pitch each child's copy to their own level
+        </label>
         <div id="pickCount" style="font-size:.74rem;color:var(--text3,#8892A4);margin-top:8px;"></div>
       </div>
 
@@ -2251,6 +2255,52 @@ function updatePickCount() {
                  : n + ' children chosen — each gets their own copy';
 }
 
+/* Each ticked child already gets their own worksheet row, so each
+   copy can be pitched at that child rather than at the class. One
+   click for Megha; a beginner and a child near the end of the level
+   get the same activity at the range each is actually working in. */
+async function contentForChild(studentId, level, baseQuestions) {
+  try {
+    if (typeof PracticeEngine === 'undefined' || !PracticeEngine.loadPosition) return null;
+    var pos   = await PracticeEngine.loadPosition(studentId, level);
+    var rules = await PracticeEngine.loadLevelRules(level);
+    var band  = PracticeEngine.bandFor(rules, pos.position);
+    var opts  = teacherOptions();
+    var ceil  = opts.ceiling ? Math.min(band.end, opts.ceiling) : band.end;
+
+    var out = [], seen = {}, guard = 0;
+    while (out.length < baseQuestions.length && guard < baseQuestions.length * 40) {
+      guard++;
+      var shape = baseQuestions[out.length];
+      var rowCount = (shape && shape.rows && shape.rows.length) || 3;
+      var through = out.length / baseQuestions.length;
+      var stepCeil = Math.max(band.start, Math.round(band.start + (ceil - band.start) * through));
+
+      var s = freshColumn(rules, rowCount, stepCeil);
+      if (!s) continue;
+      if (!obeysConstraints(s, opts)) continue;
+      if (seen[s.answer] && out.length < baseQuestions.length - 2) continue;
+      seen[s.answer] = true;
+      out.push({
+        type: 'calculation',
+        question: PracticeEngine.columnText(s),
+        answer: String(s.answer),
+        hint: 'Work down the column on your abacus',
+        rows: s.rows
+      });
+    }
+    if (out.length < baseQuestions.length) return null;   // fall back to the shared sheet
+    return {
+      content: JSON.stringify(out, null, 2),
+      answerKey: out.map(function (q, i) { return (i + 1) + '. ' + q.answer; }).join('\n'),
+      band: band
+    };
+  } catch (e) {
+    console.warn('Could not pitch for this child:', e.message);
+    return null;
+  }
+}
+
 async function assignToStudents() {
   const batchId   = document.getElementById('batchSel').value;
   const studentId = document.getElementById('studentSel').value;
@@ -2278,12 +2328,31 @@ async function assignToStudents() {
     // One copy each, so every child keeps their own score and history
     if (many.length) {
       var tOpt = teacherOptions();
+      var perChild = document.getElementById('pitchPerChild');
+      var pitch = !perChild || perChild.checked;
+
+      // Only column work can be re-pitched; the other activities keep
+      // the shared sheet rather than being silently half-personalised.
+      var canPitch = pitch && selectedActivity === 'column_sums' &&
+                     generatedContent.parsedQuestions &&
+                     generatedContent.parsedQuestions.length;
+
+      var custom = {};
+      if (canPitch) {
+        for (var ci = 0; ci < many.length; ci++) {
+          var made = await contentForChild(many[ci].id, selectedLevel,
+                                           generatedContent.parsedQuestions);
+          if (made) custom[many[ci].id] = made;
+        }
+      }
+
       var rows = many.map(function (kid) {
+        var mine = custom[kid.id];
         return {
           title:       'Level ' + selectedLevel + ' — ' + kid.name + ' — ' +
                        new Date().toLocaleDateString('en-IN', { day:'numeric', month:'short' }),
-          content:     content,
-          answer_key:  generatedContent.answerkey  || null,
+          content:     mine ? mine.content : content,
+          answer_key:  mine ? mine.answerKey : (generatedContent.answerkey || null),
           lesson_plan: generatedContent.lessonplan || null,
           parent_note: generatedContent.parentnote || null,
           level:       selectedLevel,
@@ -2320,7 +2389,9 @@ async function assignToStudents() {
                  message: 'Level ' + selectedLevel + ' — check your Worksheets section.' };
       }));
 
-      toast('Assigned to ' + many.length + ' child' + (many.length === 1 ? '' : 'ren'), 'success');
+      var n = Object.keys(custom).length;
+      toast('Assigned to ' + many.length + ' child' + (many.length === 1 ? '' : 'ren') +
+            (n ? ' — ' + n + ' pitched to their own level' : ''), 'success');
       btn.textContent = '✓ Assigned to ' + many.length;
       btn.disabled = false;
       pickAll(false);

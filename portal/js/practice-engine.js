@@ -244,16 +244,23 @@ var PracticeEngine = (function () {
      2-digit by 1-digit — 13x9, 22x4, 59x6. The generator used to pick
      any number up to 999 times any single digit, which at Level 4
      produced work from three levels higher. */
+  /* Taken from Megha's own exam papers rather than guessed:
+       Level 4  13x9, 22x4, 59x6            2 digit by 1
+       Level 5  341x8, 126x3, 682x7         3 by 1, and 48x6 mentally
+                981/9, 208/2, 536/4         3 by 1
+       Level 6  255x5, 813x9  and  65x70, 44x23, 91x38
+                6335/5, 7967/6, 4496/2      4 by 1
+       Level 7  512x16, 302x45              3 by 2 */
   var MULT_SHAPES = {
     4: [[1,1],[2,1]],
     5: [[2,1],[3,1]],
-    6: [[2,2],[4,1]],
+    6: [[3,1],[2,2]],
     7: [[3,2]],
     8: [[3,2],[4,1]]
   };
   var DIV_SHAPES = {
     5: [[2,1],[3,1]],
-    6: [[4,1],[5,1]],
+    6: [[4,1]],
     7: [[4,1]],
     8: [[3,2]]
   };

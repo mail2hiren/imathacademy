@@ -59,6 +59,7 @@ var PracticeEngine = (function () {
 
     var rules = {
       levelCode: code,
+      level: level,        // the shapes above are keyed by it
       maxNumber: 99,
       allowZero: false,
       allowNegativeResult: false,
@@ -122,6 +123,11 @@ var PracticeEngine = (function () {
         .map(function (r) { return r.curriculum_concepts.concept_code; });
       if (live.indexOf('big_friends') > -1)   rules.formulas.push('big');
       if (live.indexOf('small_friends') > -1) rules.formulas.push('small');
+      // Level 3 is built on the Combination formula: +10 -5 +x, used
+      // when the ten is needed AND the five has to be broken as well.
+      // Without this the engine could only ever produce the friends
+      // work of the level below.
+      if (live.indexOf('combination') > -1)   rules.formulas.push('combination');
     } catch (e2) { /* no concepts mapped — direct movement only */ }
 
     try {
@@ -233,21 +239,55 @@ var PracticeEngine = (function () {
     return q;
   }
 
+  /* Megha teaches multiplication by shape, not by size: 1x1 at Level 4,
+     then 2x1, 3x1, 2x2, 4x1, 3x2. Her Level 4 exam is entirely
+     2-digit by 1-digit — 13x9, 22x4, 59x6. The generator used to pick
+     any number up to 999 times any single digit, which at Level 4
+     produced work from three levels higher. */
+  var MULT_SHAPES = {
+    4: [[1,1],[2,1]],
+    5: [[2,1],[3,1]],
+    6: [[2,2],[4,1]],
+    7: [[3,2]],
+    8: [[3,2],[4,1]]
+  };
+  var DIV_SHAPES = {
+    5: [[2,1],[3,1]],
+    6: [[4,1],[5,1]],
+    7: [[4,1]],
+    8: [[3,2]]
+  };
+
+  function ofDigits(d) {
+    return d <= 1 ? randInt(2, 9) : randInt(Math.pow(10, d - 1), Math.pow(10, d) - 1);
+  }
+
   function multiplication(rules) {
-    var a = randInt(2, Math.min(999, rules.maxNumber));
-    var b = randInt(2, 9);
+    var shapes = MULT_SHAPES[rules.level] || [[2,1]];
+    var s = pick(shapes);
+    var a = ofDigits(s[0]), b = ofDigits(s[1]);
     return { type: 'multiplication', a: a, b: b,
              text: a + ' × ' + b, answer: a * b,
              prompt: 'Multiply' };
   }
 
   function division(rules) {
-    var b = randInt(2, 9);
-    var q = randInt(2, Math.min(999, Math.floor(rules.maxNumber / b) || 9));
-    var a = b * q;                       // exact division, no remainders
-    return { type: 'division', a: a, b: b,
-             text: a + ' ÷ ' + b, answer: q,
-             prompt: 'Divide' };
+    var shapes = DIV_SHAPES[rules.level] || [[2,1]];
+    var s = pick(shapes);
+    // Build it from the answer so it always divides exactly — a child
+    // at this stage is never given a remainder.
+    for (var t = 0; t < 40; t++) {
+      var b = ofDigits(s[1]);
+      var q = ofDigits(Math.max(1, s[0] - s[1] + 1));
+      var a = b * q;
+      if (String(a).length === s[0]) {
+        return { type: 'division', a: a, b: b,
+                 text: a + ' ÷ ' + b, answer: q, prompt: 'Divide' };
+      }
+    }
+    var b2 = randInt(2, 9), q2 = randInt(2, 99);
+    return { type: 'division', a: b2 * q2, b: b2,
+             text: (b2 * q2) + ' ÷ ' + b2, answer: q2, prompt: 'Divide' };
   }
 
   // Read the beads and write the number. Used in the first levels,

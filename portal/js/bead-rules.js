@@ -44,17 +44,33 @@ var Beads = (function () {
   function addKind(d, n) {
     if (canAddDirect(d, n)) return 'direct';
     var r = rod(d);
+
     // Small Friends only works while the heaven bead is still free
     // and there are enough earth beads to give back.
     if (n <= 4 && r.h === 0 && r.e >= (5 - n)) return 'small';
-    return 'big';                                 // needs the ten, so a carry
+
+    /* Otherwise the ten is needed: +n = +10 - (10-n). Whether that is
+       Big Friends or a Combination depends on the rod. If the (10-n)
+       can simply be taken off, it is Big Friends. If it cannot — no
+       earth beads to give and the heaven bead in the way — the child
+       has to break the five as well: +10 -5 +x. That is the
+       Combination formula, and Level 3 is built around it.
+
+       Megha's own example: 8 + 6. Big friend of 6 is 4, but 8 has
+       only 3 earth beads, so 4 cannot come off directly. It becomes
+       +10 -5 +1. */
+    var give = 10 - n;
+    return canSubDirect(d, give) ? 'big' : 'combination';
   }
 
   function subKind(d, n) {
     if (canSubDirect(d, n)) return 'direct';
     var r = rod(d);
     if (n <= 4 && r.h === 1 && (r.e + (5 - n)) <= 4) return 'small';
-    return 'big';
+    // -n = -10 + (10-n). If that addition needs the five broken too,
+    // it is a Combination rather than plain Big Friends.
+    var give = 10 - n;
+    return canAddDirect(d, give) ? 'big' : 'combination';
   }
 
   /**

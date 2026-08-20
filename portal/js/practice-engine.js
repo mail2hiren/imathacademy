@@ -327,6 +327,65 @@ var PracticeEngine = (function () {
    forbidden formula, the total past the level's maximum — would
    have been caught here before a child ever saw it.
    ─────────────────────────────────────────────────────────── */
+  /* What a session is made of, level by level.
+     The weights used to be the same everywhere — a fifth beads, then
+     multiplication, then division — so a Level 5 session came out
+     mostly column addition even though Megha's focus there is
+     "Multiplication, Division only". Each level now gets a mix that
+     matches what it is teaching.
+
+     Any share for something a level does not allow is folded back
+     into column work, so the proportions always add up. */
+  var SESSION_MIX = {
+    0: { beads: 0.20, story: 0.15, mult: 0,    div: 0    },
+    1: { beads: 0.15, story: 0.15, mult: 0,    div: 0    },
+    2: { beads: 0.10, story: 0.15, mult: 0,    div: 0    },
+    3: { beads: 0,    story: 0.10, mult: 0,    div: 0    },
+    4: { beads: 0,    story: 0.10, mult: 0.30, div: 0    },
+    5: { beads: 0,    story: 0.05, mult: 0.30, div: 0.25 },
+    6: { beads: 0,    story: 0.05, mult: 0.30, div: 0.25 },
+    7: { beads: 0,    story: 0,    mult: 0.25, div: 0.25 },
+    8: { beads: 0,    story: 0,    mult: 0.25, div: 0.25 }
+  };
+
+  function mixFor(rules) {
+    var m = SESSION_MIX[rules.level] || { beads: 0, story: 0.1, mult: 0, div: 0 };
+    return {
+      beads: rules.beadsToNumbers ? m.beads : 0,
+      story: m.story,
+      mult:  rules.multiplication ? m.mult : 0,
+      div:   rules.division       ? m.div  : 0
+    };
+  }
+
+  /* A word problem in daily practice, not only on a worksheet.
+     The sum is generated and checked first exactly as a column is;
+     the words are only clothing. Falls back to a plain column if the
+     word-problem module is not loaded. */
+  function storyQuestion(rules, band, through) {
+    if (typeof WordProblems === 'undefined' || typeof ColumnGen === 'undefined') return null;
+    var mode = rules.formulas.length ? pick(rules.formulas) : 'direct';
+    var floor = mode === 'big' ? 20 : 9;
+    var ceiling = Math.max(floor, Math.round(band.start + (band.end - band.start) * (through || 0.5)));
+
+    for (var t = 0; t < 30; t++) {
+      var s = ColumnGen.column({
+        max: ceiling, rows: Math.random() < 0.55 ? 2 : 3, mode: mode,
+        require: mode === 'direct' ? 0 : 1, allowZero: rules.allowZero
+      });
+      if (!s) continue;
+      if (!columnIsAllowed({ type: 'column', rows: s.rows, answer: s.answer }, rules)) continue;
+      var w = WordProblems.dress(s);
+      if (!w) continue;
+      return {
+        type: 'story', question: w.question, answer: w.answer,
+        emoji: w.emoji, rows: s.rows, speak: true,
+        prompt: 'Read it, then work it out'
+      };
+    }
+    return null;
+  }
+
 function columnIsAllowed(q, rules) {
   if (!q || q.type !== 'column' && q.type !== 'oral') return true;
   if (typeof Beads === 'undefined') return true;
@@ -466,11 +525,20 @@ function bandFor(rules, pos) {
       // hardest, which is what made question twenty impossible.
       var acrossPage = plain > 1 ? i / (plain - 1) : 0.5;
       var thr = (band.start + (band.end - band.start) * acrossPage) / Math.max(1, rules.maxNumber);
+      var mix = mixFor(rules);
       var r = Math.random();
       var q;
-      if (rules.beadsToNumbers && r < 0.15)      q = beadsToNumbers(rules);
-      else if (rules.multiplication && r < 0.30) q = multiplication(rules);
-      else if (rules.division && r < 0.42)       q = division(rules);
+
+      // Bands, so each share is what the level actually asks for
+      var bBeads = mix.beads;
+      var bStory = bBeads + mix.story;
+      var bMult  = bStory + mix.mult;
+      var bDiv   = bMult  + mix.div;
+
+      if (r < bBeads)      q = beadsToNumbers(rules);
+      else if (r < bStory) q = storyQuestion(rules, band, acrossPage);
+      else if (r < bMult)  q = multiplication(rules);
+      else if (r < bDiv)   q = division(rules);
       else {
         // Try for a column that is both allowed and not a repeat.
         q = null;

@@ -105,6 +105,7 @@
     <li><a href="#levels">7. Finishing a level</a></li>
     <li><a href="#admin">8. Admin — people, batches, money</a></li>
     <li><a href="#parents">9. The parent portal</a></li>
+    <li><a href="#marks">11. Seeing how children did</a></li>
     <li><a href="#notyet">10. Not built yet</a></li>
   </ol>
 </nav>
@@ -214,22 +215,139 @@
 <!-- ═══════════════════════════════════════════════════════ -->
 <section id="lx">
   <h2>3. LX Designer — making worksheets</h2>
-  <p class="lede">Teacher → LX Designer. Describe what you want; the AI writes it inside your curriculum rules.</p>
+  <p class="lede">Teacher &rarr; LX Designer. Every sum is built from the curriculum and checked against
+     the beads before you ever see it. Nothing is written by AI any more.</p>
+
+  <div class="note note-info">
+    <strong>What changed</strong>
+    Worksheets used to be written by an AI, which did not know what a bead can physically do — that is
+    how a Level&nbsp;1 child once got <em>9&nbsp;+&nbsp;2</em> inside a story about a superhero.
+    All nine activities are now generated from your curriculum, and every sum is walked step by step
+    against that level's rules. Anything that breaks them is rebuilt before the sheet reaches you.
+  </div>
 
   <ol class="steps">
-    <li><strong>Pick a level.</strong> This loads that level's rules — the concept list narrows to what
-        you teach there.</li>
-    <li><strong>Pick a concept.</strong> Anything dimmed is not taught at this level, per your
-        Concept Progression.</li>
-    <li><strong>Pick an activity</strong> — practice sums, word problems, and so on.</li>
-    <li><strong>Settings.</strong> Abacus mode, difficulty, question count, theme.</li>
-    <li><strong>Assign</strong> to a batch or an individual child.</li>
-    <li><strong>Preview</strong> before generating, to check the questions look right.</li>
+    <li><strong>Pick a level.</strong> This loads that level's rules — number range, row counts, and
+        which formulas are permitted.</li>
+    <li><strong>Pick a concept.</strong> Anything dimmed is not taught at this level.</li>
+    <li><strong>Pick an activity.</strong> All nine build instantly, with no waiting.</li>
+    <li><strong>Settings.</strong> Difficulty, question count, theme, abacus mode, restrictions,
+        hand-in date.</li>
+    <li><strong>Preview</strong> — <em>See it as the child will</em> steps through the questions in the
+        child's own layout.</li>
+    <li><strong>Assign</strong> to a batch, one child, or several chosen children.</li>
   </ol>
 
+  <h3>What each level produces</h3>
+  <p>The same activity gives very different work depending on the level, because the level decides what
+     a child is allowed to do with the beads:</p>
+
+  <table>
+    <tr><th>Level</th><th>A typical column sum</th><th>Why</th></tr>
+    <tr>
+      <td><strong>L0</strong> Beginner</td>
+      <td><code>21 + 1 &minus; 21</code><br><code>17 &minus; 7 + 12</code></td>
+      <td>Direct bead movement only. No Big or Small Friends anywhere — your Level&nbsp;0 note asks for
+          exactly this.</td>
+    </tr>
+    <tr>
+      <td><strong>L1</strong> Foundation</td>
+      <td><code>2 + 18</code> &nbsp;(Big Friends)<br><code>3 + 3 &minus; 6</code> &nbsp;(Small Friends)</td>
+      <td>Every sum <em>requires</em> the formula being taught. A sheet labelled Big Friends really
+          practises Big Friends.</td>
+    </tr>
+    <tr>
+      <td><strong>L3</strong> Pre-Intermediate</td>
+      <td><code>22 &minus; 16 &minus; 6 + 14</code></td>
+      <td>Forces the Combination formula — where the ten is needed <em>and</em> the five must be
+          broken, as in your <code>8 + 6</code> example.</td>
+    </tr>
+    <tr>
+      <td><strong>L4</strong> Intermediate</td>
+      <td><code>13 &times; 9</code>, <code>22 &times; 4</code></td>
+      <td>2&nbsp;digit &times; 1&nbsp;digit, taken from your own Level&nbsp;4 exam paper.</td>
+    </tr>
+    <tr>
+      <td><strong>L5</strong> Upper-Intermediate</td>
+      <td><code>341 &times; 8</code> &nbsp;&middot;&nbsp; <code>981 &divide; 9</code></td>
+      <td>3&nbsp;&times;&nbsp;1 and 3&nbsp;&divide;&nbsp;1. Division is always exact — no remainders.</td>
+    </tr>
+    <tr>
+      <td><strong>L6</strong> Advanced</td>
+      <td><code>44 &times; 23</code> &nbsp;&middot;&nbsp; <code>6335 &divide; 5</code></td>
+      <td>Cross-multiplication and 4&nbsp;&divide;&nbsp;1, matching your Jr7 paper.</td>
+    </tr>
+  </table>
+
+  <h3>A page gets harder as it goes</h3>
+  <p>Question 1 is not question 20. A Level&nbsp;0 sheet opens with three rows of small numbers and
+     finishes with five rows of two-digit work:</p>
+  <table>
+    <tr><th>&nbsp;</th><th>Sum</th></tr>
+    <tr><td>Q1</td><td><code>2 + 2 &minus; 1</code></td></tr>
+    <tr><td>Q6</td><td><code>8 + 11 &minus; 1 &minus; 5</code></td></tr>
+    <tr><td>Q13</td><td><code>31 + 18 &minus; 29 &minus; 10</code></td></tr>
+    <tr><td>Q20</td><td><code>28 + 21 &minus; 37 + 71 + 5</code></td></tr>
+  </table>
+  <p>Every answer on a page is different, as your Level&nbsp;0 note asks.</p>
+
+  <h3>The nine activities</h3>
+  <table>
+    <tr><th>Activity</th><th>What a child gets</th></tr>
+    <tr><td><strong>Column sums</strong></td>
+        <td>The classic column, printed as in the books.</td></tr>
+    <tr><td><strong>Story problems</strong></td>
+        <td><em>"Aarav had 4 balloons. He was given 15 balloons. Then he gave away 9 balloons. How many
+            balloons are left?"</em> Read aloud for the younger children.</td></tr>
+    <tr><td><strong>Fill in the blank</strong></td>
+        <td><code>30 + ___ = 50</code> — the strongest exercise at Level&nbsp;1, because a child cannot
+            guess it; they have to use the formula.</td></tr>
+    <tr><td><strong>Match pairs</strong></td>
+        <td>Five sums and five answers to pair up. Answers are always distinct.</td></tr>
+    <tr><td><strong>Picture sums</strong></td>
+        <td>The starting number shown as beads rather than digits.</td></tr>
+    <tr><td><strong>Colour the answer</strong></td>
+        <td>Sums with a colour key — <em>0&ndash;16 red, 17&ndash;33 blue</em>.</td></tr>
+    <tr><td><strong>Flash cards</strong> / <strong>Speed challenge</strong></td>
+        <td>Quick recall against the clock.</td></tr>
+    <tr><td><strong>Mixed</strong></td>
+        <td>Draws from all of the above.</td></tr>
+  </table>
+
+  <h3>Restricting a sheet</h3>
+  <p>Under the settings you can narrow what a sheet contains. These are obeyed exactly — a sum that
+     breaks one is rebuilt, not just flagged:</p>
+  <table>
+    <tr><th>Setting</th><th>Use it when</th></tr>
+    <tr><td>Addition only</td><td>A child is new to the level and subtraction is a distraction</td></tr>
+    <tr><td>Subtraction only</td><td>Drilling the subtraction formulas specifically</td></tr>
+    <tr><td>Never land on zero</td><td>Zero totals confuse some children mid-column</td></tr>
+    <tr><td>Keep totals under &hellip;</td><td>Pulling a sheet below the level's normal range for a child
+        who is struggling</td></tr>
+  </table>
+
+  <div class="note note-tip">
+    <strong>Replace a single sum</strong>
+    Every question in the preview has a <strong>&#8635; Replace</strong> button. It swaps that one sum
+    for another of the same shape and leaves the rest of the sheet — and any edits you have made —
+    exactly as they are.
+  </div>
+
+  <h3>Giving it to several children</h3>
+  <p>Under the Student dropdown, <strong>+ Choose several children</strong> opens a tick list. Each child
+     gets their own copy, so their marks stay separate.</p>
+
+  <div class="note note-tip">
+    <strong>Each child at their own level</strong>
+    With <em>Pitch each child's copy to their own level</em> ticked, one click gives a beginner sums in
+    the 9&ndash;20 range and a child near the end of the level sums in the 40&ndash;70 range — same
+    activity, same concept, different difficulty. Untick it if you want the whole group on the identical
+    sheet for a class discussion.
+  </div>
+
   <h3>The Abacus dropdown</h3>
-  <p>This overrides the level for this worksheet only — so you can set one sheet on the beads and the next
-     as a mental drill, at the same level, in the same week.</p>
+  <p>This overrides the level for this worksheet only — so you can set one sheet on the beads and the
+     next as a mental drill, at the same level, in the same week.</p>
   <table>
     <tr><th>Choice</th><th>Effect</th></tr>
     <tr><td>Follow the level</td><td>Uses the curriculum setting</td></tr>
@@ -238,21 +356,22 @@
     <tr><td>Mental only</td><td>No abacus — an Anzan drill</td></tr>
   </table>
 
-  <div class="note note-info">
-    <strong>Level tests</strong>
-    A level test is an ordinary worksheet with the level-test box ticked. It uses the same designer and
-    the same scoring — passing it is the third thing a child needs to complete a level.
-  </div>
+  <h3>Hand-in date and time</h3>
+  <p>Both are optional and neither is enforced. A child sees <em>"Due in 3 days"</em> and
+     <em>"About 10 minutes"</em>, but nothing locks and nothing is cut off — a child working through a
+     sum should never lose it to a clock.</p>
 
-  <h3>If a worksheet comes out wrong</h3>
-  <ul>
-    <li><strong>Numbers too big or small</strong> — Level Definition, or the Difficulty Rules</li>
-    <li><strong>Wrong kind of question</strong> — the concept, or your Formula Master entries</li>
-    <li><strong>It keeps doing something you don't want</strong> — write it in Guardrail Notes</li>
-  </ul>
+  <div class="note note-warn">
+    <strong>If a sheet looks wrong</strong>
+    Every generated sheet carries a line confirming it was checked — <em>"Every sum checked against the
+    beads — direct bead movement only"</em>. If that line is red, the level's own settings are asking
+    for something impossible, and the fix is in the Curriculum Designer.
+    <br><br>
+    Worksheets made before August 2026 keep the sums they were created with. Fixing the curriculum does
+    not rewrite them — retire them from <em>How the class is doing &rarr; Worksheets &rarr; Remove</em>.
+  </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════ -->
 <section id="abacus">
   <h2>4. How the abacus behaves</h2>
   <p class="lede">A 17-rod soroban, built to your specification, used as the way children answer.</p>
@@ -444,6 +563,53 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════ -->
+<section id="marks">
+  <h2>11. Seeing how children did</h2>
+  <p class="lede">Teacher &rarr; How the class is doing. Scores tell you a child struggled;
+     this tells you with what.</p>
+
+  <h3>Every child, at a glance</h3>
+  <p>Each child shows their practice count and accuracy, worksheets done and average, and quizzes
+     with their average. Anything worth acting on is said in words rather than left in the numbers:</p>
+  <ul>
+    <li><em>"Nothing for 9 days — worth a message home"</em></li>
+    <li><em>"Getting 45% in practice — the level may be too hard"</em></li>
+    <li><em>"92% in practice — ready for harder work"</em></li>
+  </ul>
+  <div class="note note-tip">
+    That last one matters as much as the warnings. A child quietly finding it too easy is invisible in
+    a table of green numbers.
+  </div>
+
+  <h3>Which sums went wrong</h3>
+  <p>The <strong>Worksheets</strong> tab lists what has been assigned. <strong>Marks</strong> on any
+     worksheet shows every child against every question — a green tick for right, and for a wrong
+     answer <em>what the child actually wrote</em>.</p>
+
+  <p>Below that, each question is written out with the answer, how many got it, and who missed it:</p>
+  <div class="note note-warn">
+    <strong>Q3 &middot; most of the class missed this &nbsp;&nbsp; 2/5 got it</strong><br>
+    <code>19 &minus; 2 &minus; 7 &minus; 10</code> &nbsp;&nbsp; Answer: 0<br>
+    Aarav said 12 &middot; Diya said 4 &middot; Kabir said 30<br>
+    Not attempted: Meera
+  </div>
+
+  <p>If three children all answered 12 to that sum, they have made the same mistake — probably stopping
+     after the first subtraction. That is one thing to reteach at the board, not three children to worry
+     about.</p>
+
+  <h3>Taking a worksheet back</h3>
+  <p><strong>Remove</strong> takes a worksheet off the children's list immediately. Nothing is deleted,
+     so it can be put back.</p>
+
+  <div class="note note-info">
+    <strong>One attempt per question</strong>
+    A child answers each question once and it stands. Until August 2026 a wrong answer said "try again"
+    and the retry overwrote the first — so every worksheet came back at 100% and told you nothing.
+    Marks from before that date are not reliable.
+  </div>
+</section>
+
 <section id="notyet">
   <h2>10. Not built yet</h2>
   <p class="lede">Named honestly, so nothing here is a surprise later.</p>

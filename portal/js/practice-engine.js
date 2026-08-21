@@ -233,7 +233,8 @@ var PracticeEngine = (function () {
         rows:      n,
         mode:      mode,
         require:   mode === 'direct' ? 0 : (thr < 0.35 ? 1 : 2),
-        allowZero: rules.allowZero
+        allowZero: rules.allowZero,
+        signBias:  rules.signBias || null   // addition only / subtraction only
       });
       if (built) {
         q = { type: 'column', pattern: rule.digit_pattern,

@@ -71,7 +71,9 @@ var PracticeEngine = (function () {
       pagesPerSession: 3,
       oralsPerSession: 10,
       rowRules: [],
-      formulas: []      // 'big' and/or 'small', empty means direct only
+      formulas: [],     // 'big' and/or 'small', empty means direct only
+      multShapes: [],   // from her formula names, e.g. [[3,1]]
+      divShapes:  []
     };
 
     try {
@@ -114,6 +116,17 @@ var PracticeEngine = (function () {
     // both complements, so every step must be direct. At L1 the
     // complement is the lesson, so it has to be required rather than
     // merely allowed.
+    // Her formula names decide the multiplication and division shapes
+    try {
+      var fs = await sb.from('curriculum_formulas')
+        .select('formula_name').eq('level_code', code).eq('is_active', true);
+      (fs.data || []).forEach(function (f) {
+        var sh = parseShape(f.formula_name);
+        if (!sh) return;
+        (sh.kind === 'mult' ? rules.multShapes : rules.divShapes).push([sh.a, sh.b]);
+      });
+    } catch (e3) { /* fall back to the table below */ }
+
     try {
       var cs = await sb.from('curriculum_level_concepts')
         .select('status, curriculum_concepts(concept_code)')
@@ -251,26 +264,41 @@ var PracticeEngine = (function () {
        Level 6  255x5, 813x9  and  65x70, 44x23, 91x38
                 6335/5, 7967/6, 4496/2      4 by 1
        Level 7  512x16, 302x45              3 by 2 */
-  var MULT_SHAPES = {
-    4: [[1,1],[2,1]],
-    5: [[2,1],[3,1]],
-    6: [[3,1],[2,2]],
-    7: [[3,2]],
-    8: [[3,2],[4,1]]
-  };
-  var DIV_SHAPES = {
-    5: [[2,1],[3,1]],
-    6: [[4,1]],
-    7: [[4,1]],
-    8: [[3,2]]
-  };
+  /* Which shapes a level uses comes from Megha's own formula names.
+     She writes them precisely — "Multiplication 3 digit by 1 digit",
+     "Multiplication 2digitx1digit" — so the name says what to build.
+
+     These were hardcoded here from her exam papers, and drifted: the
+     table said Level 5 multiplication was 2x1 and 3x1 when she teaches
+     3x1 only, and missed 5-digit division at Level 6 entirely. Adding
+     a formula in the admin screen now changes what is generated, with
+     no code change and nothing for anyone to keep in step.
+
+     The fallbacks below are only used if the formula table cannot be
+     read at all. */
+  var MULT_FALLBACK = { 4: [[1,1],[2,1]], 5: [[3,1]], 6: [[2,2],[4,1]], 7: [[3,2]], 8: [[3,2]] };
+  var DIV_FALLBACK  = { 5: [[2,1],[3,1]], 6: [[4,1],[5,1]], 7: [[4,1]], 8: [[3,2]] };
+
+  /** "3 digit by 1 digit" / "2digitx1digit" / "3 digits by 2 digits" */
+  function parseShape(name) {
+    var s = String(name || '').toLowerCase();
+    var kind = s.indexOf('divis') > -1 ? 'div'
+             : s.indexOf('multipl') > -1 ? 'mult' : null;
+    if (!kind) return null;
+    var m = s.match(/(\d)\s*digits?\s*(?:by|x|\*|\u00d7)\s*(\d)\s*digits?/);
+    if (!m) return null;
+    return { kind: kind, a: parseInt(m[1], 10), b: parseInt(m[2], 10) };
+  }
+
 
   function ofDigits(d) {
     return d <= 1 ? randInt(2, 9) : randInt(Math.pow(10, d - 1), Math.pow(10, d) - 1);
   }
 
   function multiplication(rules) {
-    var shapes = MULT_SHAPES[rules.level] || [[2,1]];
+    var shapes = (rules.multShapes && rules.multShapes.length)
+               ? rules.multShapes
+               : (MULT_FALLBACK[rules.level] || [[2,1]]);
     var s = pick(shapes);
     var a = ofDigits(s[0]), b = ofDigits(s[1]);
     return { type: 'multiplication', a: a, b: b,
@@ -279,7 +307,9 @@ var PracticeEngine = (function () {
   }
 
   function division(rules) {
-    var shapes = DIV_SHAPES[rules.level] || [[2,1]];
+    var shapes = (rules.divShapes && rules.divShapes.length)
+               ? rules.divShapes
+               : (DIV_FALLBACK[rules.level] || [[2,1]]);
     var s = pick(shapes);
     // Build it from the answer so it always divides exactly — a child
     // at this stage is never given a remainder.

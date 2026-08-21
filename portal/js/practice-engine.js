@@ -528,6 +528,26 @@ function bandFor(rules, pos) {
   async function buildSession(level, opts) {
     var o = opts || {};
     var rules = await loadLevelRules(level);
+
+    /* What a teacher picks has to reach the numbers. Difficulty, a
+       ceiling, a row range — these used to be worked out in the LX
+       Designer and then not passed in, so every sheet came from the
+       level's full range whatever was selected. */
+    if (o.maxNumber) rules.maxNumber = Math.min(rules.maxNumber, o.maxNumber);
+    if (o.minRows || o.maxRows) {
+      var lo = o.minRows || 3, hi = o.maxRows || lo + 2;
+      rules.rowRules = (rules.rowRules || []).map(function (r) {
+        return { digit_pattern: r.digit_pattern,
+                 min_rows: Math.max(lo, Math.min(hi, r.min_rows)),
+                 max_rows: Math.max(lo, Math.min(hi, r.max_rows)) };
+      });
+      if (!rules.rowRules.length) {
+        rules.rowRules = [{ digit_pattern: '1d', min_rows: lo, max_rows: hi }];
+      }
+    }
+    // Addition only / subtraction only, as chosen
+    rules.signBias = o.signBias || null;
+
     var total = o.count || rules.sumsPerPage;
 
     // Aim the page at where this child actually is

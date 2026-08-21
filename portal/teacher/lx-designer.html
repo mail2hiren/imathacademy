@@ -1700,7 +1700,21 @@ async function generateFromEngine() {
 
   // Ask for extra, then keep only what suits a printed worksheet.
   // Beads diagrams and orals belong in practice, not on paper.
-  var session = await PracticeEngine.buildSession(level, { count: count * 3 });
+  /* Everything the teacher chose goes in here. It used to be worked
+     out below and then never used, so Easy, Medium and Hard produced
+     identical sheets and "keep totals under" did nothing until a sum
+     happened to break a bead rule. */
+  var tOptsEarly = teacherOptions();
+  var earlyRules = await PracticeEngine.loadLevelRules(level);
+  var bandEarly  = applyDifficulty(earlyRules, tOptsEarly);
+
+  var session = await PracticeEngine.buildSession(level, {
+    count:     count * 3,
+    maxNumber: bandEarly.max,
+    minRows:   bandEarly.minRows,
+    maxRows:   bandEarly.maxRows,
+    signBias:  tOptsEarly.addOnly ? 'add' : (tOptsEarly.subOnly ? 'sub' : null)
+  });
 
   var wanted = session.questions.filter(function (q) {
     if (q.type === 'beads' || q.type === 'oral') return false;

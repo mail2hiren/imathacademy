@@ -607,6 +607,7 @@ function bandFor(rules, pos) {
     buildSession:   buildSession,
     columnSum:      columnSum,
     multiplication: multiplication,
+    division: division,
     division:       division,
     beadsToNumbers: beadsToNumbers,
     oral:           oral,

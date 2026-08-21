@@ -1646,6 +1646,58 @@ async function generateFromEngine() {
     return;
   }
 
+  /* Multiplication and division are built directly rather than sieved
+     out of a mixed session. A Level 5 session is only about a third
+     multiplication, so filtering 60 questions gave roughly 18 — under
+     the 20 asked for — and the fallback below then put the columns
+     back. The teacher chose Multiplication and got a mixture. */
+  if (selectedActivity === 'multiplication' || selectedActivity === 'division') {
+    var mdRules = await PracticeEngine.loadLevelRules(level);
+    var makeOne = selectedActivity === 'multiplication'
+                ? PracticeEngine.multiplication : PracticeEngine.division;
+    var made = [], seenMd = {}, guardMd = 0;
+    while (made.length < count && guardMd < count * 40) {
+      guardMd++;
+      var one = makeOne(mdRules);
+      if (!one) continue;
+      var key = one.a + '_' + one.b;
+      if (seenMd[key] && made.length < count - 2) continue;   // no repeats
+      seenMd[key] = true;
+      made.push({
+        type:     selectedActivity,
+        question: one.text + ' = ?',
+        answer:   String(one.answer),
+        hint:     selectedActivity === 'multiplication'
+                    ? 'Multiply on your abacus' : 'Divide on your abacus'
+      });
+    }
+    if (!made.length) {
+      throw new Error('Could not build ' + selectedActivity + ' for Level ' + level);
+    }
+
+    var mdKey = made.map(function (q, i) { return (i + 1) + '. ' + q.answer; }).join('\n');
+    var mdName = (resolvedRules && resolvedRules.level_name) || ('Level ' + level);
+    var wantMd = teacherOptions().want;
+    var mdText = '## QUESTIONS\n' + JSON.stringify(made, null, 2) +
+      (wantMd.answerkey ? '\n\n## ANSWER KEY\n' + mdKey : '') +
+      (wantMd.lessonplan
+        ? '\n\n## LESSON PLAN\nLevel ' + level + ' — ' + mdName + '\n\n' +
+          'The shapes come from your formula master for this level.\n\n' +
+          '- Work left to right, rod by rod, as in the formula method\n' +
+          '- Division is always exact here — no remainders at this stage\n' +
+          '- A child who can do the sum but places it on the wrong rod has a\n' +
+          '  placement problem, not an arithmetic one' : '') +
+      (wantMd.parentnote
+        ? '\n\n## PARENT NOTE\nToday your child practised ' +
+          (selectedActivity === 'multiplication' ? 'multiplication' : 'division') +
+          ' on the abacus. The method matters as much as the answer — ask them to\n' +
+          'show you where each digit goes.' : '');
+
+    parseAndRender(mdText);
+    showEl('assignBtn');
+    return;
+  }
+
   // Ask for extra, then keep only what suits a printed worksheet.
   // Beads diagrams and orals belong in practice, not on paper.
   var session = await PracticeEngine.buildSession(level, { count: count * 3 });
@@ -1662,11 +1714,12 @@ async function generateFromEngine() {
     return true;
   });
 
-  // Not enough of that shape came out — take whatever columns we have
+  // Not enough came out — top up with columns only. Never widen this to
+  // other shapes: that is what turned a Multiplication sheet into a
+  // mixture.
   if (wanted.length < count) {
-    wanted = session.questions.filter(function (q) {
-      return q.type === 'column' || q.type === 'multiplication' || q.type === 'division';
-    });
+    var extra = session.questions.filter(function (q) { return q.type === 'column'; });
+    wanted = wanted.concat(extra.filter(function (q) { return wanted.indexOf(q) < 0; }));
   }
   wanted = wanted.slice(0, count);
 

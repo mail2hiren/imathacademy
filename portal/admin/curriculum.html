@@ -662,6 +662,69 @@ async function saveConceptProgression(code) {
 }
 
 // ── SAVE DIFFICULTY RULES ─────────────────────────────────────
+/* ── A WORD BEFORE SAVING ─────────────────────────────────────
+   Level 0 easy was set to a maximum of 2, so a child would have got
+   1 + 1 + 2. Nobody noticed for weeks because difficulty was not yet
+   driving the numbers — the moment it did, the setting produced
+   exactly what it said.
+
+   These are warnings, never blocks. Megha knows things this cannot:
+   she may deliberately want a very narrow band for a child who has
+   just arrived. It says what will happen and lets her decide.
+   ─────────────────────────────────────────────────────────── */
+function difficultyWarnings(rows, levelMax, levelMaxDigits) {
+  var out = [];
+  var byName = {};
+  rows.forEach(function (r) { byName[r.difficulty] = r; });
+
+  ['easy', 'medium', 'hard'].forEach(function (name) {
+    var r = byName[name];
+    if (!r) return;
+    var mx = r.max_number, md = r.max_digits;
+
+    if (mx != null && md != null && mx < Math.pow(10, md - 1)) {
+      out.push(name + ': allows ' + md + ' digits but caps totals at ' + mx +
+               ' — a child would only ever see ' + String(mx).length + '-digit numbers');
+    }
+    if (mx != null && mx < 10) {
+      out.push(name + ': a maximum of ' + mx + ' gives sums like 1 + 1. Did you mean ' + (mx * 10) + '?');
+    }
+    if (mx == null) {
+      out.push(name + ': no maximum set — it will fall back to the level\'s own limit of ' +
+               (levelMax || 99));
+    }
+    if (mx != null && levelMax && mx > levelMax) {
+      out.push(name + ': ' + mx + ' is above the level maximum of ' + levelMax);
+    }
+  });
+
+  // The three should get harder in order
+  var e = byName.easy && byName.easy.max_number;
+  var m = byName.medium && byName.medium.max_number;
+  var h = byName.hard && byName.hard.max_number;
+  if (e != null && m != null && e >= m)
+    out.push('easy (' + e + ') is not easier than medium (' + m + ')');
+  if (m != null && h != null && m >= h)
+    out.push('medium (' + m + ') is not easier than hard (' + h + ')');
+
+  return out;
+}
+
+function showDifficultyWarnings(list) {
+  var old = document.getElementById('diffWarn');
+  if (old) old.remove();
+  if (!list.length) return;
+  var box = document.createElement('div');
+  box.id = 'diffWarn';
+  box.style.cssText = 'background:#FFF4E5;border-left:4px solid #E65100;border-radius:10px;' +
+    'padding:12px 14px;margin:12px 0;font-size:.82rem;color:#8a4b00;line-height:1.6;';
+  box.innerHTML = '<strong>Worth a look before this goes out</strong><br>' +
+    list.map(function (w) { return '&middot; ' + w; }).join('<br>') +
+    '<br><br><span style="font-weight:700;">Saved anyway — these are only warnings.</span>';
+  var anchor = document.getElementById('mainBody');
+  if (anchor) anchor.insertBefore(box, anchor.firstChild);
+}
+
 async function saveDifficultyRules(code) {
   var g = function(id) { var el = document.getElementById(id); return el ? el.value : null; };
   var tb = function(id) { var el = document.getElementById(id); return el ? el.checked : false; };
@@ -688,6 +751,21 @@ async function saveDifficultyRules(code) {
   } else {
     toast('Difficulty Rules saved! ✅', 'success');
   }
+
+
+  // Say plainly what these settings will produce
+  try {
+    var lvRow = (CURRENT_LEVEL && CURRENT_LEVEL.max_number) || null;
+    var lvDig = (CURRENT_LEVEL && CURRENT_LEVEL.max_digits) || null;
+    var saved = ['easy','medium','hard'].map(function (nm) {
+      return {
+        difficulty: nm,
+        max_number: parseInt((document.getElementById('dr-' + nm + '-max_number') || {}).value, 10) || null,
+        max_digits: parseInt((document.getElementById('dr-' + nm + '-max_digits') || {}).value, 10) || null
+      };
+    });
+    showDifficultyWarnings(difficultyWarnings(saved, lvRow, lvDig));
+  } catch (e) { /* a warning must never break the save */ }
 }
 
 // ── ADD FORMULA CARD ──────────────────────────────────────────

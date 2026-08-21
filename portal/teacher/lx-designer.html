@@ -1675,7 +1675,9 @@ async function generateFromEngine() {
       type:     'calculation',
       question: engineQuestionText(q),
       answer:   String(q.answer),
-      hint:     q.type === 'column' ? 'Work down the column on your abacus' : ''
+      hint: q.type === 'column' ? 'Work down the column on your abacus'
+          : q.type === 'multiplication' ? 'Multiply on your abacus'
+          : q.type === 'division' ? 'Divide on your abacus' : ''
     };
   });
 

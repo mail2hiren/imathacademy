@@ -383,6 +383,14 @@
           <input type="radio" name="activity">
           <div><div class="activity-opt-name">Mixed variety ⚡</div><div class="activity-opt-sub">Built instantly from the curriculum, no AI</div></div>
         </label>
+        <label class="activity-opt" onclick="selectActivity(this,'multiplication')">
+          <input type="radio" name="activity">
+          <div><div class="activity-opt-name">Multiplication &#10006;</div><div class="activity-opt-sub">Sized to the level &mdash; 2&times;1 at L4, 3&times;1 at L5, 2&times;2 at L6</div></div>
+        </label>
+        <label class="activity-opt" onclick="selectActivity(this,'division')">
+          <input type="radio" name="activity">
+          <div><div class="activity-opt-name">Division &divide;</div><div class="activity-opt-sub">Always exact, never a remainder</div></div>
+        </label>
       </div>
     </div>
 
@@ -1211,6 +1219,7 @@ function buildPrompt(preview=false) {
 // reached a Level 1 child and 81 + 34 reached Level 0.
 var ENGINE_ACTIVITIES = ['column_sums', 'flashcards', 'speed_challenge',
                          'story_problems', 'fill_blank', 'match_pairs',
+                         'multiplication', 'division',
                          'picture_sums', 'colour_answer', 'mixed'];
 
 function usesEngine(activity) {
@@ -1594,6 +1603,18 @@ async function generateFromEngine() {
   }
 
   // Word problems take a different shape from column work
+  // Multiplication is not taught below Level 4, division below Level 5.
+  // Better to say so than to hand back an empty sheet.
+  if (selectedActivity === 'multiplication' || selectedActivity === 'division') {
+    var chk = await PracticeEngine.loadLevelRules(level);
+    if (selectedActivity === 'multiplication' && !chk.multiplication) {
+      throw new Error('Level ' + level + ' does not teach multiplication yet — it starts at Level 4');
+    }
+    if (selectedActivity === 'division' && !chk.division) {
+      throw new Error('Level ' + level + ' does not teach division yet — it starts at Level 5');
+    }
+  }
+
   if (selectedActivity === 'story_problems') {
     var stories = await generateStoryProblems(count, level);
     if (!stories.length) {
@@ -1632,6 +1653,11 @@ async function generateFromEngine() {
   var wanted = session.questions.filter(function (q) {
     if (q.type === 'beads' || q.type === 'oral') return false;
     if (selectedActivity === 'column_sums') return q.type === 'column';
+    // Her Level 4 to 6 work is multiplication and division. Both were
+    // being generated and then thrown away, because no activity asked
+    // for them.
+    if (selectedActivity === 'multiplication') return q.type === 'multiplication';
+    if (selectedActivity === 'division')       return q.type === 'division';
     if (selectedActivity === 'speed_challenge') return q.type === 'column' && q.rows.length <= 5;
     return true;
   });

@@ -66,8 +66,13 @@ var ColumnGen = (function () {
         var canAdd = src.add.length, canSub = src.sub.length;
         if (!canAdd && !canSub) { ok = false; break; }
 
-        // Lean towards adding so the column climbs rather than stalls
-        var doAdd = canAdd && (!canSub || Math.random() < 0.62);
+        /* Addition only / subtraction only is obeyed while the column
+           is built, not checked afterwards. Rejecting finished sums
+           wastes most attempts and quietly gives up on a long column. */
+        var doAdd;
+        if (opts.signBias === 'add')      { if (!canAdd) { ok = false; break; } doAdd = true; }
+        else if (opts.signBias === 'sub') { if (!canSub) { ok = false; break; } doAdd = false; }
+        else doAdd = canAdd && (!canSub || Math.random() < 0.62);
         var n = doAdd ? pick(src.add) : pick(src.sub);
 
         out.push(doAdd ? n : -n);

@@ -549,6 +549,22 @@ function bandFor(rules, pos) {
     // Addition only / subtraction only, as chosen
     rules.signBias = o.signBias || null;
 
+    /* The concept a teacher picks is how she targets one weakness.
+       It was never passed in, so at Level 3 a Big Friends sheet and a
+       Combination sheet came out identical — both drew on whatever the
+       level allowed. Narrowing it here means every sum on the sheet
+       exercises the thing she chose. */
+    if (o.concept) {
+      var only = { big_friends: 'big', small_friends: 'small',
+                   combination: 'combination' }[o.concept];
+      if (only && rules.formulas.indexOf(only) > -1) {
+        rules.formulas = [only];
+      } else if (o.concept === 'direct_add' || o.concept === 'direct_sub') {
+        rules.formulas = [];                 // direct movement only
+        rules.signBias = o.concept === 'direct_add' ? 'add' : 'sub';
+      }
+    }
+
     var total = o.count || rules.sumsPerPage;
 
     // Aim the page at where this child actually is

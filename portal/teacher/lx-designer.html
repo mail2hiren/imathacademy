@@ -1485,6 +1485,10 @@ async function regenerateOne(idx) {
 
 async function generateStoryProblems(count, level) {
   var rules = await PracticeEngine.loadLevelRules(level);
+  // Drill the concept she picked, not whatever the level permits
+  var onlyF = { big_friends: 'big', small_friends: 'small',
+                combination: 'combination' }[selectedConcept];
+  if (onlyF && rules.formulas.indexOf(onlyF) > -1) rules.formulas = [onlyF];
 
   /* Big Friends always carries into the tens, so its answer is never
      below 10 — and the difficulty ramp starts its ceiling at 9. Every
@@ -1557,6 +1561,9 @@ async function generateFromEngine() {
   var OTHER = ['fill_blank', 'match_pairs', 'picture_sums', 'colour_answer', 'mixed'];
   if (OTHER.indexOf(selectedActivity) > -1) {
     var rulesX = await PracticeEngine.loadLevelRules(level);
+    var onlyX = { big_friends: 'big', small_friends: 'small',
+                  combination: 'combination' }[selectedConcept];
+    if (onlyX && rulesX.formulas.indexOf(onlyX) > -1) rulesX.formulas = [onlyX];
     var items  = Exercises.page(selectedActivity, rulesX, count, teacherOptions().theme);
     if (!items.length) throw new Error('Could not build this activity for the level');
 
@@ -1713,7 +1720,8 @@ async function generateFromEngine() {
     maxNumber: bandEarly.max,
     minRows:   bandEarly.minRows,
     maxRows:   bandEarly.maxRows,
-    signBias:  tOptsEarly.addOnly ? 'add' : (tOptsEarly.subOnly ? 'sub' : null)
+    signBias:  tOptsEarly.addOnly ? 'add' : (tOptsEarly.subOnly ? 'sub' : null),
+    concept:   selectedConcept && selectedConcept !== 'revision' ? selectedConcept : null
   });
 
   var wanted = session.questions.filter(function (q) {

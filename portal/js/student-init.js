@@ -376,7 +376,8 @@ function speakText(text) {
   const voices = window.speechSynthesis.getVoices();
   const v = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female'))
     || voices.find(v => v.lang.startsWith('en')) || null;
-  if (v) utt.voice = v;
+  if (typeof Speech !== 'undefined') Speech.dress(utt, { rate: 0.78, pitch: 1.1 });
+  else if (v) utt.voice = v;
   window.speechSynthesis.speak(utt);
 }
 

@@ -866,7 +866,9 @@ function unlockSpeech() {
     speechReady = true;
   } catch (e) { /* not available — the replay button still works */ }
 }
-document.addEventListener('touchstart', unlockSpeech, { once: true, passive: true });
+document.addEventListener('touchstart', function () {
+  if (typeof Speech !== 'undefined') Speech.unlock(); else unlockSpeech();
+}, { once: true, passive: true });
 
 // Turning the phone changes the width of the abacus column, so it is
 // measured again — otherwise it keeps its portrait size in landscape.
@@ -893,6 +895,20 @@ var ORAL_SPEEDS = {
   normal: { label: '🚶 Normal', rate: 0.75, gap: 2000 },
   fast:   { label: '🐇 Fast',   rate: 0.90, gap: 1300 }
 };
+
+/* Megha's children need a number two or three times even slowly. */
+function oralRepeat() {
+  try {
+    var n = parseInt(localStorage.getItem('imath_oral_repeat'), 10);
+    if (n >= 1 && n <= 3) return n;
+  } catch (e) {}
+  return 2;
+}
+function setOralRepeat(n) {
+  try { localStorage.setItem('imath_oral_repeat', String(n)); } catch (e) {}
+  var q = questions[current];
+  if (q && q.oral) { decorateCard(q); mountWorkingAbacus(q); }
+}
 
 function oralSpeed() {
   try {
@@ -925,18 +941,41 @@ function speakOral(rows, token) {
              : (n < 0 ? 'minus ' + Math.abs(n) : 'plus ' + n);
     pos++;
 
-    var u = new SpeechSynthesisUtterance(word);
-    u.rate  = sp.rate;
-    u.pitch = 1.05;
+    /* Every number is said twice. A child holding it in their head
+       needs to hear it more than once — and the voice is now chosen
+       rather than left to the device, which was giving a male voice
+       on most Android phones. */
+    var u = (typeof Speech !== 'undefined')
+      ? Speech.dress(new SpeechSynthesisUtterance(word), { rate: sp.rate, pitch: 1.05 })
+      : (function () {
+          var x = new SpeechSynthesisUtterance(word);
+          x.rate = sp.rate; x.pitch = 1.05; x.lang = 'en-IN';
+          return x;
+        })();
 
     // Longer numbers need longer to work out, so the pause grows
     // with the number rather than being the same for 4 and 4728.
     var digits = String(Math.abs(n)).length;
     var wait   = sp.gap + (digits - 1) * 500;
 
-    u.onend = function () { oralTimer = setTimeout(next, wait); };
-    // If the voice fails to fire onend, keep the sequence moving
-    u.onerror = function () { oralTimer = setTimeout(next, wait); };
+    var saidOnce = false;
+    function afterSpeak() {
+      if (!saidOnce && (oralRepeat() > 1)) {
+        saidOnce = true;
+        oralTimer = setTimeout(function () {
+          if (token !== undefined && token !== oralToken) return;
+          var again = (typeof Speech !== 'undefined')
+            ? Speech.dress(new SpeechSynthesisUtterance(word), { rate: sp.rate - 0.05, pitch: 1.05 })
+            : new SpeechSynthesisUtterance(word);
+          again.onend = again.onerror = function () { oralTimer = setTimeout(next, wait); };
+          window.speechSynthesis.speak(again);
+        }, 700);
+        return;
+      }
+      oralTimer = setTimeout(next, wait);
+    }
+    u.onend   = afterSpeak;
+    u.onerror = afterSpeak;
 
     window.speechSynthesis.speak(u);
   }
@@ -1040,6 +1079,21 @@ function decorateCard(q) {
       speeds.appendChild(b);
     });
     visual.appendChild(speeds);
+
+    // How many times each number is said
+    var reps = document.createElement('div');
+    reps.style.cssText = 'display:flex;gap:6px;justify-content:center;margin-top:7px;flex-wrap:wrap;';
+    var curRep = oralRepeat();
+    [1, 2, 3].forEach(function (n) {
+      var b2 = document.createElement('button');
+      b2.className = 'replay-btn';
+      b2.style.cssText = 'padding:5px 12px;font-size:.75rem;' +
+        (n === curRep ? 'background:rgba(255,255,255,.55);color:#1A1A2E;' : '');
+      b2.textContent = n === 1 ? 'Say once' : 'Say ' + n + '\u00d7';
+      b2.onclick = function () { setOralRepeat(n); };
+      reps.appendChild(b2);
+    });
+    visual.appendChild(reps);
     oralTimer = setTimeout(function () { speakOral(q.rows, myToken); }, 600);
     return;
   }
@@ -1627,6 +1681,7 @@ init();
 </nav>
   <link rel="stylesheet" href="../css/abacus.css">
 <script src="../js/abacus.js"></script>
+<script src="../js/speech.js"></script>
 <script src="../js/bead-rules.js"></script>
 <script src="../js/column-gen.js"></script>
 <script src="../js/word-problems.js"></script>

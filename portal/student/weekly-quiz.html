@@ -206,6 +206,7 @@
 </div></nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/speech.js"></script>
 <script src="../js/profiles.js"></script>
 <script>
 const SUPABASE_URL='https://bhullfoajenhkxlkiubs.supabase.co';
@@ -393,6 +394,22 @@ function startTimer() {
 function showQuestion() {
   const q = questions[currentQ];
   if(!q) { submitQuiz(false); return; }
+
+  /* Read it to the youngest, in the same female Indian voice practice
+     uses, and say it twice — a child who cannot read the question
+     cannot attempt it. An oral question is spoken whatever the level,
+     since being spoken is the point of it. */
+  try {
+    if (typeof Speech !== 'undefined') {
+      Speech.stop();
+      var lvl = (currentUser && currentUser.current_level) || 0;
+      if (q.oral || lvl <= 1) {
+        var spoken = String(q.question || '')
+          .replace(/\n/g, ', ').replace(/\u2212/g, ' minus ').replace(/\+/g, ' plus ');
+        setTimeout(function () { Speech.sayTwice(spoken, { times: 2, gap: 800 }); }, 300);
+      }
+    }
+  } catch (e) {}
   const pct = (timeLeft/totalTime)*100;
   const isInput = !q.options || q.options.length === 0;
   const main = document.getElementById('mainContent');
@@ -463,6 +480,7 @@ function nextQuestion() {
 }
 
 async function submitQuiz(timedOut) {
+  if (typeof Speech !== 'undefined') Speech.stop();
   clearInterval(timerInterval);
   document.getElementById('timerDisplay').style.display = 'none';
   const timeTaken = Math.floor((Date.now()-startTime)/1000);

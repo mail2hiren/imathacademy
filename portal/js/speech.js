@@ -24,23 +24,63 @@ var Speech = (function () {
   var chosen = null;
   var ready  = false;
 
-  /* Names vary by device, so this is a preference order rather than
-     a lookup. Indian English first, then any female English voice,
-     then anything English at all. */
-  var WANT = [
-    /en[-_]IN/i,                          // Indian English, any
-    /Heera|Kalpana|Veena|Raveena|Aditi/i, // known Indian female voices
-    /Google.*(Hindi|India)/i,
-    /female/i,
-    /Samantha|Karen|Moira|Tessa|Fiona|Victoria|Zira|Susan/i  // female en-*
+  /* Guessing from the language tag was wrong. Preferring en-IN put
+     Rishi first on every iPhone — he is the iOS Indian English voice
+     and he is male. Gender is not in the API, and most Android voice
+     names carry no clue either, so the only reliable approach is to
+     name the voices we know.
+
+     Known female voices first, known male voices refused outright,
+     and only then a cautious fallback. */
+
+  var FEMALE = [
+    // Indian English, female — the best case
+    /\bVeena\b/i, /\bHeera\b/i, /\bKalpana\b/i, /\bRaveena\b/i, /\bAditi\b/i,
+    /\bLekha\b/i, /\bNeerja\b/i, /\bSwara\b/i,
+    /Microsoft.*(Heera|Kalpana|Neerja|Swara)/i,
+    // Google's explicitly female English voices
+    /Google UK English Female/i,
+    /Google US English/i,                 // Google's US voice is female
+    // Apple, female
+    /\bSamantha\b/i, /\bKaren\b/i, /\bMoira\b/i, /\bTessa\b/i, /\bFiona\b/i,
+    /\bVictoria\b/i, /\bAllison\b/i, /\bAva\b/i, /\bSusan\b/i, /\bZoe\b/i,
+    // Microsoft, female
+    /\bZira\b/i, /\bAria\b/i, /\bJenny\b/i, /\bMichelle\b/i,
+    // anything that says so
+    /\bfemale\b/i, /\bwoman\b/i
   ];
+
+  var MALE = [
+    /\bRishi\b/i,                          // iOS Indian English — male
+    /\bDaniel\b/i, /\bAlex\b/i, /\bFred\b/i, /\bOliver\b/i, /\bThomas\b/i,
+    /\bAaron\b/i, /\bArthur\b/i, /\bGordon\b/i, /\bNathan\b/i, /\bRalph\b/i,
+    /\bDavid\b/i, /\bMark\b/i, /\bGuy\b/i, /\bRavi\b/i, /\bPrabhat\b/i,
+    /Google UK English Male/i,
+    /\bmale\b/i                            // careful: tested after FEMALE
+  ];
+
+  function isFemale(v) {
+    var t = (v.name || '') + ' ' + (v.voiceURI || '');
+    return FEMALE.some(function (re) { return re.test(t); });
+  }
+
+  function isMale(v) {
+    var t = (v.name || '') + ' ' + (v.voiceURI || '');
+    if (isFemale(v)) return false;          // "female" contains "male"
+    return MALE.some(function (re) { return re.test(t); });
+  }
 
   function score(v) {
     var s = 0;
-    var tag = (v.name || '') + ' ' + (v.lang || '');
-    WANT.forEach(function (re, i) { if (re.test(tag)) s += (WANT.length - i) * 10; });
-    if (/en/i.test(v.lang)) s += 5;
-    if (/male/i.test(v.name) && !/female/i.test(v.name)) s -= 15;
+    var indian = /en[-_]IN/i.test(v.lang || '');
+
+    if (isFemale(v)) s += 100;              // known female outranks everything
+    else if (isMale(v)) s -= 100;           // never, if there is any choice
+
+    if (indian) s += 30;                    // Indian accent, once gender is settled
+    if (/en/i.test(v.lang || '')) s += 10;
+    if (/^en[-_]GB/i.test(v.lang || '')) s += 3;   // closer to Indian English than US
+    if (v.localService) s += 2;             // offline voices are more reliable
     return s;
   }
 
@@ -55,13 +95,29 @@ var Speech = (function () {
     });
     chosen = best;
     ready = true;
+    // Printed so a wrong choice can be reported rather than guessed at
+    try {
+      console.log('[speech] using "' + best.name + '" (' + best.lang + ')' +
+                  (isFemale(best) ? ' — known female' :
+                   isMale(best) ? ' — MALE, no female voice on this device' : ' — gender unknown'));
+    } catch (e) {}
     return best;
   }
 
   // Voices load asynchronously on most browsers
   if (window.speechSynthesis) {
     choose();
+    // Android reports an empty list on first call and fills it moments
+    // later. Without this the first question of a session is spoken by
+    // whatever the device defaults to.
     window.speechSynthesis.onvoiceschanged = function () { choose(); };
+    var tries = 0;
+    var poll = setInterval(function () {
+      tries++;
+      var got = (window.speechSynthesis.getVoices() || []).length;
+      if (got) { choose(); clearInterval(poll); }
+      else if (tries > 20) clearInterval(poll);
+    }, 250);
   }
 
   /** A teacher or parent can override the choice; it is remembered. */

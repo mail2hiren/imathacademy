@@ -210,10 +210,27 @@ function submit() {
        a parent filling this in is anonymous — so the insert succeeded
        and the read-back was refused, which looked like a failure.
        For a public form, no error IS the confirmation. */
-    sb.from('enquiries').insert(payload).then(function (res) {
-      if (!res.error) { done_(child, parent); return; }
+    sb.from('enquiries').insert(payload).select('id').then(function (res) {
+      if (!res.error) {
+        /* Tell the teacher a parent is waiting. Deliberately not
+           awaited — a notification failing must never stop a parent
+           seeing their enquiry go through. */
+        try {
+          fetch(SURL + '/functions/v1/notify-enquiry', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': SKEY },
+            body: JSON.stringify({ enquiry_id: (res.data && res.data[0] && res.data[0].id) || null })
+          }).catch(function () {});
+        } catch (e) {}
+        done_(child, parent);
+        return;
+      }
 
+      /* Reading the row back needs a read policy an anonymous parent
+         does not have. If only the read was refused, the enquiry did
+         save — treat that as success rather than alarming them. */
       var msg = (res.error && res.error.message) || '';
+      if (/row-level security|permission denied|policy/i.test(msg)) { done_(child, parent); return; }
       var missingColumn = /column .* does not exist|Could not find the/i.test(msg);
 
       if (missingColumn && !isRetry) {

@@ -502,6 +502,8 @@
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+<script>window.IMATH_VAPID_PUBLIC = "";  // paste the public VAPID key here</script>
+<script src="../js/push.js"></script>
 function editClass(idx) {
   var cls = SCHED[idx];
   if (!cls) return;
@@ -827,6 +829,9 @@ function renderDashboard() {
   document.getElementById('statBatches').textContent = BATCHES.length;
   document.getElementById('statRisk').textContent = atRisk.length;
   document.getElementById('statSubmissions').textContent = '—';
+
+  // Asked for once, with a reason, on their own dashboard
+  try { if (typeof Push !== 'undefined') Push.offer('.stats-row'); } catch (e) {}
 
   /* A parent who filled in the form is waiting for a person. That
      should not be buried behind a menu — it goes at the top, and only

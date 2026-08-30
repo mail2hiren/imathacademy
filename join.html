@@ -274,9 +274,29 @@ function done_(child, parent) {
       encodeURIComponent('Hello, I have just enquired about abacus classes for ' + child + '.');
     a.style.display = 'inline-block';
     document.getElementById('thanksMsg').textContent =
-      (teacher ? String(teacher.full_name).split(' ')[0] : 'We') +
-      ' will be in touch about ' + child + ' shortly. If you would like to talk now, ' +
-      'send a message and ' + (teacher ? 'she' : 'we') + ' will see it straight away.';
+      'Opening WhatsApp so you can say hello to ' +
+      (teacher ? String(teacher.full_name).split(' ')[0] : 'us') +
+      '. Just press send — or close it, we already have your details.';
+
+    /* Waiting for the parent to tap was a wasted step: they have just
+       pressed Send, so open WhatsApp for them. The message is written;
+       they press send in WhatsApp and the teacher hears from a real
+       number straight away.
+
+       Their enquiry is saved either way — if they close WhatsApp
+       nothing is lost, which is why the wording says so. */
+    setTimeout(function () {
+      try { window.location.href = a.href; } catch (e) {}
+    }, 1200);
+
+    // If WhatsApp did not open — a desktop without it, or a blocked
+    // redirect — say what to do instead.
+    setTimeout(function () {
+      document.getElementById('thanksMsg').textContent =
+        (teacher ? String(teacher.full_name).split(' ')[0] : 'We') +
+        ' will be in touch about ' + child + ' shortly. You can also message ' +
+        (teacher ? 'her' : 'us') + ' now using the button below.';
+    }, 4000);
   }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }

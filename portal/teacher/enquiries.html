@@ -122,10 +122,28 @@ async function load(){
 function showMyLink(){
   var box = document.getElementById('myLink');
   var url = location.origin + '/join.html?t=' + me;
-  box.innerHTML = '<strong>Your enquiry link</strong><br>' +
-    'Share this on your own posts — enquiries from it come straight to you.<br>' +
-    '<span style="font-weight:800;">' + esc(url) + '</span><br>' +
-    '<button class="btn btn-ghost" style="margin-top:8px;" onclick="copyLink(\'' + url + '\')">Copy</button>';
+  /* A parent at a school gate will not type a URL, but they will
+     scan. The QR carries the same per-teacher link, so a flyer or a
+     noticeboard card routes to whoever printed it. */
+  var qr = 'https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=' +
+           encodeURIComponent(url);
+
+  box.innerHTML =
+    '<div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;">' +
+      '<div style="flex:1;min-width:190px;">' +
+        '<strong>Your enquiry link</strong><br>' +
+        'Share this on your own posts — enquiries from it come straight to you.<br>' +
+        '<span style="font-weight:800;">' + esc(url) + '</span><br>' +
+        '<button class="btn btn-ghost" style="margin-top:8px;" onclick="copyLink(\'' + url + '\')">Copy link</button> ' +
+        '<a class="btn btn-ghost" style="margin-top:8px;" href="' + qr + '" download="my-enquiry-qr.png" ' +
+          'target="_blank" rel="noopener">Download QR</a>' +
+      '</div>' +
+      '<div style="text-align:center;">' +
+        '<img src="' + qr + '" alt="Your enquiry QR code" ' +
+          'style="width:118px;height:118px;border-radius:10px;background:#fff;padding:5px;">' +
+        '<div class="sub" style="margin-top:3px;">Scan to enquire</div>' +
+      '</div>' +
+    '</div>';
   box.style.display = 'block';
 }
 function copyLink(u){

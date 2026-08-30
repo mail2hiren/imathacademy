@@ -260,14 +260,23 @@ function done_(child, parent) {
 
   /* A wa.me link, so a parent who wants to talk now can. This is an
      ordinary deep link and needs no Business API or approval. */
+  /* A teacher cannot be pinged on WhatsApp automatically — wa.me is a
+     deep link a person taps, and unattended sending needs the Business
+     API. But if the PARENT taps it, the teacher gets a real WhatsApp
+     message from a real number, which starts a proper conversation
+     rather than a notification. So it is offered plainly, not hidden. */
   var num = (teacher && teacher.phone) || '';
   num = String(num).replace(/\D/g, '');
   if (num.length >= 10) {
     if (num.length === 10) num = '91' + num;
     var a = document.getElementById('waBtn');
     a.href = 'https://wa.me/' + num + '?text=' +
-      encodeURIComponent('Hi, I just enquired about abacus classes for ' + child + '.');
+      encodeURIComponent('Hello, I have just enquired about abacus classes for ' + child + '.');
     a.style.display = 'inline-block';
+    document.getElementById('thanksMsg').textContent =
+      (teacher ? String(teacher.full_name).split(' ')[0] : 'We') +
+      ' will be in touch about ' + child + ' shortly. If you would like to talk now, ' +
+      'send a message and ' + (teacher ? 'she' : 'we') + ' will see it straight away.';
   }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }

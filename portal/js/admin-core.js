@@ -7,6 +7,45 @@ const sb = supabase.createClient(SURL, SKEY);
    did not survive the split of the old single admin file, so pressing
    "Create student" threw before it reached the network. SUPABASE_KEY
    is the same anon key as SKEY, under the name the call site expects. */
+
+/* Changing a person's email in the admin screen used to change only
+   the app's copy. The real email and the password live in auth.users,
+   which needs a service-role key, so somebody had to open the database
+   and fix the login by hand every time.
+
+   This asks the update-user function to change both together. */
+const UPDATE_USER_FN = SURL + '/functions/v1/update-user';
+
+async function updateSignIn(userId, patch) {
+  const { data: { session } } = await sb.auth.getSession();
+  const res = await fetch(UPDATE_USER_FN, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+      'apikey': SKEY
+    },
+    body: JSON.stringify(Object.assign({ user_id: userId }, patch))
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Could not update the sign-in details');
+  return data;
+}
+
+/** Set a new password for someone. */
+async function resetPassword(userId, name) {
+  const pw = prompt('New password for ' + (name || 'this account') +
+                    '\n\nAt least 6 characters. Write it down — it is not shown again.');
+  if (!pw) return;
+  if (pw.length < 6) { toast('A password needs at least 6 characters', 'error'); return; }
+  try {
+    await updateSignIn(userId, { password: pw });
+    toast('Password changed — they can sign in with it now', 'success');
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
 const CREATE_USER_FN = SURL + '/functions/v1/create-user';
 const SUPABASE_KEY   = SKEY;
 

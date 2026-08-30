@@ -298,6 +298,10 @@
             <div class="stat-n" id="statRisk" style="color:var(--red)">—</div>
             <div class="stat-l">Need attention</div>
           </div>
+          <div class="stat-card" onclick="location.href='enquiries.html'" style="cursor:pointer;">
+            <div class="stat-n" id="statEnquiries" style="color:var(--amber,#E65100)">—</div>
+            <div class="stat-l">Enquiries waiting</div>
+          </div>
           <div class="stat-card">
             <div class="stat-n" id="statSubmissions" style="color:var(--green)">—</div>
             <div class="stat-l">Submissions today</div>
@@ -816,10 +820,63 @@ function renderDashboard() {
   BATCHES.forEach(function(b) { allStudents = allStudents.concat(b.students); });
   var atRisk = allStudents.filter(function(s) { return s.risk; });
 
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(ch){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]; }); }
+
   document.getElementById('statStudents').textContent = allStudents.length;
   document.getElementById('statBatches').textContent = BATCHES.length;
   document.getElementById('statRisk').textContent = atRisk.length;
   document.getElementById('statSubmissions').textContent = '—';
+
+  /* A parent who filled in the form is waiting for a person. That
+     should not be buried behind a menu — it goes at the top, and only
+     appears when there is somebody to reply to. */
+  (async function () {
+    try {
+      var me = (await sb.auth.getSession()).data.session.user.id;
+      var res = await sb.from('enquiries')
+        .select('id, child_name, parent_name, created_at, assigned_to, first_reply_at, status');
+      var all = res.data || [];
+
+      var mine = all.filter(function (e) {
+        return e.assigned_to === me && e.status !== 'converted' && !e.first_reply_at;
+      });
+      var free = all.filter(function (e) { return !e.assigned_to && e.status !== 'converted'; });
+
+      var waiting = mine.length + free.length;
+      var el = document.getElementById('statEnquiries');
+      if (el) el.textContent = waiting;
+
+      if (!waiting) return;
+
+      var oldest = mine.concat(free).sort(function (a, b) {
+        return new Date(a.created_at) - new Date(b.created_at);
+      })[0];
+      var days = Math.floor((Date.now() - new Date(oldest.created_at)) / 86400000);
+
+      var box = document.createElement('div');
+      box.style.cssText = 'background:#FFF4E5;border-left:4px solid #E65100;border-radius:12px;' +
+        'padding:13px 15px;margin-bottom:14px;cursor:pointer;';
+      box.onclick = function () { location.href = 'enquiries.html'; };
+      box.innerHTML =
+        '<div style="font-size:.92rem;font-weight:900;color:#8a4b00;">' +
+          '\uD83D\uDCEC ' + waiting + ' enquir' + (waiting === 1 ? 'y' : 'ies') + ' waiting for a reply' +
+        '</div>' +
+        '<div style="font-size:.79rem;color:#8a4b00;margin-top:3px;">' +
+          esc(oldest.parent_name || 'Someone') + ' asked about ' +
+          esc(oldest.child_name || 'their child') + ' ' +
+          (days === 0 ? 'today' : days === 1 ? 'yesterday' : days + ' days ago') +
+          (mine.length && free.length
+            ? ' \u00b7 ' + mine.length + ' yours, ' + free.length + ' unassigned'
+            : free.length && !mine.length ? ' \u00b7 not assigned to anyone yet' : '') +
+        '</div>';
+
+      var host = document.querySelector('.stats-row');
+      if (host && host.parentNode) host.parentNode.insertBefore(box, host);
+    } catch (e) {
+      console.warn('Could not load enquiries:', e.message);
+    }
+  })();
 
   // Load today's submissions count
   var today = new Date(); today.setHours(0,0,0,0);

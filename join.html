@@ -206,8 +206,12 @@ function submit() {
      been migrated yet. Losing an enquiry because of a missing column
      would be the worst possible failure here. */
   function tryInsert(payload, isRetry) {
-    sb.from('enquiries').insert(payload).select().then(function (res) {
-      if (!res.error && res.data && res.data.length) { done_(child, parent); return; }
+    /* No .select() here. Reading the row back needs a read policy, and
+       a parent filling this in is anonymous — so the insert succeeded
+       and the read-back was refused, which looked like a failure.
+       For a public form, no error IS the confirmation. */
+    sb.from('enquiries').insert(payload).then(function (res) {
+      if (!res.error) { done_(child, parent); return; }
 
       var msg = (res.error && res.error.message) || '';
       var missingColumn = /column .* does not exist|Could not find the/i.test(msg);

@@ -221,9 +221,7 @@ function render(){
       (r.notes ? '<div class="msg">' + esc(r.notes) + '</div>' : '') +
       '<div class="acts">' +
         ((digits.length >= 11 && (r.assigned_to === me || myRole === 'admin'))
-          ? '<a class="btn btn-wa" target="_blank" rel="noopener" ' +
-            'href="https://wa.me/' + digits + '?text=' + encodeURIComponent(msg) + '" ' +
-            'onclick="markReplied(\'' + r.id + '\')">WhatsApp them</a>'
+          ? '<button class="btn btn-wa" onclick="openReply(\'' + r.id + '\')">WhatsApp them</button>'
           : '') +
         /* Assigning is the academy's decision, not first-come. A
            teacher can see what is waiting, but only an admin says
@@ -250,6 +248,111 @@ function render(){
 
 /* Opening WhatsApp counts as the first reply — that is what makes
    "waiting 3 days" mean something. */
+/* ── WHAT TO SAY ──────────────────────────────────────────────
+   A blank WhatsApp box at the end of a long day is why enquiries go
+   cold. These are starting points, not scripts — WhatsApp opens with
+   the text ready and the teacher edits before sending.
+
+   Short, no marketing language, and each ends with a question, so
+   the parent has something easy to reply to.
+   ─────────────────────────────────────────────────────────── */
+var TEMPLATES = [
+  {
+    key: 'first',
+    label: 'First reply',
+    text: function (r, me) {
+      return 'Hello ' + first(r.parent_name) + ', this is ' + first(me) +
+        ' from iMath Academy. Thank you for asking about classes for ' +
+        first(r.child_name) + '.\n\n' +
+        'Could I call you for five minutes to understand where ' + first(r.child_name) +
+        ' is with maths? When suits you better — morning or evening?';
+    }
+  },
+  {
+    key: 'trial',
+    label: 'Offer a trial',
+    text: function (r, me) {
+      return 'Hello ' + first(r.parent_name) + ', ' + first(me) + ' here from iMath Academy.\n\n' +
+        'The easiest way to see if this suits ' + first(r.child_name) +
+        ' is a free trial class — about 30 minutes, no obligation.\n\n' +
+        'Would this week work, or would next be easier?';
+    }
+  },
+  {
+    key: 'nudge',
+    label: 'Gentle nudge',
+    text: function (r, me) {
+      return 'Hello ' + first(r.parent_name) + ', just checking you saw my earlier message about ' +
+        first(r.child_name) + '.\n\n' +
+        'No hurry at all — do let me know if you would still like to talk, or if the timing is not right just now.';
+    }
+  },
+  {
+    key: 'details',
+    label: 'Fees and timings',
+    text: function (r, me) {
+      return 'Hello ' + first(r.parent_name) + ', here are the details you asked for.\n\n' +
+        'Classes are twice a week, and children practise on the app between sessions. ' +
+        'Fees are shared once we know which level ' + first(r.child_name) + ' starts at, ' +
+        'which the trial class tells us.\n\n' +
+        'Shall I book a trial?';
+    }
+  },
+  {
+    key: 'joined',
+    label: 'Welcome them',
+    text: function (r, me) {
+      return 'Welcome to iMath Academy, ' + first(r.parent_name) + '!\n\n' +
+        'I will send ' + first(r.child_name) + '\'s login shortly. ' +
+        'They can practise on the app any time, and I will see how they are getting on.\n\n' +
+        'Do message me whenever you have a question.';
+    }
+  }
+];
+
+function first(n) { return String(n || '').trim().split(' ')[0] || 'there'; }
+
+/* Show the choices rather than sending one blindly — the teacher
+   picks the moment, and can edit before it goes. */
+function openReply(id) {
+  var r = rows.filter(function (x) { return x.id === id; })[0];
+  if (!r) return;
+  var digits = String(r.phone || '').replace(/\D/g, '');
+  if (digits.length === 10) digits = '91' + digits;
+  if (digits.length < 11) { toast('No usable phone number on this enquiry'); return; }
+
+  var old = document.getElementById('replyBox');
+  if (old) old.remove();
+
+  var ov = document.createElement('div');
+  ov.id = 'replyBox';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(20,24,40,.5);z-index:99;' +
+    'display:flex;align-items:flex-end;justify-content:center;';
+  ov.onclick = function (e) { if (e.target === ov) ov.remove(); };
+
+  ov.innerHTML = '<div style="background:#fff;border-radius:20px 20px 0 0;width:100%;' +
+    'max-width:560px;max-height:86vh;overflow:auto;padding:18px;">' +
+    '<div style="font-size:.95rem;font-weight:900;margin-bottom:3px;">Message ' +
+      esc(first(r.parent_name)) + '</div>' +
+    '<div class="sub" style="margin-bottom:12px;">Pick a starting point — you can change it ' +
+      'in WhatsApp before sending.</div>' +
+    TEMPLATES.map(function (t) {
+      var msg = t.text(r, myName);
+      return '<a class="btn btn-wa" style="display:block;margin-bottom:9px;text-align:left;' +
+        'padding:12px 14px;" target="_blank" rel="noopener" ' +
+        'href="https://wa.me/' + digits + '?text=' + encodeURIComponent(msg) + '" ' +
+        'onclick="markReplied(\'' + r.id + '\'); document.getElementById(\'replyBox\').remove();">' +
+        '<div style="font-weight:900;">' + t.label + '</div>' +
+        '<div style="font-weight:600;font-size:.76rem;opacity:.92;margin-top:3px;">' +
+          esc(msg.split('\n')[0]).slice(0, 62) + '…</div>' +
+        '</a>';
+    }).join('') +
+    '<button class="btn btn-ghost" style="width:100%;margin-top:4px;" ' +
+      'onclick="document.getElementById(\'replyBox\').remove()">Close</button>' +
+    '</div>';
+  document.body.appendChild(ov);
+}
+
 async function markReplied(id){
   try{
     var r = rows.filter(function(x){ return x.id===id; })[0];

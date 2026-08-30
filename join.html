@@ -145,11 +145,18 @@ var teacher = null;
 async function findTeacher() {
   if (!teacherParam) return;
   try {
-    var q = sb.from('users').select('id, full_name, phone').eq('role', 'teacher').eq('is_active', true);
-    // The link may carry an id or a name
-    var res = /^[0-9a-f-]{30,}$/i.test(teacherParam)
-      ? await q.eq('id', teacherParam).single()
-      : await q.ilike('full_name', teacherParam.replace(/-/g, ' ') + '%').limit(1).single();
+    var q = sb.from('users').select('id, full_name, phone, email').eq('role', 'teacher').eq('is_active', true);
+    /* The link may carry an id, an email or a name. An email is the
+       obvious thing to reach for when sharing a link by hand, so it
+       has to work. */
+    var res;
+    if (/^[0-9a-f-]{30,}$/i.test(teacherParam)) {
+      res = await q.eq('id', teacherParam).single();
+    } else if (teacherParam.indexOf('@') > -1) {
+      res = await q.ilike('email', teacherParam.trim()).limit(1).single();
+    } else {
+      res = await q.ilike('full_name', teacherParam.replace(/-/g, ' ') + '%').limit(1).single();
+    }
     if (res.data) {
       teacher = res.data;
       var box = document.getElementById('whoBox');
@@ -194,20 +201,43 @@ function submit() {
   };
   if (teacher) { row.assigned_to = teacher.id; row.assigned_at = new Date().toISOString(); }
 
-  sb.from('enquiries').insert(row).select().then(function (res) {
-    // .select() so a blocked insert is not mistaken for a success
-    if (res.error || !res.data || !res.data.length) {
+  /* Postgres rejects a whole insert if one column is unknown, so the
+     newer columns are tried first and dropped if the database has not
+     been migrated yet. Losing an enquiry because of a missing column
+     would be the worst possible failure here. */
+  function tryInsert(payload, isRetry) {
+    sb.from('enquiries').insert(payload).select().then(function (res) {
+      if (!res.error && res.data && res.data.length) { done_(child, parent); return; }
+
+      var msg = (res.error && res.error.message) || '';
+      var missingColumn = /column .* does not exist|Could not find the/i.test(msg);
+
+      if (missingColumn && !isRetry) {
+        // Keep the enquiry, lose only the extras
+        var core = {
+          child_name:  payload.child_name,
+          parent_name: payload.parent_name,
+          phone:       payload.phone,
+          city:        payload.city,
+          status:      'new'
+        };
+        tryInsert(core, true);
+        return;
+      }
+
       btn.disabled = false;
       btn.textContent = 'Send';
-      alert('Something went wrong sending that. Please try again, or message us on WhatsApp.');
-      return;
-    }
-    done_(child, parent);
-  }).catch(function () {
-    btn.disabled = false;
-    btn.textContent = 'Send';
-    alert('Something went wrong sending that. Please try again.');
-  });
+      console.error('[join] enquiry not saved:', msg);
+      alert('Something went wrong sending that.\n\n' + (msg || 'Please try again.') +
+            '\n\nYou can also message us on WhatsApp.');
+    }).catch(function (e) {
+      btn.disabled = false;
+      btn.textContent = 'Send';
+      console.error('[join]', e);
+      alert('Something went wrong sending that. Please try again.');
+    });
+  }
+  tryInsert(row, false);
 }
 
 function done_(child, parent) {

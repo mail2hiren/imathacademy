@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Join iMath Academy</title>
+<meta name="description" content="Abacus and mental maths for children. Tell us about your child and we will be in touch.">
+<link rel="icon" type="image/png" href="/assets/icon-32.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--blue:#1565C0;--green:#2E7D32;--text1:#1A1A2E;--text2:#555;
+        --text3:#8892A4;--border:#E4E7F2;}
+  body{font-family:'Nunito',sans-serif;background:#F5F7FC;color:var(--text1);
+       -webkit-font-smoothing:antialiased;padding-bottom:40px;}
+  .wrap{max-width:440px;margin:0 auto;padding:22px 18px;}
+  .logo{height:38px;display:block;margin:0 auto 18px;}
+  h1{font-size:1.45rem;font-weight:900;text-align:center;line-height:1.3;}
+  .lede{font-size:.9rem;color:var(--text2);text-align:center;margin-top:8px;line-height:1.6;}
+  .card{background:#fff;border:1.5px solid var(--border);border-radius:18px;
+        padding:20px;margin-top:20px;}
+  label{display:block;font-size:.78rem;font-weight:900;color:var(--text2);
+        margin:14px 0 6px;}
+  label:first-child{margin-top:0;}
+  input,select,textarea{width:100%;padding:13px 14px;border:1.5px solid var(--border);
+    border-radius:12px;font-family:inherit;font-size:1rem;background:#fff;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);}
+  textarea{min-height:74px;resize:vertical;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .btn{width:100%;padding:15px;border:none;border-radius:13px;background:var(--blue);
+       color:#fff;font-family:inherit;font-size:1rem;font-weight:900;cursor:pointer;
+       margin-top:20px;box-shadow:0 3px 12px rgba(21,101,192,.28);}
+  .btn:active{transform:translateY(1px);}
+  .btn[disabled]{opacity:.6;box-shadow:none;}
+  .err{color:#C62828;font-size:.78rem;font-weight:800;margin-top:5px;display:none;}
+  .note{font-size:.75rem;color:var(--text3);text-align:center;margin-top:14px;line-height:1.6;}
+  .who{background:#EAF2FF;border-radius:12px;padding:11px 13px;margin-bottom:16px;
+       font-size:.82rem;color:#0D47A1;font-weight:800;text-align:center;}
+  .done{text-align:center;padding:26px 6px;}
+  .done .tick{font-size:3rem;}
+  .done h2{font-size:1.25rem;font-weight:900;margin:10px 0 8px;}
+  .done p{font-size:.9rem;color:var(--text2);line-height:1.65;}
+  .wa{display:inline-block;margin-top:18px;padding:13px 22px;border-radius:12px;
+      background:#25D366;color:#fff;text-decoration:none;font-weight:900;font-size:.92rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img src="/assets/logo.png" alt="iMath Academy" class="logo">
+
+  <div id="form">
+    <h1>Tell us about your child</h1>
+    <p class="lede">Half a minute, and we will come back to you personally.</p>
+
+    <div class="card">
+      <div id="whoBox" class="who" style="display:none;"></div>
+
+      <label for="child">Child's name</label>
+      <input id="child" autocomplete="off" placeholder="First name is enough">
+      <div class="err" id="e-child">Please tell us their name</div>
+
+      <div class="row2">
+        <div>
+          <label for="age">Age</label>
+          <select id="age">
+            <option value="">—</option>
+          </select>
+          <div class="err" id="e-age">Please choose an age</div>
+        </div>
+        <div>
+          <label for="done">Done abacus before?</label>
+          <select id="done">
+            <option value="no">No, new to it</option>
+            <option value="some">A little</option>
+            <option value="yes">Yes, some years</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="parent">Your name</label>
+      <input id="parent" autocomplete="name" placeholder="Parent or guardian">
+      <div class="err" id="e-parent">Please tell us your name</div>
+
+      <label for="phone">WhatsApp number</label>
+      <input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="10 digits">
+      <div class="err" id="e-phone">A 10-digit mobile number, please</div>
+
+      <label for="city">City</label>
+      <input id="city" autocomplete="address-level2" placeholder="So we can suggest a class time">
+
+      <label for="msg">Anything you would like to ask? (optional)</label>
+      <textarea id="msg" placeholder="A question, or a good time to call"></textarea>
+
+      <button class="btn" id="send" onclick="submit()">Send</button>
+      <div class="note">We will only use this to contact you about classes.</div>
+    </div>
+  </div>
+
+  <div id="thanks" class="card done" style="display:none;">
+    <div class="tick">🎉</div>
+    <h2 id="thanksName">Thank you!</h2>
+    <p id="thanksMsg"></p>
+    <a id="waBtn" class="wa" style="display:none;" target="_blank" rel="noopener">
+      Message us on WhatsApp
+    </a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   Join — the page a parent lands on from WhatsApp or Instagram
+   ------------------------------------------------------------
+   enroll.html asks for far more, because it also enrols and takes
+   payment. A parent who has just seen a post will not fill that in
+   on a phone. Six fields, no account, no payment.
+
+   The link can carry the teacher — /join?t=<id> — so an enquiry
+   from a teacher's own post goes straight to them rather than
+   landing on Megha. And ?src=instagram records where it came from
+   without asking the parent.
+   ============================================================ */
+
+var SURL='https://bhullfoajenhkxlkiubs.supabase.co';
+var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+var sb = supabase.createClient(SURL, SKEY);
+
+var params  = new URLSearchParams(location.search);
+var teacherParam = params.get('t');
+var source  = params.get('src') || 'direct';
+var teacher = null;
+
+// Ages 4 to 16 — the range the programme covers
+(function () {
+  var sel = document.getElementById('age');
+  for (var a = 4; a <= 16; a++) {
+    var o = document.createElement('option');
+    o.value = a; o.textContent = a + ' years';
+    sel.appendChild(o);
+  }
+})();
+
+/* If the link names a teacher, say so — a parent who came from
+   Priya's post should see Priya's name, not a generic form. */
+async function findTeacher() {
+  if (!teacherParam) return;
+  try {
+    var q = sb.from('users').select('id, full_name, phone').eq('role', 'teacher').eq('is_active', true);
+    // The link may carry an id or a name
+    var res = /^[0-9a-f-]{30,}$/i.test(teacherParam)
+      ? await q.eq('id', teacherParam).single()
+      : await q.ilike('full_name', teacherParam.replace(/-/g, ' ') + '%').limit(1).single();
+    if (res.data) {
+      teacher = res.data;
+      var box = document.getElementById('whoBox');
+      box.textContent = 'Your enquiry goes to ' + String(teacher.full_name).split(' ')[0];
+      box.style.display = 'block';
+    }
+  } catch (e) { /* an unknown teacher simply means an unassigned enquiry */ }
+}
+findTeacher();
+
+function show(id, on) { document.getElementById(id).style.display = on ? 'block' : 'none'; }
+
+function submit() {
+  var child  = document.getElementById('child').value.trim();
+  var age    = document.getElementById('age').value;
+  var done   = document.getElementById('done').value;
+  var parent = document.getElementById('parent').value.trim();
+  var phone  = document.getElementById('phone').value.replace(/\D/g, '');
+  var city   = document.getElementById('city').value.trim();
+  var msg    = document.getElementById('msg').value.trim();
+
+  var ok = true;
+  show('e-child',  !child);   if (!child)  ok = false;
+  show('e-age',    !age);     if (!age)    ok = false;
+  show('e-parent', !parent);  if (!parent) ok = false;
+  var goodPhone = phone.length >= 10;
+  show('e-phone', !goodPhone); if (!goodPhone) ok = false;
+  if (!ok) return;
+
+  var btn = document.getElementById('send');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  var row = {
+    child_name:  child,
+    parent_name: parent,
+    phone:       phone,
+    city:        city || null,
+    status:      'new',
+    source:      source,
+    notes:       'Age ' + age + ' · abacus before: ' + done + (msg ? ' · ' + msg : '')
+  };
+  if (teacher) { row.assigned_to = teacher.id; row.assigned_at = new Date().toISOString(); }
+
+  sb.from('enquiries').insert(row).select().then(function (res) {
+    // .select() so a blocked insert is not mistaken for a success
+    if (res.error || !res.data || !res.data.length) {
+      btn.disabled = false;
+      btn.textContent = 'Send';
+      alert('Something went wrong sending that. Please try again, or message us on WhatsApp.');
+      return;
+    }
+    done_(child, parent);
+  }).catch(function () {
+    btn.disabled = false;
+    btn.textContent = 'Send';
+    alert('Something went wrong sending that. Please try again.');
+  });
+}
+
+function done_(child, parent) {
+  document.getElementById('form').style.display = 'none';
+  var t = document.getElementById('thanks');
+  t.style.display = 'block';
+
+  document.getElementById('thanksName').textContent = 'Thank you, ' + parent.split(' ')[0] + '!';
+  document.getElementById('thanksMsg').textContent =
+    (teacher ? String(teacher.full_name).split(' ')[0] : 'We')
+    + ' will be in touch about ' + child + ' shortly — usually the same day.';
+
+  /* A wa.me link, so a parent who wants to talk now can. This is an
+     ordinary deep link and needs no Business API or approval. */
+  var num = (teacher && teacher.phone) || '';
+  num = String(num).replace(/\D/g, '');
+  if (num.length >= 10) {
+    if (num.length === 10) num = '91' + num;
+    var a = document.getElementById('waBtn');
+    a.href = 'https://wa.me/' + num + '?text=' +
+      encodeURIComponent('Hi, I just enquired about abacus classes for ' + child + '.');
+    a.style.display = 'inline-block';
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

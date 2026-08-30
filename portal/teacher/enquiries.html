@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enquiries — iMathAcademy</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--blue:#1565C0;--green:#2E7D32;--amber:#E65100;--red:#C62828;--wa:#25D366;
+        --text1:#1A1A2E;--text2:#555;--text3:#8892A4;--border:#E4E7F2;}
+  body{font-family:'Nunito',sans-serif;background:#F5F7FC;color:var(--text1);padding-bottom:60px;}
+  .topbar{background:#fff;border-bottom:1.5px solid var(--border);padding:13px 16px;
+          display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;}
+  .topbar a{color:var(--text3);text-decoration:none;font-size:1.3rem;}
+  .topbar h1{font-size:1.02rem;font-weight:900;}
+  .wrap{max-width:760px;margin:0 auto;padding:16px 14px 0;}
+  .tabs{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;}
+  .tab{padding:9px 15px;border-radius:20px;border:1.5px solid var(--border);background:#fff;
+       font-family:inherit;font-size:.82rem;font-weight:800;color:var(--text2);cursor:pointer;}
+  .tab.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+  .card{background:#fff;border:1.5px solid var(--border);border-radius:16px;
+        padding:15px;margin-bottom:11px;}
+  .card.cold{border-color:#FFCC80;background:#FFFCF7;}
+  .name{font-size:1rem;font-weight:900;}
+  .sub{font-size:.76rem;color:var(--text3);margin-top:2px;line-height:1.5;}
+  .msg{font-size:.83rem;color:var(--text2);margin-top:8px;line-height:1.6;
+       background:#F7F9FF;border-radius:10px;padding:9px 11px;}
+  .acts{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap;}
+  .btn{padding:10px 15px;border:none;border-radius:10px;font-family:inherit;
+       font-size:.82rem;font-weight:800;cursor:pointer;text-decoration:none;display:inline-block;}
+  .btn-wa{background:var(--wa);color:#fff;}
+  .btn-ghost{background:#fff;color:var(--text2);border:1.5px solid var(--border);}
+  .btn-done{background:#E8F5E9;color:var(--green);border:1.5px solid #A5D6A7;}
+  .pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:900;}
+  .pill-new{background:#E3F2FD;color:#0D47A1;}
+  .pill-warm{background:#FFF3E0;color:var(--amber);}
+  .pill-won{background:#E8F5E9;color:var(--green);}
+  .pill-cold{background:#FDECEA;color:var(--red);}
+  .summary{background:#fff;border:1.5px solid var(--border);border-radius:16px;
+           padding:15px;margin-bottom:13px;}
+  .srow{display:flex;justify-content:space-between;gap:10px;padding:7px 0;
+        border-bottom:1px solid var(--border);font-size:.85rem;}
+  .srow:last-child{border-bottom:none;}
+  .empty{text-align:center;padding:34px;color:var(--text3);font-size:.86rem;}
+  .link{background:#EAF2FF;border-radius:12px;padding:12px 14px;margin-bottom:14px;
+        font-size:.8rem;color:#0D47A1;line-height:1.6;word-break:break-all;}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1A1A2E;
+         color:#fff;padding:11px 20px;border-radius:11px;font-size:.85rem;font-weight:800;
+         display:none;z-index:99;max-width:90%;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="dashboard.html">&larr;</a>
+  <h1>Enquiries</h1>
+</div>
+
+<div class="wrap">
+  <div id="myLink" class="link" style="display:none;"></div>
+  <div class="tabs" id="tabs"></div>
+  <div id="body"><div class="empty">Loading…</div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   Enquiries
+   ------------------------------------------------------------
+   A teacher works their own and nobody else's. Megha can see
+   everything — how many are coming in, who is on them, who has gone
+   quiet — but her own list is just hers, so a second teacher does
+   not add to her workload.
+
+   Replies go through wa.me, which is an ordinary deep link from the
+   teacher's own WhatsApp. No Business API, no Meta approval, and the
+   parent hears from the person who will actually teach their child.
+   The message is written for them; they can change it before sending.
+   ============================================================ */
+
+var SURL='https://bhullfoajenhkxlkiubs.supabase.co';
+var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+var sb = supabase.createClient(SURL, SKEY);
+
+var me=null, myRole=null, myName='', rows=[], teachers={}, view='mine';
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function toast(m){ var t=document.getElementById('toast'); t.textContent=m;
+  t.style.display='block'; setTimeout(function(){t.style.display='none';},2600); }
+function daysSince(d){ if(!d) return null;
+  return Math.floor((Date.now()-new Date(d).getTime())/86400000); }
+function ago(d){ var n=daysSince(d);
+  return n===null?'':n===0?'today':n===1?'yesterday':n+' days ago'; }
+
+async function load(){
+  var s = await sb.auth.getSession();
+  if(!s.data.session){ location.href='../../login.html'; return; }
+  me = s.data.session.user.id;
+
+  var meRow = await sb.from('users').select('role, full_name, phone').eq('id',me).single();
+  myRole = (meRow.data||{}).role;
+  myName = (meRow.data||{}).full_name || '';
+
+  var t = await sb.from('users').select('id, full_name, phone').eq('role','teacher');
+  (t.data||[]).forEach(function(x){ teachers[x.id]=x; });
+
+  var e = await sb.from('enquiries')
+    .select('*').order('created_at', {ascending:false}).limit(200);
+  rows = e.data || [];
+
+  showMyLink();
+  renderTabs();
+  render();
+}
+
+/* The teacher's own link — anything from it lands on them */
+function showMyLink(){
+  var box = document.getElementById('myLink');
+  var url = location.origin + '/join.html?t=' + me;
+  box.innerHTML = '<strong>Your enquiry link</strong><br>' +
+    'Share this on your own posts — enquiries from it come straight to you.<br>' +
+    '<span style="font-weight:800;">' + esc(url) + '</span><br>' +
+    '<button class="btn btn-ghost" style="margin-top:8px;" onclick="copyLink(\'' + url + '\')">Copy</button>';
+  box.style.display = 'block';
+}
+function copyLink(u){
+  navigator.clipboard.writeText(u).then(function(){ toast('Copied — paste it into WhatsApp'); },
+                                        function(){ toast('Could not copy'); });
+}
+
+function renderTabs(){
+  var t = document.getElementById('tabs');
+  var mine = rows.filter(function(r){ return r.assigned_to === me; }).length;
+  var free = rows.filter(function(r){ return !r.assigned_to; }).length;
+  var html = '<button class="tab' + (view==='mine'?' on':'') + '" onclick="setView(\'mine\')">' +
+             'Mine (' + mine + ')</button>' +
+             '<button class="tab' + (view==='free'?' on':'') + '" onclick="setView(\'free\')">' +
+             'Unassigned (' + free + ')</button>';
+  if(myRole === 'admin'){
+    html += '<button class="tab' + (view==='all'?' on':'') + '" onclick="setView(\'all\')">' +
+            'Everyone (' + rows.length + ')</button>';
+  }
+  t.innerHTML = html;
+}
+function setView(v){ view=v; renderTabs(); render(); }
+
+function render(){
+  var el = document.getElementById('body');
+
+  /* Megha's overview — how many are coming in and who is on them.
+     Not a leaderboard; the point is spotting what has gone quiet. */
+  var head = '';
+  if(view === 'all' && myRole === 'admin'){
+    var byT = {};
+    rows.forEach(function(r){
+      var k = r.assigned_to || 'none';
+      var b = byT[k] || (byT[k] = {n:0, replied:0, won:0, cold:0});
+      b.n++;
+      if(r.first_reply_at) b.replied++;
+      if(r.status === 'converted') b.won++;
+      if(!r.first_reply_at && daysSince(r.created_at) >= 2) b.cold++;
+    });
+    head = '<div class="summary"><div style="font-weight:900;margin-bottom:8px;">' +
+      rows.length + ' enquiries</div>' +
+      Object.keys(byT).map(function(k){
+        var b = byT[k];
+        var nm = k === 'none' ? 'Nobody yet' : ((teachers[k]||{}).full_name || 'Someone');
+        return '<div class="srow"><span>' + esc(nm) + '</span><span>' +
+          b.n + ' &middot; ' + b.replied + ' replied &middot; ' + b.won + ' joined' +
+          (b.cold ? ' <span style="color:var(--red);font-weight:900;">&middot; ' +
+                    b.cold + ' waiting</span>' : '') +
+          '</span></div>';
+      }).join('') + '</div>';
+  }
+
+  var list = rows.filter(function(r){
+    if(view === 'mine') return r.assigned_to === me;
+    if(view === 'free') return !r.assigned_to;
+    return true;
+  });
+
+  if(!list.length){
+    el.innerHTML = head + '<div class="empty">' +
+      (view==='mine' ? 'Nothing waiting on you.' :
+       view==='free' ? 'Everything has an owner.' : 'No enquiries yet.') + '</div>';
+    return;
+  }
+
+  el.innerHTML = head + list.map(function(r){
+    var waited = daysSince(r.created_at);
+    var cold = !r.first_reply_at && waited >= 2 && r.status !== 'converted';
+    var pill = r.status === 'converted' ? '<span class="pill pill-won">Joined</span>'
+             : cold                     ? '<span class="pill pill-cold">Waiting ' + waited + ' days</span>'
+             : r.first_reply_at         ? '<span class="pill pill-warm">Replied</span>'
+             : '<span class="pill pill-new">New</span>';
+
+    var owner = r.assigned_to ? ((teachers[r.assigned_to]||{}).full_name || 'Someone') : null;
+    var digits = String(r.phone || '').replace(/\D/g,'');
+    if(digits.length === 10) digits = '91' + digits;
+
+    var msg = 'Hello ' + (r.parent_name || '') + ', this is ' + myName.split(' ')[0] +
+      ' from iMath Academy. Thank you for asking about classes for ' + (r.child_name || 'your child') +
+      '. When would be a good time to talk?';
+
+    return '<div class="card' + (cold ? ' cold' : '') + '">' +
+      '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:9px;">' +
+        '<div class="name">' + esc(r.child_name || 'A child') + '</div>' + pill +
+      '</div>' +
+      '<div class="sub">' + esc(r.parent_name || '') +
+        (r.phone ? ' &middot; ' + esc(r.phone) : '') +
+        (r.city ? ' &middot; ' + esc(r.city) : '') +
+        ' &middot; came in ' + ago(r.created_at) +
+        (r.source && r.source !== 'direct' ? ' from ' + esc(r.source) : '') +
+        (owner && view !== 'mine' ? ' &middot; with ' + esc(owner) : '') +
+      '</div>' +
+      (r.notes ? '<div class="msg">' + esc(r.notes) + '</div>' : '') +
+      '<div class="acts">' +
+        (digits.length >= 11
+          ? '<a class="btn btn-wa" target="_blank" rel="noopener" ' +
+            'href="https://wa.me/' + digits + '?text=' + encodeURIComponent(msg) + '" ' +
+            'onclick="markReplied(\'' + r.id + '\')">WhatsApp them</a>'
+          : '') +
+        (!r.assigned_to
+          ? '<button class="btn btn-ghost" onclick="takeIt(\'' + r.id + '\')">I will take this</button>'
+          : '') +
+        (r.status !== 'converted'
+          ? '<button class="btn btn-done" onclick="markJoined(\'' + r.id + '\')">They joined</button>'
+          : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* Opening WhatsApp counts as the first reply — that is what makes
+   "waiting 3 days" mean something. */
+async function markReplied(id){
+  try{
+    var r = rows.filter(function(x){ return x.id===id; })[0];
+    if(r && r.first_reply_at) return;
+    await sb.from('enquiries').update({
+      first_reply_at: new Date().toISOString(),
+      status: 'contacted'
+    }).eq('id', id);
+    if(r){ r.first_reply_at = new Date().toISOString(); r.status='contacted'; }
+    render();
+  }catch(e){}
+}
+
+async function takeIt(id){
+  try{
+    var res = await sb.from('enquiries').update({
+      assigned_to: me, assigned_at: new Date().toISOString()
+    }).eq('id', id).select();
+    if(res.error) throw res.error;
+    if(!res.data || !res.data.length) throw new Error('Nothing changed — check your permissions');
+    toast('Yours now');
+    await load();
+  }catch(e){ toast('Could not take it: ' + e.message); }
+}
+
+async function markJoined(id){
+  try{
+    var res = await sb.from('enquiries').update({ status:'converted' }).eq('id', id).select();
+    if(res.error) throw res.error;
+    if(!res.data || !res.data.length) throw new Error('Nothing changed — check your permissions');
+    toast('Marked as joined');
+    await load();
+  }catch(e){ toast('Could not update: ' + e.message); }
+}
+
+load().catch(function(e){
+  document.getElementById('body').innerHTML =
+    '<div class="empty">Could not load: ' + esc(e.message) + '</div>';
+});
+</script>
+</body>
+</html>

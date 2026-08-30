@@ -91,7 +91,7 @@
       <label for="msg">Anything you would like to ask? (optional)</label>
       <textarea id="msg" placeholder="A question, or a good time to call"></textarea>
 
-      <button class="btn" id="send" onclick="submit()">Send</button>
+      <button class="btn" id="send" onclick="submit()">Send &amp; message on WhatsApp</button>
       <div class="note">We will only use this to contact you about classes.</div>
     </div>
   </div>
@@ -234,13 +234,13 @@ function submit() {
       }
 
       btn.disabled = false;
-      btn.textContent = 'Send';
+      btn.textContent = 'Send & message on WhatsApp';
       console.error('[join] enquiry not saved:', msg);
       alert('Something went wrong sending that.\n\n' + (msg || 'Please try again.') +
             '\n\nYou can also message us on WhatsApp.');
     }).catch(function (e) {
       btn.disabled = false;
-      btn.textContent = 'Send';
+      btn.textContent = 'Send & message on WhatsApp';
       console.error('[join]', e);
       alert('Something went wrong sending that. Please try again.');
     });
@@ -270,8 +270,26 @@ function done_(child, parent) {
   if (num.length >= 10) {
     if (num.length === 10) num = '91' + num;
     var a = document.getElementById('waBtn');
-    a.href = 'https://wa.me/' + num + '?text=' +
-      encodeURIComponent('Hello, I have just enquired about abacus classes for ' + child + '.');
+    /* The message carries what was typed, so the teacher opens
+       WhatsApp already knowing the child's age and whether they have
+       done abacus before — rather than a bare hello she has to
+       cross-reference against the enquiry list. */
+    var ageVal  = document.getElementById('age').value;
+    var doneVal = document.getElementById('done').value;
+    var cityVal = document.getElementById('city').value.trim();
+    var msgVal  = document.getElementById('msg').value.trim();
+
+    var lines = [
+      'Hello, I have just enquired about abacus classes.',
+      '',
+      'Child: ' + child + (ageVal ? ', ' + ageVal + ' years' : ''),
+      'Abacus before: ' + (doneVal === 'no' ? 'no, new to it'
+                        : doneVal === 'some' ? 'a little' : 'yes, some years')
+    ];
+    if (cityVal) lines.push('City: ' + cityVal);
+    if (msgVal)  lines.push('', msgVal);
+
+    a.href = 'https://wa.me/' + num + '?text=' + encodeURIComponent(lines.join('\n'));
     a.style.display = 'inline-block';
     document.getElementById('thanksMsg').textContent =
       'Opening WhatsApp so you can say hello to ' +

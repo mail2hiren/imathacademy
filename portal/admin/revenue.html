@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher share — iMathAcademy</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--blue:#1565C0;--green:#2E7D32;--amber:#E65100;--red:#C62828;
+        --text1:#1A1A2E;--text2:#555;--text3:#8892A4;--border:#E4E7F2;}
+  body{font-family:'Nunito',sans-serif;background:#F5F7FC;color:var(--text1);padding-bottom:60px;}
+  .topbar{background:#fff;border-bottom:1.5px solid var(--border);padding:13px 16px;
+          display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;}
+  .topbar a{color:var(--text3);text-decoration:none;font-size:1.3rem;}
+  .topbar h1{font-size:1.02rem;font-weight:900;}
+  .wrap{max-width:820px;margin:0 auto;padding:16px 14px 0;}
+  .intro{background:#EAF2FF;border-radius:14px;padding:14px 16px;margin-bottom:16px;
+         font-size:.83rem;color:#0D47A1;line-height:1.65;}
+  .card{background:#fff;border:1.5px solid var(--border);border-radius:16px;
+        padding:16px;margin-bottom:13px;}
+  .card h2{font-size:.7rem;font-weight:900;letter-spacing:.6px;text-transform:uppercase;
+           color:var(--text3);margin-bottom:11px;}
+  .big{font-size:2rem;font-weight:900;color:var(--blue);line-height:1.1;}
+  .sub{font-size:.76rem;color:var(--text3);}
+  .row{display:flex;align-items:center;gap:10px;padding:11px 0;
+       border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .row:last-child{border-bottom:none;}
+  .row-main{flex:1;min-width:140px;}
+  .name{font-size:.9rem;font-weight:800;}
+  input[type=number],input[type=date],select{
+    padding:8px 10px;border:1.5px solid var(--border);border-radius:9px;
+    font-family:inherit;font-size:.85rem;}
+  input[type=number]{width:88px;}
+  .btn{padding:9px 15px;border:none;border-radius:10px;background:var(--blue);
+       color:#fff;font-family:inherit;font-size:.82rem;font-weight:800;cursor:pointer;}
+  .btn-ghost{background:#fff;color:var(--text2);border:1.5px solid var(--border);}
+  .hist{font-size:.74rem;color:var(--text3);margin-top:7px;line-height:1.6;}
+  .empty{text-align:center;padding:30px;color:var(--text3);font-size:.86rem;}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1A1A2E;
+         color:#fff;padding:11px 20px;border-radius:11px;font-size:.85rem;font-weight:800;
+         display:none;z-index:99;max-width:90%;}
+  .warn{background:#FFF4E5;border-left:4px solid var(--amber);border-radius:10px;
+        padding:11px 13px;font-size:.79rem;color:#8a4b00;line-height:1.6;margin-top:10px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="dashboard.html">&larr;</a>
+  <h1>Teacher share</h1>
+</div>
+
+<div class="wrap">
+  <div class="intro">
+    A change never rewrites what has already been earned. Choose the date it starts from,
+    and everything before that date stays as it was.
+    <br><br>
+    A teacher only needs their own rate if they are on different terms. Leave them alone
+    and they follow the academy figure.
+  </div>
+  <div id="body"><div class="empty">Loading…</div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   Teacher share
+   ------------------------------------------------------------
+   The numbers are not settled, and Megha will look at them each
+   quarter. So nothing here is fixed in code: she sets the academy
+   figure, overrides it for a teacher on different terms, and
+   chooses the date each change takes effect.
+
+   Everything is dated rather than overwritten, because the awkward
+   question is always asked months later — "what was I on in
+   September?" — and it has to be answerable.
+   ============================================================ */
+
+var SURL='https://bhullfoajenhkxlkiubs.supabase.co';
+var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+var sb = supabase.createClient(SURL, SKEY);
+
+var me=null, academy=[], teachers=[], tTerms={}, shares=[], students={};
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function toast(m){ var t=document.getElementById('toast'); t.textContent=m;
+  t.style.display='block'; setTimeout(function(){t.style.display='none';},2800); }
+function dmy(d){ return d ? new Date(d).toLocaleDateString('en-IN',
+  {day:'numeric',month:'short',year:'numeric'}) : ''; }
+function today(){ return new Date().toISOString().slice(0,10); }
+
+async function load(){
+  var s = await sb.auth.getSession();
+  if(!s.data.session){ location.href='../../login.html'; return; }
+  me = s.data.session.user.id;
+
+  var meRow = await sb.from('users').select('role').eq('id',me).single();
+  if(((meRow.data||{}).role) !== 'admin'){
+    document.getElementById('body').innerHTML =
+      '<div class="empty">Only an admin can change the teacher share.</div>';
+    return;
+  }
+
+  var a = await sb.from('revenue_terms').select('*').order('starts_on',{ascending:false});
+  academy = a.data || [];
+
+  var t = await sb.from('users').select('id, full_name')
+    .eq('role','teacher').eq('is_active',true).order('full_name');
+  teachers = t.data || [];
+
+  var tt = await sb.from('teacher_terms').select('*').order('starts_on',{ascending:false});
+  (tt.data||[]).forEach(function(r){ (tTerms[r.teacher_id]=tTerms[r.teacher_id]||[]).push(r); });
+
+  var sh = await sb.from('student_teacher_share')
+    .select('*, users!student_id(full_name)').is('ends_on', null);
+  shares = sh.data || [];
+
+  render();
+}
+
+function currentAcademy(){
+  var live = academy.filter(function(r){ return !r.ends_on; })[0];
+  return live || academy[0] || null;
+}
+
+function currentFor(teacherId){
+  var list = (tTerms[teacherId]||[]).filter(function(r){ return !r.ends_on; });
+  return list[0] || null;
+}
+
+function countFor(teacherId){
+  return shares.filter(function(s){ return s.teacher_id === teacherId; }).length;
+}
+
+function render(){
+  var cur = currentAcademy();
+  var html = '';
+
+  /* The academy figure — one number, changes everyone */
+  html += '<div class="card">' +
+    '<h2>The academy figure</h2>' +
+    '<div class="big">' + (cur ? Number(cur.teacher_pct).toFixed(0) : '65') + '% ' +
+      '<span style="font-size:.9rem;font-weight:800;color:var(--text3);">to the teacher</span></div>' +
+    '<div class="sub">' + (cur && cur.starts_on ? 'Since ' + dmy(cur.starts_on) : '') +
+      (cur && cur.note ? ' &middot; ' + esc(cur.note) : '') + '</div>' +
+    '<div class="row" style="margin-top:12px;border:none;">' +
+      '<input type="number" id="acad-pct" min="0" max="100" step="0.5" ' +
+        'value="' + (cur ? cur.teacher_pct : 65) + '"> %' +
+      '<span class="sub">from</span>' +
+      '<input type="date" id="acad-from" value="' + today() + '">' +
+      '<button class="btn" onclick="saveAcademy()">Change</button>' +
+    '</div>' +
+    '<div class="sub">Every teacher without their own rate follows this.</div>';
+
+  if (academy.length > 1) {
+    html += '<div class="hist"><strong>Before that</strong><br>' +
+      academy.slice(1, 5).map(function(r){
+        return Number(r.teacher_pct).toFixed(0) + '% from ' + dmy(r.starts_on) +
+               (r.ends_on ? ' to ' + dmy(r.ends_on) : '');
+      }).join('<br>') + '</div>';
+  }
+  html += '</div>';
+
+  /* Per teacher */
+  html += '<div class="card"><h2>Teachers on different terms</h2>';
+  if(!teachers.length){
+    html += '<div class="empty" style="padding:14px;">No teachers yet.</div>';
+  } else {
+    teachers.forEach(function(t){
+      var own = currentFor(t.id);
+      var n = countFor(t.id);
+      html += '<div class="row">' +
+        '<div class="row-main">' +
+          '<div class="name">' + esc(t.full_name) + '</div>' +
+          '<div class="sub">' + n + ' student' + (n===1?'':'s') + ' &middot; ' +
+            (own ? 'on ' + Number(own.teacher_pct).toFixed(0) + '% since ' + dmy(own.starts_on)
+                 : 'follows the academy figure') + '</div>' +
+        '</div>' +
+        '<input type="number" id="t-pct-' + t.id + '" min="0" max="100" step="0.5" ' +
+          'placeholder="' + (cur ? cur.teacher_pct : 65) + '" ' +
+          'value="' + (own ? own.teacher_pct : '') + '"> %' +
+        '<input type="date" id="t-from-' + t.id + '" value="' + today() + '">' +
+        '<button class="btn" onclick="saveTeacher(\'' + t.id + '\')">Set</button>' +
+        (own ? '<button class="btn btn-ghost" onclick="clearTeacher(\'' + t.id + '\')">Use academy</button>' : '') +
+      '</div>';
+    });
+  }
+  html += '</div>';
+
+  /* Who earns from whom */
+  html += '<div class="card"><h2>Who earns from each student</h2>';
+  if(!shares.length){
+    html += '<div class="empty" style="padding:14px;">Nobody recorded yet. ' +
+            'Run migration 017 to fill this from the batch teachers.</div>';
+  } else {
+    var byTeacher = {};
+    shares.forEach(function(s){ (byTeacher[s.teacher_id]=byTeacher[s.teacher_id]||[]).push(s); });
+    teachers.forEach(function(t){
+      var list = byTeacher[t.id] || [];
+      if(!list.length) return;
+      html += '<div class="row"><div class="row-main">' +
+        '<div class="name">' + esc(t.full_name) + '</div>' +
+        '<div class="sub">' + list.map(function(s){
+          return esc((s.users||{}).full_name || 'Student') +
+                 (s.share_pct != null ? ' (' + Number(s.share_pct).toFixed(0) + '%)' : '');
+        }).join(' &middot; ') + '</div></div></div>';
+    });
+    var orphan = shares.filter(function(s){ return !s.teacher_id; });
+    if(orphan.length) html += '<div class="warn">' + orphan.length +
+      ' student(s) have no teacher recorded — worth fixing before any payout.</div>';
+  }
+  html += '<div class="sub" style="margin-top:10px;">A student only needs their own ' +
+          'percentage if they are an exception. Otherwise they follow their teacher.</div>';
+  html += '</div>';
+
+  document.getElementById('body').innerHTML = html;
+}
+
+/* Ending the old row rather than editing it is what keeps history
+   honest — September stays at whatever September was. */
+async function saveAcademy(){
+  var pct = parseFloat(document.getElementById('acad-pct').value);
+  var from = document.getElementById('acad-from').value || today();
+  if(isNaN(pct) || pct < 0 || pct > 100){ toast('Enter a percentage between 0 and 100'); return; }
+  try{
+    var cur = currentAcademy();
+    if(cur){
+      var dayBefore = new Date(from); dayBefore.setDate(dayBefore.getDate()-1);
+      await sb.from('revenue_terms')
+        .update({ ends_on: dayBefore.toISOString().slice(0,10) }).eq('id', cur.id);
+    }
+    var res = await sb.from('revenue_terms').insert({
+      teacher_pct: pct, starts_on: from, set_by: me,
+      note: 'Set on ' + dmy(today())
+    }).select();
+    if(res.error) throw res.error;
+    if(!res.data || !res.data.length) throw new Error('Nothing was saved — check your permissions');
+    toast('Now ' + pct + '% from ' + dmy(from));
+    await load();
+  }catch(e){ toast('Could not save: ' + e.message); }
+}
+
+async function saveTeacher(id){
+  var pct = parseFloat(document.getElementById('t-pct-' + id).value);
+  var from = document.getElementById('t-from-' + id).value || today();
+  if(isNaN(pct)){ toast('Enter a percentage, or press "Use academy"'); return; }
+  try{
+    var own = currentFor(id);
+    if(own){
+      var db = new Date(from); db.setDate(db.getDate()-1);
+      await sb.from('teacher_terms')
+        .update({ ends_on: db.toISOString().slice(0,10) }).eq('id', own.id);
+    }
+    var res = await sb.from('teacher_terms').insert({
+      teacher_id: id, teacher_pct: pct, starts_on: from, set_by: me
+    }).select();
+    if(res.error) throw res.error;
+    if(!res.data || !res.data.length) throw new Error('Nothing was saved — check your permissions');
+    tTerms = {}; toast('Set to ' + pct + '% from ' + dmy(from));
+    await load();
+  }catch(e){ toast('Could not save: ' + e.message); }
+}
+
+async function clearTeacher(id){
+  var own = currentFor(id);
+  if(!own) return;
+  if(!confirm('Put them back on the academy figure from today?')) return;
+  try{
+    await sb.from('teacher_terms').update({ ends_on: today() }).eq('id', own.id);
+    tTerms = {}; toast('Back on the academy figure');
+    await load();
+  }catch(e){ toast('Could not save: ' + e.message); }
+}
+
+load().catch(function(e){
+  document.getElementById('body').innerHTML =
+    '<div class="empty">Could not load: ' + esc(e.message) + '</div>';
+});
+</script>
+</body>
+</html>

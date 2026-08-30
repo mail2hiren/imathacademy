@@ -145,7 +145,7 @@ var teacher = null;
 async function findTeacher() {
   if (!teacherParam) return;
   try {
-    var q = sb.from('users').select('id, full_name, phone, email').eq('role', 'teacher').eq('is_active', true);
+    var q = sb.from('users').select('id, full_name, phone, email').in('role', ['teacher','admin']).eq('is_active', true);
     /* The link may carry an id, an email or a name. An email is the
        obvious thing to reach for when sharing a link by hand, so it
        has to work. */
@@ -218,6 +218,9 @@ function submit() {
 
       if (missingColumn && !isRetry) {
         // Keep the enquiry, lose only the extras
+        /* Keep the teacher if that column exists — losing it turns a
+           routed enquiry into an unassigned one, which is the whole
+           thing this link is for. */
         var core = {
           child_name:  payload.child_name,
           parent_name: payload.parent_name,
@@ -225,6 +228,7 @@ function submit() {
           city:        payload.city,
           status:      'new'
         };
+        if (payload.assigned_to) core.assigned_to = payload.assigned_to;
         tryInsert(core, true);
         return;
       }

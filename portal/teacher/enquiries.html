@@ -105,7 +105,8 @@ async function load(){
   myRole = (meRow.data||{}).role;
   myName = (meRow.data||{}).full_name || '';
 
-  var t = await sb.from('users').select('id, full_name, phone').eq('role','teacher');
+  var t = await sb.from('users').select('id, full_name, phone')
+    .in('role', ['teacher','admin']).eq('is_active', true).order('full_name');
   (t.data||[]).forEach(function(x){ teachers[x.id]=x; });
 
   var e = await sb.from('enquiries')
@@ -219,13 +220,25 @@ function render(){
       '</div>' +
       (r.notes ? '<div class="msg">' + esc(r.notes) + '</div>' : '') +
       '<div class="acts">' +
-        (digits.length >= 11
+        ((digits.length >= 11 && (r.assigned_to === me || myRole === 'admin'))
           ? '<a class="btn btn-wa" target="_blank" rel="noopener" ' +
             'href="https://wa.me/' + digits + '?text=' + encodeURIComponent(msg) + '" ' +
             'onclick="markReplied(\'' + r.id + '\')">WhatsApp them</a>'
           : '') +
-        (!r.assigned_to
-          ? '<button class="btn btn-ghost" onclick="takeIt(\'' + r.id + '\')">I will take this</button>'
+        /* Assigning is the academy's decision, not first-come. A
+           teacher can see what is waiting, but only an admin says
+           who it goes to. */
+        (!r.assigned_to && myRole === 'admin'
+          ? '<select class="btn btn-ghost" style="padding:9px 12px;" ' +
+            'onchange="assignTo(\'' + r.id + '\', this.value)">' +
+            '<option value="">Assign to…</option>' +
+            Object.keys(teachers).map(function (tid) {
+              return '<option value="' + tid + '">' + esc(teachers[tid].full_name) + '</option>';
+            }).join('') +
+            '</select>'
+          : '') +
+        (!r.assigned_to && myRole !== 'admin'
+          ? '<span class="sub" style="align-self:center;">Waiting to be assigned</span>'
           : '') +
         (r.status !== 'converted'
           ? '<button class="btn btn-done" onclick="markJoined(\'' + r.id + '\')">They joined</button>'
@@ -250,16 +263,20 @@ async function markReplied(id){
   }catch(e){}
 }
 
-async function takeIt(id){
+/* Megha decides who an enquiry goes to. She knows which teacher has
+   room, which city they cover, and who is already stretched — none of
+   which the app can work out. */
+async function assignTo(id, teacherId){
+  if(!teacherId) return;
   try{
     var res = await sb.from('enquiries').update({
-      assigned_to: me, assigned_at: new Date().toISOString()
+      assigned_to: teacherId, assigned_at: new Date().toISOString()
     }).eq('id', id).select();
     if(res.error) throw res.error;
     if(!res.data || !res.data.length) throw new Error('Nothing changed — check your permissions');
-    toast('Yours now');
+    toast('Given to ' + ((teachers[teacherId]||{}).full_name || 'them'));
     await load();
-  }catch(e){ toast('Could not take it: ' + e.message); }
+  }catch(e){ toast('Could not assign: ' + e.message); }
 }
 
 async function markJoined(id){

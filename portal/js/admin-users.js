@@ -201,6 +201,24 @@ async function saveEdit() {
     }
     const { error } = await sb.from('users').update(updates).eq('id', id);
     if (error) throw error;
+
+    /* The real email lives in auth.users, not here. Updating only this
+       table left the person still signing in with their old address,
+       and somebody had to go into the database to fix it. */
+    var newEmail = (document.getElementById('edit-email') || {}).value;
+    if (newEmail) newEmail = newEmail.trim();
+    var wasEmail = (updates && updates.email) || null;
+    if (newEmail && typeof updateSignIn === 'function') {
+      try {
+        await updateSignIn(id, { email: newEmail });
+      } catch (e) {
+        toast('Profile saved, but the sign-in email did not change: ' + e.message, 'error');
+        closeModal('editModal');
+        await loadAll();
+        return;
+      }
+    }
+
     toast('✅ User updated!', 'success');
     closeModal('editModal');
     await loadAll();

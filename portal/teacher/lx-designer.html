@@ -1485,6 +1485,43 @@ async function regenerateOne(idx) {
 
 async function generateStoryProblems(count, level) {
   var rules = await PracticeEngine.loadLevelRules(level);
+
+  /* Multiplication and division stories are a different shape — equal
+     groups and sharing out, not a running total. Only the friends
+     formulas were mapped here, so choosing Multiplication with Story
+     problems fell through to addition. */
+  if (selectedConcept === 'multiplication' || selectedConcept === 'division') {
+    var isMult = selectedConcept === 'multiplication';
+    if (isMult && !rules.multiplication) {
+      throw new Error('Level ' + level + ' does not teach multiplication yet');
+    }
+    if (!isMult && !rules.division) {
+      throw new Error('Level ' + level + ' does not teach division yet');
+    }
+
+    var made = [], seenMd = {}, g2 = 0;
+    while (made.length < count && g2 < count * 40) {
+      g2++;
+      var sum = isMult ? PracticeEngine.multiplication(rules)
+                       : PracticeEngine.division(rules);
+      if (!sum) continue;
+      var key = sum.a + '_' + sum.b;
+      if (seenMd[key] && made.length < count - 2) continue;
+      seenMd[key] = true;
+
+      var story = isMult ? WordProblems.dressMultiply(sum.a, sum.b)
+                         : WordProblems.dressDivide(sum.a, sum.b);
+      if (!story) continue;
+      made.push({
+        type: 'story', question: story.question,
+        answer: String(story.answer), emoji: story.emoji,
+        speak: true, hint: isMult ? 'Multiply on your abacus' : 'Divide on your abacus'
+      });
+    }
+    if (!made.length) throw new Error('Could not build those word problems for Level ' + level);
+    return made;
+  }
+
   // Drill the concept she picked, not whatever the level permits
   var onlyF = { big_friends: 'big', small_friends: 'small',
                 combination: 'combination' }[selectedConcept];

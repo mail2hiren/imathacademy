@@ -154,5 +154,50 @@ var WordProblems = (function () {
     return out;
   }
 
-  return { dress: dress, fromSums: fromSums, NAMES: NAMES, THINGS: THINGS };
+  /* A multiplication story is a different shape from an addition one:
+     equal groups rather than gaining and losing. Division is the same
+     thing read backwards — sharing out. Without these, choosing
+     Multiplication and Story problems together gave addition, because
+     the only story shape that existed was a running total. */
+  var GROUPS = [
+    { one: 'box',    many: 'boxes',    holds: 'pencils',  emoji: '✏️' },
+    { one: 'packet', many: 'packets',  holds: 'biscuits', emoji: '🍪' },
+    { one: 'basket', many: 'baskets',  holds: 'mangoes',  emoji: '🥭' },
+    { one: 'tray',   many: 'trays',    holds: 'laddoos',  emoji: '🍬' },
+    { one: 'shelf',  many: 'shelves',  holds: 'books',    emoji: '📚' },
+    { one: 'bag',    many: 'bags',     holds: 'marbles',  emoji: '🔵' },
+    { one: 'row',    many: 'rows',     holds: 'plants',   emoji: '🌱' }
+  ];
+
+  /** a x b — equal groups. */
+  function dressMultiply(a, b, theme) {
+    var who = pick(NAMES), g = pick(GROUPS);
+    var lines = [
+      who.n + ' has ' + a + ' ' + (a === 1 ? g.one : g.many) + '.',
+      'Each one holds ' + b + ' ' + g.holds + '.',
+      'How many ' + g.holds + ' altogether?'
+    ];
+    return {
+      type: 'story', question: lines.join(' '), lines: lines,
+      answer: a * b, emoji: g.emoji, speak: true
+    };
+  }
+
+  /** total ÷ parts — sharing out. */
+  function dressDivide(total, parts, theme) {
+    var who = pick(NAMES), g = pick(GROUPS);
+    var lines = [
+      who.n + ' has ' + total + ' ' + g.holds + '.',
+      cap(who.they) + ' puts them into ' + parts + ' ' + (parts === 1 ? g.one : g.many) +
+        ', the same number in each.',
+      'How many ' + g.holds + ' in each ' + g.one + '?'
+    ];
+    return {
+      type: 'story', question: lines.join(' '), lines: lines,
+      answer: Math.round(total / parts), emoji: g.emoji, speak: true
+    };
+  }
+
+  return { dress: dress, fromSums: fromSums, NAMES: NAMES, THINGS: THINGS,
+           dressMultiply: dressMultiply, dressDivide: dressDivide };
 })();

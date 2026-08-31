@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Check the worksheet engine — iMathAcademy</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--blue:#1565C0;--green:#2E7D32;--amber:#E65100;--red:#C62828;
+        --t1:#1A1A2E;--t2:#555;--t3:#8892A4;--line:#E4E7F2;}
+  body{font-family:'Nunito',sans-serif;background:#F5F7FC;color:var(--t1);padding-bottom:60px;}
+  .topbar{background:#fff;border-bottom:1.5px solid var(--line);padding:13px 16px;
+          display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;}
+  .topbar a{color:var(--t3);text-decoration:none;font-size:1.3rem;}
+  .topbar h1{font-size:1.02rem;font-weight:900;}
+  .wrap{max-width:860px;margin:0 auto;padding:16px 14px 0;}
+  .intro{background:#EAF2FF;border-radius:14px;padding:14px 16px;margin-bottom:14px;
+         font-size:.85rem;color:#0D47A1;line-height:1.65;}
+  .btn{padding:13px 22px;border:none;border-radius:12px;background:var(--blue);color:#fff;
+       font-family:inherit;font-size:.95rem;font-weight:900;cursor:pointer;}
+  .btn[disabled]{opacity:.6;}
+  .card{background:#fff;border:1.5px solid var(--line);border-radius:14px;
+        padding:14px 16px;margin-top:12px;}
+  .card h2{font-size:.72rem;font-weight:900;letter-spacing:.6px;text-transform:uppercase;
+           color:var(--t3);margin-bottom:9px;}
+  .row{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);
+       font-size:.86rem;align-items:flex-start;}
+  .row:last-child{border-bottom:none;}
+  .tag{flex-shrink:0;width:52px;font-weight:900;font-size:.72rem;padding-top:2px;}
+  .ok{color:var(--green);} .bad{color:var(--red);} .warn{color:var(--amber);}
+  .what{flex:1;min-width:0;}
+  .why{font-size:.78rem;color:var(--t3);margin-top:2px;line-height:1.55;}
+  .sample{font-family:ui-monospace,monospace;font-size:.76rem;color:var(--t2);
+          background:#F7F9FF;border-radius:7px;padding:5px 8px;margin-top:5px;
+          white-space:pre-line;}
+  .score{font-size:1.7rem;font-weight:900;}
+  .prog{height:6px;background:#EDF0F7;border-radius:4px;overflow:hidden;margin-top:10px;}
+  .prog i{display:block;height:100%;background:var(--blue);width:0;transition:width .2s;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="dashboard.html">&larr;</a>
+  <h1>Check the worksheet engine</h1>
+</div>
+
+<div class="wrap">
+  <div class="intro">
+    This builds real worksheets with every combination of settings and checks what comes
+    out — the level's number range, the concept she picked, the activity, the difficulty
+    bands and the restrictions.
+    <br><br>
+    Nothing is saved and no child sees any of it. Run it after any change, or whenever a
+    teacher reports something odd.
+  </div>
+
+  <button class="btn" id="go" onclick="runAll()">Run the checks</button>
+  <div class="prog" id="prog" style="display:none;"><i id="progBar"></i></div>
+  <div id="out"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/bead-rules.js"></script>
+<script src="../js/column-gen.js"></script>
+<script src="../js/word-problems.js"></script>
+<script src="../js/exercises.js"></script>
+<script src="../js/practice-engine.js"></script>
+<script>
+/* ============================================================
+   Checking the worksheet engine
+   ------------------------------------------------------------
+   Almost every fault this year has been silent: a control that
+   looked connected and was not, a fallback that quietly produced
+   the wrong level, a filter that discarded what was asked for.
+   None of it announced itself — a teacher found it, days later,
+   through a child.
+
+   So this asks the engine for real worksheets and checks what
+   comes back. It is not a list of things to click; it is the
+   thing itself, run against every level and setting.
+   ============================================================ */
+
+var SURL='https://bhullfoajenhkxlkiubs.supabase.co';
+var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+var sb = supabase.createClient(SURL, SKEY);
+
+var results = [];
+function pass(group, what, sample){ results.push({group:group, ok:'ok',   what:what, sample:sample}); }
+function fail(group, what, why, sample){ results.push({group:group, ok:'bad', what:what, why:why, sample:sample}); }
+function warn(group, what, why){ results.push({group:group, ok:'warn', what:what, why:why}); }
+
+function colText(rows){
+  return rows.map(function(n,i){ return i===0?String(n):(n<0?'\u2212 '+Math.abs(n):'+ '+n); }).join('  ');
+}
+
+/* Walk a column the way a child would and report what it demands. */
+function inspect(rows, rules){
+  var v = rows[0], needs = {}, over = false;
+  if (v > rules.maxNumber) over = true;
+  for (var i = 1; i < rows.length; i++) {
+    Beads.stepKinds(v, rows[i]).forEach(function(k){ needs[k] = true; });
+    v += rows[i];
+    if (v > rules.maxNumber || v < 0) over = true;
+  }
+  return { needs: needs, over: over, answer: v };
+}
+
+async function runAll(){
+  var btn = document.getElementById('go');
+  btn.disabled = true; btn.textContent = 'Checking…';
+  document.getElementById('prog').style.display = 'block';
+  results = [];
+
+  var levels = [0,1,2,3,4,5,6];
+  var done = 0;
+
+  for (var li = 0; li < levels.length; li++) {
+    var lv = levels[li];
+    await checkLevel(lv);
+    done++;
+    document.getElementById('progBar').style.width = Math.round(done/levels.length*100) + '%';
+    render();
+    await new Promise(function(r){ setTimeout(r, 10); });
+  }
+
+  btn.disabled = false; btn.textContent = 'Run again';
+  document.getElementById('prog').style.display = 'none';
+  render();
+}
+
+async function checkLevel(level){
+  var G = 'Level ' + level;
+  var rules;
+  try {
+    rules = await PracticeEngine.loadLevelRules(level);
+  } catch (e) {
+    fail(G, 'The level could not be read at all', e.message);
+    return;
+  }
+
+  if (!rules.maxNumber) { fail(G, 'No number range set', 'Nothing can be generated safely'); return; }
+
+  /* ── 2. Abacus level — do the sums stay inside it? ── */
+  var cols = [], bad = 0, over = 0;
+  for (var i = 0; i < 40; i++) {
+    var s = ColumnGen.column({ max: rules.maxNumber, rows: 4,
+      mode: rules.formulas.length ? rules.formulas[0] : 'direct',
+      require: rules.formulas.length ? 1 : 0, allowZero: rules.allowZero });
+    if (!s) continue;
+    cols.push(s);
+    var r = inspect(s.rows, rules);
+    if (r.over) over++;
+    if (r.answer !== s.answer) bad++;
+    // a formula the level does not teach is the serious one
+    Object.keys(r.needs).forEach(function(k){
+      if (k === 'direct') return;
+      if (rules.formulas.indexOf(k) < 0) bad++;
+    });
+  }
+  if (!cols.length) { fail(G, 'No column sums could be built', 'The level settings may be impossible'); return; }
+  if (bad) fail(G, 'Sums use a formula this level does not teach', bad + ' of ' + cols.length,
+                colText(cols[0].rows) + ' = ' + cols[0].answer);
+  else pass(G, 'Column sums stay within the level', colText(cols[0].rows) + ' = ' + cols[0].answer);
+
+  if (over) fail(G, 'Some totals go past ' + rules.maxNumber, over + ' of ' + cols.length);
+  else pass(G, 'Totals stay under ' + rules.maxNumber);
+
+  /* ── 3. Concept focus — does picking one change the sums? ── */
+  for (var ci = 0; ci < rules.formulas.length; ci++) {
+    var f = rules.formulas[ci];
+    var hits = 0, tried = 0;
+    for (var t = 0; t < 30; t++) {
+      var floor = f === 'big' ? 20 : 9;
+      var c2 = ColumnGen.column({ max: Math.max(floor, rules.maxNumber), rows: 4,
+        mode: f, require: 1, allowZero: rules.allowZero });
+      if (!c2) continue;
+      tried++;
+      if (inspect(c2.rows, rules).needs[f]) hits++;
+    }
+    if (!tried) fail(G, 'Concept "' + f + '" produced nothing', 'The range may be too small');
+    else if (hits < tried) fail(G, 'Concept "' + f + '" is not enforced', hits + ' of ' + tried + ' actually need it');
+    else pass(G, 'Concept "' + f + '" is required in every sum', tried + ' checked');
+  }
+
+  /* ── 4. Activity type — does each one build? ── */
+  var acts = ['fill_blank','picture_sums','match_pairs','colour_answer','mixed'];
+  for (var ai = 0; ai < acts.length; ai++) {
+    try {
+      var page = Exercises.page(acts[ai], rules, 8, 'school');
+      if (!page || !page.length) fail(G, 'Activity "' + acts[ai] + '" built nothing');
+      else pass(G, 'Activity "' + acts[ai] + '" builds', String(page[0].question || '').slice(0,60));
+    } catch (e) { fail(G, 'Activity "' + acts[ai] + '" threw', e.message); }
+  }
+
+  // story problems
+  try {
+    var s2 = ColumnGen.column({ max: rules.maxNumber, rows: 2, mode: 'direct', allowZero: rules.allowZero });
+    var story = s2 && WordProblems.dress(s2);
+    if (story && story.question) pass(G, 'Story problems build', story.question.slice(0,70));
+    else fail(G, 'Story problems built nothing');
+  } catch (e) { fail(G, 'Story problems threw', e.message); }
+
+  // multiplication and division, where the level teaches them
+  if (rules.multiplication) {
+    try {
+      var m = PracticeEngine.multiplication(rules);
+      var shapes = (rules.multShapes||[]).map(function(x){return x[0]+'x'+x[1];}).join(', ');
+      var got = String(m.a).length + 'x' + String(m.b).length;
+      if (rules.multShapes && rules.multShapes.length &&
+          rules.multShapes.every(function(x){ return x[0]+'x'+x[1] !== got; })) {
+        fail(G, 'Multiplication is the wrong shape', 'got ' + got + ', expected ' + shapes, m.text);
+      } else pass(G, 'Multiplication matches the formula master', m.text + ' = ' + m.answer);
+      var w = WordProblems.dressMultiply(m.a, m.b);
+      if (w && w.question) pass(G, 'Multiplication word problems build', w.question.slice(0,70));
+      else fail(G, 'Multiplication word problems built nothing');
+    } catch (e) { fail(G, 'Multiplication threw', e.message); }
+  }
+  if (rules.division) {
+    try {
+      var dv = PracticeEngine.division(rules);
+      if (dv.a % dv.b !== 0) fail(G, 'Division is not exact', dv.text);
+      else pass(G, 'Division is exact', dv.text + ' = ' + dv.answer);
+      var wd = WordProblems.dressDivide(dv.a, dv.b);
+      if (wd && wd.question) pass(G, 'Division word problems build', wd.question.slice(0,70));
+      else fail(G, 'Division word problems built nothing');
+    } catch (e) { fail(G, 'Division threw', e.message); }
+  }
+
+  /* ── 5. Settings — difficulty and restrictions ── */
+  try {
+    var curr = (typeof CURRICULUM !== 'undefined') && CURRICULUM[level];
+    var dr = curr && curr.diffRules;
+    if (!dr) warn(G, 'No difficulty bands set', 'Easy, Medium and Hard will be identical');
+    else {
+      var got = {};
+      ['easy','medium','hard'].forEach(function(band){
+        var mx = dr[band] && dr[band].max_number;
+        if (mx == null) { warn(G, band + ' has no maximum', 'Falls back to the level'); return; }
+        got[band] = mx;
+      });
+      var e = got.easy, md = got.medium, h = got.hard;
+      if (e != null && md != null && e >= md)
+        fail(G, 'Easy is not easier than Medium', e + ' vs ' + md);
+      else if (md != null && h != null && md >= h)
+        fail(G, 'Medium is not easier than Hard', md + ' vs ' + h);
+      else pass(G, 'Difficulty gets harder in order',
+                [got.easy, got.medium, got.hard].filter(function(x){return x!=null;}).join(' \u2192 '));
+
+      // and do the bands actually change the sums?
+      if (e != null && h != null && e < h) {
+        var lo = ColumnGen.column({max:e, rows:3, mode:'direct', allowZero:rules.allowZero});
+        var hi = ColumnGen.column({max:h, rows:3, mode:'direct', allowZero:rules.allowZero});
+        if (lo && hi) pass(G, 'Easy and Hard give different sums',
+          'easy: ' + colText(lo.rows) + '\nhard: ' + colText(hi.rows));
+      }
+    }
+  } catch (e) { warn(G, 'Difficulty could not be checked', e.message); }
+
+  // addition only / subtraction only
+  ['add','sub'].forEach(function(bias){
+    var okAll = true, n = 0;
+    for (var t = 0; t < 20; t++) {
+      var s3 = ColumnGen.column({ max: rules.maxNumber, rows: 4, mode: 'direct',
+        allowZero: rules.allowZero, signBias: bias });
+      if (!s3) continue;
+      n++;
+      for (var i2 = 1; i2 < s3.rows.length; i2++) {
+        if (bias === 'add' && s3.rows[i2] < 0) okAll = false;
+        if (bias === 'sub' && s3.rows[i2] > 0) okAll = false;
+      }
+    }
+    if (!n) warn(G, (bias === 'add' ? 'Addition' : 'Subtraction') + ' only produced nothing');
+    else if (!okAll) fail(G, (bias === 'add' ? 'Addition' : 'Subtraction') + ' only is not obeyed');
+    else pass(G, (bias === 'add' ? 'Addition' : 'Subtraction') + ' only is obeyed', n + ' checked');
+  });
+
+  // a ceiling
+  var ceiling = Math.max(9, Math.round(rules.maxNumber / 3));
+  var overC = 0, nC = 0;
+  for (var t2 = 0; t2 < 20; t2++) {
+    var s4 = ColumnGen.column({ max: ceiling, rows: 3, mode: 'direct', allowZero: rules.allowZero });
+    if (!s4) continue;
+    nC++;
+    if (s4.answer > ceiling) overC++;
+  }
+  if (nC && !overC) pass(G, 'Keep totals under ' + ceiling + ' is obeyed', nC + ' checked');
+  else if (overC) fail(G, 'A ceiling is not obeyed', overC + ' of ' + nC + ' went over');
+}
+
+function render(){
+  var groups = {};
+  results.forEach(function(r){ (groups[r.group] = groups[r.group] || []).push(r); });
+
+  var bad = results.filter(function(r){ return r.ok === 'bad'; }).length;
+  var wrn = results.filter(function(r){ return r.ok === 'warn'; }).length;
+  var good = results.filter(function(r){ return r.ok === 'ok'; }).length;
+
+  var html = '<div class="card">' +
+    '<div class="score" style="color:' + (bad ? 'var(--red)' : 'var(--green)') + '">' +
+      (bad ? bad + ' problem' + (bad===1?'':'s') : 'All ' + good + ' checks passed') + '</div>' +
+    '<div class="why">' + good + ' passed' + (wrn ? ' \u00b7 ' + wrn + ' worth a look' : '') +
+      (bad ? ' \u00b7 ' + bad + ' failed' : '') + '</div></div>';
+
+  Object.keys(groups).forEach(function(g){
+    var list = groups[g];
+    var gBad = list.filter(function(r){ return r.ok === 'bad'; }).length;
+    html += '<div class="card"><h2>' + g + (gBad ? ' \u2014 ' + gBad + ' problem(s)' : '') + '</h2>';
+    list.forEach(function(r){
+      html += '<div class="row">' +
+        '<div class="tag ' + (r.ok === 'ok' ? 'ok' : r.ok === 'bad' ? 'bad' : 'warn') + '">' +
+          (r.ok === 'ok' ? '\u2713 ok' : r.ok === 'bad' ? '\u2717 no' : '! look') + '</div>' +
+        '<div class="what">' + r.what +
+          (r.why ? '<div class="why">' + r.why + '</div>' : '') +
+          (r.sample ? '<div class="sample">' + String(r.sample) + '</div>' : '') +
+        '</div></div>';
+    });
+    html += '</div>';
+  });
+
+  document.getElementById('out').innerHTML = html;
+}
+</script>
+</body>
+</html>

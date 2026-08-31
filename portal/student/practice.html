@@ -1040,18 +1040,35 @@ function decorateCard(q) {
   if (practiceAbacus) { practiceAbacus.destroy(); practiceAbacus = null; }
   if (workingAbacus)  { workingAbacus.destroy();  workingAbacus  = null; }
 
-  // A column sum, printed the way the books print it
+  /* Every card must show its question. When the row-highlighting was
+     added, the text was only written in the column branch — so
+     multiplication, division and story cards rendered an empty
+     coloured block with answer buttons underneath and nothing to
+     read. An oral is the one exception: it is meant to be heard. */
+  qEl.className = '';
+  qEl.style.fontSize = '';
+  qEl.textContent = '';
+  qEl.style.whiteSpace = '';
+
   if (q.column) {
-    qEl.className = '';
-    qEl.style.fontSize = '';
+    // A column sum, printed the way the books print it
     qEl.innerHTML = renderColumnRows(q);
     if (q.stepped) wireStepTap(q);
   } else if (q.oral) {
-    qEl.className = '';
-    qEl.style.fontSize = '';
+    // Left blank on purpose — the numbers are read aloud
   } else {
-    qEl.className = '';
-    qEl.style.fontSize = '';
+    var shown = q.text || q.question || '';
+    if (!shown && q.rows && q.rows.length) {
+      // A column that lost its flag still has its numbers
+      qEl.innerHTML = renderColumnRows(q);
+    } else {
+      qEl.textContent = shown;
+      if (String(shown).indexOf('\n') > -1) {
+        qEl.style.whiteSpace = 'pre-line';
+        qEl.style.lineHeight = '1.35';
+      }
+      qEl.style.fontSize = String(shown).length > 40 ? '1.35rem' : '2.1rem';
+    }
   }
 
   // Orals — hide the numbers and read them aloud

@@ -663,121 +663,11 @@ function getGroup(p) {
 }
 
 // ── QUESTION BANK ────────────────────────────────────────────
-function generateQuestions(p, grp) {
-  const lv = p.current_level || 1;
-  const qs = [];
+/* The old hardcoded builder was removed. It ignored the curriculum,
+   so any time it stood in for the engine a child practised the wrong
+   level. Only the engine makes sums now, and it checks every one
+   against the beads for that level. */
 
-  if (grp === 'tiny') {
-    // Visual picture sums — 10 questions
-    const emojis = ['🍎','🍌','🍊','⭐','🐘','🦁','🐬','🌸','🎈','🍕'];
-    const em = emojis[Math.floor(Math.random() * emojis.length)];
-    const pairs = [[3,2],[4,1],[5,2],[6,1],[4,3],[5,1],[3,3],[6,2],[7,1],[4,4]];
-    pairs.forEach(([a,b]) => {
-      const ans = a + b;
-      qs.push({
-        type: 'choice', op: 'addition',
-        visual: Array(a).fill(em).join('') + ' + ' + Array(b).fill(em).join(''),
-        story: `You have ${a} ${em} and find ${b} more ${em}`,
-        question: `${a} + ${b} = ?`,
-        answer: ans,
-        choices: shuffle([ans, ans+1, ans-1, ans+2].filter((v,i,a)=>v>0&&a.indexOf(v)===i).slice(0,4)),
-        hint: 'Count all the ' + em + ' together!',
-        xp: 10,
-      });
-    });
-
-  } else if (grp === 'rising') {
-    // Mix of concepts for current level
-    const numQ = 10;
-    for (let i = 0; i < numQ; i++) {
-      if (lv <= 2) {
-        // 2-3 digit addition/subtraction + big/small friends
-        const a = rand(10, lv === 1 ? 20 : 50);
-        const b = rand(1, lv === 1 ? 9 : 20);
-        const add = Math.random() > 0.4;
-        const ans = add ? a + b : a - b;
-        if (ans < 0) { i--; continue; }
-        qs.push({
-          type: 'choice', op: add ? 'addition' : 'subtraction',
-          question: `${a} ${add?'+':'-'} ${b} = ?`,
-          answer: ans,
-          choices: shuffle([ans, ans+1, ans-1, ans+2].filter((v,i,a)=>v>=0&&a.indexOf(v)===i).slice(0,4)),
-          hint: add ? 'Use Big Friends rule if needed!' : 'Use Small Friends rule!',
-          xp: 10,
-        });
-      } else if (lv <= 4) {
-        // 3-5 digit + multiplication intro
-        const useMulti = lv >= 3 && Math.random() > 0.5;
-        if (useMulti) {
-          const a = rand(2, 9), b = rand(2, 9);
-          qs.push({
-            type: 'choice', op: 'multiplication',
-            question: `${a} × ${b} = ?`,
-            answer: a*b,
-            choices: shuffle([a*b, a*b+b, a*b-b, a*(b+1)].filter((v,i,arr)=>v>0&&arr.indexOf(v)===i).slice(0,4)),
-            hint: 'Think: ' + a + ' groups of ' + b,
-            xp: 15,
-          });
-        } else {
-          const digits = lv === 3 ? 3 : lv === 4 ? 4 : 5;
-          const max = Math.pow(10, digits) - 1;
-          const a = rand(Math.pow(10, digits-1), max);
-          const b = rand(10, Math.pow(10, digits-1));
-          const add = Math.random() > 0.3;
-          const ans = add ? a + b : a - b;
-          if (ans < 0) { i--; continue; }
-          qs.push({
-            type: 'choice', op: add ? 'addition' : 'subtraction',
-            question: `${a} ${add?'+':'-'} ${b} = ?`,
-            answer: ans,
-            choices: shuffle([ans, ans+rand(1,10), ans-rand(1,10), ans+rand(11,20)].filter((v,i,arr)=>v>=0&&arr.indexOf(v)===i).slice(0,4)),
-            hint: add ? 'Add digit by digit from right!' : 'Subtract carefully!',
-            xp: 12,
-          });
-        }
-      }
-    }
-
-  } else {
-    // Champions — type-in answers, timed
-    const numQ = 10;
-    for (let i = 0; i < numQ; i++) {
-      if (lv === 5) {
-        // Multiplication 2×1 and 3×1
-        const type = Math.random() > 0.4 ? '3x1' : '2x1';
-        const a = type === '3x1' ? rand(100, 999) : rand(10, 99);
-        const b = rand(2, 9);
-        qs.push({ type: 'typein', op: 'multiplication', question: `${a} × ${b}`, answer: a*b, hint: 'Multiply each digit — start from ones', xp: 20 });
-      } else if (lv === 6) {
-        // Division 2÷1
-        const b = rand(2, 9);
-        const ans = rand(10, 99);
-        const a = ans * b;
-        qs.push({ type: 'typein', op: 'division', question: `${a} ÷ ${b}`, answer: ans, hint: 'Think: what × ' + b + ' = ' + a + '?', xp: 25 });
-      } else if (lv === 7) {
-        const t = Math.random();
-        if (t < 0.33) {
-          const a = rand(1000,9999), b = rand(2,9);
-          qs.push({ type:'typein', op:'multiplication', question:`${a} × ${b}`, answer:a*b, hint:'4×1 multiplication — digit by digit', xp:25 });
-        } else if (t < 0.66) {
-          const a = rand(10,99), b = rand(10,99);
-          qs.push({ type:'typein', op:'multiplication', question:`${a} × ${b}`, answer:a*b, hint:'2×2 multiplication!', xp:30 });
-        } else {
-          const b = rand(2,9), ans = rand(100,999);
-          qs.push({ type:'typein', op:'division', question:`${ans*b} ÷ ${b}`, answer:ans, hint:'4÷1 division', xp:30 });
-        }
-      } else {
-        // L8 — decimals and negatives
-        const a = +(rand(10,99)/10).toFixed(1), b = +(rand(1,9)/10).toFixed(1);
-        const add = Math.random() > 0.4;
-        const ans = +(add ? a+b : a-b).toFixed(1);
-        qs.push({ type:'typein', op: add?'addition':'subtraction', question:`${a} ${add?'+':'-'} ${b}`, answer:ans, hint:'Watch the decimal point!', xp:25 });
-      }
-    }
-  }
-
-  return qs.slice(0, 10);
-}
 
 function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 function shuffle(arr) { return [...arr].sort(() => Math.random() - .5); }
@@ -1688,13 +1578,36 @@ async function init() {
     document.getElementById('practiceScreen').style.display = 'block';
 
     // The curriculum decides what practice looks like. If it cannot
-    // be read, fall back to the old generator rather than dead-end.
+    // be read, say so rather than inventing sums from the wrong level.
     try {
       questions = await buildEngineQuestions(profile);
       if (!questions || !questions.length) throw new Error('no questions');
     } catch (e) {
-      console.warn('Practice engine unavailable, using fallback:', e.message);
-      questions = generateQuestions(profile, group);
+      /* The old builder knew nothing about levels or formulas, so
+         whenever it stood in it gave a Level 1 child sums from Level 4
+         — and questions in a shape the card no longer renders, which
+         is why some came up blank.
+
+         A wrong sum teaches the wrong thing. Better to say practice is
+         not ready and send them to their worksheets: silence is
+         recoverable, the wrong lesson is not. */
+      console.error('Practice engine failed:', e);
+      var scr = document.getElementById('practiceScreen') ||
+                document.getElementById('loaderScreen');
+      if (scr) {
+        scr.innerHTML =
+          '<div style="max-width:420px;margin:44px auto;text-align:center;padding:24px;">' +
+            '<div style="font-size:2.6rem;">\uD83E\uDDEE</div>' +
+            '<div style="font-size:1.15rem;font-weight:900;margin-top:10px;">' +
+              'Practice is not ready just now</div>' +
+            '<div style="font-size:.92rem;color:#555;margin-top:8px;line-height:1.65;">' +
+              'Try again in a little while. Your worksheets are still there.</div>' +
+            '<a href="worksheets.html" style="display:inline-block;margin-top:18px;' +
+              'padding:13px 22px;border-radius:12px;background:#1565C0;color:#fff;' +
+              'text-decoration:none;font-weight:900;">Go to worksheets</a>' +
+          '</div>';
+      }
+      return;
     }
     renderQuestion();
 

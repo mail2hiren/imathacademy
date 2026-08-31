@@ -244,17 +244,25 @@ function render(){
         /* Assigning is the academy's decision, not first-come. A
            teacher can see what is waiting, but only an admin says
            who it goes to. */
-        (!r.assigned_to && myRole === 'admin'
+        /* An admin can move any enquiry, not only an unassigned one —
+           a teacher goes on leave, or the first routing was wrong, and
+           it should not be stuck with them. Already assigned shows who
+           has it, so a change is deliberate rather than accidental. */
+        (myRole === 'admin'
           ? '<select class="btn btn-ghost" style="padding:9px 12px;" ' +
             'onchange="assignTo(\'' + r.id + '\', this.value)">' +
-            '<option value="">Assign to…</option>' +
+            '<option value="">' + (r.assigned_to ? 'Move to…' : 'Assign to…') + '</option>' +
             Object.keys(teachers).map(function (tid) {
-              return '<option value="' + tid + '">' + esc(teachers[tid].full_name) + '</option>';
+              return '<option value="' + tid + '"' +
+                (tid === r.assigned_to ? ' selected' : '') + '>' +
+                esc(teachers[tid].full_name) +
+                (tid === me ? ' (me)' : '') + '</option>';
             }).join('') +
+            (r.assigned_to ? '<option value="none">Take it off them</option>' : '') +
             '</select>'
           : '') +
         (!r.assigned_to && myRole !== 'admin'
-          ? '<span class="sub" style="align-self:center;">Waiting to be assigned</span>'
+          ? '<span class="sub" style="align-self:center;">Waiting to be assigned by the academy</span>'
           : '') +
         (r.status !== 'converted'
           ? '<button class="btn btn-done" onclick="markJoined(\'' + r.id + '\')">They joined</button>'
@@ -389,13 +397,16 @@ async function markReplied(id){
    which the app can work out. */
 async function assignTo(id, teacherId){
   if(!teacherId) return;
+  var clearing = teacherId === 'none';
   try{
     var res = await sb.from('enquiries').update({
-      assigned_to: teacherId, assigned_at: new Date().toISOString()
+      assigned_to: clearing ? null : teacherId,
+      assigned_at: clearing ? null : new Date().toISOString()
     }).eq('id', id).select();
     if(res.error) throw res.error;
     if(!res.data || !res.data.length) throw new Error('Nothing changed — check your permissions');
-    toast('Given to ' + ((teachers[teacherId]||{}).full_name || 'them'));
+    toast(clearing ? 'Back in the unassigned list'
+                   : 'Given to ' + ((teachers[teacherId]||{}).full_name || 'them'));
     await load();
   }catch(e){ toast('Could not assign: ' + e.message); }
 }

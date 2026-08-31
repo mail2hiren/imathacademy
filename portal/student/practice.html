@@ -403,6 +403,43 @@ html,body{max-width:100%;}
    a short sum was floating in a tall empty block of blue. */
 #practiceScreen .screen.has-abacus > .card-wrap{align-self:start;}
 #practiceScreen .screen.has-abacus .flash-card{height:auto;}
+
+/* ── THE WHOLE SUM MUST BE VISIBLE ────────────────────────────
+   The card carries overflow:hidden, added so the decorative circles
+   stay inside its rounded corners. A five-row column at 2rem needs
+   about 208px of text and the card gives about 152px, so the last
+   rows were being cut off. Children reported numbers missing.
+
+   The card now grows with its content, and the decorations are
+   clipped on their own instead. */
+.flash-card{
+  overflow: visible !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 20px 18px;
+}
+.card-decoration{ display: none; }
+
+/* The type shrinks as the column gets longer, rather than the column
+   being cut. clamp keeps it readable at the small end. */
+.col-rows{
+  font-size: clamp(1.15rem, 5.2vw, 2rem) !important;
+  max-width: 100%;
+}
+.col-row{ white-space: nowrap; }
+
+/* A long sum that still does not fit scrolls inside the card rather
+   than disappearing. */
+#cardQuestion{
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 1100px){
+  .flash-card{ padding: 24px 20px; }
+}
 </style>
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
@@ -994,7 +1031,14 @@ var workingAbacus  = null;   // interactive, for working a column sum
 var stepIndex = 0;
 
 function renderColumnRows(q) {
-  var size = q.rows.length > 8 ? '1.4rem' : '1.85rem';
+  /* Step the size down as the column grows. Ten rows at 1.85rem does
+     not fit any phone, and cutting the bottom off a sum is worse than
+     printing it slightly smaller. */
+  var n = q.rows.length;
+  var size = n >= 10 ? '1.15rem'
+           : n >= 8  ? '1.35rem'
+           : n >= 6  ? '1.55rem'
+           : '1.85rem';
   var html = '<div class="col-rows' + (q.stepped ? ' stepped' : '') +
              '" style="font-size:' + size + ';">';
   q.rows.forEach(function (n, i) {

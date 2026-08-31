@@ -700,7 +700,7 @@ const CARD_COLOURS = {
 /* ── PRACTICE FROM THE CURRICULUM ──────────────────────────────
    Questions now come from PracticeEngine, which reads the level's
    row rules and guardrails, instead of being invented here. The
-   old generateQuestions() is kept as a fallback for the case where
+   every session now comes from the engine, for the reason that
    the curriculum cannot be read, so practice never dead-ends.
    ─────────────────────────────────────────────────────────── */
 
@@ -1541,14 +1541,38 @@ async function checkAndAwardBadges() {
   } catch(e) { console.error('badge award error:', e); }
 }
 
-function startNewSession() {
+/* "Practise again" built its questions with the old hardcoded builder
+   rather than the engine — so the first session of the day followed the
+   curriculum and every one after it did not. A child at Level 1 was
+   getting Level 4 sums as soon as they carried on. */
+async function startNewSession() {
   current = 0; correctCount = 0; wrongCount = 0;
   sessionXP = 0; inRowStreak = 0; bestStreak = 0;
   puzzleUnlocked = false; answered = false;
   document.getElementById('xpChip').textContent = '⚡ 0 XP';
   document.getElementById('completeScreen').className = 'complete-screen';
-  questions = generateQuestions(profile, group);
-  document.getElementById('practiceScreen').style.display = 'block';
+
+  var screen = document.getElementById('practiceScreen');
+  screen.style.display = 'block';
+
+  try {
+    questions = await buildEngineQuestions(profile);
+    if (!questions || !questions.length) throw new Error('no questions');
+  } catch (e) {
+    console.error('Practice engine failed:', e);
+    screen.innerHTML =
+      '<div style="max-width:420px;margin:44px auto;text-align:center;padding:24px;">' +
+        '<div style="font-size:2.6rem;">\uD83E\uDDEE</div>' +
+        '<div style="font-size:1.15rem;font-weight:900;margin-top:10px;">' +
+          'Practice is not ready just now</div>' +
+        '<div style="font-size:.92rem;color:#555;margin-top:8px;line-height:1.65;">' +
+          'Try again in a little while. Your worksheets are still there.</div>' +
+        '<a href="worksheets.html" style="display:inline-block;margin-top:18px;' +
+          'padding:13px 22px;border-radius:12px;background:#1565C0;color:#fff;' +
+          'text-decoration:none;font-weight:900;">Go to worksheets</a>' +
+      '</div>';
+    return;
+  }
   renderQuestion();
 }
 

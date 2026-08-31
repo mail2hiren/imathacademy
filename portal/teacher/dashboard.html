@@ -350,6 +350,8 @@
               LX Designer uses AI to generate questions based on the student's level and concept, then assigns them directly to the student app.
             </div>
             <a href="enquiries.html" class="btn btn-blue">📬 Enquiries</a>
+        <a href="../admin/dashboard.html" class="btn btn-blue" id="adminLink"
+           style="display:none;">⚙️ Admin</a>
 <a href="class-progress.html" class="btn btn-blue">📊 How the class is doing</a>
 <a href="lx-designer.html" class="btn btn-blue" style="text-decoration:none;display:inline-block;">
               Open LX Designer →
@@ -642,7 +644,10 @@ async function loadData() {
   TEACHER_ID = sess.data.session.user.id;
 
   var prof = await sb.from('users').select('full_name,role').eq('id', TEACHER_ID).single();
-  if (!prof.data || prof.data.role !== 'teacher') { window.location.href = '../../login.html'; return; }
+  /* Megha both teaches and runs the academy. Requiring exactly
+     'teacher' here would have cost her the teacher screens the moment
+     she was made an admin — so an admin is welcome. */
+  if (!prof.data || (prof.data.role !== 'teacher' && prof.data.role !== 'admin')) { window.location.href = '../../login.html'; return; }
   TEACHER_NAME = prof.data.full_name || 'Teacher';
   document.getElementById('sbAv').textContent = initials(TEACHER_NAME);
   document.getElementById('sbName').textContent = TEACHER_NAME;
@@ -829,6 +834,14 @@ function renderDashboard() {
   document.getElementById('statBatches').textContent = BATCHES.length;
   document.getElementById('statRisk').textContent = atRisk.length;
   document.getElementById('statSubmissions').textContent = '—';
+
+  // Someone with both roles needs a way across
+  try {
+    if (prof.data && prof.data.role === 'admin') {
+      var al = document.getElementById('adminLink');
+      if (al) al.style.display = '';
+    }
+  } catch (e) {}
 
   // Asked for once, with a reason, on their own dashboard
   try { if (typeof Push !== 'undefined') Push.offer('.stats-row'); } catch (e) {}

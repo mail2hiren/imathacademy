@@ -142,6 +142,24 @@ async function checkLevel(level){
 
   if (!rules.maxNumber) { fail(G, 'No number range set', 'Nothing can be generated safely'); return; }
 
+  /* Everything taught at this level or any before it. A formula does
+     not stop being available once it is mastered. */
+  var allowedByNow = [];
+  try {
+    var upto = [];
+    for (var L = 0; L <= level; L++) upto.push('L' + L);
+    var cRes = await sb.from('curriculum_level_concepts')
+      .select('status, curriculum_concepts(concept_code)')
+      .in('level_code', upto);
+    (cRes.data || []).forEach(function (row) {
+      if (!row.status || row.status === 'N' || !row.curriculum_concepts) return;
+      var code = row.curriculum_concepts.concept_code;
+      var m = { big_friends: 'big', small_friends: 'small', combination: 'combination' }[code];
+      if (m && allowedByNow.indexOf(m) < 0) allowedByNow.push(m);
+    });
+  } catch (e) { allowedByNow = rules.formulas.slice(); }
+  if (!allowedByNow.length) allowedByNow = rules.formulas.slice();
+
   /* ── 2. Abacus level — do the sums stay inside it? ── */
   var cols = [], bad = 0, over = 0;
   for (var i = 0; i < 40; i++) {
@@ -153,16 +171,24 @@ async function checkLevel(level){
     var r = inspect(s.rows, rules);
     if (r.over) over++;
     if (r.answer !== s.answer) bad++;
-    // a formula the level does not teach is the serious one
+    /* A level's concept list names what it INTRODUCES or practises,
+       not everything a child may use. Four-digit addition at Level 6
+       needs Big Friends and Combination on the individual rods — both
+       mastered back at Level 3. Judging against the current level's
+       list alone marked correct work as wrong.
+
+       What matters is that nothing appears before it has been taught. */
     Object.keys(r.needs).forEach(function(k){
       if (k === 'direct') return;
-      if (rules.formulas.indexOf(k) < 0) bad++;
+      if (allowedByNow.indexOf(k) < 0) bad++;
     });
   }
   if (!cols.length) { fail(G, 'No column sums could be built', 'The level settings may be impossible'); return; }
-  if (bad) fail(G, 'Sums use a formula this level does not teach', bad + ' of ' + cols.length,
+  if (bad) fail(G, 'Sums use a formula not yet taught by this level', bad + ' of ' + cols.length,
                 colText(cols[0].rows) + ' = ' + cols[0].answer);
-  else pass(G, 'Column sums stay within the level', colText(cols[0].rows) + ' = ' + cols[0].answer);
+  else pass(G, 'Column sums use only what has been taught by now',
+            'allowed: ' + (allowedByNow.length ? allowedByNow.join(', ') : 'direct movement only') +
+            '\n' + colText(cols[0].rows) + ' = ' + cols[0].answer);
 
   if (over) fail(G, 'Some totals go past ' + rules.maxNumber, over + ' of ' + cols.length);
   else pass(G, 'Totals stay under ' + rules.maxNumber);
@@ -230,9 +256,16 @@ async function checkLevel(level){
 
   /* ── 5. Settings — difficulty and restrictions ── */
   try {
-    var curr = (typeof CURRICULUM !== 'undefined') && CURRICULUM[level];
-    var dr = curr && curr.diffRules;
-    if (!dr) warn(G, 'No difficulty bands set', 'Easy, Medium and Hard will be identical');
+    /* CURRICULUM is a variable inside the LX Designer and does not
+       exist here, so this reported "no bands set" on every level for
+       data it had never loaded. Read them properly. */
+    var drRes = await sb.from('curriculum_difficulty_rules')
+      .select('difficulty, max_number, min_rows, max_rows')
+      .eq('level_code', 'L' + level);
+    var dr = {};
+    (drRes.data || []).forEach(function (row) { dr[row.difficulty] = row; });
+
+    if (!Object.keys(dr).length) warn(G, 'No difficulty bands set', 'Easy, Medium and Hard will be identical');
     else {
       var got = {};
       ['easy','medium','hard'].forEach(function(band){

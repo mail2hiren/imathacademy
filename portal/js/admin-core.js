@@ -194,16 +194,34 @@ async function fillLevelSelects() {
   const levels = await loadCurriculumLevels();
   if (!levels.length) return;   // leave whatever is there rather than empty it
 
-  ['s-level', 'sp-level', 'b-level', 'f_level'].forEach(function (id) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const keep = el.value;
-    el.innerHTML = levels.map(function (l) {
-      const n = String(l.level_code).replace(/^L/, '');
+  /* These four ids were guessed and three of them do not exist, so
+     only one dropdown was ever filled — the rest kept their hardcoded
+     Level 1 to 6, with no Level 0 and no Level 7 or 8. Every level
+     dropdown on the page is found instead of being named. */
+  var targets = [];
+  document.querySelectorAll('select').forEach(function (el) {
+    if (el.id && /level/i.test(el.id) && !/difficulty|program|plan/i.test(el.id)) {
+      targets.push(el);
+    }
+  });
+
+  targets.forEach(function (el) {
+    var keep = el.value;
+
+    /* An empty first option is how a form says "not chosen yet", so it
+       is kept. A level of 0 is NOT the same as empty — that confusion
+       is exactly why Level 0 went missing. */
+    var blank = el.querySelector('option[value=""]');
+    el.innerHTML = (blank ? blank.outerHTML : '') + levels.map(function (l) {
+      var n = String(l.level_code).replace(/^L/, '');
       return '<option value="' + n + '">Level ' + n +
-             (l.level_name ? ' — ' + l.level_name : '') + '</option>';
+             (l.level_name ? ' \u2014 ' + l.level_name : '') + '</option>';
     }).join('');
-    if (keep !== '' && el.querySelector('option[value="' + keep + '"]')) el.value = keep;
+
+    if (keep !== null && keep !== undefined && keep !== '' &&
+        el.querySelector('option[value="' + keep + '"]')) {
+      el.value = keep;
+    }
   });
 }
 

@@ -177,8 +177,11 @@ function openEdit(id) {
   document.getElementById('edit-student-fields').style.display = isStudent ? 'block' : 'none';
   if (isStudent) {
     document.getElementById('edit-program').value = user.program || 'abacus';
-    if (document.getElementById('edit-country')) document.getElementById('edit-country').value = u.country_code || 'IN';
-  document.getElementById('edit-level').value   = user.current_level ?? 0;
+    // The variable here is `user`; `u` did not exist, and the
+    // ReferenceError stopped the modal from opening at all.
+    var ctry = document.getElementById('edit-country');
+    if (ctry) ctry.value = user.country_code || 'IN';
+    document.getElementById('edit-level').value = user.current_level ?? 0;
     document.getElementById('edit-mode').value    = user.mode || 'online';
   }
   openModal('editModal');

@@ -132,6 +132,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/money.js"></script>
 <script src="../js/profiles.js"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
@@ -155,11 +156,15 @@ var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 var session = null, parentProfile = null;
 var children = [], fees = [], subs = {}, allSubs = [], plans = [];
+var plansCountry = 'IN';
 var feesError = null;
 var picked = {};           // fee id -> true, for paying ahead
 var selectedPlan = {};     // child id -> plan_code
 
-function money(n){ return '₹' + Number(n||0).toLocaleString('en-IN'); }
+function money(n, cc){
+  if (typeof Money !== 'undefined') return Money.format(n, cc || plansCountry);
+  return '\u20B9' + Number(n||0).toLocaleString('en-IN');
+}
 function shortDate(d){ return d ? new Date(d).toLocaleDateString('en-IN',
   {day:'numeric',month:'short',year:'numeric'}) : '—'; }
 function daysUntil(d){
@@ -184,10 +189,11 @@ async function load(){
   parentProfile = me.data || {};
 
   var links = await sb.from('parent_student')
-    .select('student_id, users!student_id(id, full_name)')
+    .select('student_id, users!student_id(id, full_name, country_code)')
     .eq('parent_id', session.user.id);
   children = (links.data||[]).map(function(l){
-    return { id: l.student_id, name: (l.users && l.users.full_name) || 'Student' };
+    return { id: l.student_id, name: (l.users && l.users.full_name) || 'Student',
+             country: (l.users && l.users.country_code) || 'IN' };
   });
   if(!children.length){ render(); return; }
 
@@ -209,10 +215,25 @@ async function load(){
   // The newest per child drives the status card; the rest are history.
   allSubs.forEach(function(r){ if(!subs[r.student_id]) subs[r.student_id]=r; });
 
+  /* The plans a family sees are the ones priced for their country.
+     Asking for India regardless meant a Dubai family saw rupees. */
+  var cc = (children[0] && children[0].country) || 'IN';
   var p = await sb.from('pricing_plans')
     .select('plan_code, plan_name, amount, duration_days, country_code, is_active')
-    .eq('country_code','IN').order('duration_days');
+    .eq('country_code', cc).order('duration_days');
   plans = (p.data||[]).filter(function(x){ return x.is_active !== false; });
+
+  // Nothing priced for that country yet — fall back so the page is
+  // not simply empty, and say which prices are being shown.
+  if (!plans.length && cc !== 'IN') {
+    var f = await sb.from('pricing_plans')
+      .select('plan_code, plan_name, amount, duration_days, country_code, is_active')
+      .eq('country_code','IN').order('duration_days');
+    plans = (f.data||[]).filter(function(x){ return x.is_active !== false; });
+    plansCountry = 'IN';
+  } else {
+    plansCountry = cc;
+  }
 
   render();
 }
@@ -517,8 +538,14 @@ function openRazorpay(opt){
   }
   var rzp = new Razorpay({
     key: RAZORPAY_KEY,
-    amount: Math.round(opt.amount * 100),   // paise
-    currency: 'INR',
+    /* Charged in the family's own currency. Razorpay is already set
+       up for these, and the smallest unit differs by currency — paise,
+       fils, cents — so the conversion is not always times a hundred. */
+    amount: (typeof Money !== 'undefined')
+              ? Money.smallestUnit(opt.amount, plansCountry)
+              : Math.round(opt.amount * 100),
+    currency: (typeof Money !== 'undefined')
+              ? Money.currencyCode(plansCountry) : 'INR',
     name: 'iMath Academy',
     description: opt.description,
     image: '/assets/logo.png',

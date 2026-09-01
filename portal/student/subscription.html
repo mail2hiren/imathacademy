@@ -128,10 +128,15 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const PLANS = {
   monthly:    { label: 'Monthly',     amount: 199,   days: 30,  desc: 'Access for 30 days' },
-  halfyearly: { label: 'Half-yearly', amount: 1099,  days: 180, desc: 'Access for 6 months · Save ₹95' },
+  halfyearly: { label: 'Half-yearly', amount: 1099,  days: 180, desc: 'Access for 6 months' },
 };
 
 let session = null, profile = null, subscription = null;
+
+/* Where this family is. Everything priced follows from it: which
+   pricing_plans rows apply, what is shown on the cards, and which
+   currency Razorpay is told to charge. */
+let myCountry = 'IN';
 let selectedPlan = 'monthly';
 
 function initials(name) { return (name||'S').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2); }
@@ -167,7 +172,7 @@ function selectPlan(plan) {
     c.querySelector('input').checked = c.dataset.plan === plan;
   });
   const p = PLANS[plan];
-  document.getElementById('payBtn').textContent = `Pay ₹${p.amount} securely · via Razorpay`;
+  document.getElementById('payBtn').textContent = 'Pay ' + Money.format(p.amount, myCountry) + ' securely · via Razorpay';
 }
 
 function renderPayScreen(expired) {
@@ -217,21 +222,21 @@ function renderPayScreen(expired) {
           <div class="plan-desc">Access for 30 days · Flexible</div>
         </div>
         <div class="plan-price">
-          <div class="plan-amount">₹199</div>
+          <div class="plan-amount">—</div>
           <div class="plan-per">per month</div>
         </div>
       </div>
 
       <div class="plan-card" data-plan="halfyearly" onclick="selectPlan('halfyearly')">
-        <div class="save-badge">SAVE ₹95</div>
+        <div class="save-badge"></div>
         <input type="radio" class="plan-radio" name="plan">
         <div class="plan-info">
           <div class="plan-name">Half-yearly</div>
           <div class="plan-desc">Access for 6 months · Best value</div>
         </div>
         <div class="plan-price">
-          <div class="plan-amount">₹1,099</div>
-          <div class="plan-per">₹183/month</div>
+          <div class="plan-amount">—</div>
+          <div class="plan-per"></div>
         </div>
       </div>
 
@@ -250,7 +255,7 @@ function renderPayScreen(expired) {
       </div>
 
       <button class="pay-btn" id="payBtn" onclick="startPayment()">
-        Pay ₹199 securely · via Razorpay
+        Pay securely · via Razorpay
       </button>
 
       <div class="methods">
@@ -281,7 +286,7 @@ function renderSuccess(plan, paymentId) {
 
       <div class="receipt">
         <div class="receipt-row"><span class="receipt-label">Plan</span><span class="receipt-val">${p.label}</span></div>
-        <div class="receipt-row"><span class="receipt-label">Amount paid</span><span class="receipt-val">₹${p.amount}</span></div>
+        <div class="receipt-row"><span class="receipt-label">Amount paid</span><span class="receipt-val">${Money.format(p.amount, myCountry)}</span></div>
         <div class="receipt-row"><span class="receipt-label">Valid until</span><span class="receipt-val">${fmt(expiresAt)}</span></div>
         <div class="receipt-row"><span class="receipt-label">Payment ID</span><span class="receipt-val" style="font-size:.75rem">${paymentId}</span></div>
       </div>
@@ -336,7 +341,7 @@ async function startPayment() {
       modal: {
         ondismiss: function() {
           btn.disabled = false;
-          btn.textContent = `Pay ₹${p.amount} securely · via Razorpay`;
+          btn.textContent = 'Pay ' + Money.format(p.amount, myCountry) + ' securely · via Razorpay';
         }
       }
     };
@@ -347,7 +352,7 @@ async function startPayment() {
   } catch(err) {
     toast('❌ Payment failed: ' + err.message, 'error');
     btn.disabled = false;
-    btn.textContent = `Pay ₹${p.amount} securely · via Razorpay`;
+    btn.textContent = 'Pay ' + Money.format(p.amount, myCountry) + ' securely · via Razorpay';
   }
 }
 
@@ -400,6 +405,60 @@ async function init() {
     session = s;
 
     const { data: p } = await sb.from('users').select('*, country_code').eq('id', s.user.id).single();
+  myCountry = (p && p.country_code) || 'IN';
+
+  /* The plan prices were written into this page, so a family abroad
+     saw rupees. Megha sets the real prices per country in the admin
+     screen; those are what should be shown and charged. */
+  try {
+    const pr = await sb.from('pricing_plans')
+      .select('plan_code, plan_name, amount, duration_days, is_active')
+      .eq('country_code', myCountry).order('duration_days');
+    const live = (pr.data || []).filter(x => x.is_active !== false);
+
+    if (live.length) {
+      live.forEach(row => {
+        const months = Math.round((row.duration_days || 30) / 30);
+        const key = months >= 12 ? 'annual' : months >= 6 ? 'halfyearly'
+                  : months >= 3 ? 'quarterly' : 'monthly';
+        if (!PLANS[key]) {
+          PLANS[key] = { label: row.plan_name || key, days: row.duration_days,
+                         desc: 'Access for ' + months + ' months' };
+        }
+        PLANS[key].amount = Number(row.amount);
+        PLANS[key].code = row.plan_code;
+      });
+    } else if (myCountry !== 'IN') {
+      /* Nothing priced for that country. Saying so is better than
+         quietly charging a family in the wrong currency. */
+      const warn = document.createElement('div');
+      warn.style.cssText = 'background:#FFF4E5;border-radius:12px;padding:12px 14px;' +
+        'margin:14px 0;font-size:.85rem;color:#8a4b00;line-height:1.55;';
+      warn.textContent = 'Prices for your country are not set up yet — ' +
+        'please message your teacher to arrange payment.';
+      const first = document.querySelector('.plan-amount');
+      if (first && first.closest('.plan-card') && first.closest('.plan-card').parentNode) {
+        first.closest('.plan-card').parentNode.insertBefore(warn, first.closest('.plan-card'));
+      }
+    }
+
+    // and put the real figures on the cards
+    document.querySelectorAll('.plan-amount').forEach((el, i) => {
+      const key = Object.keys(PLANS)[i];
+      if (key && PLANS[key]) el.textContent = Money.format(PLANS[key].amount, myCountry);
+    });
+    const per = document.querySelector('.plan-per');
+    if (per && PLANS.halfyearly) {
+      per.textContent = Money.format(
+        Math.round(PLANS.halfyearly.amount / (PLANS.halfyearly.days / 30)), myCountry) + '/month';
+    }
+    const badge = document.querySelector('.save-badge');
+    if (badge && PLANS.halfyearly && PLANS.monthly) {
+      const saved = (PLANS.monthly.amount * (PLANS.halfyearly.days / 30)) - PLANS.halfyearly.amount;
+      badge.textContent = saved > 0 ? 'SAVE ' + Money.format(saved, myCountry) : '';
+      badge.style.display = saved > 0 ? '' : 'none';
+    }
+  } catch (e) { console.warn('Could not load pricing:', e.message); }
     profile = p;
 
     // Get latest subscription

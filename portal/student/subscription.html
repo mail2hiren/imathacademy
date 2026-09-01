@@ -117,6 +117,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/money.js"></script>
 <script src="../js/profiles.js"></script>
 <script>
 const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
@@ -305,8 +306,10 @@ async function startPayment() {
   try {
     const options = {
       key: RAZORPAY_KEY,
-      amount: p.amount * 100, // paise
-      currency: 'INR',
+      amount: (typeof Money !== 'undefined')
+              ? Money.smallestUnit(p.amount, myCountry)
+              : Math.round(p.amount * 100), // paise
+      currency: (typeof Money !== 'undefined') ? Money.currencyCode(myCountry) : 'INR',
       name: 'iMathAcademy',
       description: `${p.label} subscription for ${profile?.full_name || 'Student'}`,
       image: '/assets/logo.png',
@@ -396,7 +399,7 @@ async function init() {
     if (!s) { window.location.href = '/login.html'; return; }
     session = s;
 
-    const { data: p } = await sb.from('users').select('*').eq('id', s.user.id).single();
+    const { data: p } = await sb.from('users').select('*, country_code').eq('id', s.user.id).single();
     profile = p;
 
     // Get latest subscription

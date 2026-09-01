@@ -177,7 +177,8 @@ function openEdit(id) {
   document.getElementById('edit-student-fields').style.display = isStudent ? 'block' : 'none';
   if (isStudent) {
     document.getElementById('edit-program').value = user.program || 'abacus';
-    document.getElementById('edit-level').value   = user.current_level ?? 0;
+    if (document.getElementById('edit-country')) document.getElementById('edit-country').value = u.country_code || 'IN';
+  document.getElementById('edit-level').value   = user.current_level ?? 0;
     document.getElementById('edit-mode').value    = user.mode || 'online';
   }
   openModal('editModal');
@@ -193,7 +194,8 @@ async function saveEdit() {
   const btn = document.getElementById('saveEditBtn');
   btn.disabled = true; btn.textContent = 'Saving...';
   try {
-    const updates = { full_name: name, email, phone: phone || null };
+    const updates = {
+      country_code: (document.getElementById('edit-country')||{}).value || 'IN', full_name: name, email, phone: phone || null };
     if (role === 'student') {
       updates.program       = document.getElementById('edit-program').value;
       updates.current_level = parseInt(document.getElementById('edit-level').value);

@@ -83,7 +83,7 @@ function renderSubs(subs) {
       <td>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           ${expired ? `<button class="btn btn-green btn-sm" onclick="extendSub('${s.student_id}','${s.id}')">Mark paid</button>` : ''}
-          <button class="btn btn-ghost btn-sm" onclick="extendSubCustom('${s.student_id}','${s.users?.full_name}')">Extend</button>
+          <button class="btn btn-ghost btn-sm" onclick="changeExpiry('${s.id}','${s.student_id}','${s.users?.full_name}','${s.expires_at || ''}')">Change expiry date</button>
         </div>
       </td>
     </tr>`;
@@ -152,28 +152,104 @@ async function extendSub(studentId, oldId) {
   } catch(err) { toast('❌ ' + err.message, 'error'); }
 }
 
-async function extendSubCustom(studentId, name) {
-  const days = parseInt(prompt(`Extend ${name}'s subscription by how many days?`, '30'));
-  if (!days || isNaN(days)) return;
+/* Megha thinks in dates — "until the 31st" — not in numbers of days.
+   The old version asked how many days and counted from today, so
+   extending a subscription that still had two months left actually
+   shortened it. And it wrote plan "monthly" at 199 rupees, recording a
+   payment nobody made.
+
+   This changes the date on the existing subscription and nothing else. */
+async function changeExpiry(subId, studentId, name, currentExpiry) {
+  var cur = currentExpiry ? new Date(currentExpiry) : new Date();
+  var iso = isNaN(cur.getTime()) ? '' : cur.toISOString().slice(0, 10);
+
+  var old = document.getElementById('expiryBox');
+  if (old) old.remove();
+
+  var ov = document.createElement('div');
+  ov.id = 'expiryBox';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(20,24,40,.5);z-index:999;' +
+    'display:flex;align-items:center;justify-content:center;padding:18px;';
+  ov.onclick = function (e) { if (e.target === ov) ov.remove(); };
+
+  ov.innerHTML =
+    '<div style="background:#fff;border-radius:18px;padding:22px;max-width:380px;width:100%;">' +
+      '<div style="font-size:1.05rem;font-weight:900;">' + (name || 'This student') + '</div>' +
+      '<div style="font-size:.82rem;color:#8892A4;margin-top:3px;">' +
+        (iso ? 'Access runs to ' + cur.toLocaleDateString('en-IN',
+               { day:'numeric', month:'long', year:'numeric' }) : 'No end date set') + '</div>' +
+
+      '<label style="display:block;font-size:.78rem;font-weight:900;color:#555;' +
+        'margin:16px 0 6px;">New end date</label>' +
+      '<input id="newExpiry" type="date" value="' + iso + '" ' +
+        'style="width:100%;padding:13px;border:1.5px solid #E4E7F2;border-radius:11px;' +
+        'font-family:inherit;font-size:1rem;">' +
+
+      '<div style="display:flex;gap:7px;margin-top:11px;flex-wrap:wrap;">' +
+        '<button class="btn btn-ghost btn-sm" onclick="bumpExpiry(1)">+1 month</button>' +
+        '<button class="btn btn-ghost btn-sm" onclick="bumpExpiry(3)">+3 months</button>' +
+        '<button class="btn btn-ghost btn-sm" onclick="bumpExpiry(12)">+1 year</button>' +
+      '</div>' +
+
+      '<div style="display:flex;gap:9px;margin-top:18px;">' +
+        '<button class="btn btn-ghost" style="flex:1;" ' +
+          'onclick="document.getElementById(\'expiryBox\').remove()">Cancel</button>' +
+        '<button class="btn btn-blue" style="flex:1;" ' +
+          'onclick="saveExpiry(\'' + subId + '\', \'' + studentId + '\')">Save</button>' +
+      '</div>' +
+      '<div style="font-size:.74rem;color:#8892A4;margin-top:11px;line-height:1.5;">' +
+        'This only changes when access ends. No payment is recorded.</div>' +
+    '</div>';
+  document.body.appendChild(ov);
+}
+
+/* The quick buttons move from the date shown, not from today, so
+   adding a month to a subscription that runs to December gives
+   January — not next month. */
+function bumpExpiry(months) {
+  var el = document.getElementById('newExpiry');
+  if (!el) return;
+  var base = el.value ? new Date(el.value) : new Date();
+  if (isNaN(base.getTime())) base = new Date();
+  base.setMonth(base.getMonth() + months);
+  el.value = base.toISOString().slice(0, 10);
+}
+
+async function saveExpiry(subId, studentId) {
+  var el = document.getElementById('newExpiry');
+  var val = el && el.value;
+  if (!val) { toast('Please choose a date', 'error'); return; }
+
+  // End of that day, so access lasts the whole date she picked
+  var when = new Date(val + 'T23:59:59');
+
   try {
-    const expires = new Date();
-    expires.setDate(expires.getDate() + days);
-    await sb.from('subscriptions').update({ status: 'expired' })
-      .eq('student_id', studentId).eq('status', 'active');
-    const { error } = await sb.from('subscriptions').insert({
-      student_id:     studentId,
-      plan:           days >= 180 ? 'halfyearly' : 'monthly',
-      amount:         days >= 180 ? 1099 : 199,
-      status:         'active',
-      payment_method: 'admin_override',
-      starts_at:      new Date().toISOString(),
-      expires_at:     expires.toISOString(),
-      created_by:     'admin',
-    });
-    if (error) throw error;
-    toast(`✅ Extended by ${days} days!`, 'success');
+    var res;
+    if (subId && subId !== 'undefined' && subId !== 'null') {
+      res = await sb.from('subscriptions')
+        .update({ expires_at: when.toISOString(), status: 'active' })
+        .eq('id', subId).select();
+    } else {
+      // No subscription at all — give them one, at no charge
+      res = await sb.from('subscriptions').insert({
+        student_id: studentId,
+        plan: 'trial', amount: 0, status: 'active',
+        payment_method: 'admin', reference: 'Set by admin',
+        starts_at: new Date().toISOString(),
+        expires_at: when.toISOString()
+      }).select();
+    }
+    if (res.error) throw res.error;
+    if (!res.data || !res.data.length) {
+      throw new Error('Nothing was saved — check your permissions');
+    }
+    document.getElementById('expiryBox').remove();
+    toast('Access now runs to ' + when.toLocaleDateString('en-IN',
+          { day:'numeric', month:'short', year:'numeric' }), 'success');
     await loadSubscriptions();
-  } catch(err) { toast('❌ ' + err.message, 'error'); }
+  } catch (e) {
+    toast('Could not save: ' + e.message, 'error');
+  }
 }
 
 async function logout() {

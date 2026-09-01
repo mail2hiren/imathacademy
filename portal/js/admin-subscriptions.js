@@ -4,13 +4,37 @@ function addDays(days) {
   return d.toISOString();
 }
 
+/* A family in Dubai should see dirhams, not rupees. The pricing table
+   already holds a row per country; this shows the amount in the
+   currency that country pays in. */
+var CURRENCY = { IN:'\u20B9', AE:'AED ', US:'$', GB:'\u00A3', SG:'S$',
+                 AU:'A$', CA:'C$', MY:'RM ', NZ:'NZ$', ZA:'R ' };
+
+function money(amount, country) {
+  var sym = CURRENCY[String(country || 'IN').toUpperCase()] || '';
+  var n = Number(amount || 0);
+  return sym + n.toLocaleString(country === 'IN' || !country ? 'en-IN' : 'en-US');
+}
+
 async function loadSubscriptions() {
   try {
+    /* subscriptions has TWO foreign keys to users — student_id and
+       created_by — and the embedded join was resolving the wrong one,
+       so every row showed whoever created it rather than the student.
+       Looking the students up separately cannot be ambiguous. */
     const { data: subs } = await sb.from('subscriptions')
-      .select('*, users!student_id(full_name, email)')
-      .order('created_at', { ascending: false });
+      .select('*').order('created_at', { ascending: false });
 
     allSubs = subs || [];
+
+    const ids = [...new Set(allSubs.map(s => s.student_id).filter(Boolean))];
+    if (ids.length) {
+      const { data: people } = await sb.from('users')
+        .select('id, full_name, email, country_code').in('id', ids);
+      const byId = {};
+      (people || []).forEach(p => { byId[p.id] = p; });
+      allSubs.forEach(s => { s.users = byId[s.student_id] || null; });
+    }
 
     // Stats
     const now = new Date();

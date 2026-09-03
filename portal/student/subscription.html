@@ -368,25 +368,64 @@ async function handlePaymentSuccess(plan, paymentId, orderId) {
     }
 
     // Create new subscription record
-    const { error } = await sb.from('subscriptions').insert({
+    /* created_by was the string 'parent' going into a uuid column, so
+       Postgres rejected the whole row. The money left the parent's
+       account and nothing was written — no subscription, no access,
+       and a screenshot sent to Megha.
+
+       The payer is the signed-in user, and .select() is here so a
+       refused write cannot look like a success. */
+    const { data, error } = await sb.from('subscriptions').insert({
       student_id:          session.user.id,
       plan,
       amount:              p.amount,
+      currency:            (typeof Money !== 'undefined') ? Money.currencyCode(myCountry) : 'INR',
       status:              'active',
       payment_method:      'razorpay',
       razorpay_payment_id: paymentId,
       razorpay_order_id:   orderId || null,
       starts_at:           now,
       expires_at:          expiresAt,
-      created_by:          'parent',
-    });
+      created_by:          session.user.id,
+    }).select();
 
     if (error) throw error;
+    if (!data || !data.length) throw new Error('The subscription was not saved');
 
     renderSuccess(plan, paymentId);
 
   } catch(err) {
-    toast('Payment recorded but error saving: ' + err.message, 'error');
+    /* A parent who has just paid must never be left with an error and
+       nothing else. The payment id is theirs — it is what lets Megha
+       find the money and put the access right. */
+    console.error('Subscription not saved after payment:', err);
+
+    try {
+      await sb.from('enquiries').insert({
+        child_name:  (profile && profile.full_name) || 'Unknown',
+        parent_name: 'PAYMENT NEEDS CHECKING',
+        phone:       (profile && profile.phone) || '',
+        status:      'new',
+        notes:       'Paid on Razorpay but the subscription did not save. ' +
+                     'Payment id ' + paymentId + '. Plan ' + plan + '. ' +
+                     'Error: ' + (err.message || 'unknown')
+      });
+    } catch (e2) { /* even this failing must not hide the message below */ }
+
+    document.getElementById('mainCard').innerHTML =
+      '<div style="padding:30px 22px;text-align:center;">' +
+        '<div style="font-size:2.6rem;">\u2705</div>' +
+        '<div style="font-size:1.2rem;font-weight:900;margin-top:10px;">' +
+          'Your payment went through</div>' +
+        '<div style="font-size:.95rem;color:#555;margin-top:10px;line-height:1.65;">' +
+          'It has not switched on your access yet — that needs a moment from us. ' +
+          'Your teacher has been told and will sort it today.</div>' +
+        '<div style="background:#F7F9FF;border-radius:12px;padding:13px;margin-top:16px;' +
+          'font-size:.85rem;">Payment reference<br>' +
+          '<strong style="font-family:ui-monospace,monospace;">' + paymentId + '</strong></div>' +
+        '<div style="font-size:.8rem;color:#8892A4;margin-top:12px;">' +
+          'Keep this reference. Nothing has been lost.</div>' +
+      '</div>';
   }
 }
 

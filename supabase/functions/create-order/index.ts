@@ -114,11 +114,18 @@ Deno.serve(async (req) => {
       currency,
       receipt: "sub_" + studentId.slice(0, 8) + "_" + Date.now(),
       payment_capture: 1,
+      /* The webhook reads notes.plan and notes.duration_days. Sending
+         plan_code alone meant it found nothing and fell back to
+         monthly — so a family paying for six months would have got
+         thirty days. The names have to match on both sides. */
       notes: {
         student_id: studentId,
         student_name: student.full_name ?? "",
+        plan: plan.plan_code,
         plan_code: plan.plan_code,
         duration_days: String(plan.duration_days ?? 30),
+        amount_paid: String(plan.amount),
+        currency,
         country,
       },
     }),

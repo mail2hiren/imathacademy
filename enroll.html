@@ -594,9 +594,14 @@ async function goToPayment() {
         contact: phone,
       },
       theme: { color: '#1565C0' },
-      callback_url: 'https://imathacademy.net/payment-success.html',
+      /* No callback_url. Setting one puts Razorpay into redirect mode:
+         it POSTs the result to that page, GitHub Pages only answers GET,
+         and the parent lands on a 405. It also skips the handler below,
+         so nothing gets recorded.
+
+         Without it, checkout stays in the page and calls handler()
+         directly, which is what switches access on. */
       cancel_url:   'https://imathacademy.net/payment-failed.html',
-      redirect: true,
       handler: async function(response) {
         // Activate student account
         await sb.from('users').update({ is_active: true }).eq('id', studentId);

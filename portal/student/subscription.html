@@ -309,12 +309,30 @@ async function startPayment() {
   btn.textContent = 'Opening payment...';
 
   try {
-    const options = {
+        /* An order has to exist before checkout opens. Without one the
+       payment arrives "authorized" and waits for somebody to capture
+       it by hand — which is why payments were not switching on access.
+       The order is created with payment_capture: 1, so the money is
+       taken at once and the webhook writes the subscription within
+       seconds. */
+    const orderRes = await fetch(SUPABASE_URL + '/functions/v1/create-order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token,
+        'apikey': SUPABASE_KEY
+      },
+      body: JSON.stringify({ plan_code: p.code || plan, student_id: session.user.id })
+    });
+    const ord = await orderRes.json();
+    if (!orderRes.ok || !ord.order_id) {
+      throw new Error(ord.error || 'Could not start the payment');
+    }
+
+const options = {
       key: RAZORPAY_KEY,
-      amount: (typeof Money !== 'undefined')
-              ? Money.smallestUnit(p.amount, myCountry)
-              : Math.round(p.amount * 100), // paise
-      currency: (typeof Money !== 'undefined') ? Money.currencyCode(myCountry) : 'INR',
+      amount:   ord.amount,     // from the pricing table, not the browser // paise
+      currency: ord.currency,
       name: 'iMathAcademy',
       description: `${p.label} subscription for ${profile?.full_name || 'Student'}`,
       image: '/assets/logo.png',

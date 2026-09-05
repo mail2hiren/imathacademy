@@ -329,9 +329,13 @@ async function startPayment() {
       throw new Error(ord.error || 'Could not start the payment');
     }
 
-const options = {
-      key: RAZORPAY_KEY,
-      amount:   ord.amount,     // from the pricing table, not the browser // paise
+    const options = {
+      /* The order is what makes this an auto-captured payment. Without
+         it Razorpay only authorises the money and waits for a manual
+         capture, which is why paying did not switch on access. */
+      order_id: ord.order_id,
+      key:      ord.key_id || RAZORPAY_KEY,
+      amount:   ord.amount,     // from the pricing table, not the browser
       currency: ord.currency,
       name: 'iMathAcademy',
       description: `${p.label} subscription for ${profile?.full_name || 'Student'}`,
@@ -352,8 +356,26 @@ const options = {
       cancel_url:   'https://imathacademy.net/payment-failed.html',
       redirect: true,
       handler: async function(response) {
-        // Webhook handles DB update automatically
-        // This handler just shows success UI
+        /* The webhook is what really records this, and it usually
+           lands within a second or two. Wait for it, then show
+           success — so a family sees access switched on rather than
+           being told to refresh.
+
+           If it has not arrived after a few seconds, the browser
+           writes the row itself as a backup. */
+        for (var w = 0; w < 6; w++) {
+          await new Promise(function (r) { setTimeout(r, 900); });
+          try {
+            var chk = await sb.from('subscriptions')
+              .select('id').eq('student_id', session.user.id)
+              .eq('status', 'active').gt('expires_at', new Date().toISOString())
+              .limit(1);
+            if (chk.data && chk.data.length) {
+              renderSuccess(plan, response.razorpay_payment_id);
+              return;
+            }
+          } catch (e) { /* keep waiting */ }
+        }
         await handlePaymentSuccess(plan, response.razorpay_payment_id, response.razorpay_order_id);
       },
       modal: {

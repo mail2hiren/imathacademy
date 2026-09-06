@@ -409,11 +409,14 @@ async function handlePaymentSuccess(plan, paymentId, orderId) {
 
        The payer is the signed-in user, and .select() is here so a
        refused write cannot look like a success. */
-    const { data, error } = await sb.from('subscriptions').insert({
+    /* Written as two attempts on purpose. Postgres rejects an entire
+       row for one unknown column, and adding `currency` here — before
+       the column existed — threw away a real payment. The essential
+       fields go first; the extras are only tried if they are there. */
+    var row = {
       student_id:          session.user.id,
       plan,
       amount:              p.amount,
-      currency:            (typeof Money !== 'undefined') ? Money.currencyCode(myCountry) : 'INR',
       status:              'active',
       payment_method:      'razorpay',
       razorpay_payment_id: paymentId,
@@ -421,10 +424,20 @@ async function handlePaymentSuccess(plan, paymentId, orderId) {
       starts_at:           now,
       expires_at:          expiresAt,
       created_by:          session.user.id,
-    }).select();
+    };
 
-    if (error) throw error;
-    if (!data || !data.length) throw new Error('The subscription was not saved');
+    var full = Object.assign({}, row, {
+      currency: (typeof Money !== 'undefined') ? Money.currencyCode(myCountry) : 'INR'
+    });
+
+    var res = await sb.from('subscriptions').insert(full).select();
+    if (res.error && /column .* does not exist|Could not find/i.test(res.error.message || '')) {
+      // Lose the extra, never the payment
+      res = await sb.from('subscriptions').insert(row).select();
+    }
+
+    if (res.error) throw res.error;
+    if (!res.data || !res.data.length) throw new Error('The subscription was not saved');
 
     renderSuccess(plan, paymentId);
 

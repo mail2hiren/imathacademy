@@ -560,6 +560,7 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/access.js"></script>
 <script src="../js/profiles.js"></script>
 <script>
 const SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
@@ -1011,6 +1012,12 @@ function showComplete() {
 async function saveSession(accuracy) {
   try {
     const { data: { session } } = await sb.auth.getSession();
+
+  /* This page has never checked. A child whose subscription had
+     ended could open it and use it. */
+  if (typeof Access !== 'undefined' && session && session.user) {
+    if (!(await Access.require(session.user.id))) return;
+  }
     if (!session) return;
     await sb.from('practice_sessions').insert({
       student_id: session.user.id,

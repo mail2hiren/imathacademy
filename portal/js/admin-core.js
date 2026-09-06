@@ -190,6 +190,36 @@ async function loadCurriculumLevels() {
   return LEVELS_CACHE;
 }
 
+
+/* The country dropdown listed ten countries when only four are
+   priced. A student set to an unpriced country cannot be billed at
+   all — so the list comes from the pricing table, and adding a
+   country there makes it selectable straight away. */
+const COUNTRY_NAMES = {
+  IN:'India', AE:'United Arab Emirates', US:'United States',
+  GB:'United Kingdom', SG:'Singapore', AU:'Australia', CA:'Canada',
+  MY:'Malaysia', NZ:'New Zealand', ZA:'South Africa', AE_:'',
+};
+
+async function fillCountrySelects() {
+  let codes = [];
+  try {
+    const { data } = await sb.from('pricing_plans')
+      .select('country_code').eq('is_active', true);
+    codes = [...new Set((data || []).map(r => r.country_code).filter(Boolean))].sort();
+  } catch (e) { /* fall through to India only */ }
+  if (!codes.length) codes = ['IN'];
+
+  document.querySelectorAll('select').forEach(el => {
+    if (!el.id || !/country/i.test(el.id)) return;
+    const keep = el.value;
+    el.innerHTML = codes.map(code =>
+      `<option value="${code}">${COUNTRY_NAMES[code] || code}</option>`).join('');
+    if (keep && el.querySelector(`option[value="${keep}"]`)) el.value = keep;
+    else el.value = codes.indexOf('IN') > -1 ? 'IN' : codes[0];
+  });
+}
+
 async function fillLevelSelects() {
   const levels = await loadCurriculumLevels();
   if (!levels.length) return;   // leave whatever is there rather than empty it
@@ -254,6 +284,7 @@ async function loadAll() {
   // Populate dropdowns
   populateDropdowns();
   await fillLevelSelects();
+  await fillCountrySelects();
 
   // Recent activity
   const { data: notifs } = await sb.from('notifications').select('title,created_at').order('created_at', { ascending: false }).limit(8);

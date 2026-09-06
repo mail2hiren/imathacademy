@@ -514,6 +514,10 @@ async function goToPayment() {
     var city       = document.getElementById('parentCity').value.trim();
     var parentName = document.getElementById('parentName').value.trim();
 
+    /* Signing up when a login already exists is refused, which is how
+       a half-finished attempt traps somebody forever: they cannot
+       sign up and they cannot sign in. Recognised and explained
+       rather than shown as a raw error. */
     var { data: authData, error: authErr } = await sb.auth.signUp({
       email:    email,
       password: password,
@@ -527,12 +531,26 @@ async function goToPayment() {
         }
       }
     });
-    if (authErr) throw authErr;
+    if (authErr) {
+      if (/already registered|already been registered|User already/i.test(authErr.message || '')) {
+        throw new Error(
+          'There is already an account for ' + email + '.\n\n' +
+          'If that is you, sign in instead. If you started signing up ' +
+          'earlier and it did not finish, please message us and we will ' +
+          'sort it out in a minute.');
+      }
+      throw authErr;
+    }
 
     var studentId = authData.user.id;
 
+    /* The profile is what makes the login usable. If it fails, the
+       person has an account they cannot get into — the exact state
+       that trapped the last family. So this one is checked, and
+       .select() is here because a blocked write otherwise looks
+       like a success. */
     // 2. Create user profile
-    await sb.from('users').upsert({
+    var profRes = await sb.from('users').upsert({
       id:           studentId,
       full_name:    childName,
       role:         'student',
@@ -540,7 +558,10 @@ async function goToPayment() {
       date_of_birth: dob,
       program:      program,
       is_active:    false, // activate after payment
-    });
+    }).select();
+
+    if (profRes.error) throw new Error('Your account was made but the profile did not save. Please message us with this email and we will finish it: ' + email);
+    if (!profRes.data || !profRes.data.length) throw new Error('The profile did not save. Please message us with this email: ' + email);
 
     // 3. Create parent record
     /* Supabase's query builder is a thenable, not a real Promise —
@@ -553,7 +574,10 @@ async function goToPayment() {
     try {
       var parentRes = await sb.from('users').insert({
         full_name: parentName,
-        email:     email + '.parent',
+        /* Was email + '.parent', which is not a real address — the
+           parent could never sign in and anything sent to it bounced.
+           Left empty until they give us their own. */
+        email:     null,
         role:      'parent',
         is_active: true,
       }).select();

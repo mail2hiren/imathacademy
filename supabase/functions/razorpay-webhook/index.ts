@@ -6,9 +6,19 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'authorization, x-api-key, content-type, x-razorpay-signature',
 };
 
+/* This table used to be the only source of truth here, with no
+   annual plan and Indian prices only — so an annual purchase became
+   thirty days, and a family in Dubai paying AED 35 was recorded as
+   having paid 199 rupees.
+
+   The order now carries duration_days, amount_paid and currency in
+   its notes, taken from the pricing table when the order was made.
+   Those are used when present; this is only a last resort. */
 const PLANS: Record<string, { days: number; amount: number }> = {
   monthly:    { days: 30,  amount: 199  },
+  quarterly:  { days: 90,  amount: 549  },
   halfyearly: { days: 180, amount: 1099 },
+  annual:     { days: 365, amount: 1999 },
 };
 
 function addDays(days: number): string {
@@ -84,21 +94,43 @@ Deno.serve(async (req) => {
         .eq('student_id', studentId)
         .eq('status', 'active');
 
-      // Create new subscription
-      const { error } = await sb.from('subscriptions').insert({
+      /* Prefer what the order actually said over the table above. */
+      const days = Number(notes.duration_days) > 0
+        ? Number(notes.duration_days) : p.days;
+      const paid = Number(notes.amount_paid) > 0
+        ? Number(notes.amount_paid)
+        : (payment.amount ? Number(payment.amount) / 100 : p.amount);
+
+      /* created_by is a uuid column and this was the string 'parent',
+         so Postgres rejected the whole row — the payment succeeded and
+         nothing was recorded. The payer is the student themselves. */
+      const row: Record<string, unknown> = {
         student_id:          studentId,
         plan,
-        amount:              p.amount,
+        amount:              paid,
         status:              'active',
         payment_method:      'razorpay',
         razorpay_payment_id: paymentId,
         razorpay_order_id:   orderId || null,
         starts_at:           new Date().toISOString(),
-        expires_at:          addDays(p.days),
-        created_by:          'parent',
-      });
+        expires_at:          addDays(days),
+        created_by:          studentId,
+      };
 
-      if (error) throw error;
+      // currency was added later, so it is tried and then dropped
+      // rather than being allowed to reject the whole row
+      let ins = await sb.from('subscriptions')
+        .insert({ ...row, currency: notes.currency || 'INR' }).select();
+
+      if (ins.error && /column .* does not exist|Could not find/i.test(ins.error.message || '')) {
+        ins = await sb.from('subscriptions').insert(row).select();
+      }
+      if (ins.error) throw ins.error;
+      if (!ins.data || !ins.data.length) {
+        throw new Error('The subscription row was refused — check the policies on subscriptions');
+      }
+
+      console.log('Subscription recorded for', studentId, plan, days, 'days');
 
       // Send welcome notification to student
       await sb.from('notifications').insert({

@@ -90,20 +90,72 @@ function renderSubs(subs) {
     return;
   }
   const now = new Date();
-  tbody.innerHTML = subs.map(s => {
-    const expired = !s.status === 'active' || new Date(s.expires_at) <= now;
+
+  /* One row per CHILD, not per subscription record. A child who had a
+     trial and then paid has two rows in the table — one expired, one
+     active — and both were being listed, so the same name appeared
+     twice with contradictory answers.
+
+     What Megha needs is one line per child: where do they stand
+     today. The earlier ones become a small history note. */
+  const byStudent = {};
+  subs.forEach(s => {
+    const k = s.student_id;
+    if (!k) return;
+    (byStudent[k] = byStudent[k] || []).push(s);
+  });
+
+  const rows = Object.keys(byStudent).map(k => {
+    const list = byStudent[k].slice().sort((x, y) =>
+      new Date(y.expires_at || 0) - new Date(x.expires_at || 0));
+
+    // The one that actually governs access: still running, and marked
+    // active. Failing that, whichever ran latest.
+    const live = list.find(s =>
+      s.status === 'active' && s.expires_at && new Date(s.expires_at) > now);
+
+    const main = live || list[0];
+    main._history = list.filter(s => s !== main);
+    main._paid = list.some(s => s.payment_method === 'razorpay' || Number(s.amount) > 0);
+    return main;
+  }).sort((a, b) =>
+    (a.users?.full_name || '').localeCompare(b.users?.full_name || ''));
+
+  tbody.innerHTML = rows.map(s => {
+    /* `!s.status === 'active'` reads as `(!s.status) === 'active'`,
+       which is never true — so the status was ignored and only the
+       date counted. A cancelled subscription with a future date
+       showed as Active. */
+    const ends = s.expires_at ? new Date(s.expires_at) : null;
+    const expired = s.status !== 'active' || !ends || ends <= now;
     const statusCls = expired ? 'pill-r' : 'pill-g';
-    const statusTxt = expired ? '🔒 Blocked' : 'Active';
+    const days = ends ? Math.ceil((ends - now) / 86400000) : null;
+    const statusTxt = expired
+      ? '🔒 No access'
+      : (days !== null && days <= 7 ? 'Ends in ' + days + ' day' + (days === 1 ? '' : 's') : 'Active');
     const plan = SUB_PLANS[s.plan] || { label: s.plan, amount: s.amount };
     return `<tr class="${expired ? 'inactive' : ''}">
       <td>
         <div style="font-weight:800">${s.users?.full_name || '—'}</div>
         <div style="font-size:.72rem;color:var(--text3)">${s.users?.email || ''}</div>
+        ${s._history && s._history.length
+          ? `<div style="font-size:.68rem;color:var(--text3);margin-top:3px;">
+               ${s._history.length} earlier ${s._history.length === 1 ? 'record' : 'records'}${
+                 s._paid && !(s.payment_method === 'razorpay') ? ' · has paid before' : ''}
+             </div>`
+          : ''}
       </td>
       <td><span class="pill pill-b">${plan.label}</span></td>
       <td><span class="pill ${statusCls}">${statusTxt}</span></td>
-      <td style="font-size:.82rem">${new Date(s.expires_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</td>
-      <td style="font-weight:800">₹${(s.amount||0).toLocaleString('en-IN')}</td>
+      <td style="font-size:.82rem">${s.expires_at
+        ? new Date(s.expires_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})
+        : '—'}</td>
+      <td style="font-weight:800">${money(s.amount, s.users?.country_code)}
+        ${Number(s.amount) > 0
+          ? `<div style="font-size:.66rem;color:var(--text3);font-weight:700;">
+               ${s.payment_method === 'razorpay' ? 'paid online' : 'recorded by hand'}</div>`
+          : `<div style="font-size:.66rem;color:var(--text3);font-weight:700;">free</div>`}
+      </td>
       <td>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           ${expired ? `<button class="btn btn-green btn-sm" onclick="extendSub('${s.student_id}','${s.id}')">Mark paid</button>` : ''}

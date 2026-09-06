@@ -543,34 +543,50 @@ async function goToPayment() {
     });
 
     // 3. Create parent record
-    await sb.from('users').insert({
-      full_name: parentName,
-      email:     email + '.parent',
-      role:      'parent',
-      is_active: true,
-    }).then(async function(res) {
-      // Link parent to student
-      if (res.data && res.data[0]) {
+    /* Supabase's query builder is a thenable, not a real Promise —
+       .then works but .catch does not exist, so calling it threw
+       "sb.from(...).insert(...).catch is not a function" and stopped
+       the signup dead. Both of these were marked non-critical and
+       both were fatal.
+
+       try/catch around await does the same job and actually works. */
+    try {
+      var parentRes = await sb.from('users').insert({
+        full_name: parentName,
+        email:     email + '.parent',
+        role:      'parent',
+        is_active: true,
+      }).select();
+
+      if (parentRes.data && parentRes.data[0]) {
         await sb.from('parent_students').insert({
-          parent_id:  res.data[0].id,
+          parent_id:  parentRes.data[0].id,
           student_id: studentId,
         });
       }
-    }).catch(function() {}); // non-critical
+    } catch (e) {
+      console.warn('Parent record not created:', e.message);
+    }
 
     // 4. Save enquiry/enrollment record
-    await sb.from('enquiries').insert({
-      student_id:   studentId,
-      child_name:   childName,
-      parent_name:  parentName,
-      email:        email,
-      phone:        phone,
-      city:         city,
-      program_id:   program,
-      country_code: selectedCountry.code,
-      plan_code:    selectedPlan.plan_code,
-      status:       'payment_pending',
-    }).catch(function() {}); // non-critical — table may not exist yet
+    // Same again — this one also stopped the signup rather than
+    // failing quietly as intended.
+    try {
+      await sb.from('enquiries').insert({
+        student_id:   studentId,
+        child_name:   childName,
+        parent_name:  parentName,
+        email:        email,
+        phone:        phone,
+        city:         city,
+        program_id:   program,
+        country_code: selectedCountry.code,
+        plan_code:    selectedPlan.plan_code,
+        status:       'payment_pending',
+      });
+    } catch (e) {
+      console.warn('Enrolment record not saved:', e.message);
+    }
 
     btn.textContent = 'Opening payment...';
 

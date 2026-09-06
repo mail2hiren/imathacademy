@@ -222,7 +222,7 @@ function renderPayScreen(expired) {
           <div class="plan-desc">Access for 30 days · Flexible</div>
         </div>
         <div class="plan-price">
-          <div class="plan-amount">—</div>
+          <div class="plan-amount">₹199</div>
           <div class="plan-per">per month</div>
         </div>
       </div>
@@ -235,7 +235,7 @@ function renderPayScreen(expired) {
           <div class="plan-desc">Access for 6 months · Best value</div>
         </div>
         <div class="plan-price">
-          <div class="plan-amount">—</div>
+          <div class="plan-amount">₹1,099</div>
           <div class="plan-per"></div>
         </div>
       </div>
@@ -526,22 +526,34 @@ async function init() {
       }
     }
 
-    // and put the real figures on the cards
-    document.querySelectorAll('.plan-amount').forEach((el, i) => {
-      const key = Object.keys(PLANS)[i];
-      if (key && PLANS[key]) el.textContent = Money.format(PLANS[key].amount, myCountry);
+    /* Each card carries data-plan, so match on that rather than on
+       the order the elements happen to be in. Matching by position
+       left every price as a dash when the mapping did not line up —
+       and a dash where a price should be stops a parent paying.
+
+       If nothing comes back from the table the built-in prices stay
+       on screen, so there is always a number. */
+    document.querySelectorAll('.plan-card').forEach(function (card) {
+      var key = card.getAttribute('data-plan');
+      var p   = PLANS[key];
+      if (!p || p.amount == null) return;
+
+      var amt = card.querySelector('.plan-amount');
+      if (amt) amt.textContent = Money.format(p.amount, myCountry);
+
+      var per = card.querySelector('.plan-per');
+      if (per && p.days > 31) {
+        per.textContent = Money.format(Math.round(p.amount / (p.days / 30)), myCountry) + '/month';
+      }
+
+      var badge = card.querySelector('.save-badge');
+      if (badge && PLANS.monthly && p.days > 31) {
+        var saved = (PLANS.monthly.amount * (p.days / 30)) - p.amount;
+        badge.textContent = saved > 0 ? 'SAVE ' + Money.format(saved, myCountry) : '';
+        badge.style.display = saved > 0 ? '' : 'none';
+      }
     });
-    const per = document.querySelector('.plan-per');
-    if (per && PLANS.halfyearly) {
-      per.textContent = Money.format(
-        Math.round(PLANS.halfyearly.amount / (PLANS.halfyearly.days / 30)), myCountry) + '/month';
-    }
-    const badge = document.querySelector('.save-badge');
-    if (badge && PLANS.halfyearly && PLANS.monthly) {
-      const saved = (PLANS.monthly.amount * (PLANS.halfyearly.days / 30)) - PLANS.halfyearly.amount;
-      badge.textContent = saved > 0 ? 'SAVE ' + Money.format(saved, myCountry) : '';
-      badge.style.display = saved > 0 ? '' : 'none';
-    }
+
   } catch (e) { console.warn('Could not load pricing:', e.message); }
     profile = p;
 

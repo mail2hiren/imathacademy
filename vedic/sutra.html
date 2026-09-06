@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vedic Maths — tell us about a sutra</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--blue:#1565C0;--green:#2E7D32;--amber:#E65100;--orange:#E67D21;
+        --t1:#1A1A2E;--t2:#4A4A5A;--t3:#8892A4;--line:#E4E7F2;}
+  body{font-family:'Nunito',sans-serif;background:#F5F7FC;color:var(--t1);
+       line-height:1.65;padding-bottom:80px;}
+  .wrap{max-width:680px;margin:0 auto;padding:26px 20px;}
+  h1{font-size:1.6rem;font-weight:900;line-height:1.3;}
+  .lede{font-size:1rem;color:var(--t2);margin-top:10px;}
+  .why{background:#EAF2FF;border-radius:14px;padding:15px 17px;margin-top:18px;
+       font-size:.92rem;color:#0D47A1;}
+
+  .card{background:#fff;border-radius:18px;padding:22px;margin-top:16px;
+        box-shadow:0 2px 10px rgba(20,30,60,.05);}
+  .step{display:inline-flex;align-items:center;justify-content:center;
+        width:30px;height:30px;border-radius:50%;background:var(--orange);
+        color:#fff;font-weight:900;font-size:.9rem;margin-bottom:10px;}
+  h2{font-size:1.15rem;font-weight:900;margin-bottom:5px;}
+  .hint{font-size:.87rem;color:var(--t3);margin-bottom:14px;}
+
+  label{display:block;font-size:.82rem;font-weight:900;color:var(--t2);margin:14px 0 6px;}
+  input,textarea,select{width:100%;padding:12px 13px;border:1.5px solid var(--line);
+    border-radius:11px;font-family:inherit;font-size:1rem;background:#fff;color:var(--t1);}
+  textarea{min-height:80px;resize:vertical;line-height:1.6;}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--blue);}
+  .eg{font-size:.84rem;color:var(--t3);margin-top:5px;font-style:italic;}
+
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:520px){ .pair{grid-template-columns:1fr;} }
+
+  .key{border-left:4px solid var(--orange);background:#FFF8F0;border-radius:12px;
+       padding:15px 17px;margin:14px 0;}
+  .key strong{color:#8a4b00;}
+  .key p{font-size:.9rem;color:#8a4b00;margin-top:5px;}
+
+  .rows{margin-top:8px;}
+  .row{display:grid;grid-template-columns:1fr 1fr auto;gap:9px;margin-bottom:9px;
+       align-items:center;}
+  .row input{padding:10px 11px;}
+  .del{background:none;border:none;color:var(--t3);font-size:1.3rem;cursor:pointer;padding:0 6px;}
+  .add{background:none;border:1.5px dashed var(--line);border-radius:11px;padding:10px;
+       width:100%;font-family:inherit;font-weight:800;color:var(--t2);cursor:pointer;font-size:.88rem;}
+
+  .btn{width:100%;padding:16px;border:none;border-radius:14px;background:var(--blue);
+       color:#fff;font-family:inherit;font-size:1.02rem;font-weight:900;cursor:pointer;
+       margin-top:22px;box-shadow:0 3px 12px rgba(21,101,192,.28);}
+  .btn-ghost{background:#fff;color:var(--t2);border:1.5px solid var(--line);box-shadow:none;
+             margin-top:10px;}
+  .foot{text-align:center;font-size:.85rem;color:var(--t3);margin-top:20px;line-height:1.7;}
+  .saved{background:#E9F5EC;border-radius:12px;padding:13px 15px;margin-top:14px;
+         font-size:.9rem;color:#1B5E20;display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Tell us about one sutra</h1>
+  <p class="lede">One form per sutra. However many you teach, that many forms.</p>
+
+  <div class="why">
+    <strong>Why we are asking this way</strong><br>
+    The app has to make its own practice sums, and it can only do that if it knows
+    <em>when</em> a sutra applies. Nikhilam is wonderful for 98 × 97 and no use at all
+    for 23 × 41. Get that right and every sum the child sees will genuinely practise
+    what you are teaching.
+  </div>
+
+  <!-- 1 ─────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="step">1</div>
+    <h2>What is it called?</h2>
+    <p class="hint">Use the name the children hear from you.</p>
+
+    <label>Name in your books</label>
+    <input id="name" placeholder="Nikhilam Navatashcaramam Dashatah">
+
+    <label>Short name, if you use one</label>
+    <input id="short" placeholder="Nikhilam · All from 9, last from 10">
+
+    <label>What does it do, in one line?</label>
+    <input id="does" placeholder="Multiplying numbers that are close to 100">
+  </div>
+
+  <!-- 2 ─────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="step">2</div>
+    <h2>When can a child use it?</h2>
+    <p class="hint">The most important question on this form.</p>
+
+    <div class="key">
+      <strong>This is what lets the app make its own sums</strong>
+      <p>If we know the sutra needs "both numbers just below 100", the app will only
+         ever give sums where it works. Without it, a child practising Nikhilam would
+         get 23 × 41, where the method does not help at all.</p>
+    </div>
+
+    <label>Describe when it applies, in your own words</label>
+    <textarea id="applies" placeholder="Both numbers are close to a base like 10, 100 or 1000. It works best when they are just below the base — 97 x 96, 88 x 91."></textarea>
+
+    <label>And when does it NOT work, or not help?</label>
+    <textarea id="notapplies" placeholder="If the numbers are far from a base — 23 x 41 — the method is more work than doing it normally."></textarea>
+  </div>
+
+  <!-- 3 ─────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="step">3</div>
+    <h2>Show us with real sums</h2>
+    <p class="hint">Five or six is plenty. These are what we test the app against.</p>
+
+    <label>Sums where it works well</label>
+    <div class="rows" id="goodRows"></div>
+    <button class="add" onclick="addRow('goodRows','98 x 97','9506')">+ Add another</button>
+    <div class="eg">The sum on the left, the answer on the right.</div>
+
+    <label style="margin-top:20px;">Sums where it should NOT be used</label>
+    <div class="rows" id="badRows"></div>
+    <button class="add" onclick="addRow('badRows','23 x 41','')">+ Add another</button>
+    <div class="eg">So the app knows what to avoid. The answer is optional here.</div>
+  </div>
+
+  <!-- 4 ─────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="step">4</div>
+    <h2>How do you teach it?</h2>
+    <p class="hint">The steps as you say them in class.</p>
+
+    <label>The method, step by step</label>
+    <textarea id="method" style="min-height:150px;" placeholder="1. Take the base — here 100.
+2. Write how far each number is below it: 98 is -2, 97 is -3.
+3. Cross-subtract: 98 - 3 = 95. That is the left half.
+4. Multiply the differences: 2 x 3 = 6. That is the right half.
+5. Answer: 9506."></textarea>
+
+    <label>Anything children commonly get wrong?</label>
+    <textarea id="mistakes" placeholder="They forget the right half must fill the same number of digits as the base has zeros — so 2 x 3 = 6 has to be written 06."></textarea>
+  </div>
+
+  <!-- 5 ─────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="step">5</div>
+    <h2>Where does it sit in the course?</h2>
+
+    <div class="pair">
+      <div>
+        <label>Which level introduces it?</label>
+        <select id="introLevel">
+          <option value="">—</option>
+        </select>
+      </div>
+      <div>
+        <label>Roughly what age?</label>
+        <select id="age">
+          <option value="">—</option>
+          <option>10 and up</option>
+          <option>12 and up</option>
+          <option>14 and up</option>
+          <option>Any age</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Does a child need another sutra first?</label>
+    <input id="needs" placeholder="They should know Urdhva-Tiryagbhyam before this">
+
+    <div class="pair">
+      <div>
+        <label>Sums per practice page</label>
+        <input id="perPage" type="number" placeholder="20">
+      </div>
+      <div>
+        <label>Should it be done mentally?</label>
+        <select id="mental">
+          <option value="">—</option>
+          <option>On paper first, mentally later</option>
+          <option>Mentally from the start</option>
+          <option>Always on paper</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6 ─────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="step">6</div>
+    <h2>Anything else?</h2>
+    <p class="hint">Anything you would tell a new teacher about this sutra.</p>
+    <textarea id="notes" placeholder="Children love this one because the answer appears so quickly. Worth doing after they have struggled with long multiplication, so they feel the difference."></textarea>
+  </div>
+
+  <button class="btn" onclick="save()">Save this sutra</button>
+  <button class="btn btn-ghost" onclick="startAnother()">Save and start another</button>
+  <div class="saved" id="saved"></div>
+
+  <p class="foot">
+    Nothing here is final — it can all be changed later.<br>
+    If a question does not make sense for a sutra, leave it blank.
+  </p>
+</div>
+
+<script>
+/* ============================================================
+   A form for Megha, not for a database
+   ------------------------------------------------------------
+   The Abacus engine only worked once we understood the beads.
+   Vedic is different in a way that matters: Abacus is one method
+   applied to bigger numbers, so a level is a number range. Vedic
+   is many methods, each for a particular SHAPE of number.
+
+   So the question that actually drives the generator is not "how
+   big are the numbers" but "when does this sutra apply". That is
+   step 2, and it is why the form is built around it.
+
+   Answers are kept in the browser so a half-finished form is not
+   lost, and downloaded as a file at the end.
+   ============================================================ */
+
+var FIELDS = ['name','short','does','applies','notapplies','method',
+              'mistakes','introLevel','age','needs','perPage','mental','notes'];
+
+// Levels are unknown until Megha decides them, so offer a sensible range
+(function () {
+  var sel = document.getElementById('introLevel');
+  for (var i = 1; i <= 10; i++) {
+    var o = document.createElement('option');
+    o.value = i; o.textContent = 'Level ' + i;
+    sel.appendChild(o);
+  }
+  sel.appendChild(new Option('Not sure yet', 'unsure'));
+})();
+
+function addRow(host, phSum, phAns) {
+  var wrap = document.getElementById(host);
+  var div = document.createElement('div');
+  div.className = 'row';
+  div.innerHTML =
+    '<input placeholder="' + phSum + '">' +
+    '<input placeholder="' + (phAns || 'answer (optional)') + '">' +
+    '<button class="del" onclick="this.parentNode.remove()" title="Remove">&times;</button>';
+  wrap.appendChild(div);
+}
+for (var i = 0; i < 3; i++) addRow('goodRows', '98 x 97', '9506');
+addRow('badRows', '23 x 41', '');
+
+function collect() {
+  var out = {};
+  FIELDS.forEach(function (f) {
+    var el = document.getElementById(f);
+    out[f] = el ? el.value.trim() : '';
+  });
+  out.worksWell = [];
+  out.avoid = [];
+  document.querySelectorAll('#goodRows .row').forEach(function (r) {
+    var a = r.children[0].value.trim(), b = r.children[1].value.trim();
+    if (a) out.worksWell.push({ sum: a, answer: b });
+  });
+  document.querySelectorAll('#badRows .row').forEach(function (r) {
+    var a = r.children[0].value.trim();
+    if (a) out.avoid.push({ sum: a });
+  });
+  return out;
+}
+
+/* Kept locally as it is typed, so closing the tab does not lose
+   half an hour of Megha's work. */
+function keep() {
+  try { localStorage.setItem('sutra_draft', JSON.stringify(collect())); } catch (e) {}
+}
+document.addEventListener('input', keep);
+
+(function restore() {
+  try {
+    var d = JSON.parse(localStorage.getItem('sutra_draft') || '{}');
+    FIELDS.forEach(function (f) {
+      if (d[f] && document.getElementById(f)) document.getElementById(f).value = d[f];
+    });
+  } catch (e) {}
+})();
+
+function save(quiet) {
+  var d = collect();
+  if (!d.name) { alert('Please give the sutra a name first.'); return null; }
+  if (!d.applies) {
+    if (!confirm('Step 2 — when the sutra applies — is empty.\n\n' +
+                 'Without it the app cannot make practice sums for this sutra. ' +
+                 'Save anyway?')) return null;
+  }
+
+  var all = [];
+  try { all = JSON.parse(localStorage.getItem('sutras') || '[]'); } catch (e) {}
+  all = all.filter(function (s) { return s.name !== d.name; });
+  all.push(d);
+  try { localStorage.setItem('sutras', JSON.stringify(all)); } catch (e) {}
+
+  var blob = new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'vedic-sutras.json';
+  a.click();
+
+  var box = document.getElementById('saved');
+  box.style.display = 'block';
+  box.innerHTML = '<strong>Saved — ' + all.length + ' sutra' + (all.length === 1 ? '' : 's') +
+    ' so far.</strong><br>A file has been downloaded. Send the latest one to Hiren when ' +
+    'you have finished them all.';
+  return d;
+}
+
+function startAnother() {
+  if (!save()) return;
+  FIELDS.forEach(function (f) {
+    var el = document.getElementById(f);
+    if (el) el.value = '';
+  });
+  document.getElementById('goodRows').innerHTML = '';
+  document.getElementById('badRows').innerHTML = '';
+  for (var i = 0; i < 3; i++) addRow('goodRows', '98 x 97', '9506');
+  addRow('badRows', '23 x 41', '');
+  try { localStorage.removeItem('sutra_draft'); } catch (e) {}
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('name').focus();
+}
+</script>
+</body>
+</html>

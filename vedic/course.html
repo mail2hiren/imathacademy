@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vedic Maths — the shape of the course</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--blue:#1565C0;--orange:#E67D21;--teal:#04949D;
+        --t1:#1A1A2E;--t2:#4A4A5A;--t3:#8892A4;--line:#E4E7F2;}
+  body{font-family:'Nunito',sans-serif;background:#F5F7FC;color:var(--t1);
+       line-height:1.65;padding-bottom:80px;}
+  .wrap{max-width:680px;margin:0 auto;padding:26px 20px;}
+  h1{font-size:1.6rem;font-weight:900;line-height:1.3;}
+  .lede{font-size:1rem;color:var(--t2);margin-top:10px;}
+  .why{background:#E7F6F7;border-radius:14px;padding:15px 17px;margin-top:18px;
+       font-size:.92rem;color:#04616a;}
+  .card{background:#fff;border-radius:18px;padding:22px;margin-top:16px;
+        box-shadow:0 2px 10px rgba(20,30,60,.05);}
+  .step{display:inline-flex;align-items:center;justify-content:center;
+        width:30px;height:30px;border-radius:50%;background:var(--teal);
+        color:#fff;font-weight:900;font-size:.9rem;margin-bottom:10px;}
+  h2{font-size:1.15rem;font-weight:900;margin-bottom:5px;}
+  .hint{font-size:.87rem;color:var(--t3);margin-bottom:14px;}
+  label{display:block;font-size:.82rem;font-weight:900;color:var(--t2);margin:14px 0 6px;}
+  input,textarea,select{width:100%;padding:12px 13px;border:1.5px solid var(--line);
+    border-radius:11px;font-family:inherit;font-size:1rem;background:#fff;}
+  textarea{min-height:76px;resize:vertical;line-height:1.6;}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--blue);}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:520px){ .pair{grid-template-columns:1fr;} }
+
+  .lvl{border:1.5px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;}
+  .lvl-head{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .lvl-num{font-size:.72rem;font-weight:900;color:var(--t3);text-transform:uppercase;
+           letter-spacing:.6px;}
+  .del{background:none;border:none;color:var(--t3);font-size:1.3rem;cursor:pointer;}
+  .add{background:none;border:1.5px dashed var(--line);border-radius:12px;padding:13px;
+       width:100%;font-family:inherit;font-weight:800;color:var(--t2);cursor:pointer;}
+  .btn{width:100%;padding:16px;border:none;border-radius:14px;background:var(--blue);
+       color:#fff;font-family:inherit;font-size:1.02rem;font-weight:900;cursor:pointer;
+       margin-top:22px;box-shadow:0 3px 12px rgba(21,101,192,.28);}
+  .foot{text-align:center;font-size:.85rem;color:var(--t3);margin-top:20px;line-height:1.7;}
+  .saved{background:#E9F5EC;border-radius:12px;padding:13px 15px;margin-top:14px;
+         font-size:.9rem;color:#1B5E20;display:none;}
+  .note{border-left:4px solid var(--teal);background:#F2FBFC;border-radius:12px;
+        padding:14px 16px;margin:14px 0;font-size:.89rem;color:#04616a;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>The shape of the Vedic course</h1>
+  <p class="lede">Fill this in once. The sutra forms cover the detail.</p>
+
+  <div class="why">
+    <strong>Only what the app cannot work out</strong><br>
+    How long the course runs, what each level is about, and how a session looks.
+    We do not need the maths here — that is on the sutra forms.
+  </div>
+
+  <!-- 1 -->
+  <div class="card">
+    <div class="step">1</div>
+    <h2>The course overall</h2>
+
+    <div class="pair">
+      <div>
+        <label>How many levels?</label>
+        <input id="levelCount" type="number" min="1" max="15" placeholder="6">
+      </div>
+      <div>
+        <label>How long is each one?</label>
+        <select id="levelLength">
+          <option value="">—</option>
+          <option>About 2 months</option>
+          <option>About 3 months</option>
+          <option>About 4 months</option>
+          <option>Varies</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Youngest age you would take</label>
+    <select id="minAge">
+      <option value="">—</option>
+      <option>8</option><option>9</option><option>10</option>
+      <option>11</option><option>12</option>
+    </select>
+
+    <label>Does a child need Abacus first?</label>
+    <select id="needsAbacus">
+      <option value="">—</option>
+      <option>No, they can start Vedic on its own</option>
+      <option>Better if they have done some Abacus</option>
+      <option>Yes, they must finish Abacus first</option>
+    </select>
+
+    <label>Can a child do both at the same time?</label>
+    <select id="both">
+      <option value="">—</option>
+      <option>Yes, both together is fine</option>
+      <option>Possible but I would not recommend it</option>
+      <option>No, one at a time</option>
+    </select>
+  </div>
+
+  <!-- 2 -->
+  <div class="card">
+    <div class="step">2</div>
+    <h2>What each level covers</h2>
+    <p class="hint">A line or two each. The sutra names can be rough — the detail is on their own forms.</p>
+
+    <div id="levels"></div>
+    <button class="add" onclick="addLevel()">+ Add a level</button>
+  </div>
+
+  <!-- 3 -->
+  <div class="card">
+    <div class="step">3</div>
+    <h2>A practice session</h2>
+    <p class="hint">What a child does between classes.</p>
+
+    <div class="pair">
+      <div>
+        <label>Sums on a page</label>
+        <input id="perPage" type="number" placeholder="20">
+      </div>
+      <div>
+        <label>Pages in a session</label>
+        <input id="pages" type="number" placeholder="2">
+      </div>
+    </div>
+
+    <label>Is there anything like the Abacus orals?</label>
+    <textarea id="orals" placeholder="Yes — I read out sums and they answer mentally. About 10 a session."></textarea>
+
+    <label>What kinds of exercise are on a Vedic page?</label>
+    <textarea id="exercises" placeholder="Straight sums, fill in the missing number, spot which sutra to use, speed drills..."></textarea>
+
+    <div class="note">
+      <strong>Worth telling us:</strong> is choosing the right sutra part of the skill?
+      If so, a page mixing several sutras is an exercise in its own right, and we should
+      build it.
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card">
+    <div class="step">4</div>
+    <h2>Finishing a level</h2>
+    <p class="hint">Abacus uses three gates — worksheets done, practice sessions done, and a test passed.</p>
+
+    <div class="pair">
+      <div>
+        <label>Practice sessions needed</label>
+        <input id="sessions" type="number" placeholder="20">
+      </div>
+      <div>
+        <label>Pass mark on the test</label>
+        <input id="passMark" type="number" placeholder="80">
+      </div>
+    </div>
+
+    <label>What does a Vedic level test look like?</label>
+    <textarea id="testShape" placeholder="Part A on paper with the working shown, Part B mentally, 20 minutes each..."></textarea>
+  </div>
+
+  <!-- 5 -->
+  <div class="card">
+    <div class="step">5</div>
+    <h2>Anything we have not asked</h2>
+    <p class="hint">Anything that would matter to a teacher taking this over from you.</p>
+    <textarea id="notes" style="min-height:110px;" placeholder=""></textarea>
+  </div>
+
+  <button class="btn" onclick="save()">Save the course</button>
+  <div class="saved" id="saved"></div>
+
+  <p class="foot">
+    Nothing is final — all of it can change later.<br>
+    Leave anything blank that does not apply.
+  </p>
+</div>
+
+<script>
+/* ============================================================
+   The course shape — one form, filled in once
+   ------------------------------------------------------------
+   Kept apart from the sutra forms on purpose. This asks about
+   structure, which Megha can answer in ten minutes. The sutra
+   forms ask about method, which takes real thought per sutra.
+
+   Mixing the two would mean a long form nobody finishes.
+   ============================================================ */
+
+var FIELDS = ['levelCount','levelLength','minAge','needsAbacus','both',
+              'perPage','pages','orals','exercises','sessions','passMark',
+              'testShape','notes'];
+
+function addLevel(data) {
+  var host = document.getElementById('levels');
+  var n = host.children.length + 1;
+  var d = data || {};
+  var div = document.createElement('div');
+  div.className = 'lvl';
+  div.innerHTML =
+    '<div class="lvl-head">' +
+      '<div class="lvl-num">Level ' + n + '</div>' +
+      '<button class="del" onclick="this.closest(\'.lvl\').remove(); renumber();">&times;</button>' +
+    '</div>' +
+    '<label>What is this level about?</label>' +
+    '<input class="l-focus" placeholder="Multiplying near a base" value="' + (d.focus || '') + '">' +
+    '<label>Which sutras are taught here?</label>' +
+    '<input class="l-sutras" placeholder="Nikhilam, Anurupyena" value="' + (d.sutras || '') + '">' +
+    '<label>What should a child be able to do by the end?</label>' +
+    '<textarea class="l-outcome" placeholder="Multiply any two 2-digit numbers near 100, mentally, in under 10 seconds">' + (d.outcome || '') + '</textarea>';
+  host.appendChild(div);
+}
+
+function renumber() {
+  document.querySelectorAll('#levels .lvl-num').forEach(function (el, i) {
+    el.textContent = 'Level ' + (i + 1);
+  });
+}
+
+for (var i = 0; i < 4; i++) addLevel();
+
+function collect() {
+  var out = {};
+  FIELDS.forEach(function (f) {
+    var el = document.getElementById(f);
+    out[f] = el ? el.value.trim() : '';
+  });
+  out.levels = [];
+  document.querySelectorAll('#levels .lvl').forEach(function (el, i) {
+    var focus   = el.querySelector('.l-focus').value.trim();
+    var sutras  = el.querySelector('.l-sutras').value.trim();
+    var outcome = el.querySelector('.l-outcome').value.trim();
+    if (focus || sutras || outcome) {
+      out.levels.push({ level: i + 1, focus: focus, sutras: sutras, outcome: outcome });
+    }
+  });
+  return out;
+}
+
+/* Saved as it is typed — this is not a form anyone should have to
+   fill in twice. */
+document.addEventListener('input', function () {
+  try { localStorage.setItem('vedic_course', JSON.stringify(collect())); } catch (e) {}
+});
+
+(function restore() {
+  try {
+    var d = JSON.parse(localStorage.getItem('vedic_course') || '{}');
+    FIELDS.forEach(function (f) {
+      if (d[f] && document.getElementById(f)) document.getElementById(f).value = d[f];
+    });
+    if (d.levels && d.levels.length) {
+      document.getElementById('levels').innerHTML = '';
+      d.levels.forEach(function (l) { addLevel(l); });
+    }
+  } catch (e) {}
+})();
+
+function save() {
+  var d = collect();
+  var blob = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'vedic-course.json';
+  a.click();
+
+  var box = document.getElementById('saved');
+  box.style.display = 'block';
+  box.innerHTML = '<strong>Saved.</strong><br>A file has been downloaded — send it to Hiren. ' +
+    'You can come back and change anything; your answers are kept here.';
+}
+</script>
+</body>
+</html>

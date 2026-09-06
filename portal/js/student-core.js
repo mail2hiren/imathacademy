@@ -87,6 +87,12 @@ function groupLabel(group) {
 }
 
 // ── SUBSCRIPTION CHECK ───────────────────────────────────────
+async /* This was `function`, not `async function`, with an await inside —
+   a syntax error that killed this whole file at parse time. Every
+   function in it became undefined, so the subscription check never
+   ran and an expired child could sign in and use the dashboard.
+   Megha saw them as expired and saw them using the app; both were
+   true. */
 async function checkSubscription(userId) {
   const { data: subs } = await sb.from('subscriptions')
     .select('id, expires_at, status')
@@ -95,7 +101,9 @@ async function checkSubscription(userId) {
     .order('expires_at', { ascending: false })
     .limit(1);
   const sub = subs?.[0];
-  const expired = !sub || new Date(sub.expires_at) < new Date();
+  // No end date means no access, rather than an invalid date
+  // comparing false and quietly letting them through
+  const expired = !sub || !sub.expires_at || new Date(sub.expires_at) < new Date();
   if (expired) { window.location.href = 'subscription.html'; return false; }
   return true;
 }

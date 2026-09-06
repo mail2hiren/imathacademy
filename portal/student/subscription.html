@@ -215,30 +215,10 @@ function renderPayScreen(expired) {
 
       <div class="plans-label">Choose a plan</div>
 
-      <div class="plan-card selected" data-plan="monthly" onclick="selectPlan('monthly')">
-        <input type="radio" class="plan-radio" name="plan" checked>
-        <div class="plan-info">
-          <div class="plan-name">Monthly</div>
-          <div class="plan-desc">Access for 30 days · Flexible</div>
-        </div>
-        <div class="plan-price">
-          <div class="plan-amount">₹199</div>
-          <div class="plan-per">per month</div>
-        </div>
-      </div>
-
-      <div class="plan-card" data-plan="halfyearly" onclick="selectPlan('halfyearly')">
-        <div class="save-badge"></div>
-        <input type="radio" class="plan-radio" name="plan">
-        <div class="plan-info">
-          <div class="plan-name">Half-yearly</div>
-          <div class="plan-desc">Access for 6 months · Best value</div>
-        </div>
-        <div class="plan-price">
-          <div class="plan-amount">₹1,099</div>
-          <div class="plan-per"></div>
-        </div>
-      </div>
+      <!-- Built from the pricing table, so a plan Megha adds appears
+           here without anyone editing this page. Annual was priced
+           for every country and had no card, so nobody could buy it. -->
+      <div id="planCards"></div>
 
       <div class="features">
         <div class="features-title">What's included</div>
@@ -526,33 +506,57 @@ async function init() {
       }
     }
 
-    /* Each card carries data-plan, so match on that rather than on
-       the order the elements happen to be in. Matching by position
-       left every price as a dash when the mapping did not line up —
-       and a dash where a price should be stops a parent paying.
+    /* The cards are drawn from what is actually priced for this
+       family's country. Matching hardcoded markup against the table
+       kept going wrong — a plan that existed in one and not the other
+       showed a dash, or could not be bought at all. */
+    var host = document.getElementById('planCards');
+    if (host) {
+      var order = live.length ? live.slice().sort(function (a, b) {
+        return (a.duration_days || 0) - (b.duration_days || 0);
+      }) : [
+        { plan_code:'monthly',    plan_name:'Monthly',     amount:199,  duration_days:30  },
+        { plan_code:'halfyearly', plan_name:'Half-yearly', amount:1099, duration_days:180 }
+      ];
 
-       If nothing comes back from the table the built-in prices stay
-       on screen, so there is always a number. */
-    document.querySelectorAll('.plan-card').forEach(function (card) {
-      var key = card.getAttribute('data-plan');
-      var p   = PLANS[key];
-      if (!p || p.amount == null) return;
+      var monthlyRow = order.filter(function (p) { return (p.duration_days||30) <= 31; })[0];
 
-      var amt = card.querySelector('.plan-amount');
-      if (amt) amt.textContent = Money.format(p.amount, myCountry);
+      host.innerHTML = order.map(function (p, idx) {
+        var months  = Math.round((p.duration_days || 30) / 30);
+        var perMon  = Math.round(p.amount / months);
+        var saved   = monthlyRow ? (monthlyRow.amount * months) - p.amount : 0;
+        var desc    = months === 1 ? 'Access for 30 days \u00b7 Flexible'
+                    : months >= 12 ? 'Access for a year \u00b7 Best value'
+                    : 'Access for ' + months + ' months';
 
-      var per = card.querySelector('.plan-per');
-      if (per && p.days > 31) {
-        per.textContent = Money.format(Math.round(p.amount / (p.days / 30)), myCountry) + '/month';
-      }
+        return '<div class="plan-card' + (idx === 0 ? ' selected' : '') + '" ' +
+                 'data-plan="' + p.plan_code + '" ' +
+                 'onclick="selectPlan(\'' + p.plan_code + '\')">' +
+          (saved > 0 ? '<div class="save-badge">SAVE ' + Money.format(saved, myCountry) + '</div>' : '') +
+          '<input type="radio" class="plan-radio" name="plan"' + (idx === 0 ? ' checked' : '') + '>' +
+          '<div class="plan-info">' +
+            '<div class="plan-name">' + (p.plan_name || p.plan_code) + '</div>' +
+            '<div class="plan-desc">' + desc + '</div>' +
+          '</div>' +
+          '<div class="plan-price">' +
+            '<div class="plan-amount">' + Money.format(p.amount, myCountry) + '</div>' +
+            '<div class="plan-per">' + (months > 1 ? Money.format(perMon, myCountry) + '/month' : 'per month') + '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
 
-      var badge = card.querySelector('.save-badge');
-      if (badge && PLANS.monthly && p.days > 31) {
-        var saved = (PLANS.monthly.amount * (p.days / 30)) - p.amount;
-        badge.textContent = saved > 0 ? 'SAVE ' + Money.format(saved, myCountry) : '';
-        badge.style.display = saved > 0 ? '' : 'none';
-      }
-    });
+      // keep PLANS in step, since the pay button reads from it
+      order.forEach(function (p) {
+        PLANS[p.plan_code] = {
+          label: p.plan_name || p.plan_code,
+          amount: Number(p.amount),
+          days: p.duration_days || 30,
+          code: p.plan_code,
+          desc: ''
+        };
+      });
+      selectedPlan = order[0].plan_code;
+    }
 
   } catch (e) { console.warn('Could not load pricing:', e.message); }
     profile = p;

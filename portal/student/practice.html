@@ -971,10 +971,15 @@ function wireStepTap(q) {
    only from a control elsewhere on the page. */
 function replayOral() {
   try {
+    // A tap is also what iOS needs before it will speak at all
     if (typeof Speech !== 'undefined') Speech.unlock();
     var q = questions[current];
-    if (q && q.oral) { stopOral(); startOral(q); }
-  } catch (e) {}
+    if (!q || !q.oral || !q.rows) return;
+    stopOral();
+    oralToken++;
+    var myToken = oralToken;
+    setTimeout(function () { speakOral(q.rows, myToken); }, 150);
+  } catch (e) { console.warn('Could not read it again:', e.message); }
 }
 
 function decorateCard(q) {

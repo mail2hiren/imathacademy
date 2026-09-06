@@ -137,6 +137,10 @@ let session = null, profile = null, subscription = null;
    pricing_plans rows apply, what is shown on the cards, and which
    currency Razorpay is told to charge. */
 let myCountry = 'IN';
+
+/* What is actually priced for this family. Empty until the pricing
+   table has been read. */
+let livePlans = [];
 let selectedPlan = 'monthly';
 
 function initials(name) { return (name||'S').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2); }
@@ -166,6 +170,8 @@ function addDays(days) {
 }
 
 function selectPlan(plan) {
+  selectedPlan = plan;
+  try { updatePayButton(); } catch (e) {}
   selectedPlan = plan;
   document.querySelectorAll('.plan-card').forEach(c => {
     c.classList.toggle('selected', c.dataset.plan === plan);
@@ -253,6 +259,9 @@ function renderPayScreen(expired) {
       <div class="secure">🔒 Secured by Razorpay · 256-bit SSL encryption</div>
     </div>
   `;
+
+  // The cards live inside what was just written, so draw them now
+  renderPlanCards();
 }
 
 function renderSuccess(plan, paymentId) {
@@ -454,6 +463,62 @@ async function handlePaymentSuccess(plan, paymentId, orderId) {
   }
 }
 
+
+/* Draw the plan cards. Called after the page's HTML is written,
+   because writing that HTML replaces whatever was here before. */
+function renderPlanCards() {
+  var host = document.getElementById('planCards');
+  if (!host) return;
+
+  var order = livePlans.length ? livePlans : [
+    { plan_code:'monthly',    plan_name:'Monthly',     amount:199,  duration_days:30  },
+    { plan_code:'halfyearly', plan_name:'Half-yearly', amount:1099, duration_days:180 }
+  ];
+
+  var monthlyRow = order.filter(function (p) { return (p.duration_days || 30) <= 31; })[0];
+
+  host.innerHTML = order.map(function (p, idx) {
+    var months = Math.round((p.duration_days || 30) / 30);
+    var perMon = Math.round(p.amount / months);
+    var saved  = monthlyRow ? (monthlyRow.amount * months) - p.amount : 0;
+    var desc   = months === 1  ? 'Access for 30 days \u00b7 Flexible'
+               : months >= 12  ? 'Access for a year \u00b7 Best value'
+               : 'Access for ' + months + ' months';
+
+    return '<div class="plan-card' + (p.plan_code === selectedPlan ? ' selected' : '') + '" ' +
+             'data-plan="' + p.plan_code + '" ' +
+             'onclick="selectPlan(\'' + p.plan_code + '\')">' +
+      (saved > 0 ? '<div class="save-badge">SAVE ' + Money.format(saved, myCountry) + '</div>' : '') +
+      '<input type="radio" class="plan-radio" name="plan"' +
+        (p.plan_code === selectedPlan ? ' checked' : '') + '>' +
+      '<div class="plan-info">' +
+        '<div class="plan-name">' + (p.plan_name || p.plan_code) + '</div>' +
+        '<div class="plan-desc">' + desc + '</div>' +
+      '</div>' +
+      '<div class="plan-price">' +
+        '<div class="plan-amount">' + Money.format(p.amount, myCountry) + '</div>' +
+        '<div class="plan-per">' +
+          (months > 1 ? Money.format(perMon, myCountry) + '/month' : 'per month') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  // whatever is first must be the one selected, or Pay uses a plan
+  // that is not on screen
+  if (!PLANS[selectedPlan] && order.length) selectedPlan = order[0].plan_code;
+  updatePayButton();
+}
+
+/* The button has to name the plan and price actually chosen. */
+function updatePayButton() {
+  var btn = document.getElementById('payBtn');
+  var p = PLANS[selectedPlan];
+  if (btn && p) {
+    btn.textContent = 'Pay ' + Money.format(p.amount, myCountry) + ' securely \u00b7 via Razorpay';
+  }
+}
+
 async function init() {
   document.getElementById('mainCard').innerHTML = `
     <div style="padding:40px;text-align:center;color:#9090B0">
@@ -506,57 +571,23 @@ async function init() {
       }
     }
 
-    /* The cards are drawn from what is actually priced for this
-       family's country. Matching hardcoded markup against the table
-       kept going wrong — a plan that existed in one and not the other
-       showed a dash, or could not be bought at all. */
-    var host = document.getElementById('planCards');
-    if (host) {
-      var order = live.length ? live.slice().sort(function (a, b) {
-        return (a.duration_days || 0) - (b.duration_days || 0);
-      }) : [
-        { plan_code:'monthly',    plan_name:'Monthly',     amount:199,  duration_days:30  },
-        { plan_code:'halfyearly', plan_name:'Half-yearly', amount:1099, duration_days:180 }
-      ];
+    /* Only remember them here. Drawing now is too early — the page
+       writes mainCard.innerHTML afterwards, which wiped the cards
+       straight back out. They are drawn in renderPlanCards(), called
+       once the page exists. */
+    livePlans = live.length ? live.slice().sort(function (a, b) {
+      return (a.duration_days || 0) - (b.duration_days || 0);
+    }) : [];
 
-      var monthlyRow = order.filter(function (p) { return (p.duration_days||30) <= 31; })[0];
-
-      host.innerHTML = order.map(function (p, idx) {
-        var months  = Math.round((p.duration_days || 30) / 30);
-        var perMon  = Math.round(p.amount / months);
-        var saved   = monthlyRow ? (monthlyRow.amount * months) - p.amount : 0;
-        var desc    = months === 1 ? 'Access for 30 days \u00b7 Flexible'
-                    : months >= 12 ? 'Access for a year \u00b7 Best value'
-                    : 'Access for ' + months + ' months';
-
-        return '<div class="plan-card' + (idx === 0 ? ' selected' : '') + '" ' +
-                 'data-plan="' + p.plan_code + '" ' +
-                 'onclick="selectPlan(\'' + p.plan_code + '\')">' +
-          (saved > 0 ? '<div class="save-badge">SAVE ' + Money.format(saved, myCountry) + '</div>' : '') +
-          '<input type="radio" class="plan-radio" name="plan"' + (idx === 0 ? ' checked' : '') + '>' +
-          '<div class="plan-info">' +
-            '<div class="plan-name">' + (p.plan_name || p.plan_code) + '</div>' +
-            '<div class="plan-desc">' + desc + '</div>' +
-          '</div>' +
-          '<div class="plan-price">' +
-            '<div class="plan-amount">' + Money.format(p.amount, myCountry) + '</div>' +
-            '<div class="plan-per">' + (months > 1 ? Money.format(perMon, myCountry) + '/month' : 'per month') + '</div>' +
-          '</div>' +
-        '</div>';
-      }).join('');
-
-      // keep PLANS in step, since the pay button reads from it
-      order.forEach(function (p) {
-        PLANS[p.plan_code] = {
-          label: p.plan_name || p.plan_code,
-          amount: Number(p.amount),
-          days: p.duration_days || 30,
-          code: p.plan_code,
-          desc: ''
-        };
-      });
-      selectedPlan = order[0].plan_code;
-    }
+    livePlans.forEach(function (p) {
+      PLANS[p.plan_code] = {
+        label:  p.plan_name || p.plan_code,
+        amount: Number(p.amount),
+        days:   p.duration_days || 30,
+        code:   p.plan_code,
+        desc:   ''
+      };
+    });
 
   } catch (e) { console.warn('Could not load pricing:', e.message); }
     profile = p;

@@ -888,16 +888,30 @@ function speakOral(rows, token) {
     var digits = String(Math.abs(n)).length;
     var wait   = sp.gap + (digits - 1) * 500;
 
+    /* onend and onerror were both wired to this, and Chrome fires both
+       in some cases. The first call scheduled the repeat, the second
+       saw saidOnce already true and moved on — so a repeat and an
+       advance ran at the same time as two chains. That is why a number
+       was sometimes said three or four times when two was chosen. */
+    var settled = false;
     var saidOnce = false;
     function afterSpeak() {
+      if (settled) return;
+      settled = true;
       if (!saidOnce && (oralRepeat() > 1)) {
         saidOnce = true;
+        settled = false;          // the repeat is a new utterance
         oralTimer = setTimeout(function () {
           if (token !== undefined && token !== oralToken) return;
           var again = (typeof Speech !== 'undefined')
             ? Speech.dress(new SpeechSynthesisUtterance(word), { rate: sp.rate - 0.05, pitch: 1.05 })
             : new SpeechSynthesisUtterance(word);
-          again.onend = again.onerror = function () { oralTimer = setTimeout(next, wait); };
+          var done2 = false;
+          again.onend = again.onerror = function () {
+            if (done2) return;
+            done2 = true;
+            oralTimer = setTimeout(next, wait);
+          };
           window.speechSynthesis.speak(again);
         }, 700);
         return;
@@ -971,7 +985,8 @@ function wireStepTap(q) {
    only from a control elsewhere on the page. */
 function replayOral() {
   try {
-    // A tap is also what iOS needs before it will speak at all
+    // The tap the browser needs before it will speak at all
+    window._oralUnlocked = true;
     if (typeof Speech !== 'undefined') Speech.unlock();
     var q = questions[current];
     if (!q || !q.oral || !q.rows) return;
@@ -1009,48 +1024,19 @@ function decorateCard(q) {
     qEl.innerHTML = renderColumnRows(q);
     if (q.stepped) wireStepTap(q);
   } else if (q.oral) {
-    /* An oral is meant to be listened to, so the numbers were left off
-       the card. But when the voice does not play — no permission yet
-       on iOS, voices not loaded, the sound turned down — the child is
-       left staring at an empty card with four answers and nothing to
-       go on. One of them filmed it for Megha.
+    /* A browser will not speak on its own after a page loads — the
+       user-activation flag is cleared by the navigation, so the first
+       automatic read is silently dropped. A child was left looking at
+       an empty card in silence.
 
-       So the card always says something. It starts as a listening
-       prompt, and if the numbers have not been spoken within a few
-       seconds they are shown instead. A child who cannot hear should
-       still be able to do the sum. */
+       So there is a play button. Tapping it is the gesture the browser
+       wants, and a five-year-old understands a play button. */
     qEl.innerHTML =
-      '<div id="oralPrompt" style="text-align:center;">' +
-        '<div style="font-size:2.4rem;">\uD83D\uDC42</div>' +
-        '<div style="font-size:1.05rem;font-weight:900;margin-top:6px;">Listen carefully</div>' +
-        '<div id="oralHeard" style="font-size:.85rem;opacity:.85;margin-top:4px;">' +
-          'The numbers are being read out</div>' +
-        '<button onclick="replayOral()" style="margin-top:12px;padding:10px 18px;' +
-          'border:none;border-radius:11px;background:rgba(255,255,255,.9);' +
-          'font-family:inherit;font-weight:900;font-size:.85rem;cursor:pointer;">' +
-          '\uD83D\uDD0A Say it again</button>' +
-        '<div id="oralShow" style="margin-top:12px;"></div>' +
-      '</div>';
-
-    /* If nothing has been heard, show the sum rather than leaving a
-       child stuck. Sound is the exercise, but not at the cost of the
-       question being unanswerable. */
-    clearTimeout(window._oralFallback);
-    window._oralFallback = setTimeout(function () {
-      var box = document.getElementById('oralShow');
-      if (!box) return;
-      if (window._oralSpoke) return;          // they heard it, leave it alone
-      var heard = document.getElementById('oralHeard');
-      if (heard) heard.textContent = 'If you cannot hear it, here are the numbers';
-      box.innerHTML =
-        '<div style="font-size:1.5rem;font-weight:900;font-variant-numeric:tabular-nums;' +
-          'background:rgba(255,255,255,.9);color:#1A1A2E;border-radius:12px;padding:10px 14px;' +
-          'display:inline-block;">' +
-          (q.rows ? q.rows.map(function (n, i) {
-             return i === 0 ? String(n) : (n < 0 ? '\u2212 ' + Math.abs(n) : '+ ' + n);
-           }).join('  ') : (q.text || q.question || '')) +
-        '</div>';
-    }, 4500);
+      '<button onclick="replayOral()" style="background:rgba(255,255,255,.95);' +
+        'border:none;border-radius:50%;width:104px;height:104px;cursor:pointer;' +
+        'font-size:2.8rem;line-height:1;box-shadow:0 4px 16px rgba(0,0,0,.18);">' +
+        '\u25B6\uFE0F</button>' +
+      '<div style="font-size:1rem;font-weight:900;margin-top:12px;">Tap to hear the numbers</div>';
 
   } else {
     var shown = q.text || q.question || '';
@@ -1107,7 +1093,11 @@ function decorateCard(q) {
       reps.appendChild(b2);
     });
     visual.appendChild(reps);
-    oralTimer = setTimeout(function () { speakOral(q.rows, myToken); }, 600);
+    /* Only auto-read once the child has tapped play at least once
+       this session — before that the browser refuses and it is silent. */
+    if (window._oralUnlocked) {
+      oralTimer = setTimeout(function () { speakOral(q.rows, myToken); }, 600);
+    }
     return;
   }
 

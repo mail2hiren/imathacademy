@@ -57,17 +57,40 @@ Deno.serve(async (req) => {
     const rawBody  = await req.text();
     const signature = req.headers.get('x-razorpay-signature') ?? '';
 
-    // Verify webhook signature
+    /* Every path says something now. The logs showed only startup and
+       shutdown, which looked as though Razorpay was never calling —
+       when in fact the signature check was rejecting it and returning
+       without a word. A silent refusal is indistinguishable from
+       never being called. */
+    console.log('Webhook called. signature header:', signature ? 'present' : 'MISSING',
+                '· secret configured:', WEBHOOK_SECRET ? 'yes' : 'NO',
+                '· body bytes:', rawBody.length);
+
+    if (!SERVICE_KEY) {
+      console.error('SERVICE_ROLE_KEY is not set — nothing can be written.');
+    }
+
     if (WEBHOOK_SECRET) {
       const valid = await verifySignature(rawBody, signature, WEBHOOK_SECRET);
       if (!valid) {
+        /* Enough to tell a mismatched secret from a missing header,
+           without putting either secret in the log. */
+        console.error('SIGNATURE REJECTED. The secret here does not match the one in ' +
+                      'Razorpay, or the header did not arrive.',
+                      '· header length:', signature.length,
+                      '· secret length:', WEBHOOK_SECRET.length);
         return new Response(JSON.stringify({ error: 'Invalid signature' }), {
           status: 400, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS }
         });
       }
+      console.log('Signature accepted.');
+    } else {
+      console.warn('No RAZORPAY_WEBHOOK_SECRET set — accepting without checking.');
     }
 
     const event = JSON.parse(rawBody);
+    console.log('Event:', event.event, '· payment:',
+                event?.payload?.payment?.entity?.id ?? 'none');
     console.log('Razorpay webhook event:', event.event);
 
     // Handle payment captured

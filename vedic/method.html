@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vedic Maths — one method you teach</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--blue:#1565C0;--orange:#E67D21;--teal:#04949D;
+        --t1:#1A1A2E;--t2:#4A4A5A;--t3:#8892A4;--line:#E4E7F2;}
+  body{font-family:'Nunito',sans-serif;background:#F5F7FC;color:var(--t1);
+       line-height:1.65;padding-bottom:96px;}
+  .wrap{max-width:680px;margin:0 auto;padding:26px 20px;}
+  h1{font-size:1.6rem;font-weight:900;line-height:1.3;}
+  .lede{font-size:1rem;color:var(--t2);margin-top:10px;}
+  .why{background:#FFF4E8;border-radius:14px;padding:16px 18px;margin-top:18px;
+       font-size:.93rem;color:#8a4b00;}
+  .card{background:#fff;border-radius:18px;padding:22px;margin-top:16px;
+        box-shadow:0 2px 10px rgba(20,30,60,.05);}
+  .step{display:inline-flex;align-items:center;justify-content:center;
+        width:30px;height:30px;border-radius:50%;background:var(--orange);
+        color:#fff;font-weight:900;font-size:.9rem;margin-bottom:10px;}
+  h2{font-size:1.15rem;font-weight:900;margin-bottom:5px;}
+  .hint{font-size:.87rem;color:var(--t3);margin-bottom:14px;}
+  label{display:block;font-size:.82rem;font-weight:900;color:var(--t2);margin:14px 0 6px;}
+  .optional{font-weight:700;color:var(--t3);font-size:.78rem;}
+  input,textarea,select{width:100%;padding:12px 13px;border:1.5px solid var(--line);
+    border-radius:11px;font-family:inherit;font-size:1rem;background:#fff;}
+  textarea{min-height:84px;resize:vertical;line-height:1.6;}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--blue);}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:520px){ .pair{grid-template-columns:1fr;} }
+  .row{display:grid;grid-template-columns:1fr 1fr auto;gap:9px;margin-bottom:9px;align-items:center;}
+  .row input{padding:10px 11px;}
+  .del{background:none;border:none;color:var(--t3);font-size:1.3rem;cursor:pointer;}
+  .add{background:none;border:1.5px dashed var(--line);border-radius:11px;padding:11px;
+       width:100%;font-family:inherit;font-weight:800;color:var(--t2);cursor:pointer;font-size:.88rem;}
+  .key{border-left:4px solid var(--orange);background:#FFF8F0;border-radius:12px;
+       padding:15px 17px;margin:14px 0;font-size:.9rem;color:#8a4b00;}
+  .btn{width:100%;padding:16px;border:none;border-radius:14px;background:var(--blue);
+       color:#fff;font-family:inherit;font-size:1.02rem;font-weight:900;cursor:pointer;
+       margin-top:22px;box-shadow:0 3px 12px rgba(21,101,192,.28);}
+  .btn-ghost{background:#fff;color:var(--t2);border:1.5px solid var(--line);
+             box-shadow:none;margin-top:10px;}
+  .saved{background:#E9F5EC;border-radius:12px;padding:13px 15px;margin-top:14px;
+         font-size:.9rem;color:#1B5E20;display:none;}
+  .foot{text-align:center;font-size:.85rem;color:var(--t3);margin-top:20px;line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>One method you teach</h1>
+  <p class="lede">One form per method. However many you teach, that many forms.</p>
+
+  <div class="why">
+    <strong>You do not need to know which sutra it is</strong><br>
+    The app does not care about the Sanskrit names — it needs to know
+    <em>what the method does</em> and <em>when a child can use it</em>.
+    If you know the method, you have everything we need. Leave the name
+    blank if it does not come to mind.
+  </div>
+
+  <!-- 1 -->
+  <div class="card">
+    <div class="step">1</div>
+    <h2>What does it do?</h2>
+
+    <label>Describe it in one line</label>
+    <input id="does" placeholder="Taking any number away from 100 or 1000">
+
+    <label>What do you call it in class?</label>
+    <input id="name" placeholder="All from 9, last from 10">
+
+    <label>The Sanskrit name <span class="optional">— only if you know it</span></label>
+    <input id="sanskrit" placeholder="Leave blank if unsure">
+  </div>
+
+  <!-- 2 -->
+  <div class="card">
+    <div class="step">2</div>
+    <h2>When can a child use it?</h2>
+    <p class="hint">The most important question on this form.</p>
+
+    <div class="key">
+      <strong>This is what lets the app make its own sums</strong><br>
+      If we know the method is for taking a number away from 100 or 1000, the app
+      will only ever set sums where it works. Without it, a child practising this
+      would get 47 − 23, where the method does not help at all.
+    </div>
+
+    <label>When does it apply? In your own words</label>
+    <textarea id="applies" placeholder="Any time you take a number away from a base — 100, 1000, 10000. The number being taken away has to be smaller than the base."></textarea>
+
+    <label>And when would you NOT use it?</label>
+    <textarea id="notapplies" placeholder="Not for taking one ordinary number from another, like 47 - 23. It only helps against a base."></textarea>
+  </div>
+
+  <!-- 3 -->
+  <div class="card">
+    <div class="step">3</div>
+    <h2>Show us with real sums</h2>
+    <p class="hint">Five or six is plenty. These become the app's tests.</p>
+
+    <label>Sums where it works well</label>
+    <div id="goodRows"></div>
+    <button class="add" onclick="addRow('goodRows','1000 - 357','643')">+ Add another</button>
+
+    <label style="margin-top:20px;">Sums where it should NOT be used</label>
+    <div id="badRows"></div>
+    <button class="add" onclick="addRow('badRows','47 - 23','')">+ Add another</button>
+    <div class="hint" style="margin-top:6px;">So the app knows what to avoid. The answer is optional here.</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card">
+    <div class="step">4</div>
+    <h2>How do you teach it?</h2>
+    <p class="hint">The steps as you say them in class.</p>
+
+    <label>The method, step by step</label>
+    <textarea id="method" style="min-height:150px;" placeholder="1000 - 357
+Take every digit from 9, and the last one from 10.
+9 - 3 = 6
+9 - 5 = 4
+10 - 7 = 3
+Answer 643."></textarea>
+
+    <label>What do children commonly get wrong?</label>
+    <textarea id="mistakes" placeholder="They take the last digit from 9 as well, and get 642."></textarea>
+  </div>
+
+  <!-- 5 -->
+  <div class="card">
+    <div class="step">5</div>
+    <h2>Where does it sit?</h2>
+
+    <div class="pair">
+      <div>
+        <label>Which level teaches it first?</label>
+        <select id="introLevel"><option value="">—</option></select>
+      </div>
+      <div>
+        <label>On paper or mentally?</label>
+        <select id="mental">
+          <option value="">—</option>
+          <option>On paper first, mentally later</option>
+          <option>Mentally from the start</option>
+          <option>Always on paper</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Does a child need another method first?</label>
+    <input id="needs" placeholder="They should know complements of 10 before this">
+  </div>
+
+  <!-- 6 -->
+  <div class="card">
+    <div class="step">6</div>
+    <h2>Anything else?</h2>
+    <p class="hint">Anything you would tell a teacher taking this over from you.</p>
+    <textarea id="notes" placeholder=""></textarea>
+  </div>
+
+  <button class="btn" onclick="save()">Save this method</button>
+  <button class="btn btn-ghost" onclick="startAnother()">Save and start another</button>
+  <div class="saved" id="saved"></div>
+
+  <p class="foot">
+    Your answers save as you type, on any device.<br>
+    Leave anything blank that does not apply.
+  </p>
+</div>
+
+<div id="draftStatus" style="position:fixed;left:0;right:0;bottom:0;background:#fff;
+  border-top:1.5px solid #E4E7F2;padding:11px 18px;font-size:.82rem;font-weight:800;
+  color:#8892A4;text-align:center;z-index:50;">Your answers save as you type</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>window.supabase = supabase;</script>
+<script src="draft-store.js"></script>
+<script>
+/* ============================================================
+   A method, not a sutra
+   ------------------------------------------------------------
+   The first version of this form asked Megha to name the sutra.
+   She knows every method cold but does not carry the Sanskrit
+   names around, so the form asked her for the one thing she could
+   not give — and the one thing the app does not need.
+
+   The engine only ever asks "does this method apply to this sum".
+   The name is a label for the classroom. So the name is optional
+   and the method leads.
+   ============================================================ */
+
+var FIELDS = ['does','name','sanskrit','applies','notapplies','method',
+              'mistakes','introLevel','mental','needs','notes'];
+
+(function () {
+  var sel = document.getElementById('introLevel');
+  for (var i = 1; i <= 12; i++) sel.appendChild(new Option('Level ' + i, i));
+  sel.appendChild(new Option('Not sure yet', 'unsure'));
+})();
+
+function addRow(host, phSum, phAns) {
+  var div = document.createElement('div');
+  div.className = 'row';
+  div.innerHTML =
+    '<input placeholder="' + phSum + '">' +
+    '<input placeholder="' + (phAns || 'answer (optional)') + '">' +
+    '<button class="del" onclick="this.parentNode.remove()">&times;</button>';
+  document.getElementById(host).appendChild(div);
+}
+for (var i = 0; i < 3; i++) addRow('goodRows', '1000 - 357', '643');
+addRow('badRows', '47 - 23', '');
+
+function collect() {
+  var out = {};
+  FIELDS.forEach(function (f) {
+    var el = document.getElementById(f);
+    out[f] = el ? el.value.trim() : '';
+  });
+  out.worksWell = [];
+  out.avoid = [];
+  document.querySelectorAll('#goodRows .row').forEach(function (r) {
+    var a = r.children[0].value.trim(), b = r.children[1].value.trim();
+    if (a) out.worksWell.push({ sum: a, answer: b });
+  });
+  document.querySelectorAll('#badRows .row').forEach(function (r) {
+    var a = r.children[0].value.trim();
+    if (a) out.avoid.push({ sum: a });
+  });
+  return out;
+}
+
+/* Named by what it does, since that is the thing she can always
+   give us. */
+function refFor() {
+  var d = document.getElementById('does').value.trim();
+  var n = document.getElementById('name').value.trim();
+  return (n || d || 'new').slice(0, 60);
+}
+
+function keep() {
+  try { Draft.save('method', refFor(), collect()); } catch (e) {}
+}
+document.addEventListener('input', keep);
+document.addEventListener('change', keep);
+
+(async function restore() {
+  try {
+    var d = (await Draft.load('method', refFor())) || {};
+    FIELDS.forEach(function (f) {
+      if (d[f] && document.getElementById(f)) document.getElementById(f).value = d[f];
+    });
+  } catch (e) {}
+})();
+
+function save() {
+  var d = collect();
+  if (!d.does && !d.name) {
+    alert('Please say what the method does, even roughly.');
+    return null;
+  }
+  if (!d.applies) {
+    if (!confirm('Step 2 — when a child can use it — is empty.\n\n' +
+                 'Without it the app cannot make practice sums for this method. ' +
+                 'Save anyway?')) return null;
+  }
+  try { Draft.save('method', refFor(), d); Draft.flush(); } catch (e) {}
+
+  var box = document.getElementById('saved');
+  box.style.display = 'block';
+  box.innerHTML = '<strong>Saved.</strong><br>Hiren can see it straight away — ' +
+    'there is no file to send.';
+  return d;
+}
+
+function startAnother() {
+  if (!save()) return;
+  FIELDS.forEach(function (f) {
+    var el = document.getElementById(f);
+    if (el) el.value = '';
+  });
+  document.getElementById('goodRows').innerHTML = '';
+  document.getElementById('badRows').innerHTML = '';
+  for (var i = 0; i < 3; i++) addRow('goodRows', '1000 - 357', '643');
+  addRow('badRows', '47 - 23', '');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('does').focus();
+}
+</script>
+</body>
+</html>

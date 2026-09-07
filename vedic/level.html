@@ -57,6 +57,9 @@
          font-size:.9rem;color:#1B5E20;display:none;}
   .foot{text-align:center;font-size:.85rem;color:var(--t3);margin-top:20px;line-height:1.7;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>window.supabase = supabase;</script>
+<script src="draft-store.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -329,14 +332,16 @@ function collect() {
 
 /* Kept as it is typed. Nobody should fill this in twice. */
 function keep() {
-  try { localStorage.setItem('vedic_level_draft', JSON.stringify(collect())); } catch (e) {}
+  /* Saved to the account, not just this browser — she may well
+     continue on a different device tomorrow. */
+  try { Draft.save('level', (document.getElementById('levelNo')||{}).value || 'new', collect()); } catch (e) {}
 }
 document.addEventListener('input', keep);
 document.addEventListener('change', keep);
 
-(function restore() {
+(async function restore() {
   try {
-    var d = JSON.parse(localStorage.getItem('vedic_level_draft') || '{}');
+    var d = (await Draft.load('level', (document.getElementById('levelNo')||{}).value || 'new')) || {};
     FIELDS.forEach(function (f) {
       if (d[f] && document.getElementById(f)) document.getElementById(f).value = d[f];
     });
@@ -402,5 +407,7 @@ function startAnother() {
   document.getElementById('levelName').focus();
 }
 </script>
+
+  <div id="draftStatus" style="position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1.5px solid #E4E7F2;padding:11px 18px;font-size:.82rem;font-weight:800;color:#8892A4;text-align:center;z-index:50;">Your answers save as you type</div>
 </body>
 </html>

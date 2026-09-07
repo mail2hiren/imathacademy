@@ -47,6 +47,9 @@
   .note{border-left:4px solid var(--teal);background:#F2FBFC;border-radius:12px;
         padding:14px 16px;margin:14px 0;font-size:.89rem;color:#04616a;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>window.supabase = supabase;</script>
+<script src="draft-store.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -247,12 +250,13 @@ function collect() {
 /* Saved as it is typed — this is not a form anyone should have to
    fill in twice. */
 document.addEventListener('input', function () {
-  try { localStorage.setItem('vedic_course', JSON.stringify(collect())); } catch (e) {}
+  // Saved to the account, so a different device tomorrow is fine
+  try { Draft.save('course', 'course', collect()); } catch (e) {}
 });
 
-(function restore() {
+(async function restore() {
   try {
-    var d = JSON.parse(localStorage.getItem('vedic_course') || '{}');
+    var d = (await Draft.load('course', 'course')) || {};
     FIELDS.forEach(function (f) {
       if (d[f] && document.getElementById(f)) document.getElementById(f).value = d[f];
     });
@@ -277,5 +281,7 @@ function save() {
     'You can come back and change anything; your answers are kept here.';
 }
 </script>
+
+  <div id="draftStatus" style="position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1.5px solid #E4E7F2;padding:11px 18px;font-size:.82rem;font-weight:800;color:#8892A4;text-align:center;z-index:50;">Your answers save as you type</div>
 </body>
 </html>

@@ -57,6 +57,9 @@
   .saved{background:#E9F5EC;border-radius:12px;padding:13px 15px;margin-top:14px;
          font-size:.9rem;color:#1B5E20;display:none;}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>window.supabase = supabase;</script>
+<script src="draft-store.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -269,13 +272,15 @@ function collect() {
 /* Kept locally as it is typed, so closing the tab does not lose
    half an hour of Megha's work. */
 function keep() {
-  try { localStorage.setItem('sutra_draft', JSON.stringify(collect())); } catch (e) {}
+  /* Saved to the account, not just this browser — she may well
+     continue on a different device tomorrow. */
+  try { Draft.save('sutra', (document.getElementById('name')||{}).value || 'new', collect()); } catch (e) {}
 }
 document.addEventListener('input', keep);
 
-(function restore() {
+(async function restore() {
   try {
-    var d = JSON.parse(localStorage.getItem('sutra_draft') || '{}');
+    var d = (await Draft.load('sutra', (document.getElementById('name')||{}).value || 'new')) || {};
     FIELDS.forEach(function (f) {
       if (d[f] && document.getElementById(f)) document.getElementById(f).value = d[f];
     });
@@ -326,5 +331,7 @@ function startAnother() {
   document.getElementById('name').focus();
 }
 </script>
+
+  <div id="draftStatus" style="position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1.5px solid #E4E7F2;padding:11px 18px;font-size:.82rem;font-weight:800;color:#8892A4;text-align:center;z-index:50;">Your answers save as you type</div>
 </body>
 </html>

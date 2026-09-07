@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vedic Maths — one level</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--blue:#1565C0;--orange:#E67D21;--teal:#04949D;--green:#2E7D32;
+        --t1:#1A1A2E;--t2:#4A4A5A;--t3:#8892A4;--line:#E4E7F2;}
+  body{font-family:'Nunito',sans-serif;background:#F5F7FC;color:var(--t1);
+       line-height:1.65;padding-bottom:80px;}
+  .wrap{max-width:700px;margin:0 auto;padding:26px 20px;}
+  h1{font-size:1.6rem;font-weight:900;line-height:1.3;}
+  .lede{font-size:1rem;color:var(--t2);margin-top:10px;}
+  .why{background:#FFF4E8;border-radius:14px;padding:15px 17px;margin-top:18px;
+       font-size:.92rem;color:#8a4b00;}
+  .card{background:#fff;border-radius:18px;padding:22px;margin-top:16px;
+        box-shadow:0 2px 10px rgba(20,30,60,.05);}
+  .step{display:inline-flex;align-items:center;justify-content:center;
+        width:30px;height:30px;border-radius:50%;background:var(--orange);
+        color:#fff;font-weight:900;font-size:.9rem;margin-bottom:10px;}
+  h2{font-size:1.15rem;font-weight:900;margin-bottom:5px;}
+  .hint{font-size:.87rem;color:var(--t3);margin-bottom:14px;}
+  label{display:block;font-size:.82rem;font-weight:900;color:var(--t2);margin:14px 0 6px;}
+  input,textarea,select{width:100%;padding:12px 13px;border:1.5px solid var(--line);
+    border-radius:11px;font-family:inherit;font-size:1rem;background:#fff;}
+  textarea{min-height:76px;resize:vertical;line-height:1.6;}
+  input:focus,textarea:focus,select:focus{outline:none;border-color:var(--blue);}
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  @media (max-width:560px){ .pair,.trio{grid-template-columns:1fr;} }
+
+  .sut{display:grid;grid-template-columns:1fr 190px auto;gap:9px;
+       margin-bottom:9px;align-items:center;}
+  @media (max-width:560px){ .sut{grid-template-columns:1fr;} }
+  .del{background:none;border:none;color:var(--t3);font-size:1.3rem;cursor:pointer;}
+  .add{background:none;border:1.5px dashed var(--line);border-radius:12px;padding:12px;
+       width:100%;font-family:inherit;font-weight:800;color:var(--t2);cursor:pointer;}
+
+  .band{border:1.5px solid var(--line);border-radius:14px;padding:15px;margin-bottom:11px;}
+  .band-name{font-size:.72rem;font-weight:900;text-transform:uppercase;letter-spacing:.6px;
+             color:var(--t3);margin-bottom:8px;}
+  .tick{display:flex;align-items:center;gap:9px;padding:8px 0;font-size:.92rem;
+        font-weight:700;cursor:pointer;}
+  .tick input{width:19px;height:19px;accent-color:#1565C0;}
+
+  .key{border-left:4px solid var(--orange);background:#FFF8F0;border-radius:12px;
+       padding:15px 17px;margin:14px 0;font-size:.9rem;color:#8a4b00;}
+  .btn{width:100%;padding:16px;border:none;border-radius:14px;background:var(--blue);
+       color:#fff;font-family:inherit;font-size:1.02rem;font-weight:900;cursor:pointer;
+       margin-top:22px;box-shadow:0 3px 12px rgba(21,101,192,.28);}
+  .btn-ghost{background:#fff;color:var(--t2);border:1.5px solid var(--line);
+             box-shadow:none;margin-top:10px;}
+  .saved{background:#E9F5EC;border-radius:12px;padding:13px 15px;margin-top:14px;
+         font-size:.9rem;color:#1B5E20;display:none;}
+  .foot{text-align:center;font-size:.85rem;color:var(--t3);margin-top:20px;line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>One Vedic level</h1>
+  <p class="lede">One form per level. This is the same information the app already holds
+     for each Abacus level.</p>
+
+  <div class="why">
+    <strong>What this is for</strong><br>
+    The app builds every practice page and worksheet from these settings. For Abacus it
+    knows a Level 1 child gets numbers up to 200, four rows, and only the friend formulas.
+    It needs the same for Vedic — but the thing that decides a Vedic sum is
+    <em>which sutra it suits</em>, not how big the numbers are.
+  </div>
+
+  <!-- 1 -->
+  <div class="card">
+    <div class="step">1</div>
+    <h2>Which level is this?</h2>
+
+    <div class="pair">
+      <div>
+        <label>Level number</label>
+        <select id="levelNo"><option value="">—</option></select>
+      </div>
+      <div>
+        <label>Level name</label>
+        <input id="levelName" placeholder="Foundation">
+      </div>
+    </div>
+
+    <label>What is this level about, in one line?</label>
+    <input id="focus" placeholder="Multiplying numbers close to a base">
+
+    <label>What should a child be able to do by the end?</label>
+    <textarea id="outcome" placeholder="Multiply any two 2-digit numbers near 100 mentally, and show the working for 3-digit ones."></textarea>
+
+    <div class="pair">
+      <div>
+        <label>Youngest age for this level</label>
+        <input id="ageMin" type="number" placeholder="10">
+      </div>
+      <div>
+        <label>How long does it take?</label>
+        <select id="duration">
+          <option value="">—</option>
+          <option>About 2 months</option>
+          <option>About 3 months</option>
+          <option>About 4 months</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card">
+    <div class="step">2</div>
+    <h2>Which sutras, and how far along?</h2>
+    <p class="hint">The same four stages the Abacus levels use.</p>
+
+    <div class="key">
+      <strong>Introduced</strong> — taught here for the first time<br>
+      <strong>Practised</strong> — met before, still being worked on<br>
+      <strong>Mastered</strong> — solid, appears only as revision<br>
+      <strong>Revision</strong> — kept warm from an earlier level
+    </div>
+
+    <div id="sutras"></div>
+    <button class="add" onclick="addSutra()">+ Add a sutra</button>
+  </div>
+
+  <!-- 3 -->
+  <div class="card">
+    <div class="step">3</div>
+    <h2>What the numbers look like</h2>
+    <p class="hint">Not a single range — the shape that suits the sutras above.</p>
+
+    <label>Describe the sums a child should get at this level</label>
+    <textarea id="numberShape" style="min-height:100px;" placeholder="Mostly 2-digit by 2-digit, both numbers between 88 and 99 so they are near 100. Towards the end of the level, numbers near 1000 as well."></textarea>
+
+    <div class="pair">
+      <div>
+        <label>Smallest number they should see</label>
+        <input id="minNumber" type="number" placeholder="11">
+      </div>
+      <div>
+        <label>Largest</label>
+        <input id="maxNumber" type="number" placeholder="999">
+      </div>
+    </div>
+
+    <label>Any number they should NOT see yet?</label>
+    <textarea id="avoidNumbers" placeholder="No decimals until Level 4. Nothing above 1000 in this level."></textarea>
+  </div>
+
+  <!-- 4 -->
+  <div class="card">
+    <div class="step">4</div>
+    <h2>Easy, medium and hard</h2>
+    <p class="hint">The teacher picks one of these when making a worksheet.</p>
+
+    <div class="band">
+      <div class="band-name">Easy</div>
+      <label>What makes a sum easy at this level?</label>
+      <textarea id="easy" placeholder="Both numbers within 5 of the base — 97 x 98. Working written down."></textarea>
+      <div class="trio">
+        <div><label>Sums on a page</label><input id="easyCount" type="number" placeholder="20"></div>
+        <div><label>Largest number</label><input id="easyMax" type="number" placeholder="99"></div>
+        <div><label>Mix sutras?</label>
+          <select id="easyMix"><option value="">—</option><option>One sutra only</option><option>Mixed</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="band">
+      <div class="band-name">Medium</div>
+      <label>And medium?</label>
+      <textarea id="medium" placeholder="Numbers within 12 of the base, and some above it — 103 x 104."></textarea>
+      <div class="trio">
+        <div><label>Sums on a page</label><input id="mediumCount" type="number" placeholder="20"></div>
+        <div><label>Largest number</label><input id="mediumMax" type="number" placeholder="199"></div>
+        <div><label>Mix sutras?</label>
+          <select id="mediumMix"><option value="">—</option><option>One sutra only</option><option>Mixed</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="band">
+      <div class="band-name">Hard</div>
+      <label>And hard?</label>
+      <textarea id="hard" placeholder="3-digit numbers near 1000, done mentally, and the child has to work out which sutra fits."></textarea>
+      <div class="trio">
+        <div><label>Sums on a page</label><input id="hardCount" type="number" placeholder="20"></div>
+        <div><label>Largest number</label><input id="hardMax" type="number" placeholder="999"></div>
+        <div><label>Mix sutras?</label>
+          <select id="hardMix"><option value="">—</option><option>One sutra only</option><option>Mixed</option></select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card">
+    <div class="step">5</div>
+    <h2>What is on a page</h2>
+    <p class="hint">Tick everything a child does at this level.</p>
+
+    <label class="tick"><input type="checkbox" id="ex_straight"> Straight sums to work out</label>
+    <label class="tick"><input type="checkbox" id="ex_mental"> The same, done mentally</label>
+    <label class="tick"><input type="checkbox" id="ex_which"> Which sutra fits this sum?</label>
+    <label class="tick"><input type="checkbox" id="ex_missing"> Fill in the missing number</label>
+    <label class="tick"><input type="checkbox" id="ex_steps"> Show the working, step by step</label>
+    <label class="tick"><input type="checkbox" id="ex_speed"> Speed drill against the clock</label>
+    <label class="tick"><input type="checkbox" id="ex_orals"> Orals — you read it out, they answer</label>
+    <label class="tick"><input type="checkbox" id="ex_word"> Word problems</label>
+
+    <label>Anything else on a page that is not listed?</label>
+    <textarea id="exOther" placeholder=""></textarea>
+
+    <div class="pair">
+      <div><label>Pages in a session</label><input id="pages" type="number" placeholder="2"></div>
+      <div><label>Orals in a session</label><input id="orals" type="number" placeholder="10"></div>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card">
+    <div class="step">6</div>
+    <h2>Finishing this level</h2>
+
+    <div class="pair">
+      <div><label>Practice sessions needed</label><input id="sessions" type="number" placeholder="20"></div>
+      <div><label>Pass mark on the test</label><input id="passMark" type="number" placeholder="80"></div>
+    </div>
+
+    <label>What is on the level test?</label>
+    <textarea id="testShape" placeholder="Part A written with working shown, 20 minutes. Part B mental, 20 minutes. Part C orals."></textarea>
+  </div>
+
+  <!-- 7 -->
+  <div class="card">
+    <div class="step">7</div>
+    <h2>Anything the app must never do</h2>
+    <p class="hint">For Abacus you told us Level 0 must never use a friend formula, and every
+       answer on a page must be different. Those two lines saved us weeks.</p>
+    <textarea id="guardrails" style="min-height:110px;" placeholder="Never give a Nikhilam sum where the numbers are far from a base — it teaches the wrong instinct. Every sum on a page should use a different pair of numbers."></textarea>
+  </div>
+
+  <button class="btn" onclick="save()">Save this level</button>
+  <button class="btn btn-ghost" onclick="startAnother()">Save and start the next level</button>
+  <div class="saved" id="saved"></div>
+
+  <p class="foot">
+    Your answers are kept here as you type — closing the tab will not lose them.<br>
+    Leave anything blank that does not apply.
+  </p>
+</div>
+
+<script>
+/* ============================================================
+   One level, described the way Megha thinks about it
+   ------------------------------------------------------------
+   This mirrors what the app already holds for each Abacus level:
+   which concepts and at what stage, the number range, the three
+   difficulty bands, what is on a page, the gates for finishing,
+   and the guardrails.
+
+   One thing is deliberately different. An Abacus level is defined
+   by a number range — the method hardly changes from L0 to L6. A
+   Vedic level is defined by which sutras it teaches, and the
+   numbers follow from that. So step 3 asks for the SHAPE of the
+   numbers in words, and the min/max are secondary.
+
+   Getting that the wrong way round would have the app handing a
+   child a Nikhilam page full of sums Nikhilam cannot help with.
+   ============================================================ */
+
+var FIELDS = ['levelNo','levelName','focus','outcome','ageMin','duration',
+              'numberShape','minNumber','maxNumber','avoidNumbers',
+              'easy','easyCount','easyMax','easyMix',
+              'medium','mediumCount','mediumMax','mediumMix',
+              'hard','hardCount','hardMax','hardMix',
+              'exOther','pages','orals','sessions','passMark','testShape','guardrails'];
+
+var TICKS = ['ex_straight','ex_mental','ex_which','ex_missing',
+             'ex_steps','ex_speed','ex_orals','ex_word'];
+
+(function () {
+  var sel = document.getElementById('levelNo');
+  for (var i = 1; i <= 12; i++) sel.appendChild(new Option('Level ' + i, i));
+})();
+
+function addSutra(data) {
+  var d = data || {};
+  var host = document.getElementById('sutras');
+  var div = document.createElement('div');
+  div.className = 'sut';
+  div.innerHTML =
+    '<input class="s-name" placeholder="Nikhilam" value="' + (d.name || '') + '">' +
+    '<select class="s-stage">' +
+      '<option value="">Stage —</option>' +
+      '<option>Introduced</option><option>Practised</option>' +
+      '<option>Mastered</option><option>Revision</option>' +
+    '</select>' +
+    '<button class="del" onclick="this.parentNode.remove()">&times;</button>';
+  host.appendChild(div);
+  if (d.stage) div.querySelector('.s-stage').value = d.stage;
+}
+for (var i = 0; i < 3; i++) addSutra();
+
+function collect() {
+  var out = {};
+  FIELDS.forEach(function (f) {
+    var el = document.getElementById(f);
+    out[f] = el ? el.value.trim() : '';
+  });
+  out.exercises = TICKS.filter(function (t) {
+    var el = document.getElementById(t);
+    return el && el.checked;
+  }).map(function (t) { return t.replace('ex_', ''); });
+
+  out.sutras = [];
+  document.querySelectorAll('#sutras .sut').forEach(function (el) {
+    var n = el.querySelector('.s-name').value.trim();
+    var s = el.querySelector('.s-stage').value;
+    if (n) out.sutras.push({ name: n, stage: s });
+  });
+  return out;
+}
+
+/* Kept as it is typed. Nobody should fill this in twice. */
+function keep() {
+  try { localStorage.setItem('vedic_level_draft', JSON.stringify(collect())); } catch (e) {}
+}
+document.addEventListener('input', keep);
+document.addEventListener('change', keep);
+
+(function restore() {
+  try {
+    var d = JSON.parse(localStorage.getItem('vedic_level_draft') || '{}');
+    FIELDS.forEach(function (f) {
+      if (d[f] && document.getElementById(f)) document.getElementById(f).value = d[f];
+    });
+    (d.exercises || []).forEach(function (e) {
+      var el = document.getElementById('ex_' + e);
+      if (el) el.checked = true;
+    });
+    if (d.sutras && d.sutras.length) {
+      document.getElementById('sutras').innerHTML = '';
+      d.sutras.forEach(function (s) { addSutra(s); });
+    }
+  } catch (e) {}
+})();
+
+function save() {
+  var d = collect();
+  if (!d.levelNo) { alert('Please choose which level this is.'); return null; }
+  if (!d.sutras.length) {
+    if (!confirm('No sutras listed for this level.\n\nThe app cannot make any sums ' +
+                 'without knowing which sutras belong here. Save anyway?')) return null;
+  }
+
+  var all = [];
+  try { all = JSON.parse(localStorage.getItem('vedic_levels') || '[]'); } catch (e) {}
+  all = all.filter(function (l) { return l.levelNo !== d.levelNo; });
+  all.push(d);
+  all.sort(function (a, b) { return Number(a.levelNo) - Number(b.levelNo); });
+  try { localStorage.setItem('vedic_levels', JSON.stringify(all)); } catch (e) {}
+
+  var blob = new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'vedic-levels.json';
+  a.click();
+
+  var box = document.getElementById('saved');
+  box.style.display = 'block';
+  box.innerHTML = '<strong>Saved — ' + all.length + ' level' + (all.length === 1 ? '' : 's') +
+    ' so far.</strong><br>A file has been downloaded. Send the most recent one to Hiren ' +
+    'once all the levels are done.';
+  return d;
+}
+
+function startAnother() {
+  var d = save();
+  if (!d) return;
+  var next = Number(d.levelNo) + 1;
+
+  FIELDS.forEach(function (f) {
+    var el = document.getElementById(f);
+    if (el) el.value = '';
+  });
+  TICKS.forEach(function (t) {
+    var el = document.getElementById(t);
+    if (el) el.checked = false;
+  });
+  document.getElementById('sutras').innerHTML = '';
+  for (var i = 0; i < 3; i++) addSutra();
+
+  if (next <= 12) document.getElementById('levelNo').value = next;
+  try { localStorage.removeItem('vedic_level_draft'); } catch (e) {}
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('levelName').focus();
+}
+</script>
+</body>
+</html>

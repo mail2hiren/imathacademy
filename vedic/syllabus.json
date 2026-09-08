@@ -1,0 +1,334 @@
+{
+  "levels": [
+    {
+      "level": 1,
+      "name": "Foundation",
+      "focus": "Complements, doubling, and quick addition and subtraction",
+      "months": 2,
+      "outcome": "Take any number from 100, 1000 or 10000 instantly. Add and subtract two-digit numbers mentally. Double and halve with confidence.",
+      "methods": [
+        {
+          "does": "Taking any number away from 100, 1000 or 10000",
+          "classroom": "All from 9, and the last from 10",
+          "sanskrit": "Nikhilam Navatashcaramam Dashatah",
+          "applies": "Whenever you subtract from a base — 100, 1000, 10000. Every digit except the last comes off 9; the last comes off 10.",
+          "notApplies": "Not for ordinary subtraction like 47 − 23, where neither number is a base.",
+          "steps": "1000 − 357\n9 − 3 = 6\n9 − 5 = 4\n10 − 7 = 3\nAnswer 643",
+          "works": [["1000 - 357","643"],["100 - 68","32"],["10000 - 4271","5729"],["1000 - 909","91"]],
+          "avoid": [["47 - 23",""],["856 - 341",""]],
+          "mistake": "Taking the last digit from 9 as well, giving 642 instead of 643.",
+          "guardrail": "The number being subtracted must have no more digits than the base, and must not end in 0 at first — trailing zeros need a different handling and confuse a beginner."
+        },
+        {
+          "does": "Finding the complement — what a number needs to reach the next ten or hundred",
+          "classroom": "Friends / Param Mitra",
+          "sanskrit": "Purana-Apuranabhyam",
+          "applies": "Any single or two-digit number, finding what it needs to make 10, 100 or 1000.",
+          "notApplies": "Not needed once a child adds fluently without thinking in complements.",
+          "steps": "What does 68 need to make 100?\nAll from 9, last from 10: 3 and 2 → 32",
+          "works": [["68 → 100","32"],["7 → 10","3"],["450 → 1000","550"]],
+          "avoid": [],
+          "mistake": "Forgetting that a number ending in 0 takes its last digit from 10 as well, so 450 → 550 not 560.",
+          "guardrail": "Complements are the foundation of everything later. A child should be quick at this before any multiplication method is introduced."
+        },
+        {
+          "does": "Doubling and halving any number",
+          "classroom": "Doubling",
+          "sanskrit": "Anurupyena (proportionately)",
+          "applies": "Any number. Doubling repeatedly gives ×4 and ×8; halving gives ÷2, ÷4.",
+          "notApplies": "Halving an odd number introduces a half, which should wait until decimals.",
+          "steps": "Double 47\nDouble the tens: 80\nDouble the units: 14\n80 + 14 = 94",
+          "works": [["double 47","94"],["double 268","536"],["half of 86","43"]],
+          "avoid": [["half of 47",""]],
+          "mistake": "Doubling the digits separately and writing 814 instead of carrying.",
+          "guardrail": "Only give even numbers for halving at this level."
+        },
+        {
+          "does": "Adding and subtracting by completing to a ten",
+          "classroom": "Split and merge",
+          "sanskrit": "Ekadhikena Purvena (by one more than the one before)",
+          "applies": "Adding a number close to a ten or hundred — add the round number, then adjust.",
+          "notApplies": "Not worth it when both numbers are already easy, like 23 + 14.",
+          "steps": "68 + 27\nAdd 30: 98\nTake back 3: 95",
+          "works": [["68 + 27","95"],["145 + 98","243"],["76 - 29","47"]],
+          "avoid": [["23 + 14",""]],
+          "mistake": "Adjusting the wrong way — adding 3 back instead of taking it off.",
+          "guardrail": "The number added should be within 3 of a ten, or the adjustment is harder than the sum."
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "name": "Multiplication I",
+      "focus": "The special multiplications that give an answer in one line",
+      "months": 2,
+      "outcome": "Multiply by 11 and 12 instantly. Square any number ending in 5. Multiply numbers near 100 without long multiplication.",
+      "methods": [
+        {
+          "does": "Multiplying any number by 11",
+          "classroom": "Add the neighbour",
+          "sanskrit": "Sopantyadvayamantyam",
+          "applies": "Any number times 11. Write the first digit, then each pair added, then the last digit.",
+          "notApplies": "Not for 12 or 13 — those need a different handling.",
+          "steps": "35 × 11\nFirst digit 3\n3 + 5 = 8\nLast digit 5\nAnswer 385",
+          "works": [["35 x 11","385"],["72 x 11","792"],["68 x 11","748"],["234 x 11","2574"]],
+          "avoid": [["35 x 12",""]],
+          "mistake": "Not carrying when a pair adds to more than 9 — 68 × 11 gives 748, not 6148.",
+          "guardrail": "Start with pairs that do not carry (below 10), then introduce carrying."
+        },
+        {
+          "does": "Squaring any number ending in 5",
+          "classroom": "One more than the one before",
+          "sanskrit": "Ekadhikena Purvena",
+          "applies": "Only numbers ending in 5, being squared. 25², 65², 115².",
+          "notApplies": "Not for numbers ending in anything else, and not for two different numbers.",
+          "steps": "65²\nTake the 6, multiply by one more: 6 × 7 = 42\nWrite 25 after it\nAnswer 4225",
+          "works": [["25 x 25","625"],["65 x 65","4225"],["95 x 95","9025"],["115 x 115","13225"]],
+          "avoid": [["64 x 64",""],["65 x 75",""]],
+          "mistake": "Using it for 65 × 75, where both end in 5 but they are different numbers.",
+          "guardrail": "The number must end in 5 AND be multiplied by itself. Never generate a sum where only one condition holds."
+        },
+        {
+          "does": "Multiplying two numbers with the same tens digit whose units add to 10",
+          "classroom": "Same first, friends after",
+          "sanskrit": "Antyayordashake'pi",
+          "applies": "43 × 47 — same tens digit, units summing to 10. Also 62 × 68, 91 × 99.",
+          "notApplies": "If the tens digits differ, or the units do not add to 10.",
+          "steps": "43 × 47\nTens digit 4, times one more: 4 × 5 = 20\nUnits: 3 × 7 = 21\nAnswer 2021",
+          "works": [["43 x 47","2021"],["62 x 68","4216"],["91 x 99","9009"],["24 x 26","624"]],
+          "avoid": [["43 x 57",""],["43 x 46",""]],
+          "mistake": "Writing the units product as a single digit — 91 × 99 needs 09, not 9.",
+          "guardrail": "Both conditions must hold exactly. The right-hand part always fills two digits."
+        },
+        {
+          "does": "Multiplying two numbers just below 100",
+          "classroom": "Base method",
+          "sanskrit": "Nikhilam Navatashcaramam Dashatah",
+          "applies": "Both numbers close to a base — 100 works best. 97 × 96, 88 × 91.",
+          "notApplies": "If either number is far from the base, this is more work than long multiplication.",
+          "steps": "97 × 96\nHow far below 100: −3 and −4\nCross-subtract: 97 − 4 = 93\nMultiply the differences: 3 × 4 = 12\nAnswer 9312",
+          "works": [["97 x 96","9312"],["88 x 91","8008"],["98 x 97","9506"],["94 x 99","9306"]],
+          "avoid": [["43 x 61",""],["23 x 41",""]],
+          "mistake": "Not padding the right-hand side — 98 × 97 gives 06, so 9506 not 956.",
+          "guardrail": "Both numbers must be within about 12 of the base. The right-hand part must fill as many digits as the base has zeros."
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "name": "Multiplication II",
+      "focus": "One method that multiplies anything at all",
+      "months": 2,
+      "outcome": "Multiply any two two-digit numbers in one line, and choose sensibly between the general method and the special ones.",
+      "methods": [
+        {
+          "does": "Multiplying any two numbers, whatever they are",
+          "classroom": "Vertically and crosswise",
+          "sanskrit": "Urdhva-Tiryagbhyam",
+          "applies": "Any two numbers of any size. This is the general method that always works.",
+          "notApplies": "It always applies — but when a special method fits, that one is quicker.",
+          "steps": "23 × 41\nUnits: 3 × 1 = 3\nCross: (2×1) + (3×4) = 14 → write 4, carry 1\nTens: 2 × 4 = 8, plus carry 1 = 9\nAnswer 943",
+          "works": [["23 x 41","943"],["36 x 74","2664"],["52 x 63","3276"],["47 x 58","2726"]],
+          "avoid": [],
+          "mistake": "Losing a carry from the crosswise step.",
+          "guardrail": "Introduce with sums that do not carry, then with one carry, then freely."
+        },
+        {
+          "does": "Multiplying near a base that is not a power of ten",
+          "classroom": "Working base",
+          "sanskrit": "Anurupyena",
+          "applies": "Numbers near 50, 200, 250, 500 — a convenient multiple of a power of ten.",
+          "notApplies": "If no convenient working base is near, use vertically and crosswise.",
+          "steps": "48 × 47, working base 50\nDifferences: −2 and −3\nCross-subtract: 48 − 3 = 45\nMultiply by base ratio: 45 × 5 = 225\nDifferences multiplied: 2 × 3 = 06\nAnswer 2256",
+          "works": [["48 x 47","2256"],["52 x 54","2808"],["203 x 204","41412"]],
+          "avoid": [["23 x 41",""]],
+          "mistake": "Forgetting to multiply the left-hand part by the ratio between the working base and the power of ten.",
+          "guardrail": "Only set sums where both numbers are within about 5 of the working base."
+        },
+        {
+          "does": "Choosing which method fits a sum",
+          "classroom": "Which method?",
+          "sanskrit": "",
+          "applies": "Any multiplication. The child looks at the numbers and decides before starting.",
+          "notApplies": "",
+          "steps": "Look at the numbers.\nBoth near 100? Base method.\nEnds in 5 and squared? One more than before.\nSame tens, units make 10? That method.\nOtherwise vertically and crosswise.",
+          "works": [["97 x 96 → base method",""],["65 x 65 → ekadhikena",""],["43 x 47 → antyayor",""],["36 x 74 → urdhva",""]],
+          "avoid": [],
+          "mistake": "Reaching for a special method when the numbers do not fit it.",
+          "guardrail": "This is an exercise type in its own right — a page mixing several shapes, where the child names the method before working it."
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "name": "Squares, cubes and bigger multiplication",
+      "focus": "Extending the general method, and squaring anything",
+      "months": 2,
+      "outcome": "Multiply three-digit numbers, square any two-digit number, and cube small numbers.",
+      "methods": [
+        {
+          "does": "Multiplying three-digit and larger numbers",
+          "classroom": "Vertically and crosswise, extended",
+          "sanskrit": "Urdhva-Tiryagbhyam",
+          "applies": "Any two numbers of three or more digits.",
+          "notApplies": "",
+          "steps": "The same crosswise pattern, with more steps: 5 for 3×3.",
+          "works": [["123 x 456","56088"],["234 x 321","75114"],["512 x 316","161792"]],
+          "avoid": [],
+          "mistake": "Missing one of the crosswise pairs in the middle steps.",
+          "guardrail": "Only introduce after 2×2 is completely fluent."
+        },
+        {
+          "does": "Squaring any two-digit number",
+          "classroom": "Duplex",
+          "sanskrit": "Dwandwa Yoga",
+          "applies": "Squaring any number. The duplex of a digit is its square; of two digits, twice their product.",
+          "notApplies": "For numbers ending in 5, the special method is quicker.",
+          "steps": "43²\nDuplex of 3 = 9\nDuplex of 43 = 2 × 4 × 3 = 24\nDuplex of 4 = 16\nAssemble: 16 | 24 | 9 → 1849",
+          "works": [["43 x 43","1849"],["67 x 67","4489"],["28 x 28","784"]],
+          "avoid": [["65 x 65",""]],
+          "mistake": "Forgetting to double in the middle duplex.",
+          "guardrail": "Avoid numbers ending in 5, since the earlier method is better there and teaches the wrong instinct here."
+        },
+        {
+          "does": "Squaring a number near a base",
+          "classroom": "Whatever the deficiency",
+          "sanskrit": "Yavadunam Tavadunikritya Varganca Yojayet",
+          "applies": "Squaring a number close to 100 or 1000. 98², 103².",
+          "notApplies": "Numbers far from a base.",
+          "steps": "98²\nDeficiency −2\n98 − 2 = 96\nDeficiency squared: 04\nAnswer 9604",
+          "works": [["98 x 98","9604"],["103 x 103","10609"],["94 x 94","8836"]],
+          "avoid": [["43 x 43",""]],
+          "mistake": "Not padding the right-hand part to the width of the base.",
+          "guardrail": "Within about 12 of the base."
+        },
+        {
+          "does": "Cubing a two-digit number",
+          "classroom": "Cubing",
+          "sanskrit": "Anurupyena",
+          "applies": "Cubing any two-digit number, using a ratio series.",
+          "notApplies": "",
+          "steps": "14³\nRatio 4/1\nSeries: 1, 4, 16, 64\nDouble the middle two: 8, 32\nAdd and carry: 2744",
+          "works": [["14 cubed","2744"],["12 cubed","1728"],["23 cubed","12167"]],
+          "avoid": [],
+          "mistake": "Doubling the wrong terms in the series.",
+          "guardrail": "Keep to numbers below 30 at this level."
+        }
+      ]
+    },
+    {
+      "level": 5,
+      "name": "Division",
+      "focus": "Dividing without long division",
+      "months": 2,
+      "outcome": "Divide by numbers near a base, and by any number using the flag method.",
+      "methods": [
+        {
+          "does": "Dividing by a number just below a base",
+          "classroom": "Base division",
+          "sanskrit": "Nikhilam",
+          "applies": "Divisors just below 10, 100, 1000 — like 8, 9, 88, 97.",
+          "notApplies": "Divisors above the base, or far from it.",
+          "steps": "1234 ÷ 88\nComplement of 88 is 12\nBring down and add: quotient 14, remainder 2",
+          "works": [["1234 / 88","14 r 2"],["1132 / 9","125 r 7"],["11220 / 89","126 r 6"]],
+          "avoid": [["1234 / 43",""]],
+          "mistake": "Using the complement wrongly when the divisor is above the base.",
+          "guardrail": "Divisor must be below the base and within about 12 of it."
+        },
+        {
+          "does": "Dividing by any number using a flag digit",
+          "classroom": "Straight division",
+          "sanskrit": "Dhwajanka (on top of the flag)",
+          "applies": "Any divisor. The last digit becomes the flag and the rest divides.",
+          "notApplies": "",
+          "steps": "2695 ÷ 32\nFlag the 2, divide by 3\nSubtract the cross product at each step\nQuotient 84, remainder 7",
+          "works": [["2695 / 32","84 r 7"],["4321 / 21","205 r 16"],["1234 / 41","30 r 4"]],
+          "avoid": [],
+          "mistake": "Forgetting to subtract the flag product before the next division.",
+          "guardrail": "Start with two-digit divisors where the first digit divides cleanly."
+        },
+        {
+          "does": "Dividing when the divisor is a transposed expression",
+          "classroom": "Transpose and apply",
+          "sanskrit": "Paravartya Yojayet",
+          "applies": "Divisors just above a base — 12, 13, 112.",
+          "notApplies": "Divisors below the base, where Nikhilam is better.",
+          "steps": "1234 ÷ 12\nTranspose 12 → −2\nBring down, multiply, add\nQuotient 102, remainder 10",
+          "works": [["1234 / 12","102 r 10"],["2341 / 13","180 r 1"]],
+          "avoid": [["1234 / 88",""]],
+          "mistake": "Using the wrong sign on the transposed digit.",
+          "guardrail": "Divisor must be just above the base."
+        }
+      ]
+    },
+    {
+      "level": 6,
+      "name": "Roots, fractions and algebra",
+      "focus": "The remaining methods, and applying them beyond arithmetic",
+      "months": 2,
+      "outcome": "Find square and cube roots, work with recurring decimals, and solve simple equations by Vedic methods.",
+      "methods": [
+        {
+          "does": "Finding the square root of a perfect square",
+          "classroom": "Square roots",
+          "sanskrit": "Vilokanam / Dwandwa Yoga",
+          "applies": "Perfect squares. The last digit and the digit sum narrow it to one answer.",
+          "notApplies": "Not for numbers that are not perfect squares — that needs the full duplex method.",
+          "steps": "√1849\nPairs: 18 | 49\nLargest square under 18 is 16, so first digit 4\nLast digit 9 means the root ends in 3 or 7\n43² = 1849, so 43",
+          "works": [["root 1849","43"],["root 4489","67"],["root 7396","86"]],
+          "avoid": [["root 2000",""]],
+          "mistake": "Choosing the wrong ending when both candidates are plausible.",
+          "guardrail": "Only perfect squares at this level."
+        },
+        {
+          "does": "Finding the cube root of a perfect cube",
+          "classroom": "Cube roots",
+          "sanskrit": "Vilokanam",
+          "applies": "Perfect cubes up to six digits. The last digit gives the last digit of the root directly.",
+          "notApplies": "Not for numbers that are not perfect cubes.",
+          "steps": "∛12167\nLast digit 7 → root ends in 3\nFirst group 12 → between 2³ and 3³, so first digit 2\nAnswer 23",
+          "works": [["cube root 12167","23"],["cube root 2744","14"],["cube root 39304","34"]],
+          "avoid": [],
+          "mistake": "Forgetting that the last digits pair up as 2↔8 and 3↔7.",
+          "guardrail": "Perfect cubes only."
+        },
+        {
+          "does": "Turning a fraction into a recurring decimal",
+          "classroom": "Auxiliary fractions",
+          "sanskrit": "Ekadhikena Purvena",
+          "applies": "Denominators ending in 9 — 1/19, 1/29 — and by extension those ending in 1, 3, 7.",
+          "notApplies": "Denominators that give a terminating decimal.",
+          "steps": "1/19\nOne more than 1 is 2\nDivide by 2 repeatedly, carrying remainders\n0.052631578947368421...",
+          "works": [["1/19","0.052631578947368421"],["1/29","0.0344827586206896551724137931"]],
+          "avoid": [["1/4",""],["1/8",""]],
+          "mistake": "Losing track of the carried remainder over a long recurrence.",
+          "guardrail": "Start with 1/19, where the pattern is shortest to follow."
+        },
+        {
+          "does": "Solving a simple equation in one line",
+          "classroom": "Transpose and apply",
+          "sanskrit": "Paravartya Yojayet",
+          "applies": "Equations of the form (ax + b)/(cx + d) = e, and simple linear equations.",
+          "notApplies": "Quadratics and above.",
+          "steps": "3x + 4 = 19\nTranspose: x = (19 − 4)/3 = 5",
+          "works": [["3x + 4 = 19","x = 5"],["(x+1)/(x+3) = 1/2","x = 1"]],
+          "avoid": [],
+          "mistake": "Changing the sign of only one term when transposing.",
+          "guardrail": "Only linear equations at this level."
+        },
+        {
+          "does": "Spotting when the answer is zero without working it out",
+          "classroom": "When the total is the same",
+          "sanskrit": "Sunyam Samyasamuccaye",
+          "applies": "When a term is common to both sides, or the totals of numerator and denominator match.",
+          "notApplies": "When no such symmetry exists.",
+          "steps": "12x + 3x = 4x + 5x has no common factor to cancel, so check the sums.\nWhere the sums of both sides are equal, x = 0.",
+          "works": [["(x+2)/(x+3) = (x+2)/(x+5) → x = -2",""]],
+          "avoid": [],
+          "mistake": "Applying it where the symmetry is only apparent.",
+          "guardrail": "This is a recognition exercise, not a calculation one."
+        }
+      ]
+    }
+  ]
+}

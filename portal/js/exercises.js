@@ -216,7 +216,11 @@ var Exercises = (function () {
     /* A Big Friends step always carries into the tens, so it cannot
        exist below a total of ten. Starting the ramp at 9 asked for
        the impossible and returned nothing. */
-    var FLOOR = rules.formulas.indexOf('big') > -1 ? 20 : 9;
+    /* Big Friends and Combination both need the ten, so neither can
+       produce an answer below it. Only combination was missing here. */
+    var needsTen = rules.formulas.indexOf('big') > -1 ||
+                   rules.formulas.indexOf('combination') > -1;
+    var FLOOR = needsTen ? 20 : 9;
 
     while (out.length < n && guard < n * 40) {
       guard++;

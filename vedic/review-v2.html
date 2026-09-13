@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vedic Maths syllabus &mdash; version 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--blue:#1565C0;--orange:#E67D21;--teal:#04949D;--green:#2E7D32;
+        --t1:#1F2430;--t2:#4A5160;--t3:#8892A4;--line:#E6E9F0;}
+  body{font-family:'Nunito',sans-serif;background:#F5F7FC;color:var(--t1);
+       line-height:1.65;padding-bottom:96px;}
+  .wrap{max-width:760px;margin:0 auto;padding:26px 20px;}
+  h1{font-size:1.6rem;font-weight:900;line-height:1.3;}
+  .lede{font-size:1rem;color:var(--t2);margin-top:10px;}
+  .thanks{background:#F1F8F2;border-radius:14px;padding:16px 18px;margin-top:18px;
+          font-size:.93rem;color:#1B5E20;}
+  .map{background:#fff;border-radius:16px;padding:18px 20px;margin-top:16px;
+       box-shadow:0 2px 10px rgba(20,30,60,.05);}
+  .map h2{font-size:.75rem;font-weight:900;letter-spacing:1pt;color:var(--t3);
+          text-transform:uppercase;margin-bottom:10px;}
+  .mrow{display:flex;gap:10px;padding:6px 0;font-size:.9rem;
+        border-bottom:1px solid var(--line);}
+  .mrow:last-child{border-bottom:none;}
+  .mrow b{width:62px;flex-shrink:0;color:var(--orange);}
+  .mrow span{color:var(--t2);}
+  .mrow i{margin-left:auto;color:var(--t3);font-style:normal;font-size:.8rem;
+          flex-shrink:0;}
+
+  .lvl{background:#fff;border-radius:18px;padding:22px;margin-top:18px;
+       box-shadow:0 2px 10px rgba(20,30,60,.05);}
+  .tag{display:inline-block;background:var(--orange);color:#fff;font-weight:900;
+       font-size:.7rem;padding:4px 11px;border-radius:20px;letter-spacing:.5px;}
+  .lvl h2{font-size:1.28rem;font-weight:900;margin:9px 0 4px;}
+  .focus{font-size:.94rem;color:var(--t2);}
+  .out{font-size:.87rem;color:var(--t3);margin-top:8px;}
+
+  .m{border:1.5px solid var(--line);border-radius:14px;padding:17px;margin-top:14px;}
+  .m.ok{border-color:#A5D6A7;background:#F6FBF7;}
+  .m.edit{border-color:#FFCC80;background:#FFFCF7;}
+  .m.gone{border-color:#EEE;background:#FAFAFA;opacity:.55;}
+  .m h3{font-size:1.04rem;font-weight:900;}
+  .cls{font-size:.85rem;color:var(--blue);font-weight:800;margin-top:2px;}
+  .skt{font-size:.77rem;color:var(--t3);font-style:italic;}
+  .new{display:inline-block;background:#E8F5E9;color:#1B5E20;font-size:.62rem;
+       font-weight:900;padding:2px 7px;border-radius:10px;margin-left:6px;
+       letter-spacing:.4px;vertical-align:middle;}
+
+  .fld{margin-top:12px;}
+  .k{font-size:.69rem;font-weight:900;color:var(--t3);text-transform:uppercase;
+     letter-spacing:.5px;}
+  .v{font-size:.89rem;color:var(--t2);white-space:pre-line;margin-top:3px;
+     border-radius:9px;}
+  .v[contenteditable="true"]{background:#fff;border:1.5px solid #FFCC80;
+     padding:10px 12px;outline:none;}
+  .v[contenteditable="true"]:focus{border-color:var(--blue);}
+  .changed{font-size:.66rem;font-weight:900;color:var(--orange);margin-left:6px;}
+
+  .eg{font-family:ui-monospace,monospace;font-size:.83rem;background:#F5F7FC;
+      border-radius:8px;padding:7px 10px;margin-top:5px;}
+  .eg.bad{background:#FFF3F3;color:#8a1c17;}
+  .guard{border-left:3px solid var(--orange);background:#FFF8F0;border-radius:8px;
+         padding:9px 12px;margin-top:10px;font-size:.84rem;color:#8a4b00;}
+
+  .verdict{display:flex;gap:8px;margin-top:15px;flex-wrap:wrap;}
+  .vb{padding:9px 15px;border:1.5px solid var(--line);border-radius:10px;background:#fff;
+      font-family:inherit;font-size:.82rem;font-weight:800;color:var(--t2);cursor:pointer;}
+  .vb.on-ok{background:#E8F5E9;border-color:#A5D6A7;color:#1B5E20;}
+  .vb.on-ed{background:#FFF3E0;border-color:#FFCC80;color:#8a4b00;}
+  .vb.on-no{background:#FDECEA;border-color:#FFCDD2;color:#B71C1C;}
+  .extra{display:none;margin-top:12px;}
+  .extra.show{display:block;}
+  .tip{font-size:.82rem;color:#8a4b00;background:#FFF8F0;border-radius:9px;
+       padding:10px 12px;margin-bottom:9px;}
+  select,textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);
+    border-radius:10px;font-family:inherit;font-size:.91rem;}
+  textarea{min-height:62px;margin-top:9px;}
+  .foot{text-align:center;font-size:.84rem;color:var(--t3);margin-top:22px;line-height:1.7;}
+  #draftStatus{position:fixed;left:0;right:0;bottom:0;background:#fff;
+    border-top:1.5px solid #E6E9F0;padding:11px 18px;font-size:.81rem;font-weight:800;
+    color:#8892A4;text-align:center;z-index:50;}
+</style></head>
+<body>
+<div class="wrap">
+  <h1>Vedic Maths syllabus &mdash; version 2</h1>
+  <p class="lede">Eight levels now, reordered exactly as you asked.</p>
+
+  <div class="thanks">
+    <strong>Thank you &mdash; your review changed a great deal.</strong><br>
+    You moved nine methods to later levels, and once they were all moved it was clear the
+    course does not fit in six. It is <strong>eight levels</strong> now, with division and
+    roots each given a level of their own.
+    <br><br>
+    Your additions are marked <span class="new">NEW</span> below. Everything else you
+    approved is left as it was.
+  </div>
+
+  <div class="map">
+    <h2>The eight levels</h2>
+    <div class="mrow"><b>Level 1</b><span>Foundation &mdash; Complements, doubling, and quick addition and subtraction</span><i>5</i></div>
+    <div class="mrow"><b>Level 2</b><span>Number work &mdash; Bigger bases, first multiplication, and digit sums</span><i>6</i></div>
+    <div class="mrow"><b>Level 3</b><span>Multiplication I &mdash; The general method, and the special ones that beat it</span><i>5</i></div>
+    <div class="mrow"><b>Level 4</b><span>Base multiplication &mdash; Multiplying near a base, below it and above it</span><i>2</i></div>
+    <div class="mrow"><b>Level 5</b><span>Squares and cubes &mdash; Squaring and cubing anything, and larger crosswise work</span><i>4</i></div>
+    <div class="mrow"><b>Level 6</b><span>Division &mdash; Dividing without long division</span><i>3</i></div>
+    <div class="mrow"><b>Level 7</b><span>Roots &mdash; Working backwards from squares and cubes</span><i>2</i></div>
+    <div class="mrow"><b>Level 8</b><span>Fractions and algebra &mdash; Applying the methods beyond arithmetic</span><i>3</i></div>
+  </div>
+
+  <div class="lvl">
+    <span class="tag">LEVEL 1 &middot; about 2 months</span>
+    <h2>Foundation</h2>
+    <div class="focus">Complements, doubling, and quick addition and subtraction</div>
+    <div class="out"><strong>By the end:</strong> Take any number from 100 or 1000 and their multiples instantly. Add and subtract two-digit numbers. Double and halve with confidence.</div>
+
+    <div class="m" id="m-L1M0">
+      <h3><span class="v" data-f="does" data-id="L1M0">Taking any number away from 100, 1000, or a multiple of them</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L1M0">All from 9, and the last from 10</div>
+      <div class="skt">Nikhilam Navatashcaramam Dashatah</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L1M0">Whenever you subtract from a base — 100, 1000. Every digit except the last comes off 9; the last comes off 10.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L1M0">Not for ordinary subtraction like 47 − 23, where neither number is a base.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L1M0">1000 − 357
+9 − 3 = 6
+9 − 5 = 4
+10 − 7 = 3
+Answer 643
+
+For a multiple such as 300 − 176, take 176 from 100 and add the 200.</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">1000 - 357 = 643</div><div class="eg">100 - 68 = 32</div><div class="eg">300 - 176 = 124</div><div class="eg">2000 - 1481 = 519</div></div>
+      <div class="fld"><div class="k">Should not be used on</div><div class="eg bad">47 - 23</div><div class="eg bad">856 - 341</div></div>
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L1M0">Taking the last digit from 9 as well, giving 642 instead of 643.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L1M0">Bases are 100 and 1000 and their multiples at this level — not 10000 yet.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L1M0','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L1M0','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L1M0','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L1M0','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L1M0">
+        <div class="tip" id="tip-L1M0"></div>
+        <select id="lvl-L1M0" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L1M0" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L1M1">
+      <h3><span class="v" data-f="does" data-id="L1M1">Finding the complement — what a number needs to reach the next ten or hundred</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L1M1">Friends / Param Mitra</div>
+      <div class="skt">Purana-Apuranabhyam</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L1M1">Any single or two-digit number, finding what it needs to make 10, 100 or 1000.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L1M1">Not needed once a child adds fluently without thinking in complements.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L1M1">What does 68 need to make 100?
+All from 9, last from 10: 3 and 2 → 32</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">68 → 100 = 32</div><div class="eg">7 → 10 = 3</div><div class="eg">450 → 1000 = 550</div></div>
+      
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L1M1">Forgetting that a number ending in 0 takes its last digit from 10 as well, so 450 → 550 not 560.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L1M1">Complements underpin everything later. A child should be quick at this before any multiplication method.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L1M1','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L1M1','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L1M1','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L1M1','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L1M1">
+        <div class="tip" id="tip-L1M1"></div>
+        <select id="lvl-L1M1" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L1M1" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L1M2">
+      <h3><span class="v" data-f="does" data-id="L1M2">Doubling and halving any number</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L1M2">Doubling</div>
+      <div class="skt">Anurupyena (proportionately)</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L1M2">Any number. Doubling repeatedly gives ×4 and ×8; halving gives ÷2 and ÷4.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L1M2">Halving an odd number introduces a half, which should wait until decimals.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L1M2">Double 47
+Double the tens: 80
+Double the units: 14
+80 + 14 = 94</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">double 47 = 94</div><div class="eg">double 68 = 136</div><div class="eg">half of 86 = 43</div></div>
+      <div class="fld"><div class="k">Should not be used on</div><div class="eg bad">half of 47</div></div>
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L1M2">Doubling the digits separately and writing 814 instead of carrying.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L1M2">Only give two digit numbers for halving at this level.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L1M2','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L1M2','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L1M2','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L1M2','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L1M2">
+        <div class="tip" id="tip-L1M2"></div>
+        <select id="lvl-L1M2" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L1M2" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L1M3">
+      <h3><span class="v" data-f="does" data-id="L1M3">Adding and subtracting by completing to a ten</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L1M3">Split and merge</div>
+      <div class="skt">Ekadhikena Purvena</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L1M3">Adding a number close to a ten or hundred — add the round number, then adjust.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L1M3">Not worth it when both numbers are already easy, like 23 + 14.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L1M3">68 + 27
+Add 30: 98
+Take back 3: 95</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">68 + 27 = 95</div><div class="eg">145 + 98 = 243</div><div class="eg">76 - 29 = 47</div></div>
+      <div class="fld"><div class="k">Should not be used on</div><div class="eg bad">23 + 14</div></div>
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L1M3">Adjusting the wrong way — adding 3 back instead of taking it off.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L1M3">The number added should be within 3 of a ten.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L1M3','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L1M3','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L1M3','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L1M3','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L1M3">
+        <div class="tip" id="tip-L1M3"></div>
+        <select id="lvl-L1M3" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L1M3" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L1M4">
+      <h3><span class="v" data-f="does" data-id="L1M4">Adding two-digit numbers by stacking</span><span class="new">NEW</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L1M4">Stacking</div>
+      
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L1M4">Simple addition — 2 digit plus 1 digit, and 2 digit plus 2 digit — written one under the other.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L1M4">Not for long columns; that is abacus work.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L1M4">47
++ 8
+——
+55</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">47 + 8 = 55</div><div class="eg">36 + 52 = 88</div><div class="eg">68 + 27 = 95</div></div>
+      
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L1M4">Forgetting the carry from the units column.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L1M4">Two numbers only, of two digits or fewer. The plain method, before the shortcuts.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L1M4','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L1M4','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L1M4','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L1M4','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L1M4">
+        <div class="tip" id="tip-L1M4"></div>
+        <select id="lvl-L1M4" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L1M4" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" style="border-style:dashed;">
+      <h3 style="font-size:.93rem;color:#8892A4;">Still anything missing from Level 1?</h3>
+      <textarea id="t-L1ADD"></textarea>
+    </div>
+  </div>
+
+  <div class="lvl">
+    <span class="tag">LEVEL 2 &middot; about 2 months</span>
+    <h2>Number work</h2>
+    <div class="focus">Bigger bases, first multiplication, and digit sums</div>
+    <div class="out"><strong>By the end:</strong> Subtract from 10000 and 100000. Multiply two and three digit numbers by a single digit. Check any answer with digit sums.</div>
+
+    <div class="m" id="m-L2M0">
+      <h3><span class="v" data-f="does" data-id="L2M0">Taking a number away from 10000 or 100000</span><span class="new">NEW</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L2M0">All from 9, last from 10 — bigger bases</div>
+      <div class="skt">Nikhilam Navatashcaramam Dashatah</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L2M0">The same method as Level 1, now with bases of 10000 and 100000 and their multiples.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L2M0">Not for ordinary subtraction where neither number is a base.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L2M0">10000 − 4271
+9−4=5, 9−2=7, 9−7=2, 10−1=9
+Answer 5729</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">10000 - 4271 = 5729</div><div class="eg">100000 - 36814 = 63186</div><div class="eg">30000 - 12457 = 17543</div></div>
+      <div class="fld"><div class="k">Should not be used on</div><div class="eg bad">4567 - 1234</div></div>
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L2M0">Miscounting how many 9s the larger bases need.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L2M0">Only once Level 1 bases are automatic.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L2M0','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L2M0','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L2M0','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L2M0','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L2M0">
+        <div class="tip" id="tip-L2M0"></div>
+        <select id="lvl-L2M0" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L2M0" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L2M1">
+      <h3><span class="v" data-f="does" data-id="L2M1">Multiplying any number by 11</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L2M1">Add the neighbour</div>
+      <div class="skt">Sopantyadvayamantyam</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L2M1">Any number times 11. Write the first digit, then each pair added, then the last digit.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L2M1">Not for 12 or 13 — those need a different handling.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L2M1">35 × 11
+First digit 3
+3 + 5 = 8
+Last digit 5
+Answer 385</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">35 x 11 = 385</div><div class="eg">72 x 11 = 792</div><div class="eg">68 x 11 = 748</div><div class="eg">234 x 11 = 2574</div></div>
+      <div class="fld"><div class="k">Should not be used on</div><div class="eg bad">35 x 12</div></div>
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L2M1">Not carrying when a pair adds past 9 — 68 × 11 is 748, not 6148.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L2M1">Start with pairs that do not carry.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L2M1','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L2M1','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L2M1','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L2M1','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L2M1">
+        <div class="tip" id="tip-L2M1"></div>
+        <select id="lvl-L2M1" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L2M1" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L2M2">
+      <h3><span class="v" data-f="does" data-id="L2M2">Multiplying a two-digit number by a single digit</span><span class="new">NEW</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L2M2">Two by one</div>
+      <div class="skt">Urdhva-Tiryagbhyam</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L2M2">Any two-digit number times any single digit. The child's first real multiplication.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L2M2">&mdash;</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L2M2">34 × 6
+Units: 4 × 6 = 24, write 4 carry 2
+Tens: 3 × 6 = 18, plus 2 = 20
+Answer 204</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">34 x 6 = 204</div><div class="eg">47 x 8 = 376</div><div class="eg">92 x 7 = 644</div></div>
+      
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L2M2">Losing the carry between the two steps.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L2M2">Single digit multiplier only.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L2M2','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L2M2','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L2M2','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L2M2','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L2M2">
+        <div class="tip" id="tip-L2M2"></div>
+        <select id="lvl-L2M2" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L2M2" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L2M3">
+      <h3><span class="v" data-f="does" data-id="L2M3">Multiplying a three-digit number by a single digit</span><span class="new">NEW</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L2M3">Three by one</div>
+      <div class="skt">Urdhva-Tiryagbhyam</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L2M3">Any three-digit number times a single digit.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L2M3">&mdash;</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L2M3">234 × 3
+4×3=12, 3×3=9 (+1), 2×3=6
+Answer 702</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">234 x 3 = 702</div><div class="eg">517 x 4 = 2068</div><div class="eg">869 x 6 = 5214</div></div>
+      
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L2M3">Carrying across two columns and dropping one.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L2M3">Only after two by one is fluent.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L2M3','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L2M3','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L2M3','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L2M3','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L2M3">
+        <div class="tip" id="tip-L2M3"></div>
+        <select id="lvl-L2M3" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L2M3" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L2M4">
+      <h3><span class="v" data-f="does" data-id="L2M4">Doubling three and four digit numbers</span><span class="new">NEW</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L2M4">Doubling bigger numbers</div>
+      <div class="skt">Anurupyena</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L2M4">Any three or four digit number. Repeated doubling gives ×4 and ×8.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L2M4">&mdash;</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L2M4">Double 468
+Double each part and carry: 936</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">double 468 = 936</div><div class="eg">double 1274 = 2548</div><div class="eg">double 3506 = 7012</div></div>
+      
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L2M4">Losing a carry in the middle of a longer number.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L2M4">Whole numbers only.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L2M4','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L2M4','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L2M4','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L2M4','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L2M4">
+        <div class="tip" id="tip-L2M4"></div>
+        <select id="lvl-L2M4" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L2M4" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L2M5">
+      <h3><span class="v" data-f="does" data-id="L2M5">Checking an answer with digit sums</span><span class="new">NEW</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L2M5">Digit sum</div>
+      <div class="skt">Navasesh (casting out nines)</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L2M5">Any addition or multiplication. Reduce each number to a single digit and the check must agree.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L2M5">It shows an answer is wrong, never that it is certainly right.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L2M5">234 × 3 = 702
+Digit sums: 234 → 9, 3 → 3, 9 × 3 = 27 → 9
+702 → 9. They agree.</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">234 x 3 = 702 → 9 and 9</div><div class="eg">47 + 58 = 105 → 6 and 6</div></div>
+      
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L2M5">Believing the answer must be right because the check passed.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L2M5">A way of catching a mistake, not of proving correctness.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L2M5','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L2M5','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L2M5','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L2M5','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L2M5">
+        <div class="tip" id="tip-L2M5"></div>
+        <select id="lvl-L2M5" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L2M5" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" style="border-style:dashed;">
+      <h3 style="font-size:.93rem;color:#8892A4;">Still anything missing from Level 2?</h3>
+      <textarea id="t-L2ADD"></textarea>
+    </div>
+  </div>
+
+  <div class="lvl">
+    <span class="tag">LEVEL 3 &middot; about 2 months</span>
+    <h2>Multiplication I</h2>
+    <div class="focus">The general method, and the special ones that beat it</div>
+    <div class="out"><strong>By the end:</strong> Multiply any two two-digit numbers in one line, square anything ending in 5, and choose sensibly between methods.</div>
+
+    <div class="m" id="m-L3M0">
+      <h3><span class="v" data-f="does" data-id="L3M0">Multiplying any two numbers, whatever they are</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L3M0">Vertically and crosswise</div>
+      <div class="skt">Urdhva-Tiryagbhyam</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L3M0">Any two numbers of any size. The general method that always works.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L3M0">It always applies — but when a special method fits, that one is quicker.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L3M0">23 × 41
+Units: 3 × 1 = 3
+Cross: (2×1)+(3×4) = 14 → write 4 carry 1
+Tens: 2×4 = 8, plus 1 = 9
+Answer 943</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">23 x 41 = 943</div><div class="eg">36 x 74 = 2664</div><div class="eg">52 x 63 = 3276</div><div class="eg">47 x 58 = 2726</div></div>
+      
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L3M0">Losing a carry from the crosswise step.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L3M0">Introduce without carrying, then one carry, then freely.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L3M0','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L3M0','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L3M0','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L3M0','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L3M0">
+        <div class="tip" id="tip-L3M0"></div>
+        <select id="lvl-L3M0" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L3M0" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L3M1">
+      <h3><span class="v" data-f="does" data-id="L3M1">Multiplying a three-digit number by a two-digit number</span><span class="new">NEW</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L3M1">Three by two</div>
+      <div class="skt">Urdhva-Tiryagbhyam</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L3M1">Any three-digit number times a two-digit one, by the same crosswise pattern.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L3M1">&mdash;</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L3M1">234 × 12
+The same crosswise steps, four of them instead of three.</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">234 x 12 = 2808</div><div class="eg">512 x 34 = 17408</div><div class="eg">407 x 23 = 9361</div></div>
+      
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L3M1">Missing one of the middle crosswise pairs.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L3M1">Only after two by two is fluent.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L3M1','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L3M1','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L3M1','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L3M1','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L3M1">
+        <div class="tip" id="tip-L3M1"></div>
+        <select id="lvl-L3M1" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L3M1" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L3M2">
+      <h3><span class="v" data-f="does" data-id="L3M2">Squaring any number ending in 5</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L3M2">One more than the one before</div>
+      <div class="skt">Ekadhikena Purvena</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L3M2">Only numbers ending in 5, being squared. 25², 65², 115².</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L3M2">Not for numbers ending in anything else, and not for two different numbers.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L3M2">65²
+Take the 6, multiply by one more: 6 × 7 = 42
+Write 25 after it
+Answer 4225</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">25 x 25 = 625</div><div class="eg">65 x 65 = 4225</div><div class="eg">95 x 95 = 9025</div><div class="eg">115 x 115 = 13225</div></div>
+      <div class="fld"><div class="k">Should not be used on</div><div class="eg bad">64 x 64</div><div class="eg bad">65 x 75</div></div>
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L3M2">Using it for 65 × 75, where both end in 5 but are different numbers.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L3M2">Must end in 5 AND be squared. Never generate a sum where only one condition holds.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L3M2','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L3M2','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L3M2','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L3M2','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L3M2">
+        <div class="tip" id="tip-L3M2"></div>
+        <select id="lvl-L3M2" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L3M2" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L3M3">
+      <h3><span class="v" data-f="does" data-id="L3M3">Multiplying two numbers with the same tens digit whose units add to 10</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L3M3">Same first, friends after</div>
+      <div class="skt">Antyayordashake'pi</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L3M3">43 × 47 — same tens digit, units summing to 10. Also 62 × 68, 91 × 99.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L3M3">If the tens digits differ, or the units do not add to 10.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L3M3">43 × 47
+Tens digit 4, times one more: 4 × 5 = 20
+Units: 3 × 7 = 21
+Answer 2021</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">43 x 47 = 2021</div><div class="eg">62 x 68 = 4216</div><div class="eg">91 x 99 = 9009</div><div class="eg">24 x 26 = 624</div></div>
+      <div class="fld"><div class="k">Should not be used on</div><div class="eg bad">43 x 57</div><div class="eg bad">43 x 46</div></div>
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L3M3">Writing the units product as one digit — 91 × 99 needs 09.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L3M3">Both conditions exactly. The right-hand part always fills two digits.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L3M3','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L3M3','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L3M3','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L3M3','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L3M3">
+        <div class="tip" id="tip-L3M3"></div>
+        <select id="lvl-L3M3" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L3M3" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L3M4">
+      <h3><span class="v" data-f="does" data-id="L3M4">Choosing which method fits a sum</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L3M4">Which method?</div>
+      
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L3M4">Any multiplication. The child looks at the numbers and decides before starting.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L3M4">&mdash;</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L3M4">Ends in 5 and squared? One more than before.
+Same tens, units make 10? That method.
+Otherwise vertically and crosswise.</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">65 x 65 → ekadhikena</div><div class="eg">43 x 47 → antyayor</div><div class="eg">36 x 74 → urdhva</div></div>
+      
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L3M4">Reaching for a special method when the numbers do not fit it.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L3M4">An exercise type in its own right — a mixed page where the child names the method first.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L3M4','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L3M4','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L3M4','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L3M4','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L3M4">
+        <div class="tip" id="tip-L3M4"></div>
+        <select id="lvl-L3M4" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L3M4" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" style="border-style:dashed;">
+      <h3 style="font-size:.93rem;color:#8892A4;">Still anything missing from Level 3?</h3>
+      <textarea id="t-L3ADD"></textarea>
+    </div>
+  </div>
+
+  <div class="lvl">
+    <span class="tag">LEVEL 4 &middot; about 2 months</span>
+    <h2>Base multiplication</h2>
+    <div class="focus">Multiplying near a base, below it and above it</div>
+    <div class="out"><strong>By the end:</strong> Multiply any two numbers close to 100 or 1000, below or above the base, and near a working base such as 50.</div>
+
+    <div class="m" id="m-L4M0">
+      <h3><span class="v" data-f="does" data-id="L4M0">Multiplying two numbers close to a base</span><span class="new">NEW</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L4M0">Base method</div>
+      <div class="skt">Nikhilam Navatashcaramam Dashatah</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L4M0">Both numbers close to a base — 100 works best. Below it (97 × 96), above it (104 × 105), or one of each.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L4M0">If either number is far from the base, this is more work than long multiplication.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L4M0">97 × 96
+Below 100 by 3 and 4
+Cross-subtract: 97 − 4 = 93
+Differences: 3 × 4 = 12
+Answer 9312
+
+104 × 105
+Above 100 by 4 and 5
+Cross-add: 104 + 5 = 109
+Differences: 4 × 5 = 20
+Answer 10920</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">97 x 96 = 9312</div><div class="eg">88 x 91 = 8008</div><div class="eg">104 x 105 = 10920</div><div class="eg">112 x 103 = 11536</div></div>
+      <div class="fld"><div class="k">Should not be used on</div><div class="eg bad">43 x 61</div><div class="eg bad">23 x 41</div></div>
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L4M0">Not padding the right-hand side — 98 × 97 gives 06, so 9506 not 956.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L4M0">Both numbers within about 12 of the base. The right part fills as many digits as the base has zeros.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L4M0','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L4M0','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L4M0','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L4M0','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L4M0">
+        <div class="tip" id="tip-L4M0"></div>
+        <select id="lvl-L4M0" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L4M0" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L4M1">
+      <h3><span class="v" data-f="does" data-id="L4M1">Multiplying near a base that is not a power of ten</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L4M1">Working base</div>
+      <div class="skt">Anurupyena</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L4M1">Numbers near 50, 200, 250, 500 — a convenient multiple of a power of ten.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L4M1">If no convenient working base is near, use vertically and crosswise.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L4M1">48 × 47, working base 50
+Differences −2 and −3
+Cross-subtract: 48 − 3 = 45
+Times the ratio: 45 × 5 = 225
+Differences: 2 × 3 = 06
+Answer 2256</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">48 x 47 = 2256</div><div class="eg">52 x 54 = 2808</div><div class="eg">203 x 204 = 41412</div></div>
+      <div class="fld"><div class="k">Should not be used on</div><div class="eg bad">23 x 41</div></div>
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L4M1">Forgetting to multiply the left part by the ratio between the working base and the power of ten.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L4M1">Both numbers within about 5 of the working base.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L4M1','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L4M1','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L4M1','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L4M1','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L4M1">
+        <div class="tip" id="tip-L4M1"></div>
+        <select id="lvl-L4M1" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L4M1" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" style="border-style:dashed;">
+      <h3 style="font-size:.93rem;color:#8892A4;">Still anything missing from Level 4?</h3>
+      <textarea id="t-L4ADD"></textarea>
+    </div>
+  </div>
+
+  <div class="lvl">
+    <span class="tag">LEVEL 5 &middot; about 2 months</span>
+    <h2>Squares and cubes</h2>
+    <div class="focus">Squaring and cubing anything, and larger crosswise work</div>
+    <div class="out"><strong>By the end:</strong> Square any two-digit number, cube small numbers, and multiply three-digit numbers together.</div>
+
+    <div class="m" id="m-L5M0">
+      <h3><span class="v" data-f="does" data-id="L5M0">Multiplying three-digit and larger numbers</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L5M0">Vertically and crosswise, extended</div>
+      <div class="skt">Urdhva-Tiryagbhyam</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L5M0">Any two numbers of three or more digits.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L5M0">&mdash;</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L5M0">The same crosswise pattern with more steps — five for 3 × 3.</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">123 x 456 = 56088</div><div class="eg">234 x 321 = 75114</div><div class="eg">512 x 316 = 161792</div></div>
+      
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L5M0">Missing one of the crosswise pairs in the middle.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L5M0">Only after three by two is fluent.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L5M0','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L5M0','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L5M0','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L5M0','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L5M0">
+        <div class="tip" id="tip-L5M0"></div>
+        <select id="lvl-L5M0" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L5M0" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L5M1">
+      <h3><span class="v" data-f="does" data-id="L5M1">Squaring any two-digit number</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L5M1">Duplex</div>
+      <div class="skt">Dwandwa Yoga</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L5M1">Squaring any number. The duplex of one digit is its square; of two digits, twice their product.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L5M1">For numbers ending in 5, the Level 3 method is quicker.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L5M1">43²
+Duplex of 3 = 9
+Duplex of 43 = 2 × 4 × 3 = 24
+Duplex of 4 = 16
+Assemble: 16 | 24 | 9 → 1849</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">43 x 43 = 1849</div><div class="eg">67 x 67 = 4489</div><div class="eg">28 x 28 = 784</div></div>
+      <div class="fld"><div class="k">Should not be used on</div><div class="eg bad">65 x 65</div></div>
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L5M1">Forgetting to double in the middle duplex.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L5M1">Avoid numbers ending in 5 — the Level 3 method is better and this teaches the wrong instinct.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L5M1','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L5M1','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L5M1','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L5M1','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L5M1">
+        <div class="tip" id="tip-L5M1"></div>
+        <select id="lvl-L5M1" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L5M1" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L5M2">
+      <h3><span class="v" data-f="does" data-id="L5M2">Squaring a number near a base</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L5M2">Whatever the deficiency</div>
+      <div class="skt">Yavadunam Tavadunikritya Varganca Yojayet</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L5M2">Squaring a number close to 100 or 1000. 98², 103².</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L5M2">Numbers far from a base.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L5M2">98²
+Deficiency −2
+98 − 2 = 96
+Deficiency squared: 04
+Answer 9604</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">98 x 98 = 9604</div><div class="eg">103 x 103 = 10609</div><div class="eg">94 x 94 = 8836</div></div>
+      <div class="fld"><div class="k">Should not be used on</div><div class="eg bad">43 x 43</div></div>
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L5M2">Not padding the right part to the width of the base.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L5M2">Within about 12 of the base.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L5M2','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L5M2','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L5M2','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L5M2','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L5M2">
+        <div class="tip" id="tip-L5M2"></div>
+        <select id="lvl-L5M2" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L5M2" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L5M3">
+      <h3><span class="v" data-f="does" data-id="L5M3">Cubing a two-digit number</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L5M3">Cubing</div>
+      <div class="skt">Anurupyena</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L5M3">Cubing any two-digit number, using a ratio series.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L5M3">&mdash;</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L5M3">14³
+Ratio 4/1
+Series: 1, 4, 16, 64
+Double the middle two: 8, 32
+Add and carry: 2744</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">14 cubed = 2744</div><div class="eg">12 cubed = 1728</div><div class="eg">23 cubed = 12167</div></div>
+      
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L5M3">Doubling the wrong terms in the series.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L5M3">Numbers below 30 at this level.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L5M3','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L5M3','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L5M3','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L5M3','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L5M3">
+        <div class="tip" id="tip-L5M3"></div>
+        <select id="lvl-L5M3" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L5M3" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" style="border-style:dashed;">
+      <h3 style="font-size:.93rem;color:#8892A4;">Still anything missing from Level 5?</h3>
+      <textarea id="t-L5ADD"></textarea>
+    </div>
+  </div>
+
+  <div class="lvl">
+    <span class="tag">LEVEL 6 &middot; about 2 months</span>
+    <h2>Division</h2>
+    <div class="focus">Dividing without long division</div>
+    <div class="out"><strong>By the end:</strong> Divide by numbers near a base, by numbers just above one, and by any number using the flag method.</div>
+
+    <div class="m" id="m-L6M0">
+      <h3><span class="v" data-f="does" data-id="L6M0">Dividing by a number just below a base</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L6M0">Base division</div>
+      <div class="skt">Nikhilam</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L6M0">Divisors just below 10, 100 or 1000 — 8, 9, 88, 97.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L6M0">Divisors above the base, or far from it.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L6M0">1234 ÷ 88
+Complement of 88 is 12
+Bring down and add
+Quotient 14, remainder 2</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">1234 / 88 = 14 r 2</div><div class="eg">1132 / 9 = 125 r 7</div><div class="eg">11220 / 89 = 126 r 6</div></div>
+      <div class="fld"><div class="k">Should not be used on</div><div class="eg bad">1234 / 43</div></div>
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L6M0">Using the complement wrongly when the divisor is above the base.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L6M0">Divisor below the base and within about 12 of it.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L6M0','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L6M0','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L6M0','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L6M0','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L6M0">
+        <div class="tip" id="tip-L6M0"></div>
+        <select id="lvl-L6M0" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L6M0" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L6M1">
+      <h3><span class="v" data-f="does" data-id="L6M1">Dividing by a number just above a base</span><span class="new">NEW</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L6M1">Transpose and apply</div>
+      <div class="skt">Paravartya Yojayet</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L6M1">Divisors just above a base — 12, 13, 112.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L6M1">Divisors below the base, where base division is better.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L6M1">1234 ÷ 12
+Transpose 12 → −2
+Bring down, multiply, add
+Quotient 102, remainder 10</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">1234 / 12 = 102 r 10</div><div class="eg">2341 / 13 = 180 r 1</div></div>
+      <div class="fld"><div class="k">Should not be used on</div><div class="eg bad">1234 / 88</div></div>
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L6M1">Using the wrong sign on the transposed digit.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L6M1">Divisor just above the base.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L6M1','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L6M1','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L6M1','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L6M1','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L6M1">
+        <div class="tip" id="tip-L6M1"></div>
+        <select id="lvl-L6M1" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L6M1" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L6M2">
+      <h3><span class="v" data-f="does" data-id="L6M2">Dividing by any number using a flag digit</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L6M2">Straight division</div>
+      <div class="skt">Dhwajanka (on top of the flag)</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L6M2">Any divisor. The last digit becomes the flag and the rest divides.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L6M2">&mdash;</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L6M2">2695 ÷ 32
+Flag the 2, divide by 3
+Subtract the cross product each step
+Quotient 84, remainder 7</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">2695 / 32 = 84 r 7</div><div class="eg">4321 / 21 = 205 r 16</div><div class="eg">1234 / 41 = 30 r 4</div></div>
+      
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L6M2">Forgetting to subtract the flag product before the next division.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L6M2">Start with two-digit divisors where the first digit divides cleanly.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L6M2','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L6M2','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L6M2','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L6M2','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L6M2">
+        <div class="tip" id="tip-L6M2"></div>
+        <select id="lvl-L6M2" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L6M2" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" style="border-style:dashed;">
+      <h3 style="font-size:.93rem;color:#8892A4;">Still anything missing from Level 6?</h3>
+      <textarea id="t-L6ADD"></textarea>
+    </div>
+  </div>
+
+  <div class="lvl">
+    <span class="tag">LEVEL 7 &middot; about 2 months</span>
+    <h2>Roots</h2>
+    <div class="focus">Working backwards from squares and cubes</div>
+    <div class="out"><strong>By the end:</strong> Find the square root and cube root of any perfect square or cube by inspection.</div>
+
+    <div class="m" id="m-L7M0">
+      <h3><span class="v" data-f="does" data-id="L7M0">Finding the square root of a perfect square</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L7M0">Square roots</div>
+      <div class="skt">Vilokanam / Dwandwa Yoga</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L7M0">Perfect squares. The last digit and the leading pair narrow it to one answer.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L7M0">Not for numbers that are not perfect squares — that needs the full duplex method.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L7M0">√1849
+Pairs: 18 | 49
+Largest square under 18 is 16, so first digit 4
+Last digit 9 → root ends in 3 or 7
+43² = 1849, so 43</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">root 1849 = 43</div><div class="eg">root 4489 = 67</div><div class="eg">root 7396 = 86</div><div class="eg">root 5776 = 76</div></div>
+      <div class="fld"><div class="k">Should not be used on</div><div class="eg bad">root 2000</div></div>
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L7M0">Choosing the wrong ending when both candidates look plausible.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L7M0">Perfect squares only.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L7M0','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L7M0','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L7M0','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L7M0','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L7M0">
+        <div class="tip" id="tip-L7M0"></div>
+        <select id="lvl-L7M0" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L7M0" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L7M1">
+      <h3><span class="v" data-f="does" data-id="L7M1">Finding the cube root of a perfect cube</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L7M1">Cube roots</div>
+      <div class="skt">Vilokanam</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L7M1">Perfect cubes up to six digits. The last digit gives the last digit of the root directly.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L7M1">Not for numbers that are not perfect cubes.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L7M1">∛12167
+Last digit 7 → root ends in 3
+First group 12 → between 2³ and 3³, so first digit 2
+Answer 23</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">cube root 12167 = 23</div><div class="eg">cube root 2744 = 14</div><div class="eg">cube root 39304 = 34</div></div>
+      
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L7M1">Forgetting that the last digits pair as 2↔8 and 3↔7.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L7M1">Perfect cubes only.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L7M1','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L7M1','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L7M1','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L7M1','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L7M1">
+        <div class="tip" id="tip-L7M1"></div>
+        <select id="lvl-L7M1" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L7M1" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" style="border-style:dashed;">
+      <h3 style="font-size:.93rem;color:#8892A4;">Still anything missing from Level 7?</h3>
+      <textarea id="t-L7ADD"></textarea>
+    </div>
+  </div>
+
+  <div class="lvl">
+    <span class="tag">LEVEL 8 &middot; about 2 months</span>
+    <h2>Fractions and algebra</h2>
+    <div class="focus">Applying the methods beyond arithmetic</div>
+    <div class="out"><strong>By the end:</strong> Turn fractions into recurring decimals, solve equations in one line, and recognise when an answer needs no working at all.</div>
+
+    <div class="m" id="m-L8M0">
+      <h3><span class="v" data-f="does" data-id="L8M0">Turning a fraction into a recurring decimal</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L8M0">Auxiliary fractions</div>
+      <div class="skt">Ekadhikena Purvena</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L8M0">Denominators ending in 9 — 1/19, 1/29 — and by extension those ending in 1, 3 or 7.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L8M0">Denominators that give a terminating decimal.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L8M0">1/19
+One more than 1 is 2
+Divide by 2 repeatedly, carrying remainders
+0.052631578947368421…</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">1/19 = 0.052631578947368421</div><div class="eg">1/29 = 0.03448275862068965517</div></div>
+      <div class="fld"><div class="k">Should not be used on</div><div class="eg bad">1/4</div><div class="eg bad">1/8</div></div>
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L8M0">Losing track of the carried remainder over a long recurrence.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L8M0">Start with 1/19, where the pattern is shortest.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L8M0','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L8M0','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L8M0','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L8M0','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L8M0">
+        <div class="tip" id="tip-L8M0"></div>
+        <select id="lvl-L8M0" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L8M0" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L8M1">
+      <h3><span class="v" data-f="does" data-id="L8M1">Solving a simple equation in one line</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L8M1">Transpose and apply</div>
+      <div class="skt">Paravartya Yojayet</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L8M1">Linear equations, and those of the form (ax + b)/(cx + d) = e.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L8M1">Quadratics and above.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L8M1">3x + 4 = 19
+Transpose: x = (19 − 4)/3 = 5</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">3x + 4 = 19 = x = 5</div><div class="eg">(x+1)/(x+3) = 1/2 = x = 1</div></div>
+      
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L8M1">Changing the sign of only one term when transposing.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L8M1">Linear equations only.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L8M1','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L8M1','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L8M1','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L8M1','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L8M1">
+        <div class="tip" id="tip-L8M1"></div>
+        <select id="lvl-L8M1" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L8M1" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" id="m-L8M2">
+      <h3><span class="v" data-f="does" data-id="L8M2">Spotting when the answer needs no working</span></h3>
+      <div class="cls v" data-f="classroom" data-id="L8M2">When the totals match</div>
+      <div class="skt">Sunyam Samyasamuccaye</div>
+      <div class="fld"><div class="k">When a child can use it</div>
+        <div class="v" data-f="applies" data-id="L8M2">When a term is common to both sides, or the totals of numerator and denominator match.</div></div>
+      <div class="fld"><div class="k">When they should not</div>
+        <div class="v" data-f="notApplies" data-id="L8M2">When no such symmetry exists.</div></div>
+      <div class="fld"><div class="k">How it is taught</div>
+        <div class="v" data-f="steps" data-id="L8M2">Where the sums of both sides are equal, x = 0.
+Where a factor is common to both, it cancels at once.</div></div>
+      <div class="fld"><div class="k">Works well on</div><div class="eg">(x+2)/(x+3) = (x+2)/(x+5) → x = -2</div></div>
+      
+      <div class="fld"><div class="k">Common mistake</div>
+        <div class="v" data-f="mistake" data-id="L8M2">Applying it where the symmetry is only apparent.</div></div>
+      <div class="guard"><strong>Rule for the app:</strong>
+        <span class="v" data-f="guardrail" data-id="L8M2">A recognition exercise, not a calculation one.</span></div>
+      <div class="verdict">
+        <button class="vb" onclick="mark('L8M2','ok',this)">&#10003; Looks right</button>
+        <button class="vb" onclick="mark('L8M2','edit',this)">&#9998; Let me correct it</button>
+        <button class="vb" onclick="mark('L8M2','drop',this)">&#10005; Not in my course</button>
+        <button class="vb" onclick="mark('L8M2','move',this)">&#8646; Wrong level</button>
+      </div>
+      <div class="extra" id="x-L8M2">
+        <div class="tip" id="tip-L8M2"></div>
+        <select id="lvl-L8M2" style="display:none;">
+          <option value="">Which level does it belong in?</option>
+          <option>Level 1</option><option>Level 2</option><option>Level 3</option>
+          <option>Level 4</option><option>Level 5</option><option>Level 6</option>
+          <option>Level 7</option><option>Level 8</option>
+        </select>
+        <textarea id="t-L8M2" placeholder="Anything else about this one"></textarea>
+      </div>
+    </div>
+
+    <div class="m" style="border-style:dashed;">
+      <h3 style="font-size:.93rem;color:#8892A4;">Still anything missing from Level 8?</h3>
+      <textarea id="t-L8ADD"></textarea>
+    </div>
+  </div>
+
+  <div class="lvl">
+    <h2>The course as a whole</h2>
+    <div class="k" style="margin-top:10px;">Does eight levels feel right now?</div>
+    <textarea id="t-COURSE"></textarea>
+  </div>
+
+  <p class="foot">
+    Your answers save as you type, on any device.<br>
+    Only the methods you touch are sent &mdash; the rest stay as approved.
+  </p>
+</div>
+
+<div id="draftStatus">Your answers save as you type</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>window.supabase = supabase;</script>
+<script src="draft-store.js"></script>
+<script>
+/* ============================================================
+   Version two, after Megha's review
+   ------------------------------------------------------------
+   Her first pass produced one content edit, no removals, and nine
+   methods moved to later levels. That told us the material was
+   right and the sequencing was mine.
+
+   Once every move was applied, Level 4 held one method and Level 5
+   held seven — both meant to take two months. She could not have
+   seen that while judging thirty methods one at a time; it only
+   appeared when they were added up. Division and roots now have a
+   level each, which is what took it to eight.
+   ============================================================ */
+
+var verdicts = {}, edits = {};
+
+var TIPS = {
+  edit: 'The words above are now editable \u2014 tap any of them and type over them in ' +
+        'your own wording. Only what you change is sent.',
+  drop: 'Noted \u2014 this will be taken out. Add a line below if it belongs elsewhere.',
+  move: 'Which level should it be in?'
+};
+
+function fields(id){ return document.querySelectorAll('.v[data-id="' + id + '"]'); }
+
+function mark(id, what, btn) {
+  verdicts[id] = what;
+  btn.parentNode.querySelectorAll('.vb').forEach(function (b) {
+    b.classList.remove('on-ok','on-ed','on-no');
+  });
+  btn.classList.add(what === 'ok' ? 'on-ok' : what === 'edit' ? 'on-ed' : 'on-no');
+
+  var card = document.getElementById('m-' + id);
+  card.classList.remove('ok','edit','gone');
+  card.classList.add(what === 'ok' ? 'ok' : what === 'drop' ? 'gone' : 'edit');
+
+  fields(id).forEach(function (el) {
+    if (what === 'edit') {
+      el.setAttribute('contenteditable','true');
+      el.dataset.original = el.dataset.original || el.textContent;
+    } else el.removeAttribute('contenteditable');
+  });
+
+  var extra = document.getElementById('x-' + id);
+  var tip   = document.getElementById('tip-' + id);
+  var lvl   = document.getElementById('lvl-' + id);
+
+  if (what === 'ok') extra.classList.remove('show');
+  else {
+    extra.classList.add('show');
+    tip.textContent = TIPS[what] || '';
+    lvl.style.display = what === 'move' ? 'block' : 'none';
+    if (what === 'edit') { var f = fields(id)[2]; if (f) f.focus(); }
+  }
+  keep();
+}
+
+document.addEventListener('input', function (ev) {
+  var el = ev.target;
+  if (el.classList && el.classList.contains('v') && el.getAttribute('contenteditable')) {
+    var id = el.dataset.id, f = el.dataset.f, now = el.textContent.trim();
+    if (now !== (el.dataset.original || '').trim()) {
+      (edits[id] = edits[id] || {})[f] = now;
+      var k = el.closest('.fld') && el.closest('.fld').querySelector('.k');
+      if (k && !k.querySelector('.changed')) {
+        var tag = document.createElement('span');
+        tag.className = 'changed'; tag.textContent = 'changed';
+        k.appendChild(tag);
+      }
+    } else if (edits[id]) delete edits[id][f];
+  }
+  keep();
+});
+
+function collect() {
+  var out = { verdicts: verdicts, edits: edits, notes: {}, moveTo: {} };
+  document.querySelectorAll('textarea').forEach(function (t) {
+    var v = t.value.trim();
+    if (v) out.notes[t.id.replace('t-','')] = v;
+  });
+  document.querySelectorAll('select[id^="lvl-"]').forEach(function (s) {
+    if (s.value) out.moveTo[s.id.replace('lvl-','')] = s.value;
+  });
+  return out;
+}
+
+function keep(){ try { Draft.save('review', 'syllabus-v2', collect()); } catch (e) {} }
+document.addEventListener('change', keep);
+
+(async function restore() {
+  try {
+    var d = (await Draft.load('review','syllabus-v2')) || {};
+    verdicts = d.verdicts || {}; edits = d.edits || {};
+    Object.keys(d.notes || {}).forEach(function (k) {
+      var t = document.getElementById('t-' + k); if (t) t.value = d.notes[k];
+    });
+    Object.keys(d.moveTo || {}).forEach(function (k) {
+      var s = document.getElementById('lvl-' + k); if (s) s.value = d.moveTo[k];
+    });
+    Object.keys(verdicts).forEach(function (id) {
+      var card = document.getElementById('m-' + id); if (!card) return;
+      var idx = { ok:0, edit:1, drop:2, move:3 }[verdicts[id]];
+      var btns = card.querySelectorAll('.vb');
+      if (btns[idx]) mark(id, verdicts[id], btns[idx]);
+    });
+    Object.keys(edits).forEach(function (id) {
+      Object.keys(edits[id]).forEach(function (f) {
+        var el = document.querySelector('.v[data-id="' + id + '"][data-f="' + f + '"]');
+        if (el) el.textContent = edits[id][f];
+      });
+    });
+  } catch (e) { console.warn(e); }
+})();
+</script>
+</body></html>

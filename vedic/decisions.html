@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vedic Maths — decisions to make</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--blue:#1565C0;--orange:#E67D21;--teal:#04949D;--green:#2E7D32;
+        --t1:#1F2430;--t2:#4A5160;--t3:#8892A4;--line:#E6E9F0;}
+  body{font-family:'Nunito',sans-serif;background:#F5F7FC;color:var(--t1);
+       line-height:1.65;padding-bottom:96px;}
+  .wrap{max-width:700px;margin:0 auto;padding:26px 20px;}
+  h1{font-size:1.55rem;font-weight:900;line-height:1.3;}
+  .lede{font-size:1rem;color:var(--t2);margin-top:10px;}
+  .why{background:#EAF2FF;border-radius:14px;padding:16px 18px;margin-top:18px;
+       font-size:.93rem;color:#0D47A1;}
+
+  .sect{font-size:.72rem;font-weight:900;letter-spacing:1.1pt;color:var(--orange);
+        text-transform:uppercase;margin:26px 0 4px;}
+
+  .q{background:#fff;border-radius:16px;padding:20px;margin-top:14px;
+     box-shadow:0 2px 10px rgba(20,30,60,.05);}
+  .q.done{border-left:4px solid var(--green);}
+  .qn{font-size:.68rem;font-weight:900;color:var(--t3);letter-spacing:.5px;}
+  .q h2{font-size:1.08rem;font-weight:900;margin:5px 0 3px;line-height:1.36;}
+  .ctx{font-size:.88rem;color:var(--t2);margin-top:6px;}
+
+  .opts{margin-top:13px;}
+  .opt{display:block;border:1.5px solid var(--line);border-radius:12px;padding:13px 15px;
+       margin-bottom:9px;cursor:pointer;position:relative;}
+  .opt:hover{border-color:#C9D4E6;}
+  .opt.sel{border-color:var(--blue);background:#F4F9FF;}
+  .opt input{position:absolute;opacity:0;}
+  .opt .lab{font-size:.96rem;font-weight:800;}
+  .opt .sub{font-size:.84rem;color:var(--t2);margin-top:3px;}
+  .rec{display:inline-block;background:#E8F5E9;color:#1B5E20;font-size:.62rem;
+       font-weight:900;padding:2px 8px;border-radius:10px;margin-left:7px;
+       letter-spacing:.4px;vertical-align:middle;}
+
+  .mine{border-left:3px solid var(--orange);background:#FFF8F0;border-radius:9px;
+        padding:11px 13px;margin-top:11px;font-size:.85rem;color:#8a4b00;}
+  .mine strong{display:block;margin-bottom:3px;}
+
+  textarea{width:100%;padding:11px 12px;border:1.5px solid var(--line);border-radius:10px;
+    font-family:inherit;font-size:.91rem;min-height:56px;margin-top:10px;}
+
+  .foot{text-align:center;font-size:.84rem;color:var(--t3);margin-top:24px;line-height:1.7;}
+  #bar{position:fixed;left:0;right:0;bottom:0;background:#fff;
+    border-top:1.5px solid var(--line);padding:11px 18px;font-size:.81rem;font-weight:800;
+    color:var(--t3);text-align:center;z-index:50;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Vedic Maths — a few things to decide</h1>
+  <p class="lede">Fourteen questions. Each one already has a suggested answer.</p>
+
+  <div class="why">
+    <strong>You do not have to write anything</strong><br>
+    Every question has an answer marked <span class="rec">SUGGESTED</span>. If you agree,
+    tap it and move on. Change the ones where you would do it differently.
+    <br><br>
+    Under each question is a note explaining <em>why</em> that answer is suggested, so you
+    can disagree with the reasoning rather than guessing at it.
+  </div>
+
+  <div id="qs"></div>
+
+  <p class="foot">
+    Your answers save as you type, on any device.<br>
+    Nothing is built until you have been through these.
+  </p>
+</div>
+
+<div id="bar">Your answers save as you type</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>window.supabase = supabase;</script>
+<script src="draft-store.js"></script>
+<script>
+/* ============================================================
+   Decisions, with a recommendation attached to each
+   ------------------------------------------------------------
+   Asking Megha open questions about the app puts the design work
+   on her, which is not her job and not where her expertise is.
+   Asking her to approve or overrule a specific suggestion is a
+   different task — quicker, and it uses what she actually knows.
+
+   The reasoning sits under each one so she can argue with the
+   reasoning rather than having to invent an answer.
+   ============================================================ */
+
+var QUESTIONS = [
+
+ { s:'How a child moves between the two',
+   q:'Will a child ever be doing Abacus and Vedic in the same week?',
+   ctx:'You said on the earlier form that both together is fine. This asks whether it is common or unusual.',
+   opts:[
+     ['Sequential','Almost always one after the other \u2014 they finish Abacus, then start Vedic', 0],
+     ['Both, sometimes','Usually one, but some children do both at once', 1],
+     ['Both, normally','Most children doing Vedic are still doing Abacus as well', 0]],
+   why:'If it is usually one at a time, the app can stay almost exactly as it is \u2014 one programme active, switched when they move on. Showing both everywhere would clutter it for the majority who only need one.' },
+
+ { s:'How a child moves between the two',
+   q:'Can a child start Vedic without finishing Abacus?',
+   ctx:'',
+   opts:[
+     ['Yes, any time','If they are old enough, they can start Vedic whenever', 0],
+     ['Yes, but not before Abacus Level 4','They need the fundamentals first', 1],
+     ['No','Abacus must be finished first', 0]],
+   why:'You said Vedic is better after some Abacus. Setting a specific point lets the app suggest it at the right moment rather than leaving it to chance.' },
+
+ { s:'How a child moves between the two',
+   q:'When a child is doing both, should their daily practice mix the two?',
+   ctx:'',
+   opts:[
+     ['Keep them separate','Abacus practice and Vedic practice are different sessions', 1],
+     ['Mix them','One session with sums from both', 0]],
+   why:'They train different things \u2014 Abacus is holding a number in mind, Vedic is choosing a method. Mixing them in one session would muddle both.' },
+
+ { s:'What a child sees',
+   q:'On the dashboard, how should the two programmes appear?',
+   ctx:'',
+   opts:[
+     ['Two cards','One card each, showing the level and what is waiting', 1],
+     ['A switcher at the top','Tap to change between them', 0],
+     ['Only the current one','With a way to change it in settings', 0]],
+   why:'Two cards means a child sees where they stand in both at a glance. A child doing only Abacus sees one card and no switcher at all.' },
+
+ { s:'What a child sees',
+   q:'Should Vedic have its own look, or match the Abacus screens?',
+   ctx:'',
+   opts:[
+     ['Match, with a different colour','Same layout, teal instead of orange, so it feels like the same app', 1],
+     ['Quite different','It should feel like a separate subject', 0],
+     ['Identical','No visual difference at all', 0]],
+   why:'A colour is enough for a child to know where they are. Two different-looking halves would feel like two apps and double the work to maintain.' },
+
+ { s:'What a child sees',
+   q:'Vedic is for 11 and up. Should it still have stickers and puzzles?',
+   ctx:'',
+   opts:[
+     ['Yes, the same','Eleven-year-olds still like collecting things', 0],
+     ['Yes, but more grown-up','Badges and streaks rather than animal stickers', 1],
+     ['No','Just progress and certificates', 0]],
+   why:'A child of eleven may find kitten stickers babyish, but taking away all reward would make Vedic feel like the dull option. Something in between seems safest.' },
+
+ { s:'What a child sees',
+   q:'Should a Vedic child see which method to use, or work it out?',
+   ctx:'Your Level 3 has "choosing which method fits" as its own topic.',
+   opts:[
+     ['Told at first, then not','Named on the page early in a level, hidden later', 1],
+     ['Always told','The page says which method to use', 0],
+     ['Never told','Choosing is always part of the exercise', 0]],
+   why:'You have made choosing a method a skill in its own right, so it cannot always be given away. But a child meeting a method for the first time needs to be told which one it is.' },
+
+ { s:'Worksheets and practice',
+   q:'Should a Vedic child have to show their working?',
+   ctx:'',
+   opts:[
+     ['Answer only','Like Abacus \u2014 they type the answer', 0],
+     ['Answer only, working on paper','They work on paper and type the answer', 1],
+     ['Working in the app','They enter the steps as well', 0]],
+   why:'Entering working in an app is slow and fiddly on a phone, and we could not mark it fairly. Paper for the working, the app for the answer, seems the honest split.' },
+
+ { s:'Worksheets and practice',
+   q:'How many sums on a Vedic practice page?',
+   ctx:'Abacus is 20 sums, 3 pages a session.',
+   opts:[
+     ['10','Vedic sums take longer to think about', 1],
+     ['20','Same as Abacus', 0],
+     ['15','Somewhere in between', 0]],
+   why:'A Vedic sum needs a decision before any working starts, so twenty of them is a much longer session than twenty abacus sums.' },
+
+ { s:'Worksheets and practice',
+   q:'Is there anything like the Abacus orals in Vedic?',
+   ctx:'',
+   opts:[
+     ['Yes, read aloud','You read a sum, they answer mentally', 1],
+     ['No','Vedic is all written', 0],
+     ['Only at higher levels','Once the methods are automatic', 0]],
+   why:'Mental speed is the point of Vedic, and reading a sum aloud is the natural way to test it. But you may teach it differently.' },
+
+ { s:'Finishing a level',
+   q:'Should Vedic use the same three gates as Abacus?',
+   ctx:'Abacus needs every worksheet done, enough practice sessions, and a test passed.',
+   opts:[
+     ['The same three','Worksheets, practice sessions, and a test', 1],
+     ['Just the test','If they pass, they move up', 0],
+     ['Something else','Described below', 0]],
+   why:'The three gates work well for Abacus and children understand them. Using the same rules means one thing to explain rather than two.' },
+
+ { s:'Finishing a level',
+   q:'Pass mark for a Vedic level test?',
+   ctx:'Abacus is 80% for every level above the first.',
+   opts:[
+     ['80%','Same as Abacus', 1],
+     ['70%','Vedic is harder', 0],
+     ['90%','A method either works or it does not', 0]],
+   why:'The same figure as Abacus, unless you find Vedic children need more room for error.' },
+
+ { s:'Your side of it',
+   q:'When making a Vedic worksheet, how should the app ask which programme?',
+   ctx:'',
+   opts:[
+     ['Two separate buttons','"Make an Abacus worksheet" and "Make a Vedic worksheet"', 1],
+     ['A dropdown at the top','One screen, choose the programme first', 0]],
+   why:'You think of them as different lessons, not a setting on the same screen. Two buttons match how you would actually decide.' },
+
+ { s:'Your side of it',
+   q:'Should certificates be per programme, or one at the end?',
+   ctx:'',
+   opts:[
+     ['One per level, per programme','An Abacus Level 3 certificate and a Vedic Level 1 certificate', 1],
+     ['One combined','A single certificate covering both', 0]],
+   why:'The levels are reached at different times, so a combined certificate would have to wait for the slower one.' }
+];
+
+var answers = {}, notes = {};
+
+function render() {
+  var host = document.getElementById('qs');
+  var last = '';
+  var html = '';
+  QUESTIONS.forEach(function (Q, i) {
+    if (Q.s !== last) { html += '<div class="sect">' + Q.s + '</div>'; last = Q.s; }
+    var id = 'q' + i;
+    html += '<div class="q' + (answers[id] !== undefined ? ' done' : '') + '" id="c-' + id + '">' +
+      '<div class="qn">QUESTION ' + (i + 1) + ' OF ' + QUESTIONS.length + '</div>' +
+      '<h2>' + Q.q + '</h2>' +
+      (Q.ctx ? '<div class="ctx">' + Q.ctx + '</div>' : '') +
+      '<div class="opts">' +
+        Q.opts.map(function (o, j) {
+          var sel = answers[id] === j;
+          return '<label class="opt' + (sel ? ' sel' : '') + '" onclick="pick(\'' + id + '\',' + j + ')">' +
+            '<input type="radio" name="' + id + '"' + (sel ? ' checked' : '') + '>' +
+            '<div class="lab">' + o[0] + (o[2] ? '<span class="rec">SUGGESTED</span>' : '') + '</div>' +
+            '<div class="sub">' + o[1] + '</div>' +
+          '</label>';
+        }).join('') +
+      '</div>' +
+      '<div class="mine"><strong>Why this is suggested</strong>' + Q.why + '</div>' +
+      '<textarea id="n-' + id + '" placeholder="Anything to add? (optional)"' +
+        ' oninput="note(\'' + id + '\', this.value)">' + (notes[id] || '') + '</textarea>' +
+    '</div>';
+  });
+  host.innerHTML = html;
+  var done = Object.keys(answers).length;
+  document.getElementById('bar').textContent =
+    done + ' of ' + QUESTIONS.length + ' answered' + (done === QUESTIONS.length ? ' \u2014 all done, thank you' : '');
+}
+
+function pick(id, j) { answers[id] = j; render(); keep(); }
+function note(id, v) { notes[id] = v; keep(); }
+
+function collect() {
+  var out = { answers: {}, notes: notes };
+  Object.keys(answers).forEach(function (id) {
+    var i = Number(id.slice(1));
+    out.answers[id] = {
+      question: QUESTIONS[i].q,
+      chose: QUESTIONS[i].opts[answers[id]][0],
+      wasSuggested: !!QUESTIONS[i].opts[answers[id]][2]
+    };
+  });
+  return out;
+}
+
+function keep() { try { Draft.save('decisions', 'ui', collect()); } catch (e) {} }
+
+(async function restore() {
+  try {
+    var d = (await Draft.load('decisions', 'ui')) || {};
+    notes = d.notes || {};
+    Object.keys(d.answers || {}).forEach(function (id) {
+      var i = Number(id.slice(1));
+      var chose = d.answers[id].chose;
+      QUESTIONS[i].opts.forEach(function (o, j) { if (o[0] === chose) answers[id] = j; });
+    });
+  } catch (e) {}
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1536,7 +1536,14 @@ async function generateStoryProblems(count, level) {
      every other activity worked.
 
      The floor now depends on which movement is being asked for. */
-  var FLOOR = { direct: 9, small: 9, big: 20 };
+  /* A formula that needs the ten can never produce an answer below it.
+     Big Friends was given a floor of 20 when Level 1 failed the same
+     way; combination was left out, so Level 3 and Level 4 — the levels
+     where combination IS the concept — asked for it at a ceiling of 9
+     and every attempt was impossible.
+
+     Anything that crosses ten belongs here. */
+  var FLOOR = { direct: 9, small: 9, big: 20, combination: 20 };
 
   var out = [], seen = {}, guard = 0;
   while (out.length < count && guard < count * 60) {

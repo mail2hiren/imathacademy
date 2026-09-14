@@ -252,9 +252,14 @@ async function saveProgrammes(studentId, prefix) {
     }
   });
 
-  /* A child in no programme at all would see an empty app, so Abacus
-     is assumed rather than leaving them with nothing. */
-  if (!wanted.length) wanted.push({ program_code: 'abacus', current_level: 0 });
+  /* Assuming Abacus was right when every child did it. Now that a
+     child can be Vedic-only, a silent default would override a
+     deliberate choice — so this refuses and says so instead. A child
+     in no programme would see an empty app, which is worth stopping
+     loudly rather than papering over. */
+  if (!wanted.length) {
+    throw new Error('Please choose at least one programme \u2014 Abacus, Vedic, or both');
+  }
 
   for (var i = 0; i < wanted.length; i++) {
     var res = await sb.from('student_programs').upsert({

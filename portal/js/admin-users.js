@@ -224,7 +224,12 @@ async function saveEdit() {
     const updates = {
       country_code: (document.getElementById('edit-country')||{}).value || 'IN', full_name: name, email, phone: phone || null };
     if (role === 'student') {
-      updates.program       = document.getElementById('edit-program').value;
+      /* The programme dropdown is now two checkboxes. users.program
+         keeps the older single-value column meaningful for anything
+         that still reads it; student_programs is the real record. */
+      updates.program       = ((document.getElementById('edit-vedic') || {}).checked &&
+                         !(document.getElementById('edit-abacus') || {}).checked)
+                        ? 'vedic' : 'abacus';
       updates.current_level = parseInt(document.getElementById('edit-level').value);
       updates.mode          = document.getElementById('edit-mode').value;
     }

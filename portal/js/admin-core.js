@@ -423,7 +423,12 @@ async function createUser(role) {
   try {
     const payload = { email, password: pwd, full_name: name, role, phone: phone || null };
     if (role === 'student') {
-      payload.program       = document.getElementById('s-program').value;
+      /* The programme dropdown is now two checkboxes. users.program
+         keeps the older single-value column meaningful for anything
+         that still reads it; student_programs is the real record. */
+      payload.program       = ((document.getElementById('s-vedic') || {}).checked &&
+                         !(document.getElementById('s-abacus') || {}).checked)
+                        ? 'vedic' : 'abacus';
       payload.current_level = parseInt(document.getElementById('s-level').value);
       payload.date_of_birth = document.getElementById('s-dob')?.value || null;
       payload.age_group     = document.getElementById('s-agegroup')?.value || null;

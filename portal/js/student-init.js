@@ -24,49 +24,30 @@ async function init() {
     // Load profile
     const { data: profile, error } = await sb.from('users').select('*').eq('id', session.user.id).single();
 
-  /* Two cards, one per programme the child is enrolled in. A child
-     doing only Abacus sees one card and no switcher anywhere, which
-     is why this draws what they actually have rather than both. */
+  /* Load the programmes and count what is waiting. The cards
+     themselves are drawn by student-dashboard.js, because that is
+     what writes mainContent — anything inserted before it runs is
+     wiped. */
   try {
     if (typeof Programs !== 'undefined') {
       await Programs.load(session.user.id);
-      /* The container is created here rather than in the markup. The
-         earlier attempt added it next to a class that does not exist
-         on this page, so the code ran, found nothing, and silently
-         did nothing — the exact failure mode this project keeps
-         producing. */
-      var host = document.getElementById('programCards');
-      if (!host) {
-        var main = document.getElementById('mainContent');
-        if (main) {
-          host = document.createElement('div');
-          host.id = 'programCards';
-          host.style.marginBottom = '16px';
-          main.insertBefore(host, main.firstChild);
-        }
-      }
-
-      /* One card is not worth showing. A child doing only Abacus sees
-         the dashboard exactly as before — which is the point of
-         asking Megha whether both at once was common. */
-      if (host && Programs.all().length > 1) {
-        var waiting = {};
-        try {
-          var ws = await sb.from('lx_worksheets')
-            .select('program_code').eq('is_active', true)
-            .contains('student_ids', [session.user.id]);
-          (ws.data || []).forEach(function (w) {
-            var k = w.program_code || 'abacus';
-            waiting[k] = (waiting[k] || 0) + 1;
-          });
-          Object.keys(waiting).forEach(function (k) {
-            waiting[k] = waiting[k] + ' worksheet' + (waiting[k] === 1 ? '' : 's') + ' waiting';
-          });
-        } catch (e) {}
-        host.innerHTML = Programs.cardsHtml(waiting);
-      }
+      window._programWaiting = {};
+      try {
+        var ws = await sb.from('lx_worksheets')
+          .select('program_code').eq('is_active', true)
+          .contains('student_ids', [session.user.id]);
+        (ws.data || []).forEach(function (w) {
+          var k = w.program_code || 'abacus';
+          window._programWaiting[k] = (window._programWaiting[k] || 0) + 1;
+        });
+        Object.keys(window._programWaiting).forEach(function (k) {
+          var n = window._programWaiting[k];
+          window._programWaiting[k] = n + ' worksheet' + (n === 1 ? '' : 's') + ' waiting';
+        });
+      } catch (e) {}
     }
-  } catch (e) { console.warn('Could not draw the programme cards:', e.message); }
+  } catch (e) { console.warn('Could not load programmes:', e.message); }
+
     if (error || !profile) { window.location.href = '../../login.html'; return; }
 
     // Determine age group

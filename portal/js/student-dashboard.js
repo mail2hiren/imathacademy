@@ -50,6 +50,15 @@ function buildDashboard(profile, stats, group, session_user_id) {
   if (P.show.leaderboard)   blocks.push(leaderboardBlock(ctx));
   if (P.mascot)             blocks.push(mascotBlock(ctx));
 
+  /* The programme cards go in with the other blocks rather than
+     being inserted afterwards. Inserting them first and letting this
+     line run meant they appeared and then vanished — the same
+     mistake as the Vedic plan cards. */
+  if (typeof Programs !== 'undefined' && Programs.all().length > 1) {
+    blocks.unshift('<div style="margin-bottom:16px;">' +
+                   Programs.cardsHtml(window._programWaiting || {}) + '</div>');
+  }
+
   document.getElementById('mainContent').innerHTML = blocks.join('\n');
 }
 

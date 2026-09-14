@@ -131,12 +131,33 @@
               <input class="form-input" id="s-pwd" type="password" autocomplete="new-password" placeholder="Min 6 characters">
             </div>
             <div class="form-group">
-              <label class="form-label" for="s-program">Program</label>
-              <select class="form-select" id="s-program">
-                <option value="abacus">Abacus</option>
-                <option value="vedic">Vedic Maths</option>
+          <label class="form-label">Programmes</label>
+          <!-- Checkboxes, not a dropdown. A child can be doing both,
+               at different levels in each, and a single choice made
+               that impossible to express. -->
+          <div style="border:1.5px solid #E4E7F2;border-radius:11px;padding:13px;">
+            <label style="display:flex;align-items:center;gap:10px;padding:6px 0;
+                   font-size:.93rem;font-weight:800;cursor:pointer;">
+              <input type="checkbox" id="s-abacus" checked
+                     style="width:19px;height:19px;accent-color:#E67D21;">
+              <span>&#129482; Abacus</span>
+              <select id="s-abacus-level" style="margin-left:auto;width:auto;padding:7px 10px;">
               </select>
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;padding:6px 0;
+                   font-size:.93rem;font-weight:800;cursor:pointer;">
+              <input type="checkbox" id="s-vedic"
+                     style="width:19px;height:19px;accent-color:#04949D;">
+              <span>&#2384; Vedic Maths</span>
+              <select id="s-vedic-level" style="margin-left:auto;width:auto;padding:7px 10px;">
+              </select>
+            </label>
+            <div style="font-size:.74rem;color:#8892A4;margin-top:7px;line-height:1.5;">
+              Vedic Maths is for children of eleven and over. A child may do both.
             </div>
+          </div>
+        </div>
+        
             <div class="form-group">
           <label class="form-label">Country</label>
           <select id="s-country">
@@ -807,12 +828,33 @@
       <div id="edit-student-fields" style="display:none">
         <div class="form-grid" style="margin-top:0">
           <div class="form-group">
-            <label class="form-label" for="edit-program">Program</label>
-            <select class="form-select" id="edit-program">
-              <option value="abacus">Abacus</option>
-              <option value="vedic">Vedic Maths</option>
-            </select>
+          <label class="form-label">Programmes</label>
+          <!-- Checkboxes, not a dropdown. A child can be doing both,
+               at different levels in each, and a single choice made
+               that impossible to express. -->
+          <div style="border:1.5px solid #E4E7F2;border-radius:11px;padding:13px;">
+            <label style="display:flex;align-items:center;gap:10px;padding:6px 0;
+                   font-size:.93rem;font-weight:800;cursor:pointer;">
+              <input type="checkbox" id="edit-abacus" checked
+                     style="width:19px;height:19px;accent-color:#E67D21;">
+              <span>&#129482; Abacus</span>
+              <select id="edit-abacus-level" style="margin-left:auto;width:auto;padding:7px 10px;">
+              </select>
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;padding:6px 0;
+                   font-size:.93rem;font-weight:800;cursor:pointer;">
+              <input type="checkbox" id="edit-vedic"
+                     style="width:19px;height:19px;accent-color:#04949D;">
+              <span>&#2384; Vedic Maths</span>
+              <select id="edit-vedic-level" style="margin-left:auto;width:auto;padding:7px 10px;">
+              </select>
+            </label>
+            <div style="font-size:.74rem;color:#8892A4;margin-top:7px;line-height:1.5;">
+              Vedic Maths is for children of eleven and over. A child may do both.
+            </div>
           </div>
+        </div>
+        
           <div class="form-group">
           <label class="form-label">Country</label>
           <select id="edit-country">

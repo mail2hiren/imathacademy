@@ -220,6 +220,64 @@ async function fillCountrySelects() {
   });
 }
 
+/* The programme level dropdowns are separate from the plain level
+   ones: Abacus runs L0 to L8, Vedic L1 to L8, and they are different
+   levels with the same names. */
+async function fillProgramLevels() {
+  var ranges = { abacus: [0, 8], vedic: [1, 8] };
+  ['s', 'edit'].forEach(function (pref) {
+    Object.keys(ranges).forEach(function (prog) {
+      var el = document.getElementById(pref + '-' + prog + '-level');
+      if (!el) return;
+      var keep = el.value;
+      var lo = ranges[prog][0], hi = ranges[prog][1];
+      var html = '';
+      for (var i = lo; i <= hi; i++) html += '<option value="' + i + '">Level ' + i + '</option>';
+      el.innerHTML = html;
+      if (keep !== '' && el.querySelector('option[value="' + keep + '"]')) el.value = keep;
+      else el.value = String(lo);
+    });
+  });
+}
+
+/* Writing which programmes a child is in. Called after the student
+   row exists, since it needs their id. */
+async function saveProgrammes(studentId, prefix) {
+  var wanted = [];
+  ['abacus', 'vedic'].forEach(function (prog) {
+    var on = document.getElementById(prefix + '-' + prog);
+    if (on && on.checked) {
+      var lv = document.getElementById(prefix + '-' + prog + '-level');
+      wanted.push({ program_code: prog, current_level: parseInt(lv ? lv.value : 0, 10) || 0 });
+    }
+  });
+
+  /* A child in no programme at all would see an empty app, so Abacus
+     is assumed rather than leaving them with nothing. */
+  if (!wanted.length) wanted.push({ program_code: 'abacus', current_level: 0 });
+
+  for (var i = 0; i < wanted.length; i++) {
+    var res = await sb.from('student_programs').upsert({
+      student_id: studentId,
+      program_code: wanted[i].program_code,
+      current_level: wanted[i].current_level,
+      is_active: true,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'student_id,program_code' }).select();
+    // .select() so a blocked write does not pass for a save
+    if (res.error) throw res.error;
+    if (!res.data || !res.data.length) throw new Error('Programmes were not saved');
+  }
+
+  // anything unticked is retired rather than deleted, so history survives
+  var keep = wanted.map(function (w) { return w.program_code; });
+  var drop = ['abacus', 'vedic'].filter(function (p) { return keep.indexOf(p) < 0; });
+  if (drop.length) {
+    await sb.from('student_programs').update({ is_active: false })
+      .eq('student_id', studentId).in('program_code', drop);
+  }
+}
+
 async function fillLevelSelects() {
   const levels = await loadCurriculumLevels();
   if (!levels.length) return;   // leave whatever is there rather than empty it
@@ -285,6 +343,7 @@ async function loadAll() {
   populateDropdowns();
   await fillLevelSelects();
   await fillCountrySelects();
+  await fillProgramLevels();
 
   // Recent activity
   const { data: notifs } = await sb.from('notifications').select('title,created_at').order('created_at', { ascending: false }).limit(8);

@@ -181,6 +181,25 @@ function openEdit(id) {
     // ReferenceError stopped the modal from opening at all.
     var ctry = document.getElementById('edit-country');
     if (ctry) ctry.value = user.country_code || 'IN';
+
+    /* Show what they are actually in, rather than the defaults —
+       otherwise opening a Vedic child's record and saving would
+       quietly take Vedic away from them. */
+    (async function () {
+      try {
+        var pr = await sb.from('student_programs')
+          .select('program_code, current_level, is_active')
+          .eq('student_id', user.id);
+        var rows = (pr.data || []).filter(function (r) { return r.is_active; });
+        ['abacus', 'vedic'].forEach(function (prog) {
+          var box = document.getElementById('edit-' + prog);
+          var lvl = document.getElementById('edit-' + prog + '-level');
+          var row = rows.filter(function (r) { return r.program_code === prog; })[0];
+          if (box) box.checked = !!row;
+          if (lvl && row) lvl.value = String(row.current_level);
+        });
+      } catch (e) { console.warn('Could not read programmes:', e.message); }
+    })();
     document.getElementById('edit-level').value = user.current_level ?? 0;
     document.getElementById('edit-mode').value    = user.mode || 'online';
   }
@@ -222,6 +241,14 @@ async function saveEdit() {
         await loadAll();
         return;
       }
+    }
+
+    try {
+      if (typeof saveProgrammes === 'function' && updates && editingRole === 'student') {
+        await saveProgrammes(id, 'edit');
+      }
+    } catch (e) {
+      toast('Saved, but the programmes did not: ' + e.message, 'error');
     }
 
     toast('✅ User updated!', 'success');
@@ -328,6 +355,19 @@ async function addStudentToBatch() {
       if (error.message.includes('duplicate')) throw new Error('Student is already in this batch');
       throw error;
     }
+    /* The programmes have to be written after the student row exists,
+    since they key off their id. A child with no programme row sees an
+    empty app, so this is not optional. */
+    try {
+      var newId = (data && data.user_id) || (data && data.id) ||
+                  (res && res.data && res.data[0] && res.data[0].id);
+      if (newId && typeof saveProgrammes === 'function') {
+        await saveProgrammes(newId, 's');
+      }
+    } catch (e) {
+      toast('Student created, but the programmes did not save: ' + e.message, 'error');
+    }
+
     toast('✅ Student added to batch!', 'success');
     await loadAll(); renderBatches();
   } catch(err) { toast('❌ ' + err.message, 'error'); }

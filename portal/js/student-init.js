@@ -23,6 +23,32 @@ async function init() {
 
     // Load profile
     const { data: profile, error } = await sb.from('users').select('*').eq('id', session.user.id).single();
+
+  /* Two cards, one per programme the child is enrolled in. A child
+     doing only Abacus sees one card and no switcher anywhere, which
+     is why this draws what they actually have rather than both. */
+  try {
+    if (typeof Programs !== 'undefined') {
+      await Programs.load(session.user.id);
+      var host = document.getElementById('programCards');
+      if (host && Programs.all().length) {
+        var waiting = {};
+        try {
+          var ws = await sb.from('lx_worksheets')
+            .select('program_code').eq('is_active', true)
+            .contains('student_ids', [session.user.id]);
+          (ws.data || []).forEach(function (w) {
+            var k = w.program_code || 'abacus';
+            waiting[k] = (waiting[k] || 0) + 1;
+          });
+          Object.keys(waiting).forEach(function (k) {
+            waiting[k] = waiting[k] + ' worksheet' + (waiting[k] === 1 ? '' : 's') + ' waiting';
+          });
+        } catch (e) {}
+        host.innerHTML = Programs.cardsHtml(waiting);
+      }
+    }
+  } catch (e) { console.warn('Could not draw the programme cards:', e.message); }
     if (error || !profile) { window.location.href = '../../login.html'; return; }
 
     // Determine age group

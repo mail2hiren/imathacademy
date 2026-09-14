@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vedic Maths — iMath Academy</title>
+<link rel="icon" type="image/png" href="/assets/icon-32.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    /* Megha asked for the same screens in a different colour, not a
+       separate-looking app. Only these three change. */
+    --program:#04949D; --program-soft:#E7F6F7; --program-ink:#04616a;
+    --t1:#1F2430; --t2:#4A5160; --t3:#8892A4; --line:#E6E9F0;
+  }
+  body{font-family:'Nunito',sans-serif;background:#F5F7FC;color:var(--t1);
+       line-height:1.6;-webkit-font-smoothing:antialiased;padding-bottom:40px;}
+  .top{background:#fff;border-bottom:1.5px solid var(--line);padding:12px 16px;
+       display:flex;align-items:center;gap:11px;position:sticky;top:0;z-index:10;}
+  .top a.back{color:var(--t3);text-decoration:none;font-size:1.3rem;}
+  .top .who{font-size:.98rem;font-weight:900;}
+  .top .xp{margin-left:auto;background:var(--program-soft);color:var(--program-ink);
+           border-radius:20px;padding:5px 12px;font-size:.78rem;font-weight:900;}
+
+  .wrap{max-width:640px;margin:0 auto;padding:16px 14px;}
+
+  .hero{background:linear-gradient(135deg,var(--program),#40A9A2);border-radius:20px;
+        padding:22px;color:#fff;position:relative;overflow:hidden;}
+  .hero .om{position:absolute;right:-10px;top:-20px;font-size:7rem;opacity:.13;}
+  .hero .lv{font-size:.74rem;font-weight:900;letter-spacing:1pt;opacity:.9;}
+  .hero h1{font-size:1.5rem;font-weight:900;margin-top:4px;line-height:1.25;}
+  .hero .focus{font-size:.9rem;opacity:.95;margin-top:6px;}
+  .dots{margin-top:14px;}
+  .dots i{display:inline-block;width:9px;height:9px;border-radius:50%;
+          margin-right:5px;background:rgba(255,255,255,.35);}
+  .dots i.on{background:#fff;}
+  .dots i.now{background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.25);}
+
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:14px;}
+  @media (max-width:420px){ .row{grid-template-columns:1fr;} }
+
+  .tile{background:#fff;border:1.5px solid var(--line);border-radius:16px;
+        padding:16px;text-decoration:none;color:inherit;display:block;}
+  .tile:active{transform:translateY(1px);}
+  .tile .ic{font-size:1.5rem;}
+  .tile h2{font-size:1rem;font-weight:900;margin-top:7px;}
+  .tile p{font-size:.8rem;color:var(--t2);margin-top:3px;line-height:1.5;}
+  .tile .badge{display:inline-block;background:var(--program-soft);
+               color:var(--program-ink);border-radius:20px;padding:3px 9px;
+               font-size:.7rem;font-weight:900;margin-top:8px;}
+
+  .learn{background:#fff;border:1.5px solid var(--line);border-radius:16px;
+         padding:17px;margin-top:14px;}
+  .learn h2{font-size:.72rem;font-weight:900;letter-spacing:.8pt;color:var(--t3);
+            text-transform:uppercase;}
+  .meth{display:flex;align-items:flex-start;gap:10px;padding:10px 0;
+        border-bottom:1px solid var(--line);}
+  .meth:last-child{border-bottom:none;}
+  .meth .n{width:24px;height:24px;border-radius:50%;background:var(--program-soft);
+           color:var(--program-ink);font-size:.72rem;font-weight:900;flex-shrink:0;
+           display:flex;align-items:center;justify-content:center;}
+  .meth .b{flex:1;min-width:0;}
+  .meth .b strong{font-size:.92rem;font-weight:800;display:block;}
+  .meth .b span{font-size:.79rem;color:var(--t3);}
+
+  .streak{background:var(--program-soft);border-radius:16px;padding:15px 17px;
+          margin-top:14px;display:flex;align-items:center;gap:13px;}
+  .streak .big{font-size:1.8rem;font-weight:900;color:var(--program-ink);line-height:1;}
+  .streak .lab{font-size:.82rem;color:var(--program-ink);font-weight:800;}
+
+  .empty{text-align:center;padding:34px 18px;color:var(--t3);font-size:.9rem;}
+  .spin{width:26px;height:26px;border:3px solid var(--line);
+        border-top-color:var(--program);border-radius:50%;margin:36px auto;
+        animation:sp .7s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="back" href="dashboard.html">&larr;</a>
+  <span class="who" id="who">Vedic Maths</span>
+  <span class="xp" id="xp">&#9889; 0 XP</span>
+</div>
+
+<div class="wrap" id="body"><div class="spin"></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/programs.js"></script>
+<script src="../js/sutra-rules.js"></script>
+<script src="../js/vedic-gen.js"></script>
+<script src="../js/vedic-steps.js"></script>
+<script src="../js/vedic-engine.js"></script>
+<script>
+/* ============================================================
+   The Vedic home screen
+   ------------------------------------------------------------
+   Deliberately the same shape as the Abacus dashboard, in teal
+   instead of orange. Megha was clear she did not want two
+   different-looking halves.
+
+   The rewards are the grown-up kind she asked for — a streak and
+   badges rather than animal stickers, since these children are
+   eleven and up.
+   ============================================================ */
+
+var SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+var me = null, level = 1, levelRow = null;
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+async function init() {
+  var s = await sb.auth.getSession();
+  if (!s.data.session) { location.href = '../../login.html'; return; }
+  me = s.data.session.user.id;
+
+  var prof = await sb.from('users').select('full_name, current_level').eq('id', me).single();
+  document.getElementById('who').textContent =
+    (prof.data && prof.data.full_name ? prof.data.full_name.split(' ')[0] + ' \u00b7 ' : '') + 'Vedic Maths';
+
+  await Programs.load(me);
+  Programs.setCurrent('vedic');
+  Programs.applyTheme();
+
+  /* A child who is not enrolled in Vedic should be told so plainly,
+     not shown an empty screen. Megha's rule is age 11 and over. */
+  var lv = Programs.levelIn('vedic');
+  if (lv === null) {
+    document.getElementById('body').innerHTML =
+      '<div class="empty"><div style="font-size:2.6rem;">\u0950</div>' +
+      '<div style="font-size:1.1rem;font-weight:900;color:#1F2430;margin-top:10px;">' +
+        'You have not started Vedic Maths yet</div>' +
+      '<div style="margin-top:8px;line-height:1.65;">Ask your teacher about it \u2014 ' +
+        'it is for children of eleven and over.</div>' +
+      '<a href="dashboard.html" style="display:inline-block;margin-top:18px;' +
+        'padding:12px 22px;border-radius:12px;background:var(--program);color:#fff;' +
+        'text-decoration:none;font-weight:900;">Back to Abacus</a></div>';
+    return;
+  }
+  level = lv;
+
+  // What this level is about, from the curriculum rather than in code
+  var lr = await sb.from('curriculum_levels')
+    .select('level_name, core_focus, guardrail_notes')
+    .eq('program_code', 'vedic').eq('level_code', 'L' + level).maybeSingle();
+  levelRow = lr.data || {};
+
+  var cfg = VedicEngine.LEVELS[level] || {};
+  var methods = (cfg.introduces || []).map(function (k) {
+    return Sutras.METHODS[k];
+  }).filter(Boolean);
+
+  // Work waiting, and the streak
+  var ws = await sb.from('lx_worksheets')
+    .select('id').eq('program_code', 'vedic').eq('is_active', true)
+    .contains('student_ids', [me]);
+  var waiting = (ws.data || []).length;
+
+  var sess = await sb.from('practice_sessions')
+    .select('created_at').eq('student_id', me).eq('program_code', 'vedic')
+    .order('created_at', { ascending: false }).limit(30);
+  var streak = runOfDays((sess.data || []).map(function (r) { return r.created_at; }));
+
+  var total = 8;
+  var dots = '';
+  for (var i = 1; i <= total; i++) {
+    dots += '<i class="' + (i < level ? 'on' : i === level ? 'now' : '') + '"></i>';
+  }
+
+  document.getElementById('body').innerHTML =
+    '<div class="hero"><div class="om">\u0950</div>' +
+      '<div class="lv">LEVEL ' + level + ' OF 8</div>' +
+      '<h1>' + esc(levelRow.level_name || cfg.name || '') + '</h1>' +
+      '<div class="focus">' + esc(levelRow.core_focus || cfg.focus || '') + '</div>' +
+      '<div class="dots">' + dots + '</div>' +
+    '</div>' +
+
+    '<div class="row">' +
+      '<a class="tile" href="vedic-practice.html">' +
+        '<div class="ic">\u26A1</div><h2>Practice</h2>' +
+        '<p>Ten sums, with the steps shown while a method is new.</p>' +
+      '</a>' +
+      '<a class="tile" href="worksheets.html?program=vedic">' +
+        '<div class="ic">\uD83D\uDCDD</div><h2>Worksheets</h2>' +
+        '<p>Set by your teacher.</p>' +
+        (waiting ? '<span class="badge">' + waiting + ' waiting</span>' : '') +
+      '</a>' +
+    '</div>' +
+
+    (streak > 1
+      ? '<div class="streak"><div class="big">' + streak + '</div>' +
+        '<div class="lab">day' + (streak === 1 ? '' : 's') + ' in a row<br>' +
+        '<span style="font-weight:700;opacity:.85;">Keep it going</span></div></div>'
+      : '') +
+
+    '<div class="learn"><h2>What you are learning now</h2>' +
+      (methods.length
+        ? methods.map(function (m, i) {
+            return '<div class="meth"><div class="n">' + (i + 1) + '</div>' +
+              '<div class="b"><strong>' + esc(m.label) + '</strong>' +
+              '<span>' + esc(shortWhen(m)) + '</span></div></div>';
+          }).join('')
+        : '<div style="font-size:.86rem;color:var(--t3);padding:8px 0;">' +
+          'This level is still being written.</div>') +
+    '</div>' +
+
+    '<div class="row" style="margin-top:14px;">' +
+      '<a class="tile" href="vedic-methods.html">' +
+        '<div class="ic">\uD83D\uDCD8</div><h2>The methods</h2>' +
+        '<p>How each one works, with examples.</p></a>' +
+      '<a class="tile" href="progress.html?program=vedic">' +
+        '<div class="ic">\uD83D\uDCC8</div><h2>Progress</h2>' +
+        '<p>How you are getting on.</p></a>' +
+    '</div>';
+
+  // XP for this programme only
+  var xp = await sb.from('practice_sessions')
+    .select('xp_earned').eq('student_id', me).eq('program_code', 'vedic');
+  var totalXp = (xp.data || []).reduce(function (a, r) { return a + (r.xp_earned || 0); }, 0);
+  document.getElementById('xp').textContent = '\u26A1 ' + totalXp + ' XP';
+}
+
+/* A plain-words version of when a method applies, short enough for
+   a line on the card. */
+function shortWhen(m) {
+  var s = String(m.applies ? '' : '');
+  var map = {
+    'All from 9, last from 10': 'Taking a number from 100 or 1000',
+    'Friends / complement': 'What a number needs to reach a base',
+    'Doubling': 'Doubling any number',
+    'Halving': 'Halving an even number',
+    'Stacking': 'Plain addition, written down',
+    'Split and merge': 'Adding something near a ten',
+    'Add the neighbour': 'Multiplying by 11',
+    'Vertically and crosswise': 'Multiplying anything at all',
+    'Digit sum': 'Checking an answer',
+    'One more than the one before': 'Squaring a number ending in 5',
+    'Same first, friends after': 'Same tens, units making 10',
+    'Base method': 'Two numbers close to 100',
+    'Working base': 'Two numbers close to 50 or 200',
+    'Duplex': 'Squaring any two-digit number',
+    'Whatever the deficiency': 'Squaring a number near 100',
+    'Cubing': 'Cubing a two-digit number',
+    'Base division': 'Dividing by 9, 88, 97',
+    'Transpose and apply': 'Dividing by 12, 13, 112',
+    'Straight division': 'Dividing by anything',
+    'Square root': 'The root of a perfect square',
+    'Cube root': 'The root of a perfect cube'
+  };
+  return map[m.label] || '';
+}
+
+/* Consecutive days ending today or yesterday. A streak that broke
+   two days ago is not a streak. */
+function runOfDays(stamps) {
+  if (!stamps.length) return 0;
+  var days = {};
+  stamps.forEach(function (s) { days[new Date(s).toDateString()] = true; });
+  var n = 0, d = new Date();
+  if (!days[d.toDateString()]) d.setDate(d.getDate() - 1);
+  while (days[d.toDateString()]) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+
+init().catch(function (e) {
+  document.getElementById('body').innerHTML =
+    '<div class="empty">Could not load: ' + esc(e.message) + '</div>';
+});
+</script>
+</body>
+</html>

@@ -30,8 +30,26 @@ async function init() {
   try {
     if (typeof Programs !== 'undefined') {
       await Programs.load(session.user.id);
+      /* The container is created here rather than in the markup. The
+         earlier attempt added it next to a class that does not exist
+         on this page, so the code ran, found nothing, and silently
+         did nothing — the exact failure mode this project keeps
+         producing. */
       var host = document.getElementById('programCards');
-      if (host && Programs.all().length) {
+      if (!host) {
+        var main = document.getElementById('mainContent');
+        if (main) {
+          host = document.createElement('div');
+          host.id = 'programCards';
+          host.style.marginBottom = '16px';
+          main.insertBefore(host, main.firstChild);
+        }
+      }
+
+      /* One card is not worth showing. A child doing only Abacus sees
+         the dashboard exactly as before — which is the point of
+         asking Megha whether both at once was common. */
+      if (host && Programs.all().length > 1) {
         var waiting = {};
         try {
           var ws = await sb.from('lx_worksheets')

@@ -1,3 +1,4 @@
+var editingRole = null;   // which role the open edit form belongs to
 function renderStudents() {
   const tbody = document.getElementById('studentsTbody');
   document.getElementById('s-count').textContent = `${allStudents.length} students`;
@@ -174,9 +175,13 @@ function openEdit(id) {
   document.getElementById('edit-phone').value = user.phone || '';
   document.getElementById('editModalTitle').textContent = `Edit ${user.role}`;
   const isStudent = user.role === 'student';
+  editingRole = user.role;
   document.getElementById('edit-student-fields').style.display = isStudent ? 'block' : 'none';
   if (isStudent) {
-    document.getElementById('edit-program').value = user.program || 'abacus';
+    /* The programme dropdown became checkboxes, and this line kept
+       reading the dropdown — getElementById returned null, .value
+       threw, and the whole function died, so the edit modal never
+       opened at all. The checkboxes are filled further down. */
     // The variable here is `user`; `u` did not exist, and the
     // ReferenceError stopped the modal from opening at all.
     var ctry = document.getElementById('edit-country');

@@ -939,9 +939,21 @@ var workingAbacus  = null;   // interactive, for working a column sum
 var stepIndex = 0;
 
 function renderColumnRows(q) {
-  /* Step the size down as the column grows. Ten rows at 1.85rem does
-     not fit any phone, and cutting the bottom off a sum is worse than
-     printing it slightly smaller. */
+  /* A question flagged as a column with no rows made this throw on
+     q.rows.length. decorateCard clears the text immediately before
+     calling it, so the throw left a blank card with four answers
+     underneath — the fault a child has now reported twice.
+
+     Never throw. Show whatever text the question does have, and log
+     it so the real source can be found. */
+  if (!q || !q.rows || !q.rows.length) {
+    console.error('A column question arrived with no rows:', q);
+    var fallback = String((q && (q.text || q.question)) || '');
+    return fallback
+      ? '<div style="font-size:1.9rem;font-weight:900;">' +
+        fallback.replace(/</g, '&lt;') + '</div>'
+      : '';
+  }
   var n = q.rows.length;
   var size = n >= 10 ? '1.15rem'
            : n >= 8  ? '1.35rem'
@@ -1051,6 +1063,21 @@ function decorateCard(q) {
       }
       qEl.style.fontSize = String(shown).length > 40 ? '1.35rem' : '2.1rem';
     }
+  }
+
+  /* The last guard, whatever happened above. A child must never be
+     shown an empty card with four answers under it — better to say
+     the question did not load and let them move on. */
+  if (!q.oral && !qEl.textContent.trim() && !qEl.querySelector('*')) {
+    console.error('Card came out empty:', q);
+    qEl.innerHTML =
+      '<div style="font-size:1rem;font-weight:800;line-height:1.55;">' +
+        'This question did not load properly.<br>' +
+        '<span style="font-size:.85rem;font-weight:700;opacity:.9;">' +
+          'Tap an answer to carry on \u2014 it will not count against you.' +
+        '</span>' +
+      '</div>';
+    q.broken = true;
   }
 
   // Orals — hide the numbers and read them aloud

@@ -753,6 +753,17 @@ function engineToCard(q) {
   return card;
 }
 
+/* What makes a card fit to show a child. A column needs its rows; a
+   written question needs words; every card needs an answer. These are
+   the three ways a blank card has actually reached a child. */
+function cardIsSound(c) {
+  if (!c) return false;
+  if (c.answer === null || c.answer === undefined || c.answer === '') return false;
+  if (c.oral)   return !!(c.rows && c.rows.length);
+  if (c.column) return !!(c.rows && c.rows.length >= 2);
+  return !!String(c.text || c.question || '').trim();
+}
+
 async function buildEngineQuestions(profile) {
   var level = profile.current_level != null ? profile.current_level : 0;
   // Passing the child lets the engine aim at where they actually are
@@ -763,13 +774,40 @@ async function buildEngineQuestions(profile) {
   try { me = (await sb.auth.getSession()).data.session.user.id; } catch (e) {}
   var session = await PracticeEngine.buildSession(level,
     { count: 10, studentId: profile.id || me });
-  return session.questions.map(function (q) {
+  /* Every card is checked before a child sees it, and a bad one is
+     rebuilt rather than served. The blank-card guard further down is
+     a last resort that should never fire — a child should not be
+     reading an apology from the app. */
+  var cards = [];
+  session.questions.forEach(function (q) {
     var card = engineToCard(q);
     card.level = level;
-    // Marking the row is scaffolding for the early levels only
     card.stepped = card.column && level <= 3;
-    return card;
+    if (cardIsSound(card)) cards.push(card);
+    else console.error('Dropped an unsound card before serving:', q, card);
   });
+
+  /* If any were dropped, build more so the child still gets a full
+     session rather than a short one. */
+  var tries = 0;
+  while (cards.length < session.questions.length && tries < 12) {
+    tries++;
+    try {
+      var extra = await PracticeEngine.buildSession(level, {
+        count: session.questions.length - cards.length,
+        studentId: profile.id || me
+      });
+      (extra.questions || []).forEach(function (q) {
+        if (cards.length >= session.questions.length) return;
+        var c2 = engineToCard(q);
+        c2.level = level;
+        c2.stepped = c2.column && level <= 3;
+        if (cardIsSound(c2)) cards.push(c2);
+      });
+    } catch (e) { break; }
+  }
+
+  return cards;
 }
 
 /* ── Orals: the numbers are spoken, not shown ───────────────── */

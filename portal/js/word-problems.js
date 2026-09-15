@@ -39,27 +39,41 @@ var WordProblems = (function () {
      gained and lost, so the sentence stays true to the object —
      you do not "eat" a marble or "spend" a mango. */
   var THINGS = [
-    { one:'sticker',  many:'stickers',  emoji:'⭐',
+    { one:'sticker',  many:'stickers',  emoji:'⭐', shop:'stationery shop',
       got:['was given','found','earned'],           lost:['gave away','used','lost'] },
-    { one:'mango',    many:'mangoes',   emoji:'🥭',
+    { one:'mango',    many:'mangoes',   emoji:'🥭', shop:'fruit stall',
       got:['picked','was given','bought'],          lost:['ate','gave away','shared'] },
-    { one:'marble',   many:'marbles',   emoji:'🔵',
+    { one:'marble',   many:'marbles',   emoji:'🔵', shop:'toy shop',
       got:['won','found','was given'],              lost:['lost','gave away','traded'] },
-    { one:'pencil',   many:'pencils',   emoji:'✏️',
+    { one:'pencil',   many:'pencils',   emoji:'✏️', shop:'stationery shop',
       got:['bought','was given'],                   lost:['gave away','lost'] },
-    { one:'laddoo',   many:'laddoos',   emoji:'🍬',
+    { one:'laddoo',   many:'laddoos',   emoji:'🍬', shop:'sweet shop',
       got:['made','was given'],                     lost:['ate','shared'] },
-    { one:'flower',   many:'flowers',   emoji:'🌸',
+    { one:'flower',   many:'flowers',   emoji:'🌸', shop:'flower stall',
       got:['picked','was given'],                   lost:['gave away'] },
-    { one:'shell',    many:'shells',    emoji:'🐚',
+    { one:'shell',    many:'shells',    emoji:'🐚', shop:null,
       got:['found','collected'],                    lost:['gave away','lost'] },
-    { one:'balloon',  many:'balloons',  emoji:'🎈',
+    { one:'balloon',  many:'balloons',  emoji:'🎈', shop:'toy shop',
       got:['was given','bought'],                   lost:['popped','gave away'] },
-    { one:'rupee',    many:'rupees',    emoji:'💰',
+    { one:'rupee',    many:'rupees',    emoji:'💰', shop:null,
       got:['saved','was given','earned'],           lost:['spent','gave away'] },
-    { one:'book',     many:'books',     emoji:'📚',
+    { one:'book',     many:'books',     emoji:'📚', shop:'book shop',
       got:['borrowed','was given'],                 lost:['returned','lent'] }
   ];
+
+  /* Somewhere for a story to happen. Kept simple and Indian, since
+     these are the places the children know. */
+  var PLACES = {
+    market:  [{n:'fruit stall'},{n:'sweet shop'},{n:'vegetable cart'},{n:'bakery'}],
+    school:  [{n:'classroom'},{n:'library'},{n:'school shop'}],
+    home:    [{n:'kitchen'},{n:'garden'}],
+    festival:[{n:'sweet shop'},{n:'flower stall'},{n:'firework stall'}],
+    default: [{n:'shop'},{n:'stall'},{n:'market'}]
+  };
+
+  function placesFor(theme) {
+    return PLACES[theme] || PLACES.default;
+  }
 
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
@@ -96,46 +110,144 @@ var WordProblems = (function () {
 
   function dress(sum, theme) {
     var rows = sum.rows || [];
-    if (rows.length < 2 || rows.length > 3) return null;   // stories need short sums
+    if (rows.length < 2 || rows.length > 4) return null;
 
     var who   = pick(NAMES);
-    var name  = who.n;
-    var they  = who.they;
+    var name  = who.n, they = who.they, them = who.them || (who.they === 'he' ? 'him' : 'her');
     var thing = pick(thingsFor(theme));
-    var start = rows[0];
+    var place = pick(placesFor(theme));
 
-    var lines = [name + ' had ' + count(start, thing) + '.'];
+    /* One sentence shape produced every story in the app, so children
+       memorised them. These are genuinely different situations, not
+       reworded versions of the same one — and the shape is chosen by
+       what the sum actually looks like, so it always reads truthfully. */
+    var shapes = [];
 
-    // Do not use the same verb twice in one story — a child hears it
-    var used = {};
-    function verb(bank) {
-      var free = bank.filter(function (v) { return !used[v]; });
-      var v = pick(free.length ? free : bank);
-      used[v] = true;
-      return v;
+    var allAdd = rows.slice(1).every(function (n) { return n > 0; });
+    var allSub = rows.slice(1).every(function (n) { return n < 0; });
+    var two    = rows.length === 2;
+
+    // 1. The running story — what the app has always done
+    shapes.push(function () {
+      var used = {};
+      function verb(bank) {
+        var free = bank.filter(function (v) { return !used[v]; });
+        var v = pick(free.length ? free : bank);
+        used[v] = true;
+        return v;
+      }
+      var lines = [name + ' had ' + count(rows[0], thing) + '.'];
+      for (var i = 1; i < rows.length; i++) {
+        var n = rows[i];
+        var lead = (i === 1 ? cap(they) : 'Then ' + they);
+        lines.push(lead + ' ' + (n > 0 ? verb(thing.got) : verb(thing.lost)) +
+                   ' ' + count(Math.abs(n), thing) + '.');
+      }
+      lines.push(rows[rows.length - 1] > 0
+        ? 'How many ' + thing.many + ' does ' + name + ' have now?'
+        : 'How many ' + thing.many + ' are left?');
+      return lines;
+    });
+
+    // 2. Two people, added together
+    if (allAdd && two) {
+      shapes.push(function () {
+        var other = pick(NAMES.filter(function (x) { return x.n !== name; }));
+        return [name + ' has ' + count(rows[0], thing) + ' and ' +
+                other.n + ' has ' + count(rows[1], thing) + '.',
+                'How many ' + thing.many + ' do they have altogether?'];
+      });
     }
 
-    for (var i = 1; i < rows.length; i++) {
-      var n = rows[i];
-      var lead = (i === 1 ? cap(they) : 'Then ' + they);   // "She ..." / "Then she ..."
-      if (n > 0) lines.push(lead + ' ' + verb(thing.got)  + ' ' + count(n, thing) + '.');
-      else       lines.push(lead + ' ' + verb(thing.lost) + ' ' + count(-n, thing) + '.');
+    // 3. A comparison — one has more than the other
+    if (allAdd && two) {
+      shapes.push(function () {
+        var other = pick(NAMES.filter(function (x) { return x.n !== name; }));
+        return [other.n + ' has ' + count(rows[0], thing) + '.',
+                name + ' has ' + rows[1] + ' more ' + thing.many + ' than ' + other.n + '.',
+                'How many ' + thing.many + ' does ' + name + ' have?'];
+      });
     }
 
-    // The question follows whatever happened last, so it reads naturally
-    var last = rows[rows.length - 1];
-    lines.push(last > 0
-      ? 'How many ' + thing.many + ' does ' + name + ' have now?'
-      : 'How many ' + thing.many + ' are left?');
+    /* 4. A shop or a stall — only when the object is something a shop
+       would actually sell. "The sweet shop had 31 books" is the kind of
+       thing a child spots at once, and it makes the whole page feel
+       careless. */
+    if (rows.length <= 3 && thing.shop) {
+      shapes.push(function () {
+        var lines = ['The ' + thing.shop + ' had ' + count(rows[0], thing) + ' in the morning.'];
+        for (var i = 1; i < rows.length; i++) {
+          var n = rows[i];
+          lines.push(n > 0
+            ? (i === 1 ? 'Another ' : 'Then another ') + count(n, thing) + ' arrived.'
+            : (i === 1 ? '' : 'Then ') + count(-n, thing) + ' were sold.');
+        }
+        lines.push('How many ' + thing.many + ' are there now?');
+        return lines.map(function (l) { return l.replace(/^\s+/, ''); });
+      });
+    }
+
+    // 5. Counting what is left after taking some away
+    if (allSub && two) {
+      shapes.push(function () {
+        return [name + ' had ' + count(rows[0], thing) + ' in ' +
+                (they === 'he' ? 'his' : 'her') + ' bag.',
+                cap(they) + ' ' + pick(thing.lost) + ' ' + count(-rows[1], thing) + '.',
+                'How many are left in the bag?'];
+      });
+    }
+
+    // 6. Over two days
+    if (allAdd) {
+      shapes.push(function () {
+        var days = ['On Monday', 'On Tuesday', 'On Wednesday', 'On Thursday'];
+        var lines = [];
+        rows.forEach(function (n, i) {
+          lines.push(days[i] + ' ' + name + ' ' +
+                     (i === 0 ? 'had ' : pick(thing.got) + ' ') +
+                     count(Math.abs(n), thing) + '.');
+        });
+        lines.push('How many ' + thing.many + ' does ' + name + ' have altogether?');
+        return lines;
+      });
+    }
+
+    // 7. Sharing between friends
+    if (allSub && two && Math.abs(rows[1]) < rows[0]) {
+      shapes.push(function () {
+        var other = pick(NAMES.filter(function (x) { return x.n !== name; }));
+        return [name + ' had ' + count(rows[0], thing) + '.',
+                cap(they) + ' gave ' + Math.abs(rows[1]) + ' of them to ' + other.n + '.',
+                'How many ' + thing.many + ' does ' + name + ' have left?'];
+      });
+    }
+
+    /* 8. A collection growing. Not for money — nobody collects rupees,
+       and "returned 9 books" is not collecting either, so the verbs
+       stay on the gaining side. */
+    if (thing.one !== 'rupee') shapes.push(function () {
+      var lines = [name + ' is collecting ' + thing.many + '.',
+                   cap(they) + ' already has ' + rows[0] + '.'];
+      for (var i = 1; i < rows.length; i++) {
+        var n = rows[i];
+        lines.push(n > 0
+          ? 'Then ' + they + ' ' + pick(thing.got) + ' ' + Math.abs(n) + ' more.'
+          : 'Then ' + they + ' lost ' + Math.abs(n) + ' of them.');
+      }
+      lines.push('How many are in the collection now?');
+      return lines;
+    });
+
+    var lines = pick(shapes)();
 
     return {
       type:     'story',
       question: lines.join(' '),
-      lines:    lines,          // kept separate so speech can pause between them
+      lines:    lines,
       answer:   sum.answer,
       emoji:    thing.emoji,
-      rows:     rows,           // the abacus still works the same sum
-      speak:    true            // read aloud: they cannot read it themselves
+      rows:     rows,
+      speak:    true
     };
   }
 
@@ -143,12 +255,15 @@ var WordProblems = (function () {
    * Turn a page of sums into word problems, keeping only the short
    * ones. Long columns stay as columns.
    */
-  function fromSums(sums, howMany) {
+  function fromSums(sums, howMany, theme) {
     var out = [];
     for (var i = 0; i < sums.length && out.length < (howMany || 5); i++) {
       if (!sums[i] || !sums[i].rows) continue;
       if (sums[i].rows.length > 3) continue;
-      var w = dress(sums[i]);
+      /* The theme was never passed here, so every story used the
+         default objects and Megha's theme choice did nothing at all.
+         Another control that looked connected and was not. */
+      var w = dress(sums[i], theme);
       if (w) out.push(w);
     }
     return out;
@@ -199,5 +314,6 @@ var WordProblems = (function () {
   }
 
   return { dress: dress, fromSums: fromSums, NAMES: NAMES, THINGS: THINGS,
+           placesFor: placesFor,
            dressMultiply: dressMultiply, dressDivide: dressDivide };
 })();

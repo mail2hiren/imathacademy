@@ -406,7 +406,7 @@ var PracticeEngine = (function () {
       });
       if (!s) continue;
       if (!columnIsAllowed({ type: 'column', rows: s.rows, answer: s.answer }, rules)) continue;
-      var w = WordProblems.dress(s);
+      var w = WordProblems.dress(s, theme);
       if (!w) continue;
       return {
         type: 'story', question: w.question, answer: w.answer,

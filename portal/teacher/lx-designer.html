@@ -1453,11 +1453,48 @@ async function regenerateOne(idx) {
     if (!list || !list[idx]) return;
     var rules = await PracticeEngine.loadLevelRules(selectedLevel);
     var old = list[idx];
-    var repl = freshColumn(rules, (old.rows && old.rows.length) || 3, rules.maxNumber);
-    if (!repl) { toast('Could not build another sum for this level', 'error'); return; }
+
+    /* This always built a plain column at the level's full range,
+       ignoring the difficulty, the restrictions, the concept and even
+       what KIND of question it was replacing. Pressing Replace on a
+       word problem handed back a column sum.
+
+       The options Megha chose are used again, and the replacement is
+       the same kind of question as the one it replaces. */
+    var tOpts = teacherOptions();
+    var band  = applyDifficulty(rules, selectedDifficulty);
+
+    if (selectedConcept && selectedConcept !== 'revision') {
+      var only = { big_friends: 'big', small_friends: 'small',
+                   combination: 'combination' }[selectedConcept];
+      if (only && rules.formulas.indexOf(only) > -1) rules.formulas = [only];
+    }
+
+    var repl = null;
+    var wasStory = /had |How many|altogether|left/.test(String(old.question || ''));
+
+    if (wasStory && typeof WordProblems !== 'undefined') {
+      // Replace a word problem with another word problem
+      for (var t = 0; t < 40 && !repl; t++) {
+        var s = freshColumn(rules, (old.rows && old.rows.length) || 3,
+                            band.max || rules.maxNumber);
+        if (!s) continue;
+        var w = WordProblems.dress(s, selectedTheme);
+        if (!w) continue;
+        repl = { rows: s.rows, answer: s.answer, question: w.question, emoji: w.emoji };
+      }
+    } else {
+      var s2 = freshColumn(rules, (old.rows && old.rows.length) || 3,
+                           band.max || rules.maxNumber);
+      if (s2) repl = { rows: s2.rows, answer: s2.answer,
+                       question: PracticeEngine.columnText(s2) };
+    }
+
+    if (!repl) { toast('Could not build another sum with these settings', 'error'); return; }
     old.rows     = repl.rows;
     old.answer   = String(repl.answer);
-    old.question = PracticeEngine.columnText(repl);
+    old.question = repl.question;
+    if (repl.emoji) old.emoji = repl.emoji;
 
     /* Only this sum changes. Redrawing the whole tab would throw away
        any edits Megha had made to the others — and renderOutTab needs

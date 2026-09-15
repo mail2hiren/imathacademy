@@ -393,19 +393,41 @@ var PracticeEngine = (function () {
      The sum is generated and checked first exactly as a column is;
      the words are only clothing. Falls back to a plain column if the
      word-problem module is not loaded. */
-  function storyQuestion(rules, band, through) {
+  function storyQuestion(rules, band, through, theme) {
     if (typeof WordProblems === 'undefined' || typeof ColumnGen === 'undefined') return null;
     var mode = rules.formulas.length ? pick(rules.formulas) : 'direct';
-    var floor = mode === 'big' ? 20 : 9;
-    var ceiling = Math.max(floor, Math.round(band.start + (band.end - band.start) * (through || 0.5)));
+
+    /* Third place this floor has been wrong. A formula that needs the
+       ten can never produce an answer below it, and combination needs
+       it just as big friends does. */
+    var floor = (mode === 'big' || mode === 'combination') ? 20 : 9;
+
+    /* A story at Level 7 was getting the same small numbers as one at
+       Level 1, because the band alone decides the ceiling and the row
+       count never moved. The level's own maximum sets a floor under
+       the ceiling, and longer sums appear as the levels go up. */
+    var lvlMax = rules.maxNumber || 99;
+    var reach  = Math.max(floor, Math.round(lvlMax * 0.35));
+    var ceiling = Math.max(
+      reach,
+      Math.round(band.start + (band.end - band.start) * (through || 0.5))
+    );
+
+    var rowsWanted = lvlMax >= 1000 ? (Math.random() < 0.5 ? 3 : 4)
+                   : lvlMax >= 300  ? (Math.random() < 0.6 ? 3 : 2)
+                   : (Math.random() < 0.55 ? 2 : 3);
 
     for (var t = 0; t < 30; t++) {
       var s = ColumnGen.column({
-        max: ceiling, rows: Math.random() < 0.55 ? 2 : 3, mode: mode,
+        max: ceiling, rows: rowsWanted, mode: mode,
         require: mode === 'direct' ? 0 : 1, allowZero: rules.allowZero
       });
       if (!s) continue;
       if (!columnIsAllowed({ type: 'column', rows: s.rows, answer: s.answer }, rules)) continue;
+      /* theme was not a variable in this scope at all — an earlier
+         edit added it to this call and it would have thrown a
+         ReferenceError, killing the whole session build. It is a
+         parameter now. */
       var w = WordProblems.dress(s, theme);
       if (!w) continue;
       return {
@@ -603,7 +625,7 @@ function bandFor(rules, pos) {
       var bDiv   = bMult  + mix.div;
 
       if (r < bBeads)      q = beadsToNumbers(rules);
-      else if (r < bStory) q = storyQuestion(rules, band, acrossPage);
+      else if (r < bStory) q = storyQuestion(rules, band, acrossPage, opts && opts.theme);
       else if (r < bMult)  q = multiplication(rules);
       else if (r < bDiv)   q = division(rules);
       else {

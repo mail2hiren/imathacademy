@@ -39,40 +39,135 @@ var WordProblems = (function () {
      gained and lost, so the sentence stays true to the object —
      you do not "eat" a marble or "spend" a mango. */
   var THINGS = [
-    { one:'sticker',  many:'stickers',  emoji:'⭐', shop:'stationery shop',
-      got:['was given','found','earned'],           lost:['gave away','used','lost'] },
-    { one:'mango',    many:'mangoes',   emoji:'🥭', shop:'fruit stall',
-      got:['picked','was given','bought'],          lost:['ate','gave away','shared'] },
-    { one:'marble',   many:'marbles',   emoji:'🔵', shop:'toy shop',
-      got:['won','found','was given'],              lost:['lost','gave away','traded'] },
-    { one:'pencil',   many:'pencils',   emoji:'✏️', shop:'stationery shop',
-      got:['bought','was given'],                   lost:['gave away','lost'] },
-    { one:'laddoo',   many:'laddoos',   emoji:'🍬', shop:'sweet shop',
-      got:['made','was given'],                     lost:['ate','shared'] },
-    { one:'flower',   many:'flowers',   emoji:'🌸', shop:'flower stall',
-      got:['picked','was given'],                   lost:['gave away'] },
-    { one:'shell',    many:'shells',    emoji:'🐚', shop:null,
-      got:['found','collected'],                    lost:['gave away','lost'] },
-    { one:'balloon',  many:'balloons',  emoji:'🎈', shop:'toy shop',
-      got:['was given','bought'],                   lost:['popped','gave away'] },
-    { one:'rupee',    many:'rupees',    emoji:'💰', shop:null,
-      got:['saved','was given','earned'],           lost:['spent','gave away'] },
-    { one:'book',     many:'books',     emoji:'📚', shop:'book shop',
-      got:['borrowed','was given'],                 lost:['returned','lent'] }
+    { one:'sticker',  many:'stickers',  emoji:'\u2B50', shop:'stationery shop',
+      got:['was given','found','earned'],        lost:['gave away','used','lost'] },
+    { one:'mango',    many:'mangoes',   emoji:'\uD83E\uDD6D', shop:'fruit stall',
+      got:['picked','was given','bought'],       lost:['ate','gave away','shared'] },
+    { one:'marble',   many:'marbles',   emoji:'\uD83D\uDD35', shop:'toy shop',
+      got:['won','found','was given'],           lost:['lost','gave away','traded'] },
+    { one:'pencil',   many:'pencils',   emoji:'\u270F\uFE0F', shop:'stationery shop',
+      got:['bought','was given'],                lost:['gave away','lost'] },
+    { one:'laddoo',   many:'laddoos',   emoji:'\uD83C\uDF6C', shop:'sweet shop',
+      got:['made','was given'],                  lost:['ate','shared'] },
+    { one:'flower',   many:'flowers',   emoji:'\uD83C\uDF38', shop:'flower stall',
+      got:['picked','was given'],                lost:['gave away'] },
+    { one:'shell',    many:'shells',    emoji:'\uD83D\uDC1A', shop:null,
+      got:['found','collected'],                 lost:['gave away','lost'] },
+    { one:'balloon',  many:'balloons',  emoji:'\uD83C\uDF88', shop:'toy shop',
+      got:['was given','bought'],                lost:['popped','gave away'] },
+    { one:'rupee',    many:'rupees',    emoji:'\uD83D\uDCB0', shop:null,
+      got:['saved','was given','earned'],        lost:['spent','gave away'] },
+    { one:'book',     many:'books',     emoji:'\uD83D\uDCDA', shop:'book shop',
+      got:['borrowed','was given'],              lost:['returned','lent'] },
+
+    /* Cricket and superheroes were offered in the dropdown with no
+       objects behind them at all, so choosing either did nothing. */
+    { one:'run',      many:'runs',      emoji:'\uD83C\uDFCF', shop:null,
+      got:['scored','added'],                    lost:['lost'] },
+    { one:'wicket',   many:'wickets',   emoji:'\uD83C\uDFAF', shop:null,
+      got:['took'],                              lost:['gave away'] },
+    { one:'cricket ball', many:'cricket balls', emoji:'\uD83C\uDFD0', shop:'sports shop',
+      got:['bought','was given'],                lost:['lost','gave away'] },
+    { one:'trophy',   many:'trophies',  emoji:'\uD83C\uDFC6', shop:null,
+      got:['won','was given'],                   lost:['gave away'] },
+    { one:'medal',    many:'medals',    emoji:'\uD83E\uDD47', shop:null,
+      got:['won','earned'],                      lost:['gave away'] },
+    { one:'hero card', many:'hero cards', emoji:'\uD83E\uDDB8', shop:'toy shop',
+      got:['collected','traded for','was given'], lost:['traded away','gave away','lost'] },
+    { one:'comic',    many:'comics',    emoji:'\uD83D\uDCD6', shop:'book shop',
+      got:['bought','borrowed'],                 lost:['lent','returned'] },
+    { one:'badge',    many:'badges',    emoji:'\uD83C\uDFC5', shop:null,
+      got:['earned','was given'],                lost:['gave away','lost'] },
+
+    { one:'banana',   many:'bananas',   emoji:'\uD83C\uDF4C', shop:'fruit stall',
+      got:['bought','picked'],                   lost:['ate','shared'] },
+    { one:'apple',    many:'apples',    emoji:'\uD83C\uDF4E', shop:'fruit stall',
+      got:['bought','picked'],                   lost:['ate','shared'] },
+    { one:'orange',   many:'oranges',   emoji:'\uD83C\uDF4A', shop:'fruit stall',
+      got:['bought','picked'],                   lost:['ate','shared'] },
+    { one:'samosa',   many:'samosas',   emoji:'\uD83E\uDD5F', shop:'snack stall',
+      got:['bought','made'],                     lost:['ate','shared'] },
+
+    { one:'diya',     many:'diyas',     emoji:'\uD83E\uDE94', shop:'festival stall',
+      got:['bought','made'],                     lost:['gave away'] },
+    { one:'rangoli colour', many:'rangoli colours', emoji:'\uD83C\uDFA8', shop:'festival stall',
+      got:['bought'],                            lost:['used up'] },
+    { one:'sparkler', many:'sparklers', emoji:'\u2728', shop:'festival stall',
+      got:['bought','was given'],                lost:['used','gave away'] },
+
+    { one:'star',     many:'stars',     emoji:'\u2B50', shop:null,
+      got:['counted','spotted'],                 lost:['clouded over'] },
+    { one:'rocket',   many:'rockets',   emoji:'\uD83D\uDE80', shop:'toy shop',
+      got:['built','was given'],                 lost:['gave away'] },
+    { one:'moon rock', many:'moon rocks', emoji:'\uD83C\uDF19', shop:null,
+      got:['collected','found'],                 lost:['gave away'] },
+
+    { one:'parrot',   many:'parrots',   emoji:'\uD83E\uDD9C', shop:null,
+      got:['counted','spotted'],                 lost:['flew away'] },
+    { one:'butterfly', many:'butterflies', emoji:'\uD83E\uDD8B', shop:null,
+      got:['counted','spotted'],                 lost:['flew away'] },
+    { one:'fish',     many:'fish',      emoji:'\uD83D\uDC1F', shop:null,
+      got:['counted','caught'],                  lost:['let go'] },
+    { one:'leaf',     many:'leaves',    emoji:'\uD83C\uDF43', shop:null,
+      got:['collected','found'],                 lost:['blew away'] },
+    { one:'seed',     many:'seeds',     emoji:'\uD83C\uDF31', shop:null,
+      got:['planted','collected'],               lost:['gave away'] }
   ];
+
+  /* The dropdown offers animals, fruits, space, cricket, festivals,
+     superheroes, nature and none. This map used different words
+     entirely — food, sports, festival, market — so four of the eight
+     themes matched nothing and quietly fell back to everything.
+     These keys are the dropdown's own values. */
+  var THEMED = {
+    animals:     ['parrot','butterfly','fish','shell','seed'],
+    fruits:      ['mango','banana','apple','orange','samosa','laddoo'],
+    space:       ['star','rocket','moon rock','marble','balloon'],
+    cricket:     ['run','wicket','cricket ball','trophy','medal'],
+    festivals:   ['laddoo','diya','rangoli colour','sparkler','flower'],
+    superheroes: ['hero card','comic','badge','medal','sticker'],
+    nature:      ['flower','leaf','seed','shell','butterfly'],
+    none:        null,
+
+    // the older names, kept so nothing that still sends them breaks
+    festival:    ['laddoo','diya','sparkler','flower'],
+    market:      ['mango','rupee','book','pencil'],
+    school:      ['pencil','book','sticker','marble'],
+    sports:      ['run','wicket','trophy','medal'],
+    food:        ['mango','laddoo','samosa','banana']
+  };
 
   /* Somewhere for a story to happen. Kept simple and Indian, since
      these are the places the children know. */
   var PLACES = {
-    market:  [{n:'fruit stall'},{n:'sweet shop'},{n:'vegetable cart'},{n:'bakery'}],
-    school:  [{n:'classroom'},{n:'library'},{n:'school shop'}],
-    home:    [{n:'kitchen'},{n:'garden'}],
-    festival:[{n:'sweet shop'},{n:'flower stall'},{n:'firework stall'}],
-    default: [{n:'shop'},{n:'stall'},{n:'market'}]
+    market:      [{n:'fruit stall'},{n:'sweet shop'},{n:'vegetable cart'}],
+    fruits:      [{n:'fruit stall'},{n:'juice shop'}],
+    school:      [{n:'classroom'},{n:'library'},{n:'school shop'}],
+    festivals:   [{n:'sweet shop'},{n:'flower stall'},{n:'festival stall'}],
+    cricket:     [{n:'sports shop'},{n:'club room'}],
+    superheroes: [{n:'comic shop'},{n:'toy shop'}],
+    nature:      [{n:'garden'},{n:'park'}],
+    animals:     [{n:'garden'},{n:'pond'}],
+    space:       [{n:'planetarium'},{n:'science room'}],
+    default:     [{n:'shop'},{n:'stall'},{n:'market'}]
   };
 
   function placesFor(theme) {
-    return PLACES[theme] || PLACES.default;
+    return PLACES[String(theme || '').toLowerCase()] || PLACES.default;
+  }
+
+  function thingsFor(theme) {
+    var key = String(theme || '').toLowerCase();
+    if (!key || key === 'none') return THINGS;
+    var keys = THEMED[key];
+    if (!keys) {
+      /* Loud, because a theme that silently does nothing is exactly
+         the fault this is fixing. */
+      console.warn('No objects are set up for the theme "' + theme + '"');
+      return THINGS;
+    }
+    var picked = THINGS.filter(function (t) { return keys.indexOf(t.one) > -1; });
+    return picked.length ? picked : THINGS;
   }
 
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -90,24 +185,6 @@ var WordProblems = (function () {
      to the engine nothing read it any more, so choosing a theme
      silently did nothing. These are the same objects grouped by
      setting, so a theme actually changes what a child reads. */
-  var THEMED = {
-    festival: ['laddoo','flower','balloon','rupee'],
-    market:   ['mango','rupee','book','pencil'],
-    school:   ['pencil','book','sticker','marble'],
-    nature:   ['flower','shell','mango'],
-    space:    ['marble','sticker','balloon'],
-    animals:  ['flower','shell','mango'],
-    sports:   ['marble','balloon','sticker','rupee'],
-    food:     ['mango','laddoo','rupee']
-  };
-
-  function thingsFor(theme) {
-    var keys = THEMED[String(theme || '').toLowerCase()];
-    if (!keys) return THINGS;
-    var picked = THINGS.filter(function (t) { return keys.indexOf(t.one) > -1; });
-    return picked.length ? picked : THINGS;
-  }
-
   function dress(sum, theme) {
     var rows = sum.rows || [];
     if (rows.length < 2 || rows.length > 4) return null;

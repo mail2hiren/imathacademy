@@ -2037,7 +2037,10 @@ async function generateWorksheet() {
     try {
       await loadCurriculumRulesForLevel();
       await generateFromEngine();
-      toast('Worksheet built from the curriculum ⚡', 'success');
+      /* "Worksheet built" reads as though the job is done, and nothing is
+       saved until Assign is pressed. Two days of worksheets were built
+       and never assigned because the message did not say so. */
+    toast('Built \u2014 now press "Assign to students" to send it', 'success');
     } catch (e) {
       console.error('Engine generation failed:', e);
       toast('Could not build it: ' + e.message, 'error');
@@ -2712,6 +2715,16 @@ async function assignToStudents() {
   }
 
   const btn = document.getElementById('assignBtn');
+    /* Nudged so it is obvious this is the step that actually saves. */
+    try {
+      var ab = document.getElementById('assignBtn');
+      if (ab) {
+        ab.style.animation = 'none';
+        ab.offsetHeight;
+        ab.style.boxShadow = '0 0 0 4px rgba(21,101,192,.22)';
+        ab.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    } catch (e) {}
   btn.textContent = 'Assigning...';
   btn.disabled = true;
 

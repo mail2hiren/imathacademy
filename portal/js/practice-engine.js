@@ -402,19 +402,21 @@ var PracticeEngine = (function () {
        it just as big friends does. */
     var floor = (mode === 'big' || mode === 'combination') ? 20 : 9;
 
-    /* A story at Level 7 was getting the same small numbers as one at
-       Level 1, because the band alone decides the ceiling and the row
-       count never moved. The level's own maximum sets a floor under
-       the ceiling, and longer sums appear as the levels go up. */
-    var lvlMax = rules.maxNumber || 99;
-    var reach  = Math.max(floor, Math.round(lvlMax * 0.35));
-    var ceiling = Math.max(
-      reach,
-      Math.round(band.start + (band.end - band.start) * (through || 0.5))
-    );
+    /* Stories were getting Level 1 numbers at Level 7, so I made the
+       level's maximum raise the ceiling. That was wrong the other way:
+       it OVERRODE the difficulty band, and an Easy sheet at Level 1
+       started producing sums past 60. Megha saw questions out of
+       syllabus, and she was right.
 
-    var rowsWanted = lvlMax >= 1000 ? (Math.random() < 0.5 ? 3 : 4)
-                   : lvlMax >= 300  ? (Math.random() < 0.6 ? 3 : 2)
+       The band decides. The level maximum is only ever a cap. */
+    var lvlMax  = rules.maxNumber || 99;
+    var bandTop = Math.round(band.start + (band.end - band.start) * (through || 0.5));
+    var ceiling = Math.min(Math.max(floor, bandTop), lvlMax);
+
+    /* Longer sums as the level rises, but judged on the band the
+       teacher actually chose, not the level's outer limit. */
+    var rowsWanted = ceiling >= 1000 ? (Math.random() < 0.5 ? 3 : 4)
+                   : ceiling >= 300  ? (Math.random() < 0.6 ? 3 : 2)
                    : (Math.random() < 0.55 ? 2 : 3);
 
     for (var t = 0; t < 30; t++) {

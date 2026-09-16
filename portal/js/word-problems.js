@@ -603,6 +603,28 @@ var WordProblems = (function () {
       return lines;
     });
 
+    /* The last resort, when no shape fitted. It knew nothing about
+       cricket, so a three-row sum produced "12 wickets more arrived,
+       8 wickets went away" — which is not how a match works.
+
+       A cricket statistic across several rows is innings, and that
+       reads correctly. */
+    if (!shapes.length && isCricketStat) shapes.push(function () {
+      var overs = ['In the first innings', 'In the second innings',
+                   'In the Super Over', 'In the final over'];
+      var lines = [];
+      rows.forEach(function (n, i) {
+        if (n >= 0) {
+          lines.push(overs[i % overs.length] + ' India scored ' + count(n, thing) + '.');
+        } else {
+          lines.push(overs[i % overs.length] + ' the other team scored ' +
+                     count(-n, thing) + '.');
+        }
+      });
+      lines.push('How many more did India score than the other team?');
+      return lines;
+    });
+
     if (!shapes.length) shapes.push(function () {
       return ['There were ' + count(rows[0], thing) + '.',
               rows.slice(1).map(function (n) {
@@ -641,24 +663,43 @@ var WordProblems = (function () {
     if (!q || !q.method) return null;
     var who   = pick(NAMES);
     var name  = who.n, they = who.they;
-    var thing = pick(thingsFor(theme));
     var a = q.a, b = q.b;
+
+    /* This was written before the owned-or-counted distinction and
+       never got it, so it produced "the shop had 37 bouncers" — a
+       bouncer is a delivery, not stock. Anything a child cannot own
+       and carry is no use in a shop or a schoolbag story, so those
+       are filtered out here.
+
+       Where a story genuinely needs a shop, only a thing with a real
+       shop qualifies; the (thing.shop || 'shop') fallback was what
+       put bouncers behind a counter. */
+    var pool = thingsFor(theme).filter(function (t) { return t.kind !== 'seen'; });
+    if (!pool.length) pool = THINGS.filter(function (t) { return t.kind !== 'seen'; });
+    var thing = pick(pool);
+
+    /* Shapes that mention a shop need one that exists. */
+    var shoppy = pool.filter(function (t) { return !!t.shop; });
+    var shopThing = shoppy.length ? pick(shoppy) : null;
 
     var shapes = {
 
       /* Taking a number from 100, 1000 or a multiple */
       allFromNine: function () {
-        var opts = [
-          [ 'A ' + (thing.shop || 'shop') + ' had ' + a + ' ' + thing.many + ' in stock.',
+        var opts = [];
+        if (shopThing) opts.push(
+          [ 'A ' + shopThing.shop + ' had ' + a + ' ' + shopThing.many + ' in stock.',
             they === 'he' ? 'The owner sold ' + b + ' of them.' : 'The owner sold ' + b + ' of them.',
-            'How many ' + thing.many + ' are left? = ?' ],
+            'How many ' + shopThing.many + ' are left? = ?' ],
+          );
+        opts.push(
           [ name + ' needs ' + a + ' ' + thing.many + ' for a function.',
             cap(they) + ' already has ' + b + '.',
             'How many more are needed? = ?' ],
           [ 'A box holds ' + a + ' ' + thing.many + '.',
             b + ' have been taken out.',
             'How many are still in the box? = ?' ]
-        ];
+        );
         return pick(opts);
       },
 
@@ -668,7 +709,12 @@ var WordProblems = (function () {
       },
 
       doubling: function () {
-        return [ 'Last month the ' + (thing.shop || 'shop') + ' sold ' + a + ' ' + thing.many + '.',
+        if (!shopThing) {
+          return [ name + ' saved ' + a + ' ' + thing.many + ' last month.',
+                   'This month ' + they + ' saved twice as many.',
+                   'How many did ' + they + ' save this month? = ?' ];
+        }
+        return [ 'Last month the ' + shopThing.shop + ' sold ' + a + ' ' + shopThing.many + '.',
                  'This month it sold twice as many.',
                  'How many did it sell this month? = ?' ];
       },
@@ -731,23 +777,30 @@ var WordProblems = (function () {
       },
 
       splitMerge: function () {
-        return [ 'The ' + (thing.shop || 'shop') + ' had ' + a + ' ' + thing.many + '.',
+        if (!shopThing) {
+          return [ name + ' had ' + a + ' ' + thing.many + '.',
+                   b + ' more arrived.', 'How many are there now? = ?' ];
+        }
+        return [ 'The ' + shopThing.shop + ' had ' + a + ' ' + shopThing.many + '.',
                  b + ' more arrived.', 'How many are there now? = ?' ];
       }
     };
 
     function groups() {
-      var opts = [
-        [ 'A ' + (thing.shop || 'shop') + ' has ' + a + ' boxes.',
+      var opts = [];
+      if (shopThing) opts.push(
+        [ 'A ' + shopThing.shop + ' has ' + a + ' boxes.',
           'Each box holds ' + b + ' ' + thing.many + '.',
           'How many ' + thing.many + ' altogether? = ?' ],
+      );
+      opts.push(
         [ 'There are ' + a + ' rows of chairs in the hall.',
           'Each row has ' + b + ' chairs.',
           'How many chairs are there? = ?' ],
         [ 'Each ' + thing.one + ' costs ' + b + ' rupees.',
           name + ' buys ' + a + ' of them.',
           'How much does ' + they + ' pay? = ?' ]
-      ];
+      );
       return pick(opts);
     }
 

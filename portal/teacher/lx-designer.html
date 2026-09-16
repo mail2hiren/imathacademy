@@ -1741,7 +1741,11 @@ async function generateFromEngine() {
       throw new Error('The questions did not pass their own check \u2014 nothing was saved');
     }
 
-    return page.questions.map(function (q, i) {
+    /* This function is called for its side effects, not its return
+       value — it has to fill generatedContent and render. Returning an
+       array meant the questions were built and thrown away, so Megha
+       saw nothing to assign. */
+    var vQuestions = page.questions.map(function (q, i) {
       return {
         n: i + 1,
         question: q.text || q.prompt || '',
@@ -1752,6 +1756,53 @@ async function generateFromEngine() {
         tellMethod: q.tellMethod !== false
       };
     });
+
+    var vLevelName = 'Vedic Level ' + level +
+      ((VedicEngine.LEVELS[level] && ' \u2014 ' + VedicEngine.LEVELS[level].name) || '');
+
+    var vAnswers = vQuestions.map(function (q) {
+      return q.n + '. ' + q.question + '  =  ' + q.answer +
+             (q.method ? '   [' + q.method + ']' : '');
+    }).join('\n');
+
+    /* The steps are the teaching, so the lesson plan carries them —
+       a teacher taking this class needs to see the method, not just
+       the answers. */
+    var vLesson = vLevelName + '\n\n' +
+      'METHODS ON THIS SHEET\n' +
+      (page.methods || []).map(function (k) {
+        var m = Sutras.METHODS[k];
+        return '\u2022 ' + (m ? m.label : k) +
+               (m && m.applies ? '' : '');
+      }).join('\n') + '\n\n' +
+      'HOW TO WORK THROUGH IT\n' +
+      '- The first few of each method show the steps; after that they answer only\n' +
+      '- A child who gets the answer but not the steps has memorised, not learnt\n' +
+      '- Pass mark for this level is 90% \u2014 a method either works or it does not\n\n' +
+      'WORKED EXAMPLE\n' +
+      (vQuestions[0] && vQuestions[0].steps
+        ? vQuestions[0].question + '\n' +
+          vQuestions[0].steps.map(function (s) {
+            return '  ' + s.ask + '  \u2192  ' + s.answer;
+          }).join('\n')
+        : '(none for this activity)');
+
+    var vParent =
+      'Your child worked on ' + vLevelName + ' today.\n\n' +
+      'Vedic Maths turns a hard sum into an easy one \u2014 the working is short, ' +
+      'but the thinking behind it matters.\n\n' +
+      'A good question to ask tonight: "Show me why that method works for this sum, ' +
+      'and when it would not help."';
+
+    var vWant = teacherOptions().want;
+    var vText = '## QUESTIONS\n' + JSON.stringify(vQuestions, null, 2);
+    if (vWant.answerkey)  vText += '\n\n## ANSWER KEY\n' + vAnswers;
+    if (vWant.lessonplan) vText += '\n\n## LESSON PLAN\n' + vLesson;
+    if (vWant.parentnote) vText += '\n\n## PARENT NOTE\n' + vParent;
+
+    parseAndRender(vText);
+    showEl('assignBtn');
+    return;
   }
 
   // Fill blank, Match pairs, Picture sums, Colour and Mixed are the

@@ -667,6 +667,19 @@ async function loadCurriculum() {
    ─────────────────────────────────────────────────────────── */
 var selectedProgram = 'abacus';
 
+/* I wrote currentDifficulty() and currentTheme() as though they were
+   variables; neither ever existed. Both live on the form, and
+   teacherOptions() already reads them — these read the same place so
+   there is one source of truth rather than a second invented one. */
+function currentDifficulty() {
+  var e = document.getElementById('difficulty');
+  return ((e && e.value) || 'medium').toLowerCase();
+}
+function currentTheme() {
+  var e = document.getElementById('theme');
+  return (e && e.value) || '';
+}
+
 var PROGRAM_STYLE = {
   abacus: { on:'#E67D21', soft:'#FFF4E8', ink:'#8a4b00', label:'Abacus level' },
   vedic:  { on:'#04949D', soft:'#E7F6F7', ink:'#04616a', label:'Vedic level' }
@@ -740,7 +753,7 @@ var VEDIC_ACTIVITIES = ['column_sums', 'story_problems', 'which_method', 'mixed'
 function applyThemeVisibility() {
   var wordy = ['story_problems', 'picture_sums', 'match_pairs', 'fill_blank', 'mixed'];
   var show = wordy.indexOf(selectedActivity) > -1;
-  var el = document.getElementById('themeSel');
+  var el = document.getElementById('theme');
   var wrap = el && el.closest('.form-group');
   if (wrap) wrap.style.display = show ? '' : 'none';
 
@@ -1595,7 +1608,7 @@ async function regenerateOne(idx) {
     }
 
     var tOpts = teacherOptions();
-    var band  = applyDifficulty(rules, selectedDifficulty);
+    var band  = applyDifficulty(rules, teacherOptions());
 
     if (selectedConcept && selectedConcept !== 'revision') {
       var only = { big_friends: 'big', small_friends: 'small',
@@ -1612,7 +1625,7 @@ async function regenerateOne(idx) {
         var s = freshColumn(rules, (old.rows && old.rows.length) || 3,
                             band.max || rules.maxNumber);
         if (!s) continue;
-        var w = WordProblems.dress(s, selectedTheme);
+        var w = WordProblems.dress(s, currentTheme());
         if (!w) continue;
         repl = { rows: s.rows, answer: s.answer, question: w.question, emoji: w.emoji };
       }
@@ -1787,12 +1800,12 @@ async function generateFromEngine() {
     /* Difficulty in Vedic is not a number range, it is how far from a
        base the numbers sit and whether methods are mixed. Easy keeps
        them close and on one method; hard spreads them and mixes. */
-    var vTol = { easy: 5, medium: 9, hard: 12 }[selectedDifficulty] || 9;
+    var vTol = { easy: 5, medium: 9, hard: 12 }[currentDifficulty()] || 9;
     vOpts.tolerance = vTol;
-    vOpts.aboveToo  = selectedDifficulty === 'hard';
-    vOpts.maxCube   = selectedDifficulty === 'easy' ? 20 : 30;
-    vOpts.guideFirst = selectedDifficulty === 'easy' ? 5
-                     : selectedDifficulty === 'hard' ? 1 : 3;
+    vOpts.aboveToo  = currentDifficulty() === 'hard';
+    vOpts.maxCube   = currentDifficulty() === 'easy' ? 20 : 30;
+    vOpts.guideFirst = currentDifficulty() === 'easy' ? 5
+                     : currentDifficulty() === 'hard' ? 1 : 3;
 
     var page = (selectedActivity === 'which_method')
       ? VedicEngine.whichMethodPage(level, vOpts)
@@ -1825,7 +1838,7 @@ async function generateFromEngine() {
       var story = null;
       if (vStories && typeof WordProblems !== 'undefined' &&
           typeof WordProblems.dressVedic === 'function') {
-        story = WordProblems.dressVedic(q, selectedTheme);
+        story = WordProblems.dressVedic(q, currentTheme());
       }
       if (story) {
         return {

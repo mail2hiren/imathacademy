@@ -260,48 +260,27 @@
 
     <!-- Step 2: Level -->
     <div class="section">
-      <div class="sec-label">2 — Abacus level</div>
+      <div class="sec-label">2 — Programme</div>
+      <!-- Two buttons rather than a dropdown: Megha thinks of these as
+           different lessons, not a setting on one screen. -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+        <button type="button" id="progAbacus" onclick="selectProgram('abacus')"
+          style="flex:1;min-width:150px;padding:14px;border:2px solid #E67D21;
+                 border-radius:14px;background:#FFF4E8;font-family:inherit;
+                 font-size:.94rem;font-weight:900;color:#8a4b00;cursor:pointer;">
+          &#129482; Abacus worksheet
+        </button>
+        <button type="button" id="progVedic" onclick="selectProgram('vedic')"
+          style="flex:1;min-width:150px;padding:14px;border:2px solid #E6E9F0;
+                 border-radius:14px;background:#fff;font-family:inherit;
+                 font-size:.94rem;font-weight:900;color:#4A5160;cursor:pointer;">
+          &#2384; Vedic Maths worksheet
+        </button>
+      </div>
+
+      <div class="sec-label" id="levelLabel">3 — Abacus level</div>
       <div class="level-grid" id="levelGrid">
-        <div class="level-card" onclick="selectLevel(this,0)">
-          <div class="level-num">L0</div>
-          <div class="level-desc">Counting, number recognition</div>
-        </div>
-        <div class="level-card selected" onclick="selectLevel(this,1)">
-          <div class="level-num">L1</div>
-          <div class="level-desc">Big + small friends, 2-digit</div>
-        </div>
-        <div class="level-card" onclick="selectLevel(this,2)">
-          <div class="level-num">L2</div>
-          <div class="level-desc">Combination, 3-digit</div>
-        </div>
-        <div class="level-card" onclick="selectLevel(this,3)">
-          <div class="level-num">L3</div>
-          <div class="level-desc">Family formula, 4-digit</div>
-        </div>
-        <div class="level-card" onclick="selectLevel(this,4)">
-          <div class="level-num">L4</div>
-          <div class="level-desc">Anzan, 5-digit add/sub</div>
-        </div>
-        <div class="level-card" onclick="selectLevel(this,5)">
-          <div class="level-num">L5</div>
-          <div class="level-desc">Multiply 2×1, 3×1 only</div>
-        </div>
-        <div class="level-card" onclick="selectLevel(this,6)">
-          <div class="level-num">L6</div>
-          <div class="level-desc">Division 2÷1, 7-digit</div>
-        </div>
-        <div class="level-card" onclick="selectLevel(this,7)">
-          <div class="level-num">L7</div>
-          <div class="level-desc">4×1, 2×2, 4÷1, 8-digit</div>
-        </div>
-        <div class="level-card" onclick="selectLevel(this,8)">
-          <div class="level-num">L8</div>
-          <div class="level-desc">Decimals + negatives</div>
-        </div>
-      </div>
-      <div id="levelSummary" style="margin-top:10px;padding:8px 12px;background:var(--blue-lt);border-radius:10px;font-size:.78rem;color:var(--blue-dk);font-weight:700;border:1.5px solid var(--blue);">
-        Level 1 — Big friends + small friends. Addition and subtraction up to 2 digits.
-      </div>
+        
           <div id="curriculumInfo" style="margin-top:4px;"></div>
     </div>
 
@@ -545,6 +524,10 @@
 <script src="../js/bead-rules.js"></script>
 <script src="../js/column-gen.js"></script>
 <script src="../js/word-problems.js"></script>
+<script src="../js/sutra-rules.js"></script>
+<script src="../js/vedic-gen.js"></script>
+<script src="../js/vedic-steps.js"></script>
+<script src="../js/vedic-engine.js"></script>
 <script src="../js/exercises.js"></script>
 <script src="../js/practice-engine.js"></script>
 <script>
@@ -676,6 +659,74 @@ async function loadCurriculum() {
 }
 
 // ── FORM INTERACTIONS ────────────────────────────────────────
+/* ── WHICH PROGRAMME ────────────────────────────────────────
+   This whole screen assumed Abacus: level cards written into the
+   page, abacus concepts, and an engine that only knows beads. Megha
+   could not make a Vedic worksheet because there was nowhere to say
+   she wanted one.
+   ─────────────────────────────────────────────────────────── */
+var selectedProgram = 'abacus';
+
+var PROGRAM_STYLE = {
+  abacus: { on:'#E67D21', soft:'#FFF4E8', ink:'#8a4b00', label:'Abacus level' },
+  vedic:  { on:'#04949D', soft:'#E7F6F7', ink:'#04616a', label:'Vedic level' }
+};
+
+async function selectProgram(prog) {
+  selectedProgram = prog;
+  ['abacus','vedic'].forEach(function (p) {
+    var b = document.getElementById(p === 'abacus' ? 'progAbacus' : 'progVedic');
+    if (!b) return;
+    var on = (p === prog), s = PROGRAM_STYLE[p];
+    b.style.borderColor = on ? s.on : '#E6E9F0';
+    b.style.background  = on ? s.soft : '#fff';
+    b.style.color       = on ? s.ink : '#4A5160';
+  });
+  var lab = document.getElementById('levelLabel');
+  if (lab) lab.textContent = '3 \u2014 ' + PROGRAM_STYLE[prog].label;
+
+  selectedLevel = (prog === 'vedic') ? 1 : 0;
+  selectedConcept = null;
+  await drawLevelCards();
+  try { filterConceptsForLevel(); } catch (e) {}
+}
+
+/* Drawn from curriculum_levels, so Abacus runs L0 to L8 and Vedic
+   L1 to L8 with their own names rather than a second copy here. */
+async function drawLevelCards() {
+  var grid = document.getElementById('levelGrid');
+  if (!grid) return;
+  grid.innerHTML = '<div style="color:#8892A4;font-size:.85rem;">Loading levels\u2026</div>';
+
+  var rows = [];
+  try {
+    var res = await sb.from('curriculum_levels')
+      .select('level_code, level_name, core_focus')
+      .eq('program_code', selectedProgram);
+    rows = res.data || [];
+  } catch (e) { console.warn('Could not read levels:', e.message); }
+
+  if (!rows.length) {
+    grid.innerHTML = '<div style="color:#C62828;font-size:.85rem;">' +
+      'No levels are set up for this programme yet.</div>';
+    return;
+  }
+
+  rows.sort(function (a, b) {
+    return parseInt(String(a.level_code).replace(/^L/,''), 10) -
+           parseInt(String(b.level_code).replace(/^L/,''), 10);
+  });
+
+  grid.innerHTML = rows.map(function (r) {
+    var n = parseInt(String(r.level_code).replace(/^L/,''), 10);
+    return '<div class="level-card' + (n === selectedLevel ? ' selected' : '') +
+      '" onclick="selectLevel(this,' + n + ')">' +
+      '<div class="level-num">' + r.level_code + '</div>' +
+      '<div class="level-desc">' + (r.core_focus || r.level_name || '') + '</div>' +
+    '</div>';
+  }).join('');
+}
+
 function selectLevel(el, lv) {
   document.querySelectorAll('.level-card').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
@@ -2735,6 +2786,7 @@ async function init() {
     if (!session) { window.location.href='../../login.html'; return; }
     teacherSession = session;
   loadCurriculum();
+    drawLevelCards();
 
     const { data: profile } = await sb.from('users').select('*').eq('id', session.user.id).single();
     if (!profile || (profile.role !== 'teacher' && profile.role !== 'admin')) {

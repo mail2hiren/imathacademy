@@ -38,104 +38,169 @@ var WordProblems = (function () {
   /* Things a child has actually held. Each carries how it is
      gained and lost, so the sentence stays true to the object —
      you do not "eat" a marble or "spend" a mango. */
+  /* The first list here was written the way an adult writes lists —
+     medals, badges, seeds, leaves. Nothing a child would lean towards.
+     These are things Indian children actually talk about: golgappas,
+     pichkaris, IPL sixes, robot sidekicks. The verbs matter as much
+     as the nouns — you do not "obtain" a chocolate, you scoff it. */
+  /* Some things you own and can carry: chocolates, kites, hero cards.
+     Others you only count: monkeys, shooting stars, sixes. Mixing the
+     two produced "she slipped away 9 tigers" and "34 tigers in her
+     bag" — which a child would laugh at, rightly. Each thing says
+     which it is, and the sentences respect it. */
   var THINGS = [
-    { one:'sticker',  many:'stickers',  emoji:'\u2B50', shop:'stationery shop',
-      got:['was given','found','earned'],        lost:['gave away','used','lost'] },
-    { one:'mango',    many:'mangoes',   emoji:'\uD83E\uDD6D', shop:'fruit stall',
-      got:['picked','was given','bought'],       lost:['ate','gave away','shared'] },
-    { one:'marble',   many:'marbles',   emoji:'\uD83D\uDD35', shop:'toy shop',
-      got:['won','found','was given'],           lost:['lost','gave away','traded'] },
-    { one:'pencil',   many:'pencils',   emoji:'\u270F\uFE0F', shop:'stationery shop',
-      got:['bought','was given'],                lost:['gave away','lost'] },
-    { one:'laddoo',   many:'laddoos',   emoji:'\uD83C\uDF6C', shop:'sweet shop',
-      got:['made','was given'],                  lost:['ate','shared'] },
-    { one:'flower',   many:'flowers',   emoji:'\uD83C\uDF38', shop:'flower stall',
-      got:['picked','was given'],                lost:['gave away'] },
-    { one:'shell',    many:'shells',    emoji:'\uD83D\uDC1A', shop:null,
-      got:['found','collected'],                 lost:['gave away','lost'] },
-    { one:'balloon',  many:'balloons',  emoji:'\uD83C\uDF88', shop:'toy shop',
-      got:['was given','bought'],                lost:['popped','gave away'] },
-    { one:'rupee',    many:'rupees',    emoji:'\uD83D\uDCB0', shop:null,
-      got:['saved','was given','earned'],        lost:['spent','gave away'] },
-    { one:'book',     many:'books',     emoji:'\uD83D\uDCDA', shop:'book shop',
-      got:['borrowed','was given'],              lost:['returned','lent'] },
 
-    /* Cricket and superheroes were offered in the dropdown with no
-       objects behind them at all, so choosing either did nothing. */
-    { one:'run',      many:'runs',      emoji:'\uD83C\uDFCF', shop:null,
-      got:['scored','added'],                    lost:['lost'] },
-    { one:'wicket',   many:'wickets',   emoji:'\uD83C\uDFAF', shop:null,
-      got:['took'],                              lost:['gave away'] },
-    { one:'cricket ball', many:'cricket balls', emoji:'\uD83C\uDFD0', shop:'sports shop',
-      got:['bought','was given'],                lost:['lost','gave away'] },
-    { one:'trophy',   many:'trophies',  emoji:'\uD83C\uDFC6', shop:null,
-      got:['won','was given'],                   lost:['gave away'] },
-    { one:'medal',    many:'medals',    emoji:'\uD83E\uDD47', shop:null,
-      got:['won','earned'],                      lost:['gave away'] },
-    { one:'hero card', many:'hero cards', emoji:'\uD83E\uDDB8', shop:'toy shop',
-      got:['collected','traded for','was given'], lost:['traded away','gave away','lost'] },
-    { one:'comic',    many:'comics',    emoji:'\uD83D\uDCD6', shop:'book shop',
-      got:['bought','borrowed'],                 lost:['lent','returned'] },
-    { one:'badge',    many:'badges',    emoji:'\uD83C\uDFC5', shop:null,
-      got:['earned','was given'],                lost:['gave away','lost'] },
+    /* ── sweets and food ── */
+    { one:'chocolate', many:'chocolates', emoji:'\uD83C\uDF6B', shop:'sweet shop',
+      got:['was given','bought','won'],            lost:['ate','shared','gave away'] },
+    { one:'ice cream', many:'ice creams', emoji:'\uD83C\uDF66', shop:'ice cream cart',
+      got:['bought','was given'],                  lost:['finished','shared'] },
+    { one:'golgappa',  many:'golgappas',  emoji:'\uD83E\uDD63', shop:'chaat stall',
+      got:['ordered','was given'],                 lost:['gobbled up','shared'] },
+    { one:'gulab jamun', many:'gulab jamuns', emoji:'\uD83C\uDF6E', shop:'sweet shop',
+      got:['was given','made'],                    lost:['ate','shared'] },
+    { one:'samosa',    many:'samosas',    emoji:'\uD83E\uDD5F', shop:'snack stall',
+      got:['bought','made'],                       lost:['ate','shared'] },
+    { one:'mango',     many:'mangoes',    emoji:'\uD83E\uDD6D', shop:'fruit stall',
+      got:['picked','bought'],                     lost:['ate','gave away'] },
+    { one:'laddoo',    many:'laddoos',    emoji:'\uD83C\uDF6C', shop:'sweet shop',
+      got:['made','was given'],                    lost:['ate','shared'] },
+    { one:'cupcake',   many:'cupcakes',   emoji:'\uD83E\uDDC1', shop:'bakery',
+      got:['baked','bought'],                      lost:['ate','shared'] },
 
-    { one:'banana',   many:'bananas',   emoji:'\uD83C\uDF4C', shop:'fruit stall',
-      got:['bought','picked'],                   lost:['ate','shared'] },
-    { one:'apple',    many:'apples',    emoji:'\uD83C\uDF4E', shop:'fruit stall',
-      got:['bought','picked'],                   lost:['ate','shared'] },
-    { one:'orange',   many:'oranges',   emoji:'\uD83C\uDF4A', shop:'fruit stall',
-      got:['bought','picked'],                   lost:['ate','shared'] },
-    { one:'samosa',   many:'samosas',   emoji:'\uD83E\uDD5F', shop:'snack stall',
-      got:['bought','made'],                     lost:['ate','shared'] },
+    /* ── cricket ── */
+    { kind:'seen', one:'six',       many:'sixes',      emoji:'\uD83C\uDFCF', shop:null,
+      got:['hit','smashed'],                       lost:[] },
+    { kind:'seen', one:'four',      many:'fours',      emoji:'\uD83C\uDFCF', shop:null,
+      got:['hit','cracked'],                       lost:[] },
+    { kind:'seen', one:'wicket',    many:'wickets',    emoji:'\uD83C\uDFAF', shop:null,
+      got:['took','claimed'],                      lost:[] },
+    { kind:'seen', one:'catch',     many:'catches',    emoji:'\uD83E\uDD1D', shop:null,
+      got:['took','held'],                         lost:['dropped'] },
+    { one:'jersey',    many:'jerseys',    emoji:'\uD83D\uDC55', shop:'sports shop',
+      got:['bought','was given'],                  lost:['gave away','outgrew'] },
+    { one:'autograph', many:'autographs', emoji:'\u270D\uFE0F', shop:null,
+      got:['collected','got'],                     lost:['gave away'] },
+    { one:'trophy',    many:'trophies',   emoji:'\uD83C\uDFC6', shop:null,
+      got:['won','lifted'],                        lost:['gave away'] },
 
-    { one:'diya',     many:'diyas',     emoji:'\uD83E\uDE94', shop:'festival stall',
-      got:['bought','made'],                     lost:['gave away'] },
-    { one:'rangoli colour', many:'rangoli colours', emoji:'\uD83C\uDFA8', shop:'festival stall',
-      got:['bought'],                            lost:['used up'] },
-    { one:'sparkler', many:'sparklers', emoji:'\u2728', shop:'festival stall',
-      got:['bought','was given'],                lost:['used','gave away'] },
+    /* ── superheroes ── */
+    { one:'cape',      many:'capes',      emoji:'\uD83E\uDDB8', shop:'costume shop',
+      got:['made','was given'],                    lost:['tore','gave away'] },
+    { one:'gadget',    many:'gadgets',    emoji:'\uD83D\uDD27', shop:'toy shop',
+      got:['built','invented'],                    lost:['broke','lent'] },
+    { one:'power crystal', many:'power crystals', emoji:'\uD83D\uDC8E', shop:null,
+      got:['found','collected'],                   lost:['used up','lost'] },
+    { one:'robot sidekick', many:'robot sidekicks', emoji:'\uD83E\uDD16', shop:'toy shop',
+      got:['built','switched on'],                 lost:['broke','lent'] },
+    { one:'hero card', many:'hero cards', emoji:'\uD83C\uDCCF', shop:'toy shop',
+      got:['collected','traded for','swapped for'], lost:['traded away','lost'] },
+    { one:'comic',     many:'comics',     emoji:'\uD83D\uDCD6', shop:'comic shop',
+      got:['bought','borrowed'],                   lost:['lent','finished'] },
 
-    { one:'star',     many:'stars',     emoji:'\u2B50', shop:null,
-      got:['counted','spotted'],                 lost:['clouded over'] },
-    { one:'rocket',   many:'rockets',   emoji:'\uD83D\uDE80', shop:'toy shop',
-      got:['built','was given'],                 lost:['gave away'] },
+    /* ── animals ── */
+    { kind:'seen', one:'puppy',     many:'puppies',    emoji:'\uD83D\uDC36', shop:null,
+      got:['counted','spotted'],                   lost:['ran off'] },
+    { kind:'seen', one:'kitten',    many:'kittens',    emoji:'\uD83D\uDC31', shop:null,
+      got:['counted','found'],                     lost:['wandered off'] },
+    { kind:'seen', one:'monkey',    many:'monkeys',    emoji:'\uD83D\uDC35', shop:null,
+      got:['counted','spotted'],                   lost:['scampered off'] },
+    { kind:'seen', one:'elephant',  many:'elephants',  emoji:'\uD83D\uDC18', shop:null,
+      got:['counted','spotted'],                   lost:['wandered away'] },
+    { kind:'seen', one:'peacock',   many:'peacocks',   emoji:'\uD83E\uDD9A', shop:null,
+      got:['counted','spotted'],                   lost:['flew off'] },
+    { kind:'seen', one:'parrot',    many:'parrots',    emoji:'\uD83E\uDD9C', shop:null,
+      got:['counted','spotted'],                   lost:['flew away'] },
+    { kind:'seen', one:'dolphin',   many:'dolphins',   emoji:'\uD83D\uDC2C', shop:null,
+      got:['counted','spotted'],                   lost:['swam away'] },
+    { kind:'seen', one:'tiger',     many:'tigers',     emoji:'\uD83D\uDC05', shop:null,
+      got:['counted','tracked'],                   lost:['slipped away'] },
+
+    /* ── space ── */
+    { one:'rocket',    many:'rockets',    emoji:'\uD83D\uDE80', shop:'toy shop',
+      got:['built','launched'],                    lost:['gave away'] },
+    { kind:'seen', one:'alien',     many:'aliens',     emoji:'\uD83D\uDC7D', shop:null,
+      got:['spotted','counted'],                   lost:['beamed away'] },
+    { kind:'seen', one:'planet',    many:'planets',    emoji:'\uD83E\uDE90', shop:null,
+      got:['discovered','mapped'],                 lost:[] },
+    { kind:'seen', one:'shooting star', many:'shooting stars', emoji:'\uD83C\uDF1F', shop:null,
+      got:['spotted','counted'],                   lost:['faded'] },
     { one:'moon rock', many:'moon rocks', emoji:'\uD83C\uDF19', shop:null,
-      got:['collected','found'],                 lost:['gave away'] },
+      got:['collected','found'],                   lost:['gave away'] },
+    { kind:'seen', one:'satellite', many:'satellites', emoji:'\uD83D\uDCE1', shop:null,
+      got:['launched','tracked'],                  lost:[] },
 
-    { one:'parrot',   many:'parrots',   emoji:'\uD83E\uDD9C', shop:null,
-      got:['counted','spotted'],                 lost:['flew away'] },
-    { one:'butterfly', many:'butterflies', emoji:'\uD83E\uDD8B', shop:null,
-      got:['counted','spotted'],                 lost:['flew away'] },
-    { one:'fish',     many:'fish',      emoji:'\uD83D\uDC1F', shop:null,
-      got:['counted','caught'],                  lost:['let go'] },
-    { one:'leaf',     many:'leaves',    emoji:'\uD83C\uDF43', shop:null,
-      got:['collected','found'],                 lost:['blew away'] },
-    { one:'seed',     many:'seeds',     emoji:'\uD83C\uDF31', shop:null,
-      got:['planted','collected'],               lost:['gave away'] }
+    /* ── festivals ── */
+    { one:'diya',      many:'diyas',      emoji:'\uD83E\uDE94', shop:'festival stall',
+      got:['lit','bought'],                        lost:['blew out','gave away'] },
+    { one:'firecracker', many:'firecrackers', emoji:'\uD83E\uDDE8', shop:'firework stall',
+      got:['bought','was given'],                  lost:['burst','gave away'] },
+    { one:'sparkler',  many:'sparklers',  emoji:'\u2728', shop:'firework stall',
+      got:['bought','was given'],                  lost:['burnt out','gave away'] },
+    { one:'kite',      many:'kites',      emoji:'\uD83E\uDE81', shop:'kite shop',
+      got:['bought','made'],                       lost:['cut loose','gave away'] },
+    { one:'pichkari',  many:'pichkaris',  emoji:'\uD83D\uDD2B', shop:'festival stall',
+      got:['bought','was given'],                  lost:['gave away','broke'] },
+    { one:'gift',      many:'gifts',      emoji:'\uD83C\uDF81', shop:'gift shop',
+      got:['was given','received'],                lost:['gave away','wrapped up'] },
+
+    /* ── nature ── */
+    { one:'coconut',   many:'coconuts',   emoji:'\uD83E\uDD65', shop:'fruit stall',
+      got:['picked','collected'],                  lost:['gave away','cracked open'] },
+    { kind:'seen', one:'butterfly', many:'butterflies', emoji:'\uD83E\uDD8B', shop:null,
+      got:['spotted','counted'],                   lost:['flew away'] },
+    { kind:'seen', one:'firefly',   many:'fireflies',  emoji:'\u2728', shop:null,
+      got:['spotted','counted'],                   lost:['flew off'] },
+    { one:'seashell',  many:'seashells',  emoji:'\uD83D\uDC1A', shop:null,
+      got:['found','collected'],                   lost:['gave away'] },
+    { one:'flower',    many:'flowers',    emoji:'\uD83C\uDF38', shop:'flower stall',
+      got:['picked','was given'],                  lost:['gave away'] },
+
+    /* ── school and everyday ── */
+    { one:'sticker',   many:'stickers',   emoji:'\u2B50', shop:'stationery shop',
+      got:['earned','was given','won'],            lost:['stuck down','gave away'] },
+    { one:'pencil',    many:'pencils',    emoji:'\u270F\uFE0F', shop:'stationery shop',
+      got:['bought','was given'],                  lost:['lost','lent'] },
+    { one:'marble',    many:'marbles',    emoji:'\uD83D\uDD35', shop:'toy shop',
+      got:['won','swapped for'],                   lost:['lost','traded away'] },
+    { one:'balloon',   many:'balloons',   emoji:'\uD83C\uDF88', shop:'toy shop',
+      got:['blew up','was given'],                 lost:['popped','let go'] },
+    { one:'rupee',     many:'rupees',     emoji:'\uD83D\uDCB0', shop:null,
+      got:['saved','earned','was given'],          lost:['spent','gave away'] },
+    { one:'comic',     many:'comics',     emoji:'\uD83D\uDCD6', shop:'comic shop',
+      got:['bought','borrowed'],                   lost:['lent','finished'] }
   ];
 
-  /* The dropdown offers animals, fruits, space, cricket, festivals,
-     superheroes, nature and none. This map used different words
-     entirely — food, sports, festival, market — so four of the eight
-     themes matched nothing and quietly fell back to everything.
-     These keys are the dropdown's own values. */
+  /* The dropdown's own values, so a theme cannot silently miss. */
   var THEMED = {
-    animals:     ['parrot','butterfly','fish','shell','seed'],
-    fruits:      ['mango','banana','apple','orange','samosa','laddoo'],
-    space:       ['star','rocket','moon rock','marble','balloon'],
-    cricket:     ['run','wicket','cricket ball','trophy','medal'],
-    festivals:   ['laddoo','diya','rangoli colour','sparkler','flower'],
-    superheroes: ['hero card','comic','badge','medal','sticker'],
-    nature:      ['flower','leaf','seed','shell','butterfly'],
+    animals:     ['puppy','kitten','monkey','elephant','peacock','parrot','dolphin','tiger'],
+    fruits:      ['chocolate','ice cream','golgappa','gulab jamun','samosa','mango','laddoo','cupcake'],
+    space:       ['rocket','alien','planet','shooting star','moon rock','satellite'],
+    cricket:     ['six','four','wicket','catch','jersey','autograph','trophy'],
+    festivals:   ['diya','firecracker','sparkler','kite','pichkari','gift','laddoo'],
+    superheroes: ['cape','gadget','power crystal','robot sidekick','hero card','comic'],
+    nature:      ['coconut','butterfly','firefly','seashell','flower'],
     none:        null,
 
-    // the older names, kept so nothing that still sends them breaks
-    festival:    ['laddoo','diya','sparkler','flower'],
-    market:      ['mango','rupee','book','pencil'],
-    school:      ['pencil','book','sticker','marble'],
-    sports:      ['run','wicket','trophy','medal'],
-    food:        ['mango','laddoo','samosa','banana']
+    // older names, kept so anything still sending them keeps working
+    festival:    ['diya','firecracker','sparkler','kite','gift'],
+    market:      ['mango','rupee','chocolate','pencil'],
+    school:      ['pencil','sticker','marble','comic'],
+    sports:      ['six','four','wicket','trophy','jersey'],
+    food:        ['chocolate','ice cream','golgappa','samosa','laddoo']
   };
+
+  function thingsFor(theme) {
+    var key = String(theme || '').toLowerCase();
+    if (!key || key === 'none') return THINGS;
+    var keys = THEMED[key];
+    if (!keys) {
+      console.warn('No objects are set up for the theme "' + theme + '"');
+      return THINGS;
+    }
+    var picked = THINGS.filter(function (t) { return keys.indexOf(t.one) > -1; });
+    return picked.length ? picked : THINGS;
+  }
 
   /* Somewhere for a story to happen. Kept simple and Indian, since
      these are the places the children know. */
@@ -203,11 +268,14 @@ var WordProblems = (function () {
     var allAdd = rows.slice(1).every(function (n) { return n > 0; });
     var allSub = rows.slice(1).every(function (n) { return n < 0; });
     var two    = rows.length === 2;
+    var owned  = thing.kind !== 'seen';
 
-    // 1. The running story — what the app has always done
-    shapes.push(function () {
+    // 1. The running story — only for things a child can hold
+    if (owned) shapes.push(function () {
       var used = {};
       function verb(bank) {
+        // Some objects can only be gained — you do not "un-hit" a six.
+        if (!bank || !bank.length) bank = ['gave away'];
         var free = bank.filter(function (v) { return !used[v]; });
         var v = pick(free.length ? free : bank);
         used[v] = true;
@@ -226,8 +294,62 @@ var WordProblems = (function () {
       return lines;
     });
 
+    /* 1b. For things you only count. "9 monkeys scampered off" is
+       true; "she scampered off 9 monkeys" is not. */
+    if (!owned) shapes.push(function () {
+      /* "34 fours in the garden" and "34 satellites on the tree" — the
+         setting has to belong to the thing, not come from one list. */
+      var WHERE = {
+        'puppy':['in the street','in the park'], 'kitten':['on the wall','in the garden'],
+        'monkey':['on the tree','on the temple wall'], 'elephant':['at the sanctuary','by the river'],
+        'peacock':['in the field','in the garden'], 'parrot':['on the tree','in the cage'],
+        'dolphin':['in the sea','near the boat'], 'tiger':['in the forest','at the sanctuary'],
+        'alien':['on the planet','in the spaceship'], 'planet':['in the solar system','through the telescope'],
+        'shooting star':['in the night sky','above the terrace'],
+        'satellite':['in orbit','on the tracking screen'],
+        'butterfly':['in the garden','over the flowers'], 'firefly':['in the field','under the trees'],
+        'rainbow':['in the sky','over the hills'],
+        'six':['in the match','in the innings'], 'four':['in the match','in the innings'],
+        'wicket':['in the match','in the innings'], 'catch':['in the match','in the innings']
+      };
+      var where = pick(WHERE[thing.one] || ['nearby']);
+      var cricket = ['six','four','wicket','catch'].indexOf(thing.one) > -1;
+      var lines = cricket
+        ? ['India scored ' + count(rows[0], thing) + ' ' + where + '.']
+        : ['There were ' + count(rows[0], thing) + ' ' + where + '.'];
+      for (var i = 1; i < rows.length; i++) {
+        var n = rows[i];
+        if (n > 0) {
+          lines.push((i === 1 ? 'Then ' : 'After that ') + count(n, thing) +
+                     ' more ' + (n === 1 ? 'arrived' : 'arrived') + '.');
+        } else {
+          if (cricket) {
+            // You cannot un-score a six, so this becomes a comparison
+            lines.push('The other team scored ' + count(-n, thing) + '.');
+          } else {
+            var away = (thing.lost && thing.lost.length) ? pick(thing.lost) : 'went away';
+            lines.push((i === 1 ? 'Then ' : 'After that ') + count(-n, thing) +
+                       ' ' + away + '.');
+          }
+        }
+      }
+      lines.push(cricket
+        ? 'How many more did India score?'
+        : 'How many ' + thing.many + ' are there now?');
+      return lines;
+    });
+
+    if (!owned) shapes.push(function () {
+      var other = pick(NAMES.filter(function (x) { return x.n !== name; }));
+      return [name + ' counted ' + count(rows[0], thing) + '.',
+              other.n + ' counted ' + count(Math.abs(rows[1]), thing) + '.',
+              rows[1] > 0
+                ? 'How many did they count between them?'
+                : 'How many more did ' + name + ' count than ' + other.n + '?'];
+    });
+
     // 2. Two people, added together
-    if (allAdd && two) {
+    if (owned && allAdd && two) {
       shapes.push(function () {
         var other = pick(NAMES.filter(function (x) { return x.n !== name; }));
         return [name + ' has ' + count(rows[0], thing) + ' and ' +
@@ -237,7 +359,7 @@ var WordProblems = (function () {
     }
 
     // 3. A comparison — one has more than the other
-    if (allAdd && two) {
+    if (owned && allAdd && two) {
       shapes.push(function () {
         var other = pick(NAMES.filter(function (x) { return x.n !== name; }));
         return [other.n + ' has ' + count(rows[0], thing) + '.',
@@ -250,7 +372,7 @@ var WordProblems = (function () {
        would actually sell. "The sweet shop had 31 books" is the kind of
        thing a child spots at once, and it makes the whole page feel
        careless. */
-    if (rows.length <= 3 && thing.shop) {
+    if (owned && rows.length <= 3 && thing.shop) {
       shapes.push(function () {
         var lines = ['The ' + thing.shop + ' had ' + count(rows[0], thing) + ' in the morning.'];
         for (var i = 1; i < rows.length; i++) {
@@ -265,7 +387,7 @@ var WordProblems = (function () {
     }
 
     // 5. Counting what is left after taking some away
-    if (allSub && two) {
+    if (owned && allSub && two) {
       shapes.push(function () {
         return [name + ' had ' + count(rows[0], thing) + ' in ' +
                 (they === 'he' ? 'his' : 'her') + ' bag.',
@@ -275,7 +397,7 @@ var WordProblems = (function () {
     }
 
     // 6. Over two days
-    if (allAdd) {
+    if (owned && allAdd) {
       shapes.push(function () {
         var days = ['On Monday', 'On Tuesday', 'On Wednesday', 'On Thursday'];
         var lines = [];
@@ -290,7 +412,7 @@ var WordProblems = (function () {
     }
 
     // 7. Sharing between friends
-    if (allSub && two && Math.abs(rows[1]) < rows[0]) {
+    if (owned && allSub && two && Math.abs(rows[1]) < rows[0]) {
       shapes.push(function () {
         var other = pick(NAMES.filter(function (x) { return x.n !== name; }));
         return [name + ' had ' + count(rows[0], thing) + '.',
@@ -302,7 +424,7 @@ var WordProblems = (function () {
     /* 8. A collection growing. Not for money — nobody collects rupees,
        and "returned 9 books" is not collecting either, so the verbs
        stay on the gaining side. */
-    if (thing.one !== 'rupee') shapes.push(function () {
+    if (owned && thing.one !== 'rupee') shapes.push(function () {
       var lines = [name + ' is collecting ' + thing.many + '.',
                    cap(they) + ' already has ' + rows[0] + '.'];
       for (var i = 1; i < rows.length; i++) {
@@ -313,6 +435,15 @@ var WordProblems = (function () {
       }
       lines.push('How many are in the collection now?');
       return lines;
+    });
+
+    if (!shapes.length) shapes.push(function () {
+      return ['There were ' + count(rows[0], thing) + '.',
+              rows.slice(1).map(function (n) {
+                return n > 0 ? count(n, thing) + ' more arrived.'
+                             : count(-n, thing) + ' went away.';
+              }).join(' '),
+              'How many ' + thing.many + ' now?'];
     });
 
     var lines = pick(shapes)();

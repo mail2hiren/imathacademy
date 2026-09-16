@@ -2742,7 +2742,8 @@ async function assignToStudents() {
       var rows = many.map(function (kid) {
         var mine = custom[kid.id];
         return {
-          title:       'Level ' + selectedLevel + ' — ' + kid.name + ' — ' +
+          title:       (selectedProgram === 'vedic' ? 'Vedic L' : 'Abacus L') +
+                       selectedLevel + ' — ' + kid.name + ' — ' +
                        new Date().toLocaleDateString('en-IN', { day:'numeric', month:'short' }),
           content:     mine ? mine.content : content,
           answer_key:  mine ? mine.answerKey : (generatedContent.answerkey || null),
@@ -2780,7 +2781,8 @@ async function assignToStudents() {
       await sb.from('notifications').insert(many.map(function (kid) {
         return { user_id: kid.id, type: 'worksheet',
                  title: '📋 New worksheet assigned!',
-                 message: 'Level ' + selectedLevel + ' — check your Worksheets section.' };
+                 message: (selectedProgram === 'vedic' ? 'Vedic Maths Level ' : 'Abacus Level ') +
+                          selectedLevel + ' — check your Worksheets section.' };
       }));
 
       var n = Object.keys(custom).length;

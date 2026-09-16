@@ -689,6 +689,7 @@ async function selectProgram(prog) {
   selectedConcept = null;
   await drawLevelCards();
   try { filterConceptsForLevel(); } catch (e) {}
+  try { applyActivityVisibility(); } catch (e) {}
 }
 
 /* Drawn from curriculum_levels, so Abacus runs L0 to L8 and Vedic
@@ -725,6 +726,30 @@ async function drawLevelCards() {
       '<div class="level-desc">' + (r.core_focus || r.level_name || '') + '</div>' +
     '</div>';
   }).join('');
+}
+
+/* Vedic has no bead activities. Offering picture sums for a Vedic
+   level would produce something meaningless, so the choices narrow to
+   what its engine can actually build. */
+var VEDIC_ACTIVITIES = ['column_sums', 'story_problems', 'which_method', 'mixed'];
+
+function applyActivityVisibility() {
+  document.querySelectorAll('.activity-opt').forEach(function (el) {
+    var m = (el.getAttribute('onclick') || '').match(/selectActivity\([^,]*,\s*'([\w_]+)'/);
+    if (!m) return;
+    var ok = selectedProgram !== 'vedic' || VEDIC_ACTIVITIES.indexOf(m[1]) > -1;
+    el.style.display = ok ? '' : 'none';
+    // if the hidden one was selected, fall back to something real
+    if (!ok && selectedActivity === m[1]) {
+      selectedActivity = 'column_sums';
+      document.querySelectorAll('.activity-opt').forEach(function (x) {
+        x.classList.remove('selected');
+        if ((x.getAttribute('onclick') || '').indexOf("'column_sums'") > -1) {
+          x.classList.add('selected');
+        }
+      });
+    }
+  });
 }
 
 function selectLevel(el, lv) {
@@ -1688,6 +1713,46 @@ async function generateStoryProblems(count, level) {
 async function generateFromEngine() {
   var count = parseInt(document.getElementById('questionCount').value, 10) || 10;
   var level = selectedLevel;
+
+  /* Vedic goes to its own engine. Nothing below this line knows
+     anything but beads, so a Vedic level run through it would come
+     out as column sums with a Vedic label on them. */
+  if (selectedProgram === 'vedic') {
+    if (typeof VedicEngine === 'undefined') {
+      throw new Error('The Vedic engine did not load \u2014 please refresh the page');
+    }
+    var vOpts = { count: count, guideFirst: 3 };
+    if (selectedConcept) vOpts.methods = [selectedConcept];
+
+    var page = (selectedActivity === 'which_method')
+      ? VedicEngine.whichMethodPage(level, vOpts)
+      : VedicEngine.buildPage(level, vOpts);
+
+    if (page.error) throw new Error(page.error);
+    if (!page.questions || !page.questions.length) {
+      throw new Error('Could not build Vedic questions for Level ' + level);
+    }
+
+    /* The same gate the student side uses. A Vedic sum the method
+       does not suit teaches the wrong instinct. */
+    var bad = VedicEngine.auditPage(page, level);
+    if (bad.length) {
+      console.error('Vedic page failed its audit:', bad);
+      throw new Error('The questions did not pass their own check \u2014 nothing was saved');
+    }
+
+    return page.questions.map(function (q, i) {
+      return {
+        n: i + 1,
+        question: q.text || q.prompt || '',
+        answer: String(q.answer),
+        method: q.label || '',
+        steps: q.steps || q.workingShown || null,
+        guided: !!q.guided,
+        tellMethod: q.tellMethod !== false
+      };
+    });
+  }
 
   // Fill blank, Match pairs, Picture sums, Colour and Mixed are the
   // same checked sums shown differently — Exercises builds them all.
@@ -2683,6 +2748,7 @@ async function assignToStudents() {
           answer_key:  mine ? mine.answerKey : (generatedContent.answerkey || null),
           lesson_plan: generatedContent.lessonplan || null,
           parent_note: generatedContent.parentnote || null,
+          program_code: selectedProgram,
           level:       selectedLevel,
           concept:     selectedConcept,
           activity:    selectedActivity,
@@ -2733,6 +2799,7 @@ async function assignToStudents() {
       answer_key:   generatedContent.answerkey   || null,
       lesson_plan:  generatedContent.lessonplan  || null,
       parent_note:  generatedContent.parentnote  || null,
+      program_code: selectedProgram,
       level:        selectedLevel,
       concept:      selectedConcept,
       activity:     selectedActivity,

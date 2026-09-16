@@ -690,6 +690,7 @@ async function selectProgram(prog) {
   await drawLevelCards();
   try { filterConceptsForLevel(); } catch (e) {}
   try { applyActivityVisibility(); } catch (e) {}
+  try { applyThemeVisibility(); } catch (e) {}
 }
 
 /* Drawn from curriculum_levels, so Abacus runs L0 to L8 and Vedic
@@ -732,6 +733,25 @@ async function drawLevelCards() {
    level would produce something meaningless, so the choices narrow to
    what its engine can actually build. */
 var VEDIC_ACTIVITIES = ['column_sums', 'story_problems', 'which_method', 'mixed'];
+
+/* Theme only means something where there are words. It stays for
+   story problems in BOTH programmes and is hidden elsewhere, rather
+   than sitting there doing nothing. */
+function applyThemeVisibility() {
+  var wordy = ['story_problems', 'picture_sums', 'match_pairs', 'fill_blank', 'mixed'];
+  var show = wordy.indexOf(selectedActivity) > -1;
+  var el = document.getElementById('themeSel');
+  var wrap = el && el.closest('.form-group');
+  if (wrap) wrap.style.display = show ? '' : 'none';
+
+  /* Addition-only and the rest are about building a column, which
+     Vedic does not do. */
+  ['addOnly', 'subOnly', 'noZero', 'ceiling'].forEach(function (id) {
+    var e2 = document.getElementById(id);
+    var w2 = e2 && e2.closest('label, .form-group, .restrict-opt');
+    if (w2) w2.style.display = (selectedProgram === 'vedic') ? 'none' : '';
+  });
+}
 
 function applyActivityVisibility() {
   document.querySelectorAll('.activity-opt').forEach(function (el) {
@@ -844,6 +864,7 @@ function selectConcept(el, val) {
 }
 
 function selectActivity(el, val) {
+  setTimeout(function(){ try { applyThemeVisibility(); } catch(e){} }, 0);
   document.querySelectorAll('.activity-opt').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
   el.querySelector('input').checked = true;
@@ -1794,7 +1815,31 @@ async function generateFromEngine() {
        value — it has to fill generatedContent and render. Returning an
        array meant the questions were built and thrown away, so Megha
        saw nothing to assign. */
+    /* Story problems, when she asks for them. Megha's point stands:
+       a child who only ever sees 98 x 97 asks why they would need it,
+       and a themed story answers that. The theme reaches these
+       exactly as it does on the abacus side. */
+    var vStories = selectedActivity === 'story_problems';
+
     var vQuestions = page.questions.map(function (q, i) {
+      var story = null;
+      if (vStories && typeof WordProblems !== 'undefined' &&
+          typeof WordProblems.dressVedic === 'function') {
+        story = WordProblems.dressVedic(q, selectedTheme);
+      }
+      if (story) {
+        return {
+          n: i + 1,
+          question: story.question,
+          answer: String(q.answer),
+          method: q.label || '',
+          emoji: story.emoji || '',
+          steps: q.steps || q.workingShown || null,
+          guided: !!q.guided,
+          tellMethod: q.tellMethod !== false,
+          type: 'story'
+        };
+      }
       return {
         n: i + 1,
         /* The engine's text is just the sum — "1000 − 357". A worksheet

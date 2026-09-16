@@ -251,6 +251,160 @@ var WordProblems = (function () {
     };
   }
 
+
+  /* ── VEDIC STORIES ───────────────────────────────────────────
+     Megha's point, and she is right: a child who only ever sees
+     98 x 97 asks why they would need it. A story answers that, and
+     the themed objects are what make it feel real.
+
+     A Vedic story is shaped by the METHOD, not by a running total.
+     Taking a number from a base is stock and sales; multiplying near
+     a base is rows and boxes; division is sharing out. So each
+     method gets its own situations.
+     ─────────────────────────────────────────────────────────── */
+
+  function dressVedic(q, theme) {
+    if (!q || !q.method) return null;
+    var who   = pick(NAMES);
+    var name  = who.n, they = who.they;
+    var thing = pick(thingsFor(theme));
+    var a = q.a, b = q.b;
+
+    var shapes = {
+
+      /* Taking a number from 100, 1000 or a multiple */
+      allFromNine: function () {
+        var opts = [
+          [ 'A ' + (thing.shop || 'shop') + ' had ' + a + ' ' + thing.many + ' in stock.',
+            they === 'he' ? 'The owner sold ' + b + ' of them.' : 'The owner sold ' + b + ' of them.',
+            'How many ' + thing.many + ' are left? = ?' ],
+          [ name + ' needs ' + a + ' ' + thing.many + ' for a function.',
+            cap(they) + ' already has ' + b + '.',
+            'How many more are needed? = ?' ],
+          [ 'A box holds ' + a + ' ' + thing.many + '.',
+            b + ' have been taken out.',
+            'How many are still in the box? = ?' ]
+        ];
+        return pick(opts);
+      },
+
+      complement: function () {
+        return [ name + ' has ' + a + ' rupees and wants to save ' + b + '.',
+                 'How much more does ' + they + ' need? = ?' ];
+      },
+
+      doubling: function () {
+        return [ 'Last month the ' + (thing.shop || 'shop') + ' sold ' + a + ' ' + thing.many + '.',
+                 'This month it sold twice as many.',
+                 'How many did it sell this month? = ?' ];
+      },
+
+      halving: function () {
+        return [ name + ' has ' + a + ' ' + thing.many + ' to share equally with a friend.',
+                 'How many does each of them get? = ?' ];
+      },
+
+      byEleven: function () {
+        return [ 'Each crate holds ' + a + ' ' + thing.many + '.',
+                 'There are 11 crates.',
+                 'How many ' + thing.many + ' altogether? = ?' ];
+      },
+
+      /* Equal groups — the shape that makes multiplication real */
+      urdhva: function () { return groups(); },
+      nikhilamMult: function () { return groups(); },
+      workingBase: function () { return groups(); },
+      antyayor: function () { return groups(); },
+      ekadhikena: function () {
+        return [ 'A square hall has ' + a + ' tiles along each side.',
+                 'How many tiles are there in the whole hall? = ?' ];
+      },
+      duplex: function () {
+        return [ name + ' is laying a square garden, ' + a + ' steps on every side.',
+                 'How many square steps of ground is that? = ?' ];
+      },
+      yavadunam: function () {
+        return [ 'A square plot measures ' + a + ' metres on each side.',
+                 'What is its area in square metres? = ?' ];
+      },
+      cubing: function () {
+        return [ 'A cube-shaped box is ' + a + ' cm along every edge.',
+                 'How many cubic centimetres does it hold? = ?' ];
+      },
+
+      /* Sharing out */
+      nikhilamDiv: function () { return sharing(); },
+      paravartya:  function () { return sharing(); },
+      dhwajanka:   function () { return sharing(); },
+
+      squareRoot: function () {
+        return [ 'A square hall has an area of ' + a + ' square tiles.',
+                 'How many tiles are along one side? = ?' ];
+      },
+      cubeRoot: function () {
+        return [ 'A cube-shaped tank holds ' + a + ' cubic cm.',
+                 'How long is one edge? = ?' ];
+      },
+
+      digitSum: function () {
+        return [ name + ' wants to check the total ' + a + ' quickly.',
+                 'What is its digit sum? = ?' ];
+      },
+
+      stacking: function () {
+        return [ name + ' had ' + a + ' ' + thing.many + ' and ' + pick(thing.got) +
+                 ' ' + b + ' more.', 'How many now? = ?' ];
+      },
+
+      splitMerge: function () {
+        return [ 'The ' + (thing.shop || 'shop') + ' had ' + a + ' ' + thing.many + '.',
+                 b + ' more arrived.', 'How many are there now? = ?' ];
+      }
+    };
+
+    function groups() {
+      var opts = [
+        [ 'A ' + (thing.shop || 'shop') + ' has ' + a + ' boxes.',
+          'Each box holds ' + b + ' ' + thing.many + '.',
+          'How many ' + thing.many + ' altogether? = ?' ],
+        [ 'There are ' + a + ' rows of chairs in the hall.',
+          'Each row has ' + b + ' chairs.',
+          'How many chairs are there? = ?' ],
+        [ 'Each ' + thing.one + ' costs ' + b + ' rupees.',
+          name + ' buys ' + a + ' of them.',
+          'How much does ' + they + ' pay? = ?' ]
+      ];
+      return pick(opts);
+    }
+
+    function sharing() {
+      var opts = [
+        [ name + ' has ' + a + ' ' + thing.many + ' to pack into boxes of ' + b + '.',
+          'How many full boxes, and how many left over? = ?' ],
+        [ a + ' ' + thing.many + ' are shared equally among ' + b + ' children.',
+          'How many does each child get? = ?' ]
+      ];
+      return pick(opts);
+    }
+
+    var f = shapes[q.method];
+    if (!f) return null;
+
+    var lines;
+    try { lines = f(); } catch (e) { return null; }
+    if (!lines || !lines.length) return null;
+
+    return {
+      type:     'story',
+      question: lines.join(' '),
+      lines:    lines,
+      answer:   q.answer,
+      emoji:    thing.emoji,
+      method:   q.label || '',
+      speak:    true
+    };
+  }
+
   /**
    * Turn a page of sums into word problems, keeping only the short
    * ones. Long columns stay as columns.
@@ -313,7 +467,7 @@ var WordProblems = (function () {
     };
   }
 
-  return { dress: dress, fromSums: fromSums, NAMES: NAMES, THINGS: THINGS,
+  return { dress: dress, dressVedic: dressVedic, fromSums: fromSums, NAMES: NAMES, THINGS: THINGS,
            placesFor: placesFor,
            dressMultiply: dressMultiply, dressDivide: dressDivide };
 })();

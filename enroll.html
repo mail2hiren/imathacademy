@@ -583,7 +583,11 @@ async function goToPayment() {
       }).select();
 
       if (parentRes.data && parentRes.data[0]) {
-        await sb.from('parent_students').insert({
+        /* The table is parent_student, singular. This insert has been
+           failing silently since enrolment was written, which is why
+           parents end up with no link to their child — and why they
+           then cannot pay for them. */
+        await sb.from('parent_student').insert({
           parent_id:  parentRes.data[0].id,
           student_id: studentId,
         });

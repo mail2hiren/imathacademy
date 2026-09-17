@@ -668,16 +668,19 @@ async function drawLevelCards() {
      better than an empty screen — a teacher with no level cards
      cannot do anything at all. */
   if (!rows.length && selectedProgram === 'abacus') {
+    /* Megha's own labels, matching what is in curriculum_levels. The
+       cards used to be written into this page with different wording,
+       so switching to the database quietly changed what she reads. */
     rows = [
-      {level_code:'L0', core_focus:'Counting, number recognition'},
-      {level_code:'L1', core_focus:'Big + small friends, 2-digit'},
-      {level_code:'L2', core_focus:'Combination, 3-digit'},
-      {level_code:'L3', core_focus:'Family formula, 4-digit'},
-      {level_code:'L4', core_focus:'Anzan, 5-digit add/sub'},
-      {level_code:'L5', core_focus:'Multiply 2\u00d71, 3\u00d71 only'},
-      {level_code:'L6', core_focus:'Division 2\u00f71, 7-digit'},
-      {level_code:'L7', core_focus:'4\u00d71, 2\u00d72, 4\u00f71, 8-digit'},
-      {level_code:'L8', core_focus:'Decimals + negatives'}
+      {level_code:'L0', core_focus:'Understanding beads, addition and subtraction'},
+      {level_code:'L1', core_focus:'Big friends and small friends \u2014 addition'},
+      {level_code:'L2', core_focus:'Big friends and small friends \u2014 subtraction'},
+      {level_code:'L3', core_focus:'Combination / family formulas'},
+      {level_code:'L4', core_focus:'Multiplication'},
+      {level_code:'L5', core_focus:'Multiplication'},
+      {level_code:'L6', core_focus:'Multiplication'},
+      {level_code:'L7', core_focus:'Decimals'},
+      {level_code:'L8', core_focus:'Negative numbers'}
     ];
     console.warn('Using the built-in Abacus levels \u2014 the curriculum could not be read');
   }

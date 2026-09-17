@@ -67,8 +67,12 @@ Deno.serve(async (req) => {
   // A parent may pay for their child; anyone else pays for themselves
   let studentId = body.student_id || caller.user.id;
   if (studentId !== caller.user.id) {
+    /* The table is parent_student, singular. Querying the plural
+       returned nothing, so a parent paying for their own child failed
+       the ownership check and was told "that is not your child" —
+       which stopped the payment before it started. */
     const { data: link } = await admin
-      .from("parent_students").select("student_id")
+      .from("parent_student").select("student_id")
       .eq("parent_id", caller.user.id).eq("student_id", studentId).maybeSingle();
     if (!link) {
       const { data: me } = await admin

@@ -446,9 +446,14 @@ function columnIsAllowed(q, rules) {
   if (typeof Beads === 'undefined') return true;
   if (!q.rows || !q.rows.length) return false;
 
-  var allowSmall = rules.formulas.indexOf('small') > -1;
-  var allowBig   = rules.formulas.indexOf('big')   > -1;
-  var floorV     = rules.allowZero ? 0 : 1;
+  /* This checked small and big and said nothing about combination, so
+     a combination step walked straight through at Level 1 and Level 2
+     where it is not taught. That is the out-of-syllabus work Megha
+     found, and it was here rather than in the generator.
+
+     Checking the list instead of naming formulas one by one means a
+     formula added later cannot slip past the same way. */
+  var floorV = rules.allowZero ? 0 : 1;
   var v = q.rows[0];
 
   if (v > rules.maxNumber || v < floorV) return false;
@@ -456,8 +461,8 @@ function columnIsAllowed(q, rules) {
   for (var i = 1; i < q.rows.length; i++) {
     var kinds = Beads.stepKinds(v, q.rows[i]);
     for (var k = 0; k < kinds.length; k++) {
-      if (kinds[k] === 'small' && !allowSmall) return false;
-      if (kinds[k] === 'big'   && !allowBig)   return false;
+      // 'direct' is plain bead movement and needs no formula
+      if (kinds[k] !== 'direct' && rules.formulas.indexOf(kinds[k]) < 0) return false;
     }
     v += q.rows[i];
     if (v > rules.maxNumber) return false;

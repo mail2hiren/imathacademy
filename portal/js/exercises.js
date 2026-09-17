@@ -53,8 +53,9 @@ var Exercises = (function () {
       for (var i = 1; i < s.rows.length; i++) {
         var kinds = Beads.stepKinds(v, s.rows[i]);
         for (var k = 0; k < kinds.length; k++) {
-          if (kinds[k] === 'small' && rules.formulas.indexOf('small') < 0) ok = false;
-          if (kinds[k] === 'big'   && rules.formulas.indexOf('big')   < 0) ok = false;
+          /* Naming small and big let combination through where it is
+             not taught. Judging against the list cannot miss one. */
+          if (kinds[k] !== 'direct' && rules.formulas.indexOf(kinds[k]) < 0) ok = false;
         }
         v += s.rows[i];
         if (v > rules.maxNumber || v < 0) ok = false;
@@ -218,8 +219,10 @@ var Exercises = (function () {
        the impossible and returned nothing. */
     /* Big Friends and Combination both need the ten, so neither can
        produce an answer below it. Only combination was missing here. */
-    var needsTen = rules.formulas.indexOf('big') > -1 ||
-                   rules.formulas.indexOf('combination') > -1;
+    /* Anything that crosses the ten cannot produce an answer below
+       it. Listed once here so a formula added later is covered. */
+    var NEEDS_TEN = ['big', 'combination'];
+    var needsTen = rules.formulas.some(function (f) { return NEEDS_TEN.indexOf(f) > -1; });
     var FLOOR = needsTen ? 20 : 9;
 
     while (out.length < n && guard < n * 40) {

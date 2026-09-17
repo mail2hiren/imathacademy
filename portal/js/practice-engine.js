@@ -216,6 +216,20 @@ var PracticeEngine = (function () {
 
   /* ── Exercise builders ─────────────────────────────────────── */
 
+  /* Level 7 is decimals and it never worked: a `decimals` option was
+     passed to the generator and silently ignored, and stepKinds
+     returns nothing for a fraction so no formula was checked either.
+
+     On a soroban a decimal is an integer with the point moved — the
+     bead work for 3.5 + 1.2 is the bead work for 35 + 12 — so the
+     generator builds whole rods and shifts the point. */
+  function decimalPlacesFor(rules) {
+    if (!rules) return 0;
+    if (rules.decimals) return rules.decimals;
+    if (rules.formulas && rules.formulas.indexOf('decimal') > -1) return 1;
+    return 0;
+  }
+
   function columnSum(rules, mental, progress) {
     var rule = pick(rules.rowRules);
     var n    = randInt(rule.min_rows, rule.max_rows);
@@ -228,7 +242,8 @@ var PracticeEngine = (function () {
     if (typeof ColumnGen !== 'undefined' && typeof Beads !== 'undefined') {
       var mode = rules.formulas.length ? pick(rules.formulas) : 'direct';
       var thr  = typeof progress === 'number' ? progress : Math.random();
-      var built = ColumnGen.column({
+      var built = ColumnGen[decimalPlacesFor(rules) ? 'decimalColumn' : 'column']({
+              decimals: decimalPlacesFor(rules),
         max:       Math.max(9, Math.round(rules.maxNumber * (0.45 + 0.55 * thr))),
         rows:      n,
         mode:      mode,
@@ -420,7 +435,8 @@ var PracticeEngine = (function () {
                    : (Math.random() < 0.55 ? 2 : 3);
 
     for (var t = 0; t < 30; t++) {
-      var s = ColumnGen.column({
+      var s = ColumnGen[decimalPlacesFor(rules) ? 'decimalColumn' : 'column']({
+              decimals: decimalPlacesFor(rules),
         max: ceiling, rows: rowsWanted, mode: mode,
         require: mode === 'direct' ? 0 : 1, allowZero: rules.allowZero
       });
@@ -454,21 +470,36 @@ function columnIsAllowed(q, rules) {
      Checking the list instead of naming formulas one by one means a
      formula added later cannot slip past the same way. */
   var floorV = rules.allowZero ? 0 : 1;
-  var v = q.rows[0];
 
-  if (v > rules.maxNumber || v < floorV) return false;
+  /* A decimal question is judged on its whole-rod form. Checking 3.5
+     directly would let every step past, because stepKinds returns
+     nothing for a fraction. */
+  var rowsToCheck = q.intRows || q.rows;
+  var maxToCheck  = q.intRows
+    ? rules.maxNumber * Math.pow(10, q.decimals || 1)
+    : rules.maxNumber;
+  var v = rowsToCheck[0];
 
-  for (var i = 1; i < q.rows.length; i++) {
-    var kinds = Beads.stepKinds(v, q.rows[i]);
+  if (v > maxToCheck || v < floorV) return false;
+
+  for (var i = 1; i < rowsToCheck.length; i++) {
+    var kinds = Beads.stepKinds(v, rowsToCheck[i]);
     for (var k = 0; k < kinds.length; k++) {
       // 'direct' is plain bead movement and needs no formula
       if (kinds[k] !== 'direct' && rules.formulas.indexOf(kinds[k]) < 0) return false;
     }
-    v += q.rows[i];
-    if (v > rules.maxNumber) return false;
+    v += rowsToCheck[i];
+    /* These two used rules.maxNumber while the walk is in whole rods,
+       so a decimal sum was rejected for exceeding a limit ten times
+       smaller than the numbers being walked. */
+    if (v > maxToCheck) return false;
     if (v < floorV) return false;
   }
-  return v === q.answer;
+
+  /* And the final check compared the whole-rod total against the
+     displayed answer — 184 against 18.4 — so every legal decimal
+     sum was refused. */
+  return v === (q.intAnswer !== undefined ? q.intAnswer : q.answer);
 }
 
 

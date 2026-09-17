@@ -28,7 +28,56 @@ var ColumnGen = (function () {
    * @param opts.require    how many steps must demand the formula
    * @param opts.allowZero  may the running total rest on zero
    */
-  function column(opts) {
+  /* Decimals on a soroban are not a new kind of arithmetic. A child
+   sets a decimal point between two rods and the bead work for
+   3.5 + 1.2 is exactly the bead work for 35 + 12. So a decimal
+   column is generated as an ordinary integer column and the point is
+   moved afterwards — the bead model needs no change at all.
+
+   This is why Level 7 never worked: a `decimals` option was being
+   passed in and silently ignored, and stepKinds returns nothing for
+   a fraction, so no formula was ever checked either. */
+function decimalColumn(opts) {
+  var places = Math.max(1, Math.min(2, opts.decimals || 1));
+  var scale  = Math.pow(10, places);
+
+  /* Generate in whole units at the scaled range, so a level reaching
+     99.9 generates up to 999 and then shifts the point. */
+  var inner = Object.assign({}, opts);
+  delete inner.decimals;
+  inner.max = Math.max(10, Math.round((opts.max || 30) * scale));
+  if (opts.maxStep) inner.maxStep = Math.round(opts.maxStep * scale);
+
+  /* A decimal page where every row lands on .0 teaches nothing about
+     decimals. Most rows must have a real fractional part, so a
+     candidate is retried until it does. */
+  var s = null;
+  for (var t = 0; t < 40; t++) {
+    var cand = column(inner);
+    if (!cand) continue;
+    var fractional = cand.rows.filter(function (n) { return n % scale !== 0; }).length;
+    if (fractional >= Math.ceil(cand.rows.length * 0.6)) { s = cand; break; }
+    if (t > 30 && fractional >= 1) { s = cand; break; }   // rather than nothing
+  }
+  if (!s) return null;
+
+  function shift(n) {
+    // toFixed then back, so 0.30000000000000004 never reaches a child
+    return Number((n / scale).toFixed(places));
+  }
+
+  return {
+    rows:     s.rows.map(shift),
+    answer:   shift(s.answer),
+    decimals: places,
+    /* The integer form is kept because every check downstream — the
+       formula gate, the bead audit — works on whole rods. */
+    intRows:  s.rows,
+    intAnswer: s.answer
+  };
+}
+
+function column(opts) {
     var max      = opts.max || 30;
     var rows     = opts.rows || 4;
     var mode     = opts.mode || 'direct';
@@ -132,5 +181,5 @@ var ColumnGen = (function () {
     return out;
   }
 
-  return { column: column, page: page };
+  return { column: column, decimalColumn: decimalColumn, page: page };
 })();

@@ -183,6 +183,27 @@
       <div class="topbar-title" id="topbarTitle">Level Overview</div>
       <div id="topbarActions"></div>
     </div>
+    <!-- Outside #mainBody on purpose: that gets rewritten on every
+         render, and anything placed inside it would vanish. Both
+         programmes share the curriculum tables now, so the designer
+         has to say which one is being edited — without this, Abacus
+         and Vedic levels appeared in one list and a save could land
+         on the wrong programme's row. -->
+    <div style="display:flex;gap:10px;padding:14px 20px 0;flex-wrap:wrap;">
+      <button type="button" id="curAbacus" onclick="setCurriculumProgram('abacus')"
+        style="flex:1;min-width:150px;padding:13px;border:2px solid #E67D21;
+               border-radius:13px;background:#FFF4E8;font-family:inherit;
+               font-size:.93rem;font-weight:900;color:#8a4b00;cursor:pointer;">
+        &#129482; Abacus curriculum
+      </button>
+      <button type="button" id="curVedic" onclick="setCurriculumProgram('vedic')"
+        style="flex:1;min-width:150px;padding:13px;border:2px solid #E6E9F0;
+               border-radius:13px;background:#fff;font-family:inherit;
+               font-size:.93rem;font-weight:900;color:#4A5160;cursor:pointer;">
+        &#2384; Vedic Maths curriculum
+      </button>
+    </div>
+
     <div class="body" id="mainBody">
       <div class="spinner"></div>
     </div>
@@ -197,6 +218,26 @@
 const SURL = 'https://bhullfoajenhkxlkiubs.supabase.co';
 const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
 const sb = supabase.createClient(SURL, SKEY);
+
+
+/* Which curriculum is on screen. Every read below filters by it and
+   every write stamps it, so the two programmes cannot bleed into one
+   another. */
+var CURRICULUM_PROGRAM = 'abacus';
+
+function setCurriculumProgram(prog) {
+  if (prog === CURRICULUM_PROGRAM) return;
+  CURRICULUM_PROGRAM = prog;
+  ['abacus', 'vedic'].forEach(function (p) {
+    var b = document.getElementById(p === 'abacus' ? 'curAbacus' : 'curVedic');
+    if (!b) return;
+    var on = (p === prog);
+    b.style.borderColor = on ? (p === 'abacus' ? '#E67D21' : '#04949D') : '#E6E9F0';
+    b.style.background  = on ? (p === 'abacus' ? '#FFF4E8' : '#E7F6F7') : '#fff';
+    b.style.color       = on ? (p === 'abacus' ? '#8a4b00' : '#04616a') : '#4A5160';
+  });
+  loadData();
+}
 
 var LEVELS   = [];
 var CONCEPTS = [];
@@ -226,9 +267,9 @@ function showScreen(name, el) {
 
 // ── LOAD DATA ─────────────────────────────────────────────────
 async function loadData() {
-  var lRes = await sb.from('curriculum_levels').select('*').order('level_code');
+  var lRes = await sb.from('curriculum_levels').select('*').eq('program_code', CURRICULUM_PROGRAM).order('level_code');
   LEVELS = lRes.data || [];
-  var cRes = await sb.from('curriculum_concepts').select('*').order('concept_name');
+  var cRes = await sb.from('curriculum_concepts').select('*').eq('program_code', CURRICULUM_PROGRAM).order('concept_name');
   CONCEPTS = cRes.data || [];
   renderOverview();
 }
@@ -241,7 +282,7 @@ async function renderOverview() {
   var body = document.getElementById('mainBody');
   body.innerHTML = '<div class="spinner"></div>';
 
-  var lRes = await sb.from('curriculum_levels').select('*').order('level_code');
+  var lRes = await sb.from('curriculum_levels').select('*').eq('program_code', CURRICULUM_PROGRAM).order('level_code');
   LEVELS = lRes.data || [];
 
   var actionsHtml = '<button class="btn btn-blue btn-sm" onclick="addLevel()">+ Add Level</button>';
@@ -315,21 +356,21 @@ async function configurLevel(code) {
 
   // Load level concepts
   var lcRes = await sb.from('curriculum_level_concepts')
-    .select('concept_id,status,notes')
-    .eq('level_code', code);
+    .select('concept_id,status,notes').eq('program_code', CURRICULUM_PROGRAM)
+    .eq('level_code', code).eq('program_code', CURRICULUM_PROGRAM);
   var lcMap = {};
   (lcRes.data || []).forEach(function(lc) { lcMap[lc.concept_id] = lc; });
 
   // Load difficulty rules
   var drRes = await sb.from('curriculum_difficulty_rules')
-    .select('*').eq('level_code', code);
+    .select('*').eq('program_code', CURRICULUM_PROGRAM).eq('level_code', code);
   var drMap = {};
   (drRes.data || []).forEach(function(dr) { drMap[dr.difficulty] = dr; });
 
   // Load formulas
   var fRes = await sb.from('curriculum_formulas')
-    .select('*,curriculum_concepts(concept_name)')
-    .eq('level_code', code)
+    .select('*,curriculum_concepts(concept_name)').eq('program_code', CURRICULUM_PROGRAM)
+    .eq('level_code', code).eq('program_code', CURRICULUM_PROGRAM)
     .eq('is_active', true);
   var formulas = fRes.data || [];
 
@@ -591,7 +632,7 @@ async function saveLevelDefinition(code) {
     updated_at:              new Date().toISOString(),
   };
 
-  var res = await sb.from('curriculum_levels').update(data).eq('level_code', code).select();
+  var res = await sb.from('curriculum_levels').update(data).eq('level_code', code).eq('program_code', CURRICULUM_PROGRAM).select();
   if (res.error) {
     toast('Error saving: ' + res.error.message, 'error');
   } else if (!res.data || !res.data.length) {
@@ -625,7 +666,7 @@ async function saveGuardrails(code) {
   // a blocked write looks identical to a successful one — which is how
   // row level security silently swallowed every curriculum save.
   var res = await sb.from('curriculum_levels')
-    .update(data).eq('level_code', code).select();
+    .update(data).eq('level_code', code).eq('program_code', CURRICULUM_PROGRAM).select();
 
   if (res.error) {
     toast('Could not save guardrails: ' + res.error.message, 'error');
@@ -650,10 +691,11 @@ async function saveConceptProgression(code) {
     var status = sel.value;
     var noteEl = document.querySelector('input[data-concept-note="' + conceptId + '"]');
     var notes = noteEl ? noteEl.value : '';
-    upserts.push({ level_code: code, concept_id: conceptId, status: status, notes: notes });
+    upserts.push({ level_code: code, program_code: CURRICULUM_PROGRAM,
+                   concept_id: conceptId, status: status, notes: notes });
   });
 
-  var res = await sb.from('curriculum_level_concepts').upsert(upserts, { onConflict: 'level_code,concept_id' });
+  var res = await sb.from('curriculum_level_concepts').upsert(upserts, { onConflict: 'program_code,level_code,concept_id' });
   if (res.error) {
     toast('Error saving: ' + res.error.message, 'error');
   } else {
@@ -733,6 +775,7 @@ async function saveDifficultyRules(code) {
   ['easy','medium','hard'].forEach(function(diff) {
     upserts.push({
       level_code:   code,
+      program_code: CURRICULUM_PROGRAM,
       difficulty:   diff,
       min_digits:   parseInt(g('dr_' + diff + '_min_digits')) || null,
       max_digits:   parseInt(g('dr_' + diff + '_max_digits')) || null,
@@ -745,7 +788,7 @@ async function saveDifficultyRules(code) {
     });
   });
 
-  var res = await sb.from('curriculum_difficulty_rules').upsert(upserts, { onConflict: 'level_code,difficulty' });
+  var res = await sb.from('curriculum_difficulty_rules').upsert(upserts, { onConflict: 'program_code,level_code,difficulty' });
   if (res.error) {
     toast('Error saving: ' + res.error.message, 'error');
   } else {
@@ -791,6 +834,7 @@ async function saveFormula(btn, existingId) {
 
   var data = {
     level_code:  CURRENT_LEVEL ? CURRENT_LEVEL.level_code : '',
+    program_code: CURRICULUM_PROGRAM,
     formula_name: name,
     concept_id:  concept || null,
     method:      method || null,
@@ -831,7 +875,7 @@ async function deleteFormula(id, btn) {
 // ── UPDATE STATUS ─────────────────────────────────────────────
 async function updateStatus(code) {
   var status = document.getElementById('statusSel').value;
-  var res = await sb.from('curriculum_levels').update({ status: status, updated_at: new Date().toISOString() }).eq('level_code', code);
+  var res = await sb.from('curriculum_levels').update({ status: status, updated_at: new Date().toISOString() }).eq('level_code', code).eq('program_code', CURRICULUM_PROGRAM);
   if (res.error) {
     toast('Error: ' + res.error.message, 'error');
   } else {
@@ -852,7 +896,7 @@ async function addLevel() {
     toast(code + ' already exists — click Configure to edit it', 'error');
     return;
   }
-  var res = await sb.from('curriculum_levels').insert({ level_code: code, status: 'draft' }).select().single();
+  var res = await sb.from('curriculum_levels').insert({ level_code: code, status: 'draft', program_code: CURRICULUM_PROGRAM }).select().single();
   if (res.error) {
     toast('Error: ' + res.error.message, 'error');
   } else {
@@ -873,6 +917,7 @@ async function duplicateLevel(code) {
   dup.level_code = newCode;
   dup.level_name = (dup.level_name || code) + ' (copy)';
   dup.status = 'draft';
+  dup.program_code = CURRICULUM_PROGRAM;   // never copy into the other programme
   var res = await sb.from('curriculum_levels').insert(dup).select().single();
   if (res.error) {
     toast('Error: ' + res.error.message, 'error');
@@ -891,7 +936,7 @@ async function renderConcepts() {
   var body = document.getElementById('mainBody');
   body.innerHTML = '<div class="spinner"></div>';
 
-  var res = await sb.from('curriculum_concepts').select('*').order('category').order('concept_name');
+  var res = await sb.from('curriculum_concepts').select('*').eq('program_code', CURRICULUM_PROGRAM).order('category').order('concept_name');
   CONCEPTS = res.data || [];
 
   if (!CONCEPTS.length) {
@@ -964,7 +1009,7 @@ async function saveConcept(existingId) {
   if (existingId) {
     res = await sb.from('curriculum_concepts').update(data).eq('id', existingId);
   } else {
-    res = await sb.from('curriculum_concepts').insert(data);
+    res = await sb.from('curriculum_concepts').insert(Object.assign({ program_code: CURRICULUM_PROGRAM }, data));
   }
   if (res.error) {
     toast('Error: ' + res.error.message, 'error');

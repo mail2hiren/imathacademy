@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vedic Maths plan &mdash; tap to review</title>
+<link rel="icon" type="image/png" href="/assets/icon-32.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--teal:#04949D;--soft:#E7F6F7;--ink:#04616a;--orange:#E67D21;
+        --green:#2E7D32;--red:#C62828;
+        --t1:#1F2430;--t2:#4A5160;--t3:#8892A4;--line:#E6E9F0;}
+  body{font-family:'Nunito',sans-serif;background:#F5F7FC;color:var(--t1);
+       line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:78px;}
+
+  .top{background:#fff;border-bottom:1.5px solid var(--line);padding:12px 16px;
+       position:sticky;top:0;z-index:20;}
+  .top h1{font-size:1.05rem;font-weight:900;}
+  .top p{font-size:.8rem;color:var(--t3);margin-top:2px;}
+
+  /* ── the level strip: whole course at a glance ── */
+  .strip{display:flex;gap:6px;overflow-x:auto;padding:10px 16px;background:#fff;
+         border-bottom:1.5px solid var(--line);position:sticky;top:62px;z-index:19;
+         -webkit-overflow-scrolling:touch;}
+  .lvbtn{flex:0 0 auto;min-width:62px;padding:8px 11px;border:1.5px solid var(--line);
+         border-radius:11px;background:#fff;font-family:inherit;cursor:pointer;
+         text-align:center;}
+  .lvbtn.on{border-color:var(--teal);background:var(--soft);}
+  .lvbtn .n{font-size:.92rem;font-weight:900;color:var(--ink);}
+  .lvbtn .c{font-size:.66rem;color:var(--t3);font-weight:800;margin-top:1px;}
+  .lvbtn .tick{font-size:.62rem;font-weight:900;color:var(--green);}
+
+  .wrap{max-width:720px;margin:0 auto;padding:16px 14px;}
+
+  .hint{background:#FFF8F0;border-left:3px solid var(--orange);border-radius:9px;
+        padding:11px 13px;font-size:.84rem;color:#8a4b00;margin-bottom:16px;}
+
+  /* ── level header ── */
+  .lvhead{background:linear-gradient(135deg,var(--teal),#40A9A2);border-radius:16px;
+          padding:17px 18px;color:#fff;}
+  .lvhead .k{font-size:.68rem;font-weight:900;letter-spacing:1pt;opacity:.9;}
+  .lvhead h2{font-size:1.3rem;font-weight:900;margin-top:3px;}
+  .lvhead .f{font-size:.88rem;opacity:.95;margin-top:5px;}
+
+  /* ── a method card: everything is a tap ── */
+  .m{background:#fff;border:1.5px solid var(--line);border-radius:14px;
+     padding:14px 15px;margin-top:11px;}
+  .m.keep{border-color:#A5D6A7;background:#F7FBF8;}
+  .m.move{border-color:#FFCC80;background:#FFFCF7;}
+  .m.drop{border-color:#EEE;background:#FAFAFA;opacity:.5;}
+  .m h3{font-size:1rem;font-weight:900;}
+  .m .when{font-size:.82rem;color:var(--t2);margin-top:2px;}
+  .m .eg{font-family:ui-monospace,monospace;font-size:.8rem;background:#F5F7FC;
+         border-radius:7px;padding:5px 9px;margin-top:7px;display:inline-block;}
+
+  .row{display:flex;gap:6px;margin-top:11px;flex-wrap:wrap;}
+  .b{padding:7px 12px;border:1.5px solid var(--line);border-radius:9px;background:#fff;
+     font-family:inherit;font-size:.78rem;font-weight:800;color:var(--t2);cursor:pointer;}
+  .b.on-keep{background:#E8F5E9;border-color:#A5D6A7;color:#1B5E20;}
+  .b.on-move{background:#FFF3E0;border-color:#FFCC80;color:#8a4b00;}
+  .b.on-drop{background:#FDECEA;border-color:#FFCDD2;color:#B71C1C;}
+
+  .moveto{display:none;gap:5px;margin-top:8px;flex-wrap:wrap;}
+  .moveto.show{display:flex;}
+  .moveto .b{padding:6px 11px;font-size:.76rem;}
+
+  /* ── level settings as chips, nothing typed ── */
+  .set{background:#fff;border:1.5px solid var(--line);border-radius:14px;
+       padding:15px;margin-top:14px;}
+  .set h3{font-size:.7rem;font-weight:900;letter-spacing:.8pt;color:var(--t3);
+          text-transform:uppercase;margin-bottom:9px;}
+  .q{font-size:.88rem;font-weight:800;margin-top:12px;}
+  .q:first-of-type{margin-top:0;}
+
+  .guard{background:#fff;border:1.5px solid var(--line);border-radius:14px;
+         padding:15px;margin-top:14px;}
+  .g{display:flex;align-items:flex-start;gap:9px;padding:7px 0;cursor:pointer;
+     font-size:.85rem;color:var(--t2);}
+  .g input{width:18px;height:18px;accent-color:var(--teal);flex-shrink:0;margin-top:1px;}
+
+  .revision{background:#F7F9FF;border-radius:12px;padding:12px 14px;margin-top:13px;}
+  .revision h3{font-size:.7rem;font-weight:900;letter-spacing:.8pt;color:var(--t3);
+               text-transform:uppercase;}
+  .revision p{font-size:.82rem;color:var(--t2);margin-top:5px;}
+
+  .note{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;
+        font-family:inherit;font-size:.88rem;min-height:50px;margin-top:10px;}
+
+  .nav{display:flex;gap:9px;margin-top:18px;}
+  .nav button{flex:1;padding:13px;border:none;border-radius:12px;background:var(--teal);
+              color:#fff;font-family:inherit;font-size:.92rem;font-weight:900;cursor:pointer;}
+  .nav button.ghost{background:#fff;color:var(--t2);border:1.5px solid var(--line);}
+
+  #bar{position:fixed;left:0;right:0;bottom:0;background:#fff;
+       border-top:1.5px solid var(--line);padding:11px 16px;z-index:20;
+       display:flex;align-items:center;gap:12px;}
+  #bar .txt{font-size:.8rem;font-weight:800;color:var(--t3);flex:1;}
+  #bar .prog{height:6px;background:var(--line);border-radius:4px;flex:1;overflow:hidden;}
+  #bar .prog i{display:block;height:100%;background:var(--green);width:0;
+               transition:width .25s;}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <h1>&#2384; Vedic Maths &mdash; the plan</h1>
+  <p>Tap through it. Nothing needs typing unless you want to add something.</p>
+</div>
+
+<div class="strip" id="strip"></div>
+
+<div class="wrap">
+  <div class="hint" id="hint">
+    <strong>One tap per method.</strong> Green if it belongs at this level, amber to
+    move it, red to take it out. Everything else on this page is a choice of buttons.
+    Your answers save as you tap.
+  </div>
+  <div id="level"></div>
+</div>
+
+<div id="bar">
+  <span class="txt" id="barTxt">0 of 21 reviewed</span>
+  <span class="prog"><i id="barFill"></i></span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>window.supabase = supabase;</script>
+<script src="draft-store.js"></script>
+<script>
+/* ============================================================
+   The plan, reviewed by tapping
+   ------------------------------------------------------------
+   Megha has now been handed three sets of forms and a page of SQL,
+   and she was right to push back. Reviewing should be faster than
+   authoring, and so far it has not been.
+
+   So: every decision here is a button. The level strip along the
+   top shows the whole course and how much of each level is done,
+   so she can see what is covered without reading a syllabus. The
+   only free text is an optional note per level, for the things
+   buttons cannot capture.
+   ============================================================ */
+
+var PLAN = {"levels": [{"n": 1, "name": "Foundation", "focus": "", "outcome": "", "notYet": false, "methods": [{"key": "allFromNine", "label": "All from 9, last from 10", "when": "Taking a number from 100 or 1000 and their multiples", "example": "5000 − 983 = 4017", "shape": "subtraction"}, {"key": "complement", "label": "Friends / complement", "when": "What a number needs to reach 10, 100 or 1000", "example": "85 → 100 = 15", "shape": "complement"}, {"key": "doubling", "label": "Doubling", "when": "Doubling any number", "example": "double 48 = 96", "shape": "single"}, {"key": "halving", "label": "Halving", "when": "Halving an even number", "example": "half of 36 = 18", "shape": "single"}, {"key": "splitMerge", "label": "Split and merge", "when": "Adding a number within 3 of a ten", "example": "22 + 17 = 39", "shape": "addition"}, {"key": "stacking", "label": "Stacking", "when": "Plain addition written down, 2d+1d and 2d+2d", "example": "99 + 97 = 196", "shape": "addition"}], "revision": []}, {"n": 2, "name": "Number work", "focus": "", "outcome": "", "notYet": false, "methods": [{"key": "byEleven", "label": "Add the neighbour", "when": "Multiplying by 11", "example": "86 × 11 = 946", "shape": "multiplication"}, {"key": "urdhva", "label": "Vertically and crosswise", "when": "Multiplying anything at all", "example": "82 × 48 = 3936", "shape": "multiplication"}, {"key": "digitSum", "label": "Digit sum", "when": "Checking an answer", "example": "digit sum of 173 = 2", "shape": "single"}], "revision": [{"key": "allFromNine", "label": "All from 9, last from 10"}, {"key": "complement", "label": "Friends / complement"}, {"key": "doubling", "label": "Doubling"}, {"key": "halving", "label": "Halving"}, {"key": "splitMerge", "label": "Split and merge"}, {"key": "stacking", "label": "Stacking"}]}, {"n": 3, "name": "Multiplication I", "focus": "", "outcome": "", "notYet": false, "methods": [{"key": "ekadhikena", "label": "One more than the one before", "when": "Squaring a number ending in 5", "example": "175 × 175 = 30625", "shape": "multiplication"}, {"key": "antyayor", "label": "Same first, friends after", "when": "Same tens, units making 10", "example": "85 × 85 = 7225", "shape": "multiplication"}], "revision": [{"key": "allFromNine", "label": "All from 9, last from 10"}, {"key": "complement", "label": "Friends / complement"}, {"key": "doubling", "label": "Doubling"}, {"key": "halving", "label": "Halving"}, {"key": "splitMerge", "label": "Split and merge"}, {"key": "stacking", "label": "Stacking"}, {"key": "byEleven", "label": "Add the neighbour"}, {"key": "urdhva", "label": "Vertically and crosswise"}, {"key": "digitSum", "label": "Digit sum"}]}, {"n": 4, "name": "Base multiplication", "focus": "", "outcome": "", "notYet": false, "methods": [{"key": "nikhilamMult", "label": "Base method", "when": "Two numbers close to 100", "example": "97 × 101 = 9797", "shape": "multiplication"}, {"key": "workingBase", "label": "Working base", "when": "Two numbers close to 50 or 200", "example": "495 × 492 = 243540", "shape": "multiplication"}], "revision": [{"key": "allFromNine", "label": "All from 9, last from 10"}, {"key": "complement", "label": "Friends / complement"}, {"key": "doubling", "label": "Doubling"}, {"key": "halving", "label": "Halving"}, {"key": "splitMerge", "label": "Split and merge"}, {"key": "stacking", "label": "Stacking"}, {"key": "byEleven", "label": "Add the neighbour"}, {"key": "urdhva", "label": "Vertically and crosswise"}, {"key": "digitSum", "label": "Digit sum"}, {"key": "ekadhikena", "label": "One more than the one before"}, {"key": "antyayor", "label": "Same first, friends after"}]}, {"n": 5, "name": "Squares and cubes", "focus": "", "outcome": "", "notYet": false, "methods": [{"key": "duplex", "label": "Duplex", "when": "Squaring any two-digit number", "example": "30 × 30 = 900", "shape": "multiplication"}, {"key": "yavadunam", "label": "Whatever the deficiency", "when": "Squaring a number near 100", "example": "109 × 109 = 11881", "shape": "multiplication"}, {"key": "cubing", "label": "Cubing", "when": "Cubing a two-digit number", "example": "20³ = 8000", "shape": "single"}], "revision": [{"key": "allFromNine", "label": "All from 9, last from 10"}, {"key": "complement", "label": "Friends / complement"}, {"key": "doubling", "label": "Doubling"}, {"key": "halving", "label": "Halving"}, {"key": "splitMerge", "label": "Split and merge"}, {"key": "stacking", "label": "Stacking"}, {"key": "byEleven", "label": "Add the neighbour"}, {"key": "urdhva", "label": "Vertically and crosswise"}, {"key": "digitSum", "label": "Digit sum"}, {"key": "ekadhikena", "label": "One more than the one before"}, {"key": "antyayor", "label": "Same first, friends after"}, {"key": "nikhilamMult", "label": "Base method"}, {"key": "workingBase", "label": "Working base"}]}, {"n": 6, "name": "Division", "focus": "", "outcome": "", "notYet": false, "methods": [{"key": "nikhilamDiv", "label": "Base division", "when": "Dividing by 9, 88, 97", "example": "1383 ÷ 95 = 14 r 53", "shape": "division"}, {"key": "paravartya", "label": "Transpose and apply", "when": "Dividing by 12, 13, 112", "example": "1563 ÷ 21 = 74 r 9", "shape": "division"}, {"key": "dhwajanka", "label": "Straight division", "when": "Dividing by anything", "example": "4812 ÷ 64 = 75 r 12", "shape": "division"}], "revision": [{"key": "allFromNine", "label": "All from 9, last from 10"}, {"key": "complement", "label": "Friends / complement"}, {"key": "doubling", "label": "Doubling"}, {"key": "halving", "label": "Halving"}, {"key": "splitMerge", "label": "Split and merge"}, {"key": "stacking", "label": "Stacking"}, {"key": "byEleven", "label": "Add the neighbour"}, {"key": "urdhva", "label": "Vertically and crosswise"}, {"key": "digitSum", "label": "Digit sum"}, {"key": "ekadhikena", "label": "One more than the one before"}, {"key": "antyayor", "label": "Same first, friends after"}, {"key": "nikhilamMult", "label": "Base method"}, {"key": "workingBase", "label": "Working base"}, {"key": "duplex", "label": "Duplex"}, {"key": "yavadunam", "label": "Whatever the deficiency"}, {"key": "cubing", "label": "Cubing"}]}, {"n": 7, "name": "Roots", "focus": "", "outcome": "", "notYet": false, "methods": [{"key": "squareRoot", "label": "Square root", "when": "Root of a perfect square", "example": "√4356 = 66", "shape": "root"}, {"key": "cubeRoot", "label": "Cube root", "when": "Root of a perfect cube", "example": "∛17576 = 26", "shape": "root"}], "revision": [{"key": "allFromNine", "label": "All from 9, last from 10"}, {"key": "complement", "label": "Friends / complement"}, {"key": "doubling", "label": "Doubling"}, {"key": "halving", "label": "Halving"}, {"key": "splitMerge", "label": "Split and merge"}, {"key": "stacking", "label": "Stacking"}, {"key": "byEleven", "label": "Add the neighbour"}, {"key": "urdhva", "label": "Vertically and crosswise"}, {"key": "digitSum", "label": "Digit sum"}, {"key": "ekadhikena", "label": "One more than the one before"}, {"key": "antyayor", "label": "Same first, friends after"}, {"key": "nikhilamMult", "label": "Base method"}, {"key": "workingBase", "label": "Working base"}, {"key": "duplex", "label": "Duplex"}, {"key": "yavadunam", "label": "Whatever the deficiency"}, {"key": "cubing", "label": "Cubing"}, {"key": "nikhilamDiv", "label": "Base division"}, {"key": "paravartya", "label": "Transpose and apply"}, {"key": "dhwajanka", "label": "Straight division"}]}, {"n": 8, "name": "Fractions and algebra", "focus": "", "outcome": "", "notYet": true, "methods": [], "revision": [{"key": "allFromNine", "label": "All from 9, last from 10"}, {"key": "complement", "label": "Friends / complement"}, {"key": "doubling", "label": "Doubling"}, {"key": "halving", "label": "Halving"}, {"key": "splitMerge", "label": "Split and merge"}, {"key": "stacking", "label": "Stacking"}, {"key": "byEleven", "label": "Add the neighbour"}, {"key": "urdhva", "label": "Vertically and crosswise"}, {"key": "digitSum", "label": "Digit sum"}, {"key": "ekadhikena", "label": "One more than the one before"}, {"key": "antyayor", "label": "Same first, friends after"}, {"key": "nikhilamMult", "label": "Base method"}, {"key": "workingBase", "label": "Working base"}, {"key": "duplex", "label": "Duplex"}, {"key": "yavadunam", "label": "Whatever the deficiency"}, {"key": "cubing", "label": "Cubing"}, {"key": "nikhilamDiv", "label": "Base division"}, {"key": "paravartya", "label": "Transpose and apply"}, {"key": "dhwajanka", "label": "Straight division"}, {"key": "squareRoot", "label": "Square root"}, {"key": "cubeRoot", "label": "Cube root"}]}]};
+
+var state = { verdicts: {}, moveTo: {}, settings: {}, guards: {}, notes: {} };
+var at = 1;
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+/* Level settings offered as buttons, with the value Megha already
+   chose marked as the suggestion. */
+var SETTINGS = [
+  { key:'months',  q:'How long does this level take?',
+    opts:['1 month','2 months','3 months'], suggest:'2 months' },
+  { key:'sums',    q:'How many sums on a practice page?',
+    opts:['5','10','15','20'], suggest:'10' },
+  { key:'pass',    q:'Pass mark for the level test',
+    opts:['70%','80%','90%','100%'], suggest:'90%' },
+  { key:'guided',  q:'How many guided questions when a method is new?',
+    opts:['2','3','5','All of them'], suggest:'3' },
+  { key:'oral',    q:'Are sums read aloud at this level?',
+    opts:['Yes','No','Only some'], suggest:'Yes' }
+];
+
+/* Guardrails written out, so she ticks rather than types. These are
+   the rules the generator can actually enforce. */
+var GUARDS = {
+  1: ['Bases are 100 and 1000 and their multiples only, not 10000',
+      'Two-digit numbers only for halving',
+      'No odd numbers for halving',
+      'The number subtracted must be smaller than the base',
+      'Every answer on a page should be different'],
+  2: ['Bases 10000 and 100000 here',
+      'Single-digit multipliers only',
+      'Only once Level 1 bases are automatic',
+      'Start the eleven-times table without carrying'],
+  3: ['A number must end in 5 AND be squared for the ending-in-5 method',
+      'Never give 65 x 75 for it',
+      'Same tens AND units making 10 must both hold',
+      'The right-hand part always fills two digits',
+      'Introduce crosswise without carrying first'],
+  4: ['Both numbers within about 12 of the same base',
+      'Include numbers above the base too, like 104 x 105',
+      'The right part fills as many digits as the base has zeros',
+      'Working base only when both are within about 5 of it'],
+  5: ['Avoid numbers ending in 5 for duplex, they belong to Level 3',
+      'Cubes below 30',
+      'Squaring near a base only within 12 of it'],
+  6: ['Base division needs a divisor below the base',
+      'Transpose-and-apply needs one above the base',
+      'Division is exact at first, remainders later',
+      'Start with divisors where the first digit divides cleanly'],
+  7: ['Perfect squares only',
+      'Perfect cubes only',
+      'No numbers that are not perfect'],
+  8: ['Start with 1/19, where the pattern is shortest',
+      'Linear equations only']
+};
+
+function reviewed() {
+  var total = 0, done = 0;
+  PLAN.levels.forEach(function (l) {
+    l.methods.forEach(function (m) {
+      total++;
+      if (state.verdicts[m.key]) done++;
+    });
+  });
+  return { done: done, total: total };
+}
+
+function drawStrip() {
+  document.getElementById('strip').innerHTML = PLAN.levels.map(function (l) {
+    var d = l.methods.filter(function (m) { return state.verdicts[m.key]; }).length;
+    var all = l.methods.length;
+    var tick = (all && d === all) ? '&#10003;' : (d ? d + '/' + all : '&nbsp;');
+    return '<button class="lvbtn' + (l.n === at ? ' on' : '') +
+      '" onclick="go(' + l.n + ')">' +
+      '<div class="n">L' + l.n + '</div>' +
+      '<div class="c">' + esc(l.name.split(' ')[0]) + '</div>' +
+      '<div class="tick">' + tick + '</div>' +
+    '</button>';
+  }).join('');
+}
+
+function drawLevel() {
+  var l = PLAN.levels.filter(function (x) { return x.n === at; })[0];
+  if (!l) return;
+
+  var html = '<div class="lvhead">' +
+      '<div class="k">LEVEL ' + l.n + ' OF 8</div>' +
+      '<h2>' + esc(l.name) + '</h2>' +
+      '<div class="f">' + esc(l.focus) + '</div>' +
+    '</div>';
+
+  if (l.notYet) {
+    html += '<div class="hint" style="margin-top:14px;">' +
+      '<strong>Not built yet.</strong> Recurring decimals and equations are not the ' +
+      'same kind of sum as the rest, so nothing is generated for this level until ' +
+      'you have told me how you teach them.</div>';
+  }
+
+  /* ── the methods ── */
+  if (l.methods.length) {
+    html += '<div style="font-size:.7rem;font-weight:900;letter-spacing:.8pt;' +
+      'color:var(--t3);text-transform:uppercase;margin:16px 0 0;">' +
+      'New at this level &mdash; ' + l.methods.length + ' methods</div>';
+
+    html += l.methods.map(function (m) {
+      var v = state.verdicts[m.key];
+      return '<div class="m' + (v ? ' ' + v : '') + '" id="m-' + m.key + '">' +
+        '<h3>' + esc(m.label) + '</h3>' +
+        '<div class="when">' + esc(m.when) + '</div>' +
+        (m.example ? '<div class="eg">' + esc(m.example) + '</div>' : '') +
+        '<div class="row">' +
+          '<button class="b' + (v === 'keep' ? ' on-keep' : '') +
+            '" onclick="mark(\'' + m.key + '\',\'keep\')">&#10003; Belongs here</button>' +
+          '<button class="b' + (v === 'move' ? ' on-move' : '') +
+            '" onclick="mark(\'' + m.key + '\',\'move\')">&#8646; Another level</button>' +
+          '<button class="b' + (v === 'drop' ? ' on-drop' : '') +
+            '" onclick="mark(\'' + m.key + '\',\'drop\')">&#10005; Not mine</button>' +
+        '</div>' +
+        '<div class="moveto' + (v === 'move' ? ' show' : '') + '" id="mv-' + m.key + '">' +
+          [1,2,3,4,5,6,7,8].map(function (n) {
+            return '<button class="b' + (state.moveTo[m.key] === n ? ' on-move' : '') +
+              '" onclick="moveTo(\'' + m.key + '\',' + n + ')">L' + n + '</button>';
+          }).join('') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  /* ── what carries over ── */
+  if (l.revision.length) {
+    html += '<div class="revision"><h3>Also practised here</h3>' +
+      '<p>' + l.revision.map(function (r) { return esc(r.label); }).join(' &middot; ') +
+      '</p></div>';
+  }
+
+  /* ── settings, all buttons ── */
+  html += '<div class="set"><h3>How this level runs</h3>';
+  SETTINGS.forEach(function (s) {
+    var cur = (state.settings[at] || {})[s.key] || s.suggest;
+    html += '<div class="q">' + esc(s.q) + '</div><div class="row">' +
+      s.opts.map(function (o) {
+        return '<button class="b' + (cur === o ? ' on-keep' : '') +
+          '" onclick="setOpt(\'' + s.key + '\',\'' + o + '\')">' + esc(o) +
+          (o === s.suggest && cur !== o ? ' &middot;' : '') + '</button>';
+      }).join('') + '</div>';
+  });
+  html += '</div>';
+
+  /* ── guardrails, tick what applies ── */
+  var gs = GUARDS[at] || [];
+  if (gs.length) {
+    html += '<div class="guard"><h3>Rules for this level &mdash; tick what applies</h3>';
+    gs.forEach(function (g, i) {
+      var id = at + ':' + i;
+      var on = state.guards[id] !== false;   // suggested on
+      html += '<label class="g"><input type="checkbox"' + (on ? ' checked' : '') +
+        ' onchange="setGuard(\'' + id + '\', this.checked)"><span>' + esc(g) +
+        '</span></label>';
+    });
+    html += '</div>';
+  }
+
+  html += '<textarea class="note" id="note-' + at +
+    '" placeholder="Anything missing from this level? (optional)" ' +
+    'oninput="setNote(this.value)">' + esc(state.notes[at] || '') + '</textarea>';
+
+  html += '<div class="nav">' +
+    (at > 1 ? '<button class="ghost" onclick="go(' + (at-1) + ')">&larr; Level ' + (at-1) + '</button>' : '') +
+    (at < 8 ? '<button onclick="go(' + (at+1) + ')">Level ' + (at+1) + ' &rarr;</button>'
+            : '<button onclick="finish()">Done</button>') +
+  '</div>';
+
+  document.getElementById('level').innerHTML = html;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function mark(key, v) {
+  state.verdicts[key] = v;
+  if (v !== 'move') delete state.moveTo[key];
+  save(); drawStrip(); drawLevel(); bar();
+}
+function moveTo(key, n) { state.moveTo[key] = n; save(); drawLevel(); }
+function setOpt(k, v) {
+  state.settings[at] = state.settings[at] || {};
+  state.settings[at][k] = v;
+  save(); drawLevel();
+}
+function setGuard(id, on) { state.guards[id] = on; save(); }
+function setNote(v) { state.notes[at] = v; save(); }
+function go(n) { at = n; drawStrip(); drawLevel(); }
+
+function bar() {
+  var r = reviewed();
+  document.getElementById('barTxt').textContent =
+    r.done + ' of ' + r.total + ' reviewed';
+  document.getElementById('barFill').style.width =
+    (r.total ? Math.round(r.done / r.total * 100) : 0) + '%';
+}
+
+function finish() {
+  var r = reviewed();
+  document.getElementById('level').innerHTML =
+    '<div style="text-align:center;padding:40px 18px;">' +
+      '<div style="font-size:2.8rem;">&#10003;</div>' +
+      '<h2 style="font-size:1.3rem;font-weight:900;margin-top:10px;">Thank you</h2>' +
+      '<p style="color:var(--t2);margin-top:8px;">' + r.done + ' of ' + r.total +
+      ' methods reviewed. Everything is saved &mdash; you can come back and change ' +
+      'anything at any time.</p>' +
+      '<button onclick="go(1)" style="margin-top:18px;padding:12px 22px;border:none;' +
+      'border-radius:12px;background:var(--teal);color:#fff;font-family:inherit;' +
+      'font-weight:900;cursor:pointer;">Go through it again</button>' +
+    '</div>';
+}
+
+function save() { try { Draft.save('plan', 'vedic', state); } catch (e) {} }
+
+(async function () {
+  try {
+    var d = await Draft.load('plan', 'vedic');
+    if (d) state = Object.assign(state, d);
+  } catch (e) {}
+  drawStrip(); drawLevel(); bar();
+})();
+</script>
+</body>
+</html>

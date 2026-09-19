@@ -341,14 +341,8 @@
           <input type="radio" name="activity">
           <div><div class="activity-opt-name">Mixed variety ⚡</div><div class="activity-opt-sub">Built instantly from the curriculum, no AI</div></div>
         </label>
-        <label class="activity-opt" onclick="selectActivity(this,'multiplication')">
-          <input type="radio" name="activity">
-          <div><div class="activity-opt-name">Multiplication &#10006;</div><div class="activity-opt-sub">Sized to the level &mdash; 2&times;1 at L4, 3&times;1 at L5, 2&times;2 at L6</div></div>
-        </label>
-        <label class="activity-opt" onclick="selectActivity(this,'division')">
-          <input type="radio" name="activity">
-          <div><div class="activity-opt-name">Division &divide;</div><div class="activity-opt-sub">Always exact, never a remainder</div></div>
-        </label>
+        
+        
       </div>
     </div>
     <!-- Step 5: Settings -->
@@ -1852,16 +1846,23 @@ async function generateFromEngine() {
     showEl('assignBtn');
     return;
   }
-  // Word problems take a different shape from column work
-  // Multiplication is not taught below Level 4, division below Level 5.
-  // Better to say so than to hand back an empty sheet.
-  if (selectedActivity === 'multiplication' || selectedActivity === 'division') {
+  /* Multiplication and division were offered BOTH as an activity and
+     as a concept, which is one choice too many — they are what a
+     child practises, not the form the page takes. They are concepts
+     now, and the concept narrows the sums whatever activity she
+     picks, so a multiplication story problem is possible where before
+     the two settings fought each other.
+
+     The level check moved with them, into the concept path. */
+  if (selectedConcept === 'multiplication' || selectedConcept === 'division') {
     var chk = await PracticeEngine.loadLevelRules(level);
-    if (selectedActivity === 'multiplication' && !chk.multiplication) {
-      throw new Error('Level ' + level + ' does not teach multiplication yet — it starts at Level 4');
+    if (selectedConcept === 'multiplication' && !chk.multiplication) {
+      throw new Error('Level ' + level + ' is not set up for multiplication. ' +
+        'If it should be, tick it for this level in the Curriculum Designer.');
     }
-    if (selectedActivity === 'division' && !chk.division) {
-      throw new Error('Level ' + level + ' does not teach division yet — it starts at Level 5');
+    if (selectedConcept === 'division' && !chk.division) {
+      throw new Error('Level ' + level + ' is not set up for division. ' +
+        'If it should be, tick it for this level in the Curriculum Designer.');
     }
   }
   if (selectedActivity === 'story_problems') {

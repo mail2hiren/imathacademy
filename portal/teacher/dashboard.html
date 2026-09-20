@@ -581,6 +581,7 @@ const sb = supabase.createClient(SURL, SKEY);
 
 // ── GLOBAL STATE ──────────────────────────────────────────────
 let TEACHER_ID = null;
+var MY_ROLE = null;
 let TEACHER_NAME = '';
 let BATCHES = [];        // [{id, name, students:[{id,name,initials,xp,streak,level,acc,risk}]}]
 let SCHED = [];          // scheduled classes
@@ -659,6 +660,8 @@ async function loadData() {
   /* Megha both teaches and runs the academy. Requiring exactly
      'teacher' here would have cost her the teacher screens the moment
      she was made an admin — so an admin is welcome. */
+  /* Set here, on sign-in, so it is known before any tab opens. */
+  MY_ROLE = (prof.data && prof.data.role) || null;
   if (!prof.data || (prof.data.role !== 'teacher' && prof.data.role !== 'admin')) { window.location.href = '../../login.html'; return; }
   TEACHER_NAME = prof.data.full_name || 'Teacher';
   document.getElementById('sbAv').textContent = initials(TEACHER_NAME);
@@ -1358,10 +1361,42 @@ async function loadWsResults() {
   if (!el) return;
   el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
   try {
-    var myWs = await sb.from('lx_worksheets')
-      .select('id,title,level,created_at,batch_id')
-      .eq('created_by', TEACHER_ID).eq('is_active', true)
-      .order('created_at', {ascending: false}).limit(20);
+    /* This asked only for worksheets the signed-in account created.
+       Megha's sheets are invisible to anyone else, an admin sees
+       nothing at all, and the tab looks broken rather than empty.
+
+       A teacher should see the sheets for the children she teaches,
+       whoever pressed Assign. So: her own, plus anything set for one
+       of her batches; an admin sees everything. */
+    var wsQ = sb.from('lx_worksheets')
+      .select('id,title,level,created_at,batch_id,created_by,activity,program_code')
+      .eq('is_active', true)
+      .order('created_at', {ascending: false}).limit(40);
+
+    var myBatchIds = (BATCHES || []).map(function (b) { return b.id; }).filter(Boolean);
+    var amAdmin = (MY_ROLE === 'admin');
+
+    if (!amAdmin) {
+      if (myBatchIds.length) {
+        wsQ = wsQ.or('created_by.eq.' + TEACHER_ID +
+                     ',batch_id.in.(' + myBatchIds.join(',') + ')');
+      } else {
+        wsQ = wsQ.eq('created_by', TEACHER_ID);
+      }
+    }
+
+    var myWs = await wsQ;
+
+    /* A query that FAILED is not an empty tab. Saying which is the
+       difference between "nothing assigned yet" and a fault. */
+    if (myWs.error) {
+      console.error('Could not read the worksheets:', myWs.error);
+      el.innerHTML = '<div class="empty"><div class="empty-icon">\u26A0\uFE0F</div>' +
+        '<div class="empty-text">Could not load the worksheets.<br>' +
+        (myWs.error.message || 'The request was refused.') + '</div></div>';
+      return;
+    }
+
     if (!myWs.data || !myWs.data.length) {
       el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No worksheets assigned yet.<br>Use LX Designer to create and assign worksheets.</div></div>';
       return;

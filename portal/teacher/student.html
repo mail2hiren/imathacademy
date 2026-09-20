@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student progress — iMath Academy</title>
+<link rel="icon" type="image/png" href="/assets/icon-32.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{--blue:#1565C0;--orange:#E67D21;--teal:#04949D;--green:#2E7D32;
+        --red:#C62828;--amber:#EF6C00;
+        --t1:#1F2430;--t2:#4A5160;--t3:#8892A4;--line:#E6E9F0;--bg:#F5F7FC;}
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--t1);
+       line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:40px;}
+
+  .top{background:#fff;border-bottom:1.5px solid var(--line);padding:11px 15px;
+       display:flex;align-items:center;gap:11px;position:sticky;top:0;z-index:20;}
+  .top a{color:var(--t3);text-decoration:none;font-size:1.25rem;}
+  .top .who{font-size:.98rem;font-weight:900;}
+  .wrap{max-width:900px;margin:0 auto;padding:16px 14px;}
+
+  /* ── the header card ── */
+  .hero{background:#fff;border-radius:16px;padding:18px;box-shadow:0 2px 10px rgba(20,30,60,.05);}
+  .hero .name{font-size:1.4rem;font-weight:900;}
+  .hero .sub{font-size:.86rem;color:var(--t3);margin-top:2px;}
+  .chips{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap;}
+  .chip{padding:5px 11px;border-radius:20px;font-size:.76rem;font-weight:900;
+        background:#EEF2FA;color:var(--t2);}
+  .chip.ok{background:#E8F5E9;color:#1B5E20;}
+  .chip.warn{background:#FFF3E0;color:#8a4b00;}
+  .chip.bad{background:#FDECEA;color:#B71C1C;}
+
+  /* ── what needs attention, first ── */
+  .flags{margin-top:14px;}
+  .flag{background:#fff;border-left:4px solid var(--amber);border-radius:10px;
+        padding:12px 14px;margin-bottom:8px;font-size:.88rem;color:var(--t2);
+        box-shadow:0 1px 6px rgba(20,30,60,.04);}
+  .flag.good{border-left-color:var(--green);}
+  .flag.bad{border-left-color:var(--red);}
+  .flag strong{display:block;color:var(--t1);font-size:.92rem;margin-bottom:2px;}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+  @media (max-width:700px){ .grid{grid-template-columns:1fr;} }
+
+  .card{background:#fff;border-radius:14px;padding:16px;
+        box-shadow:0 2px 10px rgba(20,30,60,.05);}
+  .card h2{font-size:.72rem;font-weight:900;letter-spacing:.8pt;color:var(--t3);
+           text-transform:uppercase;margin-bottom:11px;}
+
+  .big{font-size:1.9rem;font-weight:900;line-height:1;}
+  .big.g{color:var(--green);} .big.a{color:var(--amber);} .big.r{color:var(--red);}
+  .cap{font-size:.78rem;color:var(--t3);font-weight:800;margin-top:3px;}
+
+  /* ── the sparkline, drawn as bars so nothing needs loading ── */
+  .spark{display:flex;align-items:flex-end;gap:3px;height:56px;margin-top:8px;}
+  .spark i{flex:1;background:var(--blue);border-radius:2px 2px 0 0;min-height:2px;
+           position:relative;}
+  .spark i.low{background:var(--red);} .spark i.mid{background:var(--amber);}
+  .sparkx{display:flex;gap:3px;font-size:.6rem;color:var(--t3);margin-top:3px;}
+  .sparkx span{flex:1;text-align:center;}
+
+  /* ── gates ── */
+  .gate{display:flex;align-items:center;gap:9px;padding:7px 0;font-size:.86rem;}
+  .gate .b{flex:1;height:7px;background:var(--line);border-radius:5px;overflow:hidden;}
+  .gate .b i{display:block;height:100%;background:var(--green);}
+  .gate .v{font-size:.78rem;font-weight:900;color:var(--t2);min-width:58px;text-align:right;}
+
+  /* ── the worksheet list, each one opens ── */
+  .ws{border:1.5px solid var(--line);border-radius:11px;margin-bottom:8px;overflow:hidden;}
+  .ws-head{padding:11px 13px;cursor:pointer;display:flex;align-items:center;gap:10px;}
+  .ws-head:hover{background:#FAFBFF;}
+  .ws-head .t{flex:1;min-width:0;}
+  .ws-head .t strong{font-size:.9rem;display:block;}
+  .ws-head .t span{font-size:.76rem;color:var(--t3);}
+  .ws-head .pc{font-size:.95rem;font-weight:900;}
+  .ws-head .pc.g{color:var(--green);} .ws-head .pc.a{color:var(--amber);}
+  .ws-head .pc.r{color:var(--red);}
+  .ws-body{display:none;border-top:1.5px solid var(--line);background:#FAFBFF;
+           padding:11px 13px;}
+  .ws-body.show{display:block;}
+
+  .q{display:flex;align-items:flex-start;gap:9px;padding:7px 0;
+     border-bottom:1px solid var(--line);font-size:.86rem;}
+  .q:last-child{border-bottom:none;}
+  .q .n{width:22px;height:22px;border-radius:50%;flex-shrink:0;font-size:.68rem;
+        font-weight:900;display:flex;align-items:center;justify-content:center;}
+  .q .n.ok{background:#E8F5E9;color:#1B5E20;}
+  .q .n.no{background:#FDECEA;color:#B71C1C;}
+  .q .n.skip{background:#EEF2FA;color:var(--t3);}
+  .q .txt{flex:1;min-width:0;}
+  .q .txt .sum{font-family:ui-monospace,monospace;white-space:pre-line;}
+  .q .txt .gave{font-size:.78rem;margin-top:2px;}
+  .q .txt .gave b{color:var(--red);}
+  .q .txt .gave i{color:var(--green);font-style:normal;font-weight:800;}
+  .classmiss{font-size:.72rem;color:var(--amber);font-weight:800;margin-top:2px;}
+
+  .empty{text-align:center;padding:26px;color:var(--t3);font-size:.88rem;}
+  .spin{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--blue);
+        border-radius:50%;margin:40px auto;animation:sp .7s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .note{font-size:.76rem;color:var(--t3);margin-top:9px;line-height:1.5;}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a href="dashboard.html">&larr;</a>
+  <span class="who" id="topName">Student progress</span>
+</div>
+
+<div class="wrap" id="body"><div class="spin"></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   One child, everything a teacher needs
+   ------------------------------------------------------------
+   Megha asked for a 360 view with real analytics. What makes this
+   useful rather than decorative is that every number is something
+   she can act on:
+
+   - what needs attention, at the top, before any chart
+   - accuracy over time, so a fall is visible before a test
+   - each worksheet opens to show which sums went wrong and what the
+     child actually answered
+   - a question most of the CLASS got wrong is marked, because that
+     is a lesson to reteach rather than one child to worry about
+   - the three completion gates, so "when can she move up" is a
+     glance and not a calculation
+
+   Practice sessions only store totals, not individual answers, so
+   the per-question detail here comes from worksheets. That limit is
+   stated on the page rather than hidden.
+   ============================================================ */
+
+var SUPABASE_URL = 'https://bhullfoajenhkxlkiubs.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc';
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+var STUDENT_ID = new URLSearchParams(location.search).get('id');
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function pct(a,b){ return b ? Math.round(a/b*100) : 0; }
+function band(p){ return p>=80?'g':p>=60?'a':'r'; }
+function daysAgo(d){ return Math.floor((Date.now()-new Date(d))/86400000); }
+function fmt(d){ return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short'}); }
+
+async function init() {
+  if (!STUDENT_ID) {
+    document.getElementById('body').innerHTML =
+      '<div class="empty">No student chosen.</div>';
+    return;
+  }
+  var s = await sb.auth.getSession();
+  if (!s.data.session) { location.href = '../../login.html'; return; }
+
+  /* Everything in parallel — a teacher tapping a name should not
+     wait through six round trips. */
+  var [prof, progs, sessions, wsResp, quizzes, pacing] = await Promise.all([
+    sb.from('users').select('full_name, current_level, xp_points, last_active, age_group')
+      .eq('id', STUDENT_ID).maybeSingle(),
+    sb.from('student_programs').select('program_code, current_level, is_active')
+      .eq('student_id', STUDENT_ID),
+    sb.from('practice_sessions')
+      .select('questions_correct, questions_attempted, topic, created_at, level')
+      .eq('student_id', STUDENT_ID).order('created_at', { ascending: false }).limit(120),
+    sb.from('worksheet_responses')
+      .select('worksheet_id, score, total, answers, submitted_at')
+      .eq('student_id', STUDENT_ID).order('submitted_at', { ascending: false }).limit(40),
+    sb.from('quiz_results').select('level, score, total, passed, created_at')
+      .eq('student_id', STUDENT_ID).order('created_at', { ascending: false }).limit(20),
+    sb.from('student_level_position').select('level_code, position, updated_at')
+      .eq('student_id', STUDENT_ID)
+  ]);
+
+  var me = prof.data || {};
+  document.getElementById('topName').textContent = me.full_name || 'Student';
+
+  var sess = (sessions.data || []);
+  var ws   = (wsResp.data || []);
+  var qz   = (quizzes.data || []);
+
+  /* the worksheets themselves, for the questions and the level */
+  var wsMeta = {};
+  if (ws.length) {
+    var ids = ws.map(function (r) { return r.worksheet_id; });
+    var wm = await sb.from('lx_worksheets')
+      .select('id, title, level, activity, content, answer_key, program_code, created_at')
+      .in('id', ids);
+    (wm.data || []).forEach(function (w) { wsMeta[w.id] = w; });
+  }
+
+  /* Which questions did the rest of the class also miss? A question
+     most of the batch got wrong is a lesson, not a child's problem. */
+  var classMiss = {};
+  if (ws.length) {
+    var others = await sb.from('worksheet_responses')
+      .select('worksheet_id, answers, total')
+      .in('worksheet_id', ws.map(function (r) { return r.worksheet_id; }));
+    var tally = {};
+    (others.data || []).forEach(function (r) {
+      var w = wsMeta[r.worksheet_id];
+      if (!w) return;
+      var qs = questionsOf(w);
+      var mine = parseAnswers(r.answers);
+      qs.forEach(function (q, i) {
+        var key = r.worksheet_id + ':' + i;
+        tally[key] = tally[key] || { wrong: 0, seen: 0 };
+        var given = mine[i];
+        if (given === undefined || given === null || given === '') return;
+        tally[key].seen++;
+        if (!same(given, q.answer)) tally[key].wrong++;
+      });
+    });
+    Object.keys(tally).forEach(function (k) {
+      var t = tally[k];
+      if (t.seen >= 3 && t.wrong / t.seen >= 0.5) classMiss[k] = Math.round(t.wrong / t.seen * 100);
+    });
+  }
+
+  render(me, progs.data || [], sess, ws, wsMeta, qz, pacing.data || [], classMiss);
+}
+
+function parseAnswers(a) {
+  if (!a) return {};
+  if (typeof a === 'object') return a;
+  try { return JSON.parse(a) || {}; } catch (e) { return {}; }
+}
+
+function questionsOf(w) {
+  if (!w) return [];
+  var c = w.content;
+  if (typeof c === 'string') { try { c = JSON.parse(c); } catch (e) { c = null; } }
+  if (Array.isArray(c)) return c;
+  if (c && Array.isArray(c.questions)) return c.questions;
+  return [];
+}
+
+/* A child writing 9 and the key saying 9.0 is right. Marking that
+   wrong would teach the teacher nothing and the child less. */
+function same(a, b) {
+  var x = String(a == null ? '' : a).replace(/\s+/g, '').toLowerCase();
+  var y = String(b == null ? '' : b).replace(/\s+/g, '').toLowerCase();
+  if (x === y) return true;
+  var nx = Number(x), ny = Number(y);
+  return isFinite(nx) && isFinite(ny) && nx === ny;
+}
+
+function render(me, progs, sess, ws, wsMeta, qz, pacing, classMiss) {
+  /* ── the numbers ── */
+  var practice = sess.filter(function (s) { return s.topic !== 'worksheet'; });
+  var totC = 0, totA = 0;
+  sess.forEach(function (s) { totC += s.questions_correct || 0; totA += s.questions_attempted || 0; });
+  var overall = pct(totC, totA);
+
+  var last = sess.length ? daysAgo(sess[0].created_at) : null;
+
+  /* accuracy per week, most recent last */
+  var weeks = {};
+  sess.forEach(function (s) {
+    var d = new Date(s.created_at);
+    var k = d.getFullYear() + '-W' + Math.floor(d.getTime() / 604800000);
+    weeks[k] = weeks[k] || { c: 0, a: 0, when: d };
+    weeks[k].c += s.questions_correct || 0;
+    weeks[k].a += s.questions_attempted || 0;
+  });
+  var trend = Object.keys(weeks).map(function (k) { return weeks[k]; })
+    .sort(function (a, b) { return a.when - b.when; }).slice(-10);
+
+  /* is accuracy falling? the last three weeks against the three before */
+  var slip = null;
+  if (trend.length >= 4) {
+    var recent = trend.slice(-2), older = trend.slice(-4, -2);
+    var r = pct(recent.reduce(function(a,x){return a+x.c;},0), recent.reduce(function(a,x){return a+x.a;},0));
+    var o = pct(older.reduce(function(a,x){return a+x.c;},0), older.reduce(function(a,x){return a+x.a;},0));
+    if (o - r >= 10) slip = { from: o, to: r };
+    if (r - o >= 10) slip = { from: o, to: r, up: true };
+  }
+
+  /* ── what needs attention ── */
+  var flags = [];
+  if (last === null) {
+    flags.push(['bad', 'Has not practised at all', 'No sessions recorded yet.']);
+  } else if (last >= 14) {
+    flags.push(['bad', 'Gone quiet', 'Nothing for ' + last + ' days. Worth a message home.']);
+  } else if (last >= 7) {
+    flags.push(['', 'Quiet for a week', 'Last session ' + last + ' days ago.']);
+  }
+  if (slip && !slip.up) {
+    flags.push(['bad', 'Accuracy is falling',
+      'Down from ' + slip.from + '% to ' + slip.to + '% over the last few weeks. ' +
+      'Worth looking at which sums before the next test.']);
+  }
+  if (slip && slip.up) {
+    flags.push(['good', 'Improving',
+      'Up from ' + slip.from + '% to ' + slip.to + '%.']);
+  }
+  if (overall >= 90 && practice.length >= 15) {
+    flags.push(['good', 'Ready for harder work',
+      overall + '% across ' + totA + ' sums. Worth trying the next level or a harder band.']);
+  }
+  if (overall && overall < 60 && totA >= 30) {
+    flags.push(['bad', 'Struggling at this level',
+      'Only ' + overall + '% across ' + totA + ' sums. The level may be ahead of them.']);
+  }
+  var missCount = Object.keys(classMiss).length;
+  if (missCount) {
+    flags.push(['', missCount + (missCount === 1 ? ' question' : ' questions') + ' the class also missed',
+      'Marked below. These are worth going over at the board rather than one to one.']);
+  }
+
+  var html = '';
+
+  /* ── header ── */
+  html += '<div class="hero">' +
+    '<div class="name">' + esc(me.full_name || 'Student') + '</div>' +
+    '<div class="sub">' + esc(me.age_group || '') +
+      (me.last_active ? ' &middot; last seen ' + fmt(me.last_active) : '') + '</div>' +
+    '<div class="chips">' +
+      progs.filter(function (p) { return p.is_active; }).map(function (p) {
+        return '<span class="chip">' + (p.program_code === 'vedic' ? '\u0950 Vedic' : '\uD83E\uDDEE Abacus') +
+               ' Level ' + p.current_level + '</span>';
+      }).join('') +
+      (overall ? '<span class="chip ' + (overall>=80?'ok':overall>=60?'warn':'bad') + '">' +
+                 overall + '% overall</span>' : '') +
+      '<span class="chip">' + (me.xp_points || 0) + ' XP</span>' +
+      (last !== null ? '<span class="chip ' + (last<=2?'ok':last<=7?'warn':'bad') + '">' +
+        (last === 0 ? 'practised today' : last + 'd since practice') + '</span>' : '') +
+    '</div>' +
+  '</div>';
+
+  /* ── flags first, always ── */
+  if (flags.length) {
+    html += '<div class="flags">' + flags.map(function (f) {
+      return '<div class="flag ' + f[0] + '"><strong>' + esc(f[1]) + '</strong>' + esc(f[2]) + '</div>';
+    }).join('') + '</div>';
+  }
+
+  /* ── the numbers and the trend ── */
+  html += '<div class="grid">';
+
+  html += '<div class="card"><h2>Accuracy over the last weeks</h2>';
+  if (trend.length) {
+    var maxA = Math.max.apply(null, trend.map(function (t) { return t.a; })) || 1;
+    html += '<div class="spark">' + trend.map(function (t) {
+      var p = pct(t.c, t.a);
+      var h = Math.max(4, Math.round(p / 100 * 54));
+      return '<i class="' + (p>=80?'':p>=60?'mid':'low') + '" style="height:' + h + 'px" ' +
+             'title="' + p + '% of ' + t.a + ' sums"></i>';
+    }).join('') + '</div>';
+    html += '<div class="sparkx">' + trend.map(function (t, i) {
+      return '<span>' + (i === trend.length - 1 ? 'now' : (i % 2 ? '' : fmt(t.when).split(' ')[0])) + '</span>';
+    }).join('') + '</div>';
+    html += '<div class="note">Each bar is one week. Red is below 60%, amber below 80%.</div>';
+  } else html += '<div class="empty">Nothing recorded yet.</div>';
+  html += '</div>';
+
+  html += '<div class="card"><h2>Work done</h2>' +
+    '<div class="big ' + band(overall) + '">' + (overall || 0) + '%</div>' +
+    '<div class="cap">' + totC + ' right out of ' + totA + '</div>' +
+    '<div style="margin-top:12px;font-size:.86rem;color:var(--t2);">' +
+      practice.length + ' practice sessions &middot; ' + ws.length + ' worksheets' +
+      (qz.length ? ' &middot; ' + qz.length + ' level tests' : '') +
+    '</div></div>';
+
+  html += '</div>';
+
+  /* ── the three gates ── */
+  var lvl = (progs.filter(function(p){return p.program_code==='abacus';})[0] || {}).current_level;
+  var wsDone = ws.length, wsNeeded = 0;
+  var sessDone = practice.length, sessNeeded = lvl === 0 ? 12 : 20;
+  var testPassed = qz.filter(function (q) { return q.passed && q.level === lvl; }).length > 0;
+
+  html += '<div class="card" style="margin-top:14px;"><h2>Moving up from Level ' +
+    (lvl == null ? '?' : lvl) + '</h2>';
+  html += gateRow('Practice sessions', sessDone, sessNeeded);
+  html += '<div class="gate"><span style="flex:0 0 150px;">Level test</span>' +
+    '<span class="b"><i style="width:' + (testPassed?100:0) + '%"></i></span>' +
+    '<span class="v">' + (testPassed ? 'passed' : 'not yet') + '</span></div>';
+  html += '<div class="gate"><span style="flex:0 0 150px;">Worksheets returned</span>' +
+    '<span class="b"><i style="width:' + Math.min(100, wsDone*10) + '%"></i></span>' +
+    '<span class="v">' + wsDone + '</span></div>';
+  html += '</div>';
+
+  /* ── every worksheet, opening to the questions ── */
+  html += '<div class="card" style="margin-top:14px;"><h2>Worksheets &mdash; tap one to see every sum</h2>';
+  if (!ws.length) {
+    html += '<div class="empty">No worksheets returned yet.</div>';
+  } else {
+    html += ws.map(function (r, idx) {
+      var w = wsMeta[r.worksheet_id] || {};
+      var p = pct(r.score || 0, r.total || 0);
+      return '<div class="ws">' +
+        '<div class="ws-head" onclick="toggleWs(' + idx + ')">' +
+          '<div class="t"><strong>' + esc(w.title || 'Worksheet') + '</strong>' +
+            '<span>' + (w.activity ? esc(String(w.activity).replace(/_/g,' ')) + ' &middot; ' : '') +
+            (r.submitted_at ? fmt(r.submitted_at) : '') + '</span></div>' +
+          '<div class="pc ' + band(p) + '">' + p + '%</div>' +
+        '</div>' +
+        '<div class="ws-body" id="wsb-' + idx + '">' +
+          questionRows(r, w, classMiss) +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+  html += '</div>';
+
+  html += '<div class="note" style="padding:0 4px;">' +
+    'Sum-by-sum detail comes from worksheets. Practice sessions record only the ' +
+    'totals, so they show as accuracy rather than individual answers.</div>';
+
+  document.getElementById('body').innerHTML = html;
+}
+
+function gateRow(label, done, need) {
+  return '<div class="gate"><span style="flex:0 0 150px;">' + label + '</span>' +
+    '<span class="b"><i style="width:' + Math.min(100, pct(done, need)) + '%"></i></span>' +
+    '<span class="v">' + done + ' / ' + need + '</span></div>';
+}
+
+function questionRows(r, w, classMiss) {
+  var qs = questionsOf(w);
+  var mine = parseAnswers(r.answers);
+
+  if (!qs.length) {
+    return '<div class="empty">The questions for this worksheet were not kept, ' +
+           'so only the score is available.</div>';
+  }
+
+  return qs.map(function (q, i) {
+    var given = mine[i];
+    var answered = given !== undefined && given !== null && given !== '';
+    var ok = answered && same(given, q.answer);
+    var cls = !answered ? 'skip' : ok ? 'ok' : 'no';
+    var miss = classMiss[r.worksheet_id + ':' + i];
+
+    var sum = q.question || q.text || '';
+    if (q.rows && q.rows.length) {
+      sum = q.rows.map(function (n, j) {
+        return j === 0 ? String(n) : (n < 0 ? '\u2212 ' + Math.abs(n) : '+ ' + n);
+      }).join('\n');
+    }
+
+    return '<div class="q">' +
+      '<div class="n ' + cls + '">' + (!answered ? '\u2013' : ok ? '\u2713' : '\u2715') + '</div>' +
+      '<div class="txt">' +
+        '<div class="sum">' + esc(sum) + '</div>' +
+        (answered
+          ? (ok ? '<div class="gave"><i>' + esc(String(given)) + '</i></div>'
+                : '<div class="gave">gave <b>' + esc(String(given)) + '</b>, answer is <i>' +
+                  esc(String(q.answer)) + '</i></div>')
+          : '<div class="gave" style="color:var(--t3);">not answered</div>') +
+        (miss ? '<div class="classmiss">' + miss + '% of the class got this one wrong too</div>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function toggleWs(i) {
+  var el = document.getElementById('wsb-' + i);
+  if (el) el.classList.toggle('show');
+}
+
+init().catch(function (e) {
+  document.getElementById('body').innerHTML =
+    '<div class="empty">Could not load: ' + esc(e.message) + '</div>';
+});
+</script>
+</body>
+</html>

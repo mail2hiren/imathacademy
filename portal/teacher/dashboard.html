@@ -949,7 +949,8 @@ async function loadRecentSubmissions() {
       html += '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);">';
       html += '<div style="flex:1;min-width:0;"><div style="font-size:.875rem;font-weight:700;">' + (function(){var allS=[];BATCHES.forEach(function(b){allS=allS.concat(b.students);});var found=allS.find(function(s){return s.id===r.student_id;});return found?found.name:'Student';})() + '</div>';
       html += '<div style="font-size:.72rem;color:var(--text3);">' + (r.lx_worksheets ? r.lx_worksheets.title : 'Worksheet') + ' · ' + fmtDateTime(r.submitted_at) + '</div></div>';
-      html += '<div style="font-weight:800;color:' + col + ';">' + r.score + '/' + r.total + ' (' + pct + '%)</div></div>';
+      html += '<div style="font-weight:800;color:' + col + ';">' + r.score + '/' + r.total + ' (' + pct + '%)</div>' +
+            '<div style="color:var(--text3);margin-left:9px;font-weight:900;">&rsaquo;</div></div>';
     });
     el.innerHTML = html;
   } catch(e) {
@@ -988,6 +989,14 @@ function renderRoster(students) {
     html += '</div></div>';
   });
   el.innerHTML = html;
+}
+
+/* The full picture for one child. The drawer that viewStudent opens
+   is a summary; this is the page Megha asked for — every worksheet,
+   every sum, the trend, and what needs attention. */
+function openStudent(id) {
+  if (!id) return;
+  window.location.href = 'student.html?id=' + encodeURIComponent(id);
 }
 
 function viewStudent(id) {
@@ -1094,7 +1103,12 @@ async function loadSubmissions() {
       var r = respMap[s.id];
       var pct = r ? Math.round(r.score / r.total * 100) : null;
       var col = pct === null ? 'var(--text3)' : pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--orange)' : 'var(--red)';
-      html += '<div class="roster-row" style="cursor:default;">';
+      /* These rows were cursor:default with no handler — a teacher could
+             see that a child scored 6/10 and had no way to find out which
+             four. They now open that child's full progress. */
+          html += '<div class="roster-row" style="cursor:pointer;" ' +
+            'onclick="openStudent(\'' + r.student_id + '\')" ' +
+            'title="See every sum this child answered">';
       html += '<div class="av">' + s.initials + '</div>';
       html += '<div style="flex:1;min-width:0;"><div class="r-name">' + s.name + '</div><div class="r-meta">Level ' + s.level + '</div></div>';
       html += '<div style="font-weight:800;color:' + col + ';font-size:.9rem;">';

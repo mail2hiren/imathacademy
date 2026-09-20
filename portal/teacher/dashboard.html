@@ -254,6 +254,12 @@
     <div class="sb-footer">
       <div class="sb-user" style="margin-bottom:10px;">
         <div class="sb-av" id="sbAv">T</div>
+        <button class="sb-item" id="nav-progress" onclick="showTab('progress',this)">📈 Progress<span class="sb-icon">📊</span> Worksheet Results
+      </button>
+    </nav>
+    <div class="sb-footer">
+      <div class="sb-user" style="margin-bottom:10px;">
+        <div class="sb-av" id="sbAv">T</div>
         <div>
           <div class="sb-uname" id="sbName">Teacher</div>
           <div class="sb-urole">Teacher</div>
@@ -484,7 +490,17 @@
       </div>
 
       <!-- ══ WORKSHEET RESULTS TAB ══ -->
-      <div class="tab-panel" id="tab-wsresults">
+      <div class="tab-panel" id="tab-progress" style="display:none;">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Pick a child to see their full progress</div></div>
+        <div class="card-body">
+          <input type="text" id="progSearch" placeholder="Start typing a name…" oninput="filterProgress()" style="width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit;font-size:.92rem;margin-bottom:12px;">
+          <div id="progressList"><div class="loader"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-wsresults">
         <div class="card">
           <div class="card-header">
             <div class="card-title">📊 Worksheet Results</div>
@@ -597,6 +613,11 @@ const TAB_TITLES = {
 };
 
 function showTab(name, el) {
+  /* Filled on open rather than at load, so the batches are in by
+     the time it draws. */
+  if (arguments[0] === 'progress') {
+    setTimeout(function () { try { renderProgressList(); } catch (e) { console.warn(e); } }, 0);
+  }
   if (window.innerWidth <= 768) closeSidebar();
   document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
   document.querySelectorAll('.sb-item').forEach(function(b) { b.classList.remove('active'); });
@@ -994,6 +1015,58 @@ function renderRoster(students) {
 /* The full picture for one child. The drawer that viewStudent opens
    is a summary; this is the page Megha asked for — every worksheet,
    every sum, the trend, and what needs attention. */
+/* The Progress tab: every child, with the one number that says
+   whether to look closer, and a tap straight into their full
+   record. A teacher should not have to find a worksheet result
+   first in order to reach a child. */
+function renderProgressList() {
+  var el = document.getElementById('progressList');
+  if (!el) return;
+  var all = [];
+  BATCHES.forEach(function (b) {
+    b.students.forEach(function (s) { all.push(Object.assign({ batchName: b.name }, s)); });
+  });
+  if (!all.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-text">No students yet.</div></div>';
+    return;
+  }
+  all.sort(function (a, b) {
+    /* Anything that needs attention first \u2014 that is the point of
+       opening this tab at all. */
+    if (!!b.risk !== !!a.risk) return b.risk ? 1 : -1;
+    return (a.accuracy || 0) - (b.accuracy || 0);
+  });
+  el.innerHTML = all.map(function (s) {
+    var acc = s.accuracy;
+    var col = acc == null ? 'var(--text3)'
+            : acc >= 80 ? 'var(--green)' : acc >= 60 ? 'var(--orange)' : 'var(--red)';
+    return '<div class="roster-row progress-row" data-name="' +
+      (s.name || '').toLowerCase() + '" style="cursor:pointer;" ' +
+      'onclick="openStudent(\'' + s.id + '\')">' +
+      '<div class="pd-av" style="width:34px;height:34px;font-size:.78rem;">' +
+        (s.initials || '?') + '</div>' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div class="r-name" style="font-size:.9rem;font-weight:800;">' + (s.name || '') + '</div>' +
+        '<div style="font-size:.74rem;color:var(--text3);">' +
+          (s.batchName || '') + ' \u00b7 Level ' + (s.level == null ? '?' : s.level) + '</div>' +
+      '</div>' +
+      (s.risk ? '<div style="font-size:.7rem;font-weight:900;color:var(--red);' +
+                'margin-right:10px;">needs a look</div>' : '') +
+      '<div style="font-weight:900;color:' + col + ';font-size:.9rem;">' +
+        (acc == null ? '\u2014' : acc + '%') + '</div>' +
+      '<div style="color:var(--text3);margin-left:9px;font-weight:900;">\u203a</div>' +
+    '</div>';
+  }).join('');
+}
+
+function filterProgress() {
+  var q = (document.getElementById('progSearch').value || '').toLowerCase().trim();
+  document.querySelectorAll('.progress-row').forEach(function (row) {
+    var n = row.getAttribute('data-name') || '';
+    row.style.display = (!q || n.indexOf(q) > -1) ? '' : 'none';
+  });
+}
+
 function openStudent(id) {
   if (!id) return;
   window.location.href = 'student.html?id=' + encodeURIComponent(id);

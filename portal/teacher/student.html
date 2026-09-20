@@ -158,22 +158,40 @@ async function init() {
 
   /* Everything in parallel — a teacher tapping a name should not
      wait through six round trips. */
+  /* Every column here must actually exist. I asked practice_sessions
+     for a `level` column it does not have, and PostgREST rejects the
+     WHOLE query for one unknown column — so the page showed "0
+     practice sessions" for a child with plenty. Nothing failed
+     loudly; it simply returned nothing.
+
+     select('*') asks for whatever is there instead of my guess at
+     the schema, and the errors are surfaced below rather than
+     swallowed. */
   var [prof, progs, sessions, wsResp, quizzes, pacing] = await Promise.all([
-    sb.from('users').select('full_name, current_level, xp_points, last_active, age_group')
-      .eq('id', STUDENT_ID).maybeSingle(),
-    sb.from('student_programs').select('program_code, current_level, is_active')
-      .eq('student_id', STUDENT_ID),
-    sb.from('practice_sessions')
-      .select('questions_correct, questions_attempted, topic, created_at, level')
-      .eq('student_id', STUDENT_ID).order('created_at', { ascending: false }).limit(120),
-    sb.from('worksheet_responses')
-      .select('worksheet_id, score, total, answers, submitted_at')
+    sb.from('users').select('*').eq('id', STUDENT_ID).maybeSingle(),
+    sb.from('student_programs').select('*').eq('student_id', STUDENT_ID),
+    sb.from('practice_sessions').select('*')
+      .eq('student_id', STUDENT_ID).order('created_at', { ascending: false }).limit(150),
+    sb.from('worksheet_responses').select('*')
       .eq('student_id', STUDENT_ID).order('submitted_at', { ascending: false }).limit(40),
-    sb.from('quiz_results').select('level, score, total, passed, created_at')
+    sb.from('quiz_results').select('*')
       .eq('student_id', STUDENT_ID).order('created_at', { ascending: false }).limit(20),
-    sb.from('student_level_position').select('level_code, position, updated_at')
-      .eq('student_id', STUDENT_ID)
+    sb.from('student_level_position').select('*').eq('student_id', STUDENT_ID)
   ]);
+
+  /* A query that failed is not a child who has done nothing. Saying
+     so is the difference between a teacher chasing a pupil and a
+     teacher telling us the page is broken. */
+  var failures = [];
+  [['profile', prof], ['programmes', progs], ['practice', sessions],
+   ['worksheets', wsResp], ['tests', quizzes], ['pacing', pacing]
+  ].forEach(function (p) {
+    if (p[1] && p[1].error) {
+      console.error('Could not read ' + p[0] + ':', p[1].error);
+      failures.push(p[0] + ' (' + (p[1].error.message || 'refused') + ')');
+    }
+  });
+  window._readFailures = failures;
 
   var me = prof.data || {};
   document.getElementById('topName').textContent = me.full_name || 'Student';
@@ -229,12 +247,69 @@ function parseAnswers(a) {
   try { return JSON.parse(a) || {}; } catch (e) { return {}; }
 }
 
+/* A worksheet's questions are stored three different ways depending
+   on how it was made:
+
+     - a per-child sheet is a plain JSON array
+     - an object with a questions array
+     - the generated text, where the array sits under a
+       "## QUESTIONS" heading with the answer key and lesson plan
+       after it
+
+   The third is the common case and I only handled the first two, so
+   tapping a worksheet said the questions were not kept when they
+   were sitting right there. */
 function questionsOf(w) {
   if (!w) return [];
   var c = w.content;
-  if (typeof c === 'string') { try { c = JSON.parse(c); } catch (e) { c = null; } }
+
   if (Array.isArray(c)) return c;
-  if (c && Array.isArray(c.questions)) return c.questions;
+  if (c && typeof c === 'object' && Array.isArray(c.questions)) return c.questions;
+
+  if (typeof c !== 'string') return [];
+
+  // straight JSON
+  try {
+    var p = JSON.parse(c);
+    if (Array.isArray(p)) return p;
+    if (p && Array.isArray(p.questions)) return p.questions;
+  } catch (e) {}
+
+  // the generated document: find the array under ## QUESTIONS
+  var m = c.match(/##\s*QUESTIONS\s*([\s\S]*?)(?:\n##\s|$)/i);
+  var chunk = m ? m[1] : c;
+  var start = chunk.indexOf('[');
+  if (start > -1) {
+    // walk to the matching bracket rather than guessing at the end
+    var depth = 0, end = -1;
+    for (var i = start; i < chunk.length; i++) {
+      if (chunk[i] === '[') depth++;
+      else if (chunk[i] === ']') { depth--; if (!depth) { end = i; break; } }
+    }
+    if (end > start) {
+      try {
+        var arr = JSON.parse(chunk.slice(start, end + 1));
+        if (Array.isArray(arr)) return arr;
+      } catch (e) {}
+    }
+  }
+
+  /* Last resort: the answer key is a numbered list, so at least the
+     sums can be matched against what the child wrote. */
+  if (w.answer_key) {
+    var rows = String(w.answer_key).split('\n')
+      .map(function (l) { return l.match(/^\s*(\d+)\.\s*(.+)$/); })
+      .filter(Boolean);
+    if (rows.length) {
+      return rows.map(function (r) {
+        var rest = r[2];
+        var eq = rest.lastIndexOf('=');
+        return eq > -1
+          ? { question: rest.slice(0, eq).trim(), answer: rest.slice(eq + 1).trim() }
+          : { question: '', answer: rest.trim() };
+      });
+    }
+  }
   return [];
 }
 
@@ -250,6 +325,9 @@ function same(a, b) {
 
 function render(me, progs, sess, ws, wsMeta, qz, pacing, classMiss) {
   /* ── the numbers ── */
+  /* Worksheets also write a practice_sessions row with topic
+     'worksheet', so they are excluded from the practice count but
+     still counted in the accuracy. */
   var practice = sess.filter(function (s) { return s.topic !== 'worksheet'; });
   var totC = 0, totA = 0;
   sess.forEach(function (s) { totC += s.questions_correct || 0; totA += s.questions_attempted || 0; });
@@ -312,6 +390,15 @@ function render(me, progs, sess, ws, wsMeta, qz, pacing, classMiss) {
   }
 
   var html = '';
+
+  /* Anything that could not be read, said out loud. */
+  if ((window._readFailures || []).length) {
+    html += '<div class="flag bad" style="margin-bottom:12px;">' +
+      '<strong>Some of this could not be loaded</strong>' +
+      esc(window._readFailures.join(', ')) +
+      '. The figures below are incomplete \u2014 this is a fault to report, ' +
+      'not a reflection of the child.</div>';
+  }
 
   /* ── header ── */
   html += '<div class="hero">' +

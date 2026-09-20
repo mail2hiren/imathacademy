@@ -209,12 +209,11 @@ function render() {
       '</div>' +
       '<button class="btn" onclick="checkStep()">Check</button>';
   } else {
-    html += '<div class="answer">' +
-      '<div style="font-size:.8rem;color:var(--t3);font-weight:800;margin-bottom:9px;">' +
-        'Work it on paper, then type the answer</div>' +
-      '<input id="ai" inputmode="numeric" onkeydown="if(event.key===\'Enter\')checkAnswer()">' +
-      '</div>' +
-      '<button class="btn" onclick="checkAnswer()">Check</button>';
+    /* The 41 methods do not all end in a number. A divisibility
+       question answers Yes or No, and a division may answer "14 r 2".
+       A numeric keypad for either is unusable, so the input follows
+       the shape of the question. */
+    html += answerInput(q);
   }
 
   document.getElementById('body').innerHTML = html;
@@ -229,10 +228,12 @@ function checkStep() {
   if (!inp || inp.value === '') return;
 
   var want = q.steps[stepAt].answer;
-  var got  = Number(inp.value);
+  /* A step can end on Yes or No, so this cannot assume a number. */
+  var raw = inp.value.trim();
+  var got = (raw !== '' && isFinite(Number(raw))) ? Number(raw) : raw;
   var row  = document.getElementById('st-' + stepAt);
 
-  if (got !== want) {
+  if (!sameAnswer(got, want)) {
     /* The step is shown, not hidden. A child stuck on step three
        should be told what step three is, not sent back to the top. */
     row.classList.add('done');
@@ -279,13 +280,81 @@ function checkStep() {
 }
 
 /* ── an unguided question ─────────────────────────────────── */
+/* An input that suits the question. */
+function answerInput(q) {
+  if (q.shape === 'divisibility') {
+    return '<div class="answer">' +
+      '<div style="font-size:.8rem;color:var(--t3);font-weight:800;margin-bottom:11px;">' +
+        'Use the test \u2014 you should not need to divide it out</div>' +
+      '<div style="display:flex;gap:10px;">' +
+        '<button class="btn" style="flex:1;" onclick="answerWord(\'Yes\')">Yes</button>' +
+        '<button class="btn ghost" style="flex:1;" onclick="answerWord(\'No\')">No</button>' +
+      '</div></div>';
+  }
+
+  /* A remainder needs two boxes. With one, a child has to guess
+     whether we want "14 r 2" or "14", and would be marked wrong for
+     a correct answer typed the other way. */
+  if (q.shape === 'division' && String(q.answer).indexOf(' r ') > -1) {
+    return '<div class="answer">' +
+      '<div style="font-size:.8rem;color:var(--t3);font-weight:800;margin-bottom:9px;">' +
+        'How many, and what is left over</div>' +
+      '<div style="display:flex;gap:9px;align-items:center;justify-content:center;">' +
+        '<input id="ai" inputmode="numeric" style="max-width:110px;" placeholder="answer" ' +
+          'onkeydown="if(event.key===\'Enter\')document.getElementById(\'ai2\').focus()">' +
+        '<span style="font-weight:900;color:var(--t3);">r</span>' +
+        '<input id="ai2" inputmode="numeric" style="max-width:96px;" placeholder="left over" ' +
+          'onkeydown="if(event.key===\'Enter\')checkAnswer()">' +
+      '</div></div>' +
+      '<button class="btn" onclick="checkAnswer()">Check</button>';
+  }
+
+  var hint = q.shape === 'percent' ? 'Work it out in your head if you can'
+           : q.shape === 'root'    ? 'By inspection \u2014 no long division'
+           : 'Work it on paper, then type the answer';
+
+  return '<div class="answer">' +
+    '<div style="font-size:.8rem;color:var(--t3);font-weight:800;margin-bottom:9px;">' +
+      hint + '</div>' +
+    '<input id="ai" inputmode="' + (q.shape === 'percent' ? 'decimal' : 'numeric') + '" ' +
+      'onkeydown="if(event.key===\'Enter\')checkAnswer()">' +
+    '</div>' +
+    '<button class="btn" onclick="checkAnswer()">Check</button>';
+}
+
+/* Yes and No answer in one tap. */
+function answerWord(w) {
+  var q = questions[at];
+  marks[at] = sameAnswer(w, q.answer);
+  settle(marks[at]);
+}
+
+/* A child writing 9 where the key says 9.0 is right. Marking that
+   wrong teaches them nothing and the teacher less. */
+function sameAnswer(given, want) {
+  var g = String(given == null ? '' : given).replace(/\s+/g, '').toLowerCase();
+  var w = String(want  == null ? '' : want ).replace(/\s+/g, '').toLowerCase();
+  if (g === w) return true;
+  var ng = Number(g), nw = Number(w);
+  if (isFinite(ng) && isFinite(nw) && g !== '' && w !== '') {
+    return Math.abs(ng - nw) < 1e-9;
+  }
+  return g.replace(/r0$/, '') === w.replace(/r0$/, '');
+}
+
 function checkAnswer() {
   var q = questions[at];
   var inp = document.getElementById('ai');
   if (!inp || inp.value.trim() === '') return;
-  var ok = inp.value.trim().replace(/\s+/g, '') === String(q.answer).replace(/\s+/g, '');
-  marks[at] = ok;
-  settle(ok);
+
+  var given = inp.value.trim();
+  var second = document.getElementById('ai2');
+  if (second) {
+    if (second.value.trim() === '') return;
+    given = given + ' r ' + second.value.trim();
+  }
+  marks[at] = sameAnswer(given, q.answer);
+  settle(marks[at]);
 }
 
 /* Right or wrong, the working is shown. Seeing the method again is

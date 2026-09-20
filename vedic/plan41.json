@@ -1,0 +1,691 @@
+{
+ "levels": [
+  {
+   "n": 1,
+   "name": "Foundation",
+   "focus": "Complements, doubling, and confident addition",
+   "outcome": "Take any number from 100 or 1000. Add and subtract two-digit numbers three ways. Double anything.",
+   "intro": [
+    {
+     "id": "nikhilam_sub",
+     "cat": "Subtraction",
+     "name": "All from 9, last from 10",
+     "sanskrit": "Nikhilam Navatashcaramam Dashatah",
+     "scope": "From 100 and 1000, and their multiples",
+     "firstSeen": 1
+    },
+    {
+     "id": "friend_comp",
+     "cat": "Number work",
+     "name": "Friend complement",
+     "sanskrit": "Purana-Apuranabhyam",
+     "scope": "Complements to 10 and 100",
+     "firstSeen": 1
+    },
+    {
+     "id": "doubling",
+     "cat": "Number work",
+     "name": "Doubling",
+     "sanskrit": "Anurupyena",
+     "scope": "Single digit and 2-digit numbers",
+     "firstSeen": 1
+    },
+    {
+     "id": "split_merge",
+     "cat": "Addition",
+     "name": "Split and merge",
+     "sanskrit": "",
+     "scope": "Adding a number within 3 of a ten",
+     "firstSeen": 1
+    },
+    {
+     "id": "stacking",
+     "cat": "Addition",
+     "name": "Stacking",
+     "sanskrit": "",
+     "scope": "2-digit + 1-digit, and 2-digit + 2-digit",
+     "firstSeen": 1
+    }
+   ],
+   "carried": []
+  },
+  {
+   "n": 2,
+   "name": "Building up",
+   "focus": "Bigger bases, first multiplication, and checking your work",
+   "outcome": "Subtract from 10000. Multiply by 11 and by a single digit. Check an answer with digit sums.",
+   "intro": [
+    {
+     "id": "by_eleven",
+     "cat": "Multiplication",
+     "name": "Add the neighbour",
+     "sanskrit": "Sopantyadvayamantyam",
+     "scope": "2-digit x 11",
+     "firstSeen": 2
+    },
+    {
+     "id": "urdhva",
+     "cat": "Multiplication",
+     "name": "Vertically and crosswise",
+     "sanskrit": "Urdhva-Tiryagbhyam",
+     "scope": "2-digit x 1-digit",
+     "firstSeen": 2
+    },
+    {
+     "id": "digit_sum",
+     "cat": "Number theory",
+     "name": "Digit sum",
+     "sanskrit": "Beejank",
+     "scope": "Reducing a number to a single digit",
+     "firstSeen": 2
+    }
+   ],
+   "carried": [
+    {
+     "id": "nikhilam_sub",
+     "cat": "Subtraction",
+     "name": "All from 9, last from 10",
+     "sanskrit": "Nikhilam Navatashcaramam Dashatah",
+     "scope": "From 10000 and 100000, and their multiples",
+     "firstSeen": 1
+    },
+    {
+     "id": "friend_comp",
+     "cat": "Number work",
+     "name": "Friend complement",
+     "sanskrit": "Purana-Apuranabhyam",
+     "scope": "Complements to 1000",
+     "firstSeen": 1
+    },
+    {
+     "id": "doubling",
+     "cat": "Number work",
+     "name": "Doubling",
+     "sanskrit": "Anurupyena",
+     "scope": "3-digit and 4-digit numbers",
+     "firstSeen": 1
+    },
+    {
+     "id": "split_merge",
+     "cat": "Addition",
+     "name": "Split and merge",
+     "sanskrit": "",
+     "scope": "Adding near a hundred",
+     "firstSeen": 1
+    },
+    {
+     "id": "stacking",
+     "cat": "Addition",
+     "name": "Stacking",
+     "sanskrit": "",
+     "scope": "3-digit columns",
+     "firstSeen": 1
+    }
+   ]
+  },
+  {
+   "n": 3,
+   "name": "Multiplication and first division",
+   "focus": "Crosswise multiplication, the first special squares, and sharing out",
+   "outcome": "Multiply any two two-digit numbers. Square anything ending in 5. Divide by 2, 5 and 10.",
+   "intro": [
+    {
+     "id": "halving",
+     "cat": "Number work",
+     "name": "Halving",
+     "sanskrit": "Anurupyena",
+     "scope": "Even 2-digit numbers",
+     "firstSeen": 3
+    },
+    {
+     "id": "ekadhikena",
+     "cat": "Squares",
+     "name": "One more than the one before",
+     "sanskrit": "Ekadhikena Purvena",
+     "scope": "Squaring a 2-digit number ending in 5",
+     "firstSeen": 3
+    },
+    {
+     "id": "antyayor",
+     "cat": "Multiplication",
+     "name": "Same first, friends after",
+     "sanskrit": "Antyayordashake'pi",
+     "scope": "Same tens digit, units adding to 10",
+     "firstSeen": 3
+    },
+    {
+     "id": "basic_div",
+     "cat": "Division",
+     "name": "Basic division",
+     "sanskrit": "",
+     "scope": "Dividing by 2, 5 and 10",
+     "firstSeen": 3
+    },
+    {
+     "id": "sq_2d_5",
+     "cat": "Squares",
+     "name": "Squaring a 2-digit number ending in 5",
+     "sanskrit": "Ekadhikena Purvena",
+     "scope": "15 through 95",
+     "firstSeen": 3
+    }
+   ],
+   "carried": [
+    {
+     "id": "nikhilam_sub",
+     "cat": "Subtraction",
+     "name": "All from 9, last from 10",
+     "sanskrit": "Nikhilam Navatashcaramam Dashatah",
+     "scope": "Any base, including where the answer needs padding",
+     "firstSeen": 1
+    },
+    {
+     "id": "friend_comp",
+     "cat": "Number work",
+     "name": "Friend complement",
+     "sanskrit": "Purana-Apuranabhyam",
+     "scope": "Complements used inside a longer calculation",
+     "firstSeen": 1
+    },
+    {
+     "id": "doubling",
+     "cat": "Number work",
+     "name": "Doubling",
+     "sanskrit": "Anurupyena",
+     "scope": "Repeated doubling for x4 and x8",
+     "firstSeen": 1
+    },
+    {
+     "id": "split_merge",
+     "cat": "Addition",
+     "name": "Split and merge",
+     "sanskrit": "",
+     "scope": "Subtracting by the same adjustment",
+     "firstSeen": 1
+    },
+    {
+     "id": "stacking",
+     "cat": "Addition",
+     "name": "Stacking",
+     "sanskrit": "",
+     "scope": "Longer columns with carries throughout",
+     "firstSeen": 1
+    },
+    {
+     "id": "by_eleven",
+     "cat": "Multiplication",
+     "name": "Add the neighbour",
+     "sanskrit": "Sopantyadvayamantyam",
+     "scope": "3-digit x 11",
+     "firstSeen": 2
+    },
+    {
+     "id": "urdhva",
+     "cat": "Multiplication",
+     "name": "Vertically and crosswise",
+     "sanskrit": "Urdhva-Tiryagbhyam",
+     "scope": "2-digit x 2-digit",
+     "firstSeen": 2
+    },
+    {
+     "id": "digit_sum",
+     "cat": "Number theory",
+     "name": "Digit sum",
+     "sanskrit": "Beejank",
+     "scope": "Checking an addition",
+     "firstSeen": 2
+    }
+   ]
+  },
+  {
+   "n": 4,
+   "name": "Base methods",
+   "focus": "Multiplying near a base, three-digit work, and more division",
+   "outcome": "Multiply two numbers near 100. Square a three-digit number ending in 5. Divide by 3, 4 and 6.",
+   "intro": [
+    {
+     "id": "base_mult",
+     "cat": "Multiplication",
+     "name": "Base method",
+     "sanskrit": "Nikhilam",
+     "scope": "Both numbers just below 100",
+     "firstSeen": 4
+    },
+    {
+     "id": "working_base",
+     "cat": "Multiplication",
+     "name": "Working base",
+     "sanskrit": "Anurupyena",
+     "scope": "Near 50",
+     "firstSeen": 4
+    },
+    {
+     "id": "adv_div",
+     "cat": "Division",
+     "name": "Advanced division",
+     "sanskrit": "",
+     "scope": "Dividing by 4 and 6",
+     "firstSeen": 4
+    },
+    {
+     "id": "div_by_nine",
+     "cat": "Division",
+     "name": "Dividing by 9",
+     "sanskrit": "Nikhilam",
+     "scope": "The running-sum shortcut for 9",
+     "firstSeen": 4
+    },
+    {
+     "id": "sq_3d_5",
+     "cat": "Squares",
+     "name": "Squaring a 3-digit number ending in 5",
+     "sanskrit": "Ekadhikena Purvena",
+     "scope": "105 through 995",
+     "firstSeen": 4
+    }
+   ],
+   "carried": [
+    {
+     "id": "halving",
+     "cat": "Number work",
+     "name": "Halving",
+     "sanskrit": "Anurupyena",
+     "scope": "Even 3-digit numbers, and repeated halving for /4",
+     "firstSeen": 3
+    },
+    {
+     "id": "split_merge",
+     "cat": "Addition",
+     "name": "Split and merge",
+     "sanskrit": "",
+     "scope": "Chained adjustments in one sum",
+     "firstSeen": 1
+    },
+    {
+     "id": "by_eleven",
+     "cat": "Multiplication",
+     "name": "Add the neighbour",
+     "sanskrit": "Sopantyadvayamantyam",
+     "scope": "2-digit x 111 and 3-digit x 111",
+     "firstSeen": 2
+    },
+    {
+     "id": "urdhva",
+     "cat": "Multiplication",
+     "name": "Vertically and crosswise",
+     "sanskrit": "Urdhva-Tiryagbhyam",
+     "scope": "3-digit x 2-digit",
+     "firstSeen": 2
+    },
+    {
+     "id": "digit_sum",
+     "cat": "Number theory",
+     "name": "Digit sum",
+     "sanskrit": "Beejank",
+     "scope": "Checking a multiplication",
+     "firstSeen": 2
+    },
+    {
+     "id": "ekadhikena",
+     "cat": "Squares",
+     "name": "One more than the one before",
+     "sanskrit": "Ekadhikena Purvena",
+     "scope": "Squaring a 3-digit number ending in 5",
+     "firstSeen": 3
+    },
+    {
+     "id": "antyayor",
+     "cat": "Multiplication",
+     "name": "Same first, friends after",
+     "sanskrit": "Antyayordashake'pi",
+     "scope": "Same hundreds, and 3-digit cases",
+     "firstSeen": 3
+    },
+    {
+     "id": "basic_div",
+     "cat": "Division",
+     "name": "Basic division",
+     "sanskrit": "",
+     "scope": "Dividing by 3 and 4",
+     "firstSeen": 3
+    }
+   ]
+  },
+  {
+   "n": 5,
+   "name": "Squares, cubes and harder division",
+   "focus": "Squaring anything, cubing, and the nines",
+   "outcome": "Square any two-digit number. Cube a single digit. Multiply by 9 and 99. Divide by 7 and 8.",
+   "intro": [
+    {
+     "id": "by_nines",
+     "cat": "Multiplication",
+     "name": "Multiplying by 9, 99, 999",
+     "sanskrit": "Ekanyunena Purvena",
+     "scope": "By 9 and 99",
+     "firstSeen": 5
+    },
+    {
+     "id": "mult_11s",
+     "cat": "Multiplication",
+     "name": "Multiples of 11",
+     "sanskrit": "",
+     "scope": "By 22, 33, 44 and the rest",
+     "firstSeen": 5
+    },
+    {
+     "id": "divis_2_3_5_10",
+     "cat": "Number theory",
+     "name": "Divisibility by 2, 3, 5 and 10",
+     "sanskrit": "",
+     "scope": "The four simplest tests",
+     "firstSeen": 5
+    },
+    {
+     "id": "sq_2d",
+     "cat": "Squares",
+     "name": "Squaring any 2-digit number",
+     "sanskrit": "Dwandwa Yoga",
+     "scope": "The duplex method, any 2-digit number",
+     "firstSeen": 5
+    },
+    {
+     "id": "first_ten_last_same",
+     "cat": "Multiplication",
+     "name": "First digits total 10, last digits the same",
+     "sanskrit": "Purvanna Samuccayah",
+     "scope": "2-digit cases",
+     "firstSeen": 5
+    },
+    {
+     "id": "cube_1d",
+     "cat": "Cubes",
+     "name": "Cube of a single digit",
+     "sanskrit": "",
+     "scope": "1 through 9",
+     "firstSeen": 5
+    }
+   ],
+   "carried": [
+    {
+     "id": "halving",
+     "cat": "Number work",
+     "name": "Halving",
+     "sanskrit": "Anurupyena",
+     "scope": "Odd numbers, giving a half",
+     "firstSeen": 3
+    },
+    {
+     "id": "urdhva",
+     "cat": "Multiplication",
+     "name": "Vertically and crosswise",
+     "sanskrit": "Urdhva-Tiryagbhyam",
+     "scope": "3-digit x 3-digit",
+     "firstSeen": 2
+    },
+    {
+     "id": "base_mult",
+     "cat": "Multiplication",
+     "name": "Base method",
+     "sanskrit": "Nikhilam",
+     "scope": "Above the base, and one above one below",
+     "firstSeen": 4
+    },
+    {
+     "id": "working_base",
+     "cat": "Multiplication",
+     "name": "Working base",
+     "sanskrit": "Anurupyena",
+     "scope": "Near 200, 250 and 500",
+     "firstSeen": 4
+    },
+    {
+     "id": "basic_div",
+     "cat": "Division",
+     "name": "Basic division",
+     "sanskrit": "",
+     "scope": "Mixed, with remainders",
+     "firstSeen": 3
+    },
+    {
+     "id": "adv_div",
+     "cat": "Division",
+     "name": "Advanced division",
+     "sanskrit": "",
+     "scope": "Dividing by 7 and 8",
+     "firstSeen": 4
+    }
+   ]
+  },
+  {
+   "n": 6,
+   "name": "Bigger numbers",
+   "focus": "Three-digit squares and cubes, larger bases, divisibility",
+   "outcome": "Square and cube three-digit numbers. Multiply by 12 to 19. Test divisibility by 4, 8 and 9.",
+   "intro": [
+    {
+     "id": "twelve_to_19",
+     "cat": "Multiplication",
+     "name": "Multiplying by 12 to 19",
+     "sanskrit": "Sopantyadvayamantyam",
+     "scope": "Any 2-digit number by 12 through 19",
+     "firstSeen": 6
+    },
+    {
+     "id": "divis_4_8_9",
+     "cat": "Number theory",
+     "name": "Divisibility by 4, 8 and 9",
+     "sanskrit": "",
+     "scope": "Last two digits, last three, and the digit sum",
+     "firstSeen": 6
+    },
+    {
+     "id": "sq_3d",
+     "cat": "Squares",
+     "name": "Squaring any 3-digit number",
+     "sanskrit": "Dwandwa Yoga",
+     "scope": "The duplex method extended",
+     "firstSeen": 6
+    },
+    {
+     "id": "cube_2d",
+     "cat": "Cubes",
+     "name": "Cube of a 2-digit number",
+     "sanskrit": "Anurupyena",
+     "scope": "The ratio series",
+     "firstSeen": 6
+    },
+    {
+     "id": "repeating",
+     "cat": "Multiplication",
+     "name": "Repeating numbers",
+     "sanskrit": "Number splitting",
+     "scope": "Numbers like 3333 x 3333",
+     "firstSeen": 6
+    },
+    {
+     "id": "by_5_25_50",
+     "cat": "Multiplication",
+     "name": "Multiplying by 5, 25, 50 and 500",
+     "sanskrit": "",
+     "scope": "Halving and shifting the point",
+     "firstSeen": 6
+    }
+   ],
+   "carried": [
+    {
+     "id": "base_mult",
+     "cat": "Multiplication",
+     "name": "Base method",
+     "sanskrit": "Nikhilam",
+     "scope": "Bases of 1000 and beyond",
+     "firstSeen": 4
+    },
+    {
+     "id": "working_base",
+     "cat": "Multiplication",
+     "name": "Working base",
+     "sanskrit": "Anurupyena",
+     "scope": "Any convenient working base",
+     "firstSeen": 4
+    },
+    {
+     "id": "by_nines",
+     "cat": "Multiplication",
+     "name": "Multiplying by 9, 99, 999",
+     "sanskrit": "Ekanyunena Purvena",
+     "scope": "By 999 and 9999",
+     "firstSeen": 5
+    },
+    {
+     "id": "adv_div",
+     "cat": "Division",
+     "name": "Advanced division",
+     "sanskrit": "",
+     "scope": "Dividing by 9, and larger divisors",
+     "firstSeen": 4
+    },
+    {
+     "id": "first_ten_last_same",
+     "cat": "Multiplication",
+     "name": "First digits total 10, last digits the same",
+     "sanskrit": "Purvanna Samuccayah",
+     "scope": "3-digit cases",
+     "firstSeen": 5
+    }
+   ]
+  },
+  {
+   "n": 7,
+   "name": "Four digits and percentages",
+   "focus": "Four-digit squares, three-digit cubes, and percentages",
+   "outcome": "Square a four-digit number. Cube three digits. Find simple percentages in your head.",
+   "intro": [
+    {
+     "id": "divis_6_15",
+     "cat": "Number theory",
+     "name": "Divisibility by 6 and 15",
+     "sanskrit": "",
+     "scope": "Combining two tests",
+     "firstSeen": 7
+    },
+    {
+     "id": "sq_4d",
+     "cat": "Squares",
+     "name": "Squaring any 4-digit number",
+     "sanskrit": "Dwandwa Yoga",
+     "scope": "The duplex method, four digits",
+     "firstSeen": 7
+    },
+    {
+     "id": "cube_3d",
+     "cat": "Cubes",
+     "name": "Cube of a 3-digit number",
+     "sanskrit": "Anurupyena",
+     "scope": "Extended to three digits",
+     "firstSeen": 7
+    },
+    {
+     "id": "div_5_25_50",
+     "cat": "Division",
+     "name": "Dividing by 5, 25, 50 and 500",
+     "sanskrit": "",
+     "scope": "Doubling and shifting the point",
+     "firstSeen": 7
+    },
+    {
+     "id": "percent_of",
+     "cat": "Percentages",
+     "name": "Finding a percentage of a number",
+     "sanskrit": "",
+     "scope": "Simple percentages: 10%, 25%, 50%",
+     "firstSeen": 7
+    },
+    {
+     "id": "percent_fraction",
+     "cat": "Percentages",
+     "name": "Fractional percentages",
+     "sanskrit": "",
+     "scope": "12.5% and 6.25%, as one eighth and one sixteenth",
+     "firstSeen": 7
+    }
+   ],
+   "carried": [
+    {
+     "id": "repeating",
+     "cat": "Multiplication",
+     "name": "Repeating numbers",
+     "sanskrit": "Number splitting",
+     "scope": "Mixed repeating patterns",
+     "firstSeen": 6
+    }
+   ]
+  },
+  {
+   "n": 8,
+   "name": "Roots and percentage change",
+   "focus": "Square and cube roots, the harder divisibility tests, and percentage change",
+   "outcome": "Find any square or cube root. Test divisibility by 7, 13 and 19. Handle percentage increase and decrease.",
+   "intro": [
+    {
+     "id": "sqrt_perfect",
+     "cat": "Roots",
+     "name": "Square root of a perfect square",
+     "sanskrit": "Vilokanam",
+     "scope": "By inspection, perfect squares only",
+     "firstSeen": 8
+    },
+    {
+     "id": "divis_7_13_19",
+     "cat": "Number theory",
+     "name": "Divisibility by 7, 13 and 19",
+     "sanskrit": "Vestanas (osculation)",
+     "scope": "The osculator method",
+     "firstSeen": 8
+    },
+    {
+     "id": "sqrt_general",
+     "cat": "Roots",
+     "name": "Square root of any number",
+     "sanskrit": "Dwandwa Yoga",
+     "scope": "The general method, including non-perfect squares",
+     "firstSeen": 8
+    },
+    {
+     "id": "cbrt_perfect",
+     "cat": "Roots",
+     "name": "Cube root of a perfect cube",
+     "sanskrit": "Vilokanam",
+     "scope": "By inspection, perfect cubes only",
+     "firstSeen": 8
+    },
+    {
+     "id": "percent_change",
+     "cat": "Percentages",
+     "name": "Increase and decrease in percentage",
+     "sanskrit": "",
+     "scope": "Both directions, and successive changes",
+     "firstSeen": 8
+    }
+   ],
+   "carried": [
+    {
+     "id": "percent_of",
+     "cat": "Percentages",
+     "name": "Finding a percentage of a number",
+     "sanskrit": "",
+     "scope": "Any percentage",
+     "firstSeen": 7
+    },
+    {
+     "id": "percent_fraction",
+     "cat": "Percentages",
+     "name": "Fractional percentages",
+     "sanskrit": "",
+     "scope": "33.33%, 16.66% and the rest",
+     "firstSeen": 7
+    }
+   ]
+  }
+ ]
+}

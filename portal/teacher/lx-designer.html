@@ -729,8 +729,12 @@ function drawVedicConcepts() {
   var host = document.getElementById('conceptGrid');
   if (!host) return;
   if (ABACUS_CONCEPT_HTML === null) ABACUS_CONCEPT_HTML = host.innerHTML;
-  var cfg = (typeof VedicEngine !== 'undefined') && VedicEngine.LEVELS[selectedLevel];
-  var keys = (cfg && cfg.introduces) || [];
+  /* The engine now holds Megha's 41 methods with a level span each,
+     so what a level teaches comes from it rather than a list here.
+     New at this level first, then what carries on from earlier. */
+  var bd = (typeof VedicEngine !== 'undefined' && VedicEngine.breakdown)
+           ? VedicEngine.breakdown(selectedLevel) : { intro: [], carried: [] };
+  var keys = bd.intro.concat(bd.carried);
   if (!keys.length) {
     host.innerHTML = '<div style="font-size:.82rem;color:var(--text3);padding:8px;">' +
       'Level ' + selectedLevel + ' has no methods set up yet.</div>';
@@ -744,7 +748,11 @@ function drawVedicConcepts() {
   html += keys.map(function (k) {
     var m = (typeof Sutras !== 'undefined') && Sutras.METHODS[k];
     var label = m ? m.label : k;
-    var sub = m ? shortWhenVedic(m) : '';
+    /* Her own wording for what this level does with the method — one
+       source of truth rather than a second description written here.
+       shortWhenVedic further down is now unused. */
+    var sub = (m && m.levels && m.levels[selectedLevel]) || '';
+    if (bd.intro.indexOf(k) < 0) sub = 'Carried on. ' + sub;
     return '<label class="concept-opt" data-concept="' + k + '" ' +
       'onclick="selectConcept(this,\'' + k + '\')">' +
       '<input type="radio" name="concept">' +
@@ -1712,16 +1720,31 @@ async function generateFromEngine() {
       count: count,
       /* Difficulty in Vedic is not a number range — it is how far from
          a base the numbers sit and how soon the guided steps stop. */
-      tolerance: { easy: 5, medium: 9, hard: 12 }[vDiff] || 9,
-      aboveToo:  vDiff === 'hard',
-      maxCube:   vDiff === 'easy' ? 20 : 30,
+      /* The level itself fixes the number shapes now — 2-digit x 11 at
+         Level 2, 3-digit at Level 3 — so difficulty must not widen
+         them or the level's own scope breaks. What it changes is how
+         long the guided steps last, and whether the page keeps to the
+         newest methods or ranges over the whole level. */
       guideFirst: vDiff === 'easy' ? 5 : vDiff === 'hard' ? 1 : 3
     };
-    if (selectedConcept) vOpts.methods = [selectedConcept];
+    if (selectedConcept) {
+      vOpts.methods = [selectedConcept];
+    } else if (vDiff === 'easy' && VedicEngine.breakdown) {
+      /* Easy keeps to what the level has just introduced. Otherwise a
+         child meeting a method today is also asked about four from
+         last term. */
+      var bdE = VedicEngine.breakdown(level);
+      if (bdE.intro.length) vOpts.methods = bdE.intro;
+    }
+
     var vPage = (selectedActivity === 'which_method')
       ? VedicEngine.whichMethodPage(level, vOpts)
       : VedicEngine.buildPage(level, vOpts);
-    if (vPage.error) throw new Error(vPage.error);
+    if (vPage.error) {
+      var nr = (VedicEngine.notReady && VedicEngine.notReady()) || [];
+      throw new Error(vPage.error +
+        (nr.length ? '. Not yet buildable: ' + nr.join(', ') : ''));
+    }
     if (!vPage.questions || !vPage.questions.length) {
       throw new Error('Could not build Vedic questions for Level ' + level);
     }

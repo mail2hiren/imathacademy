@@ -417,7 +417,27 @@ html,body{max-width:100%;}
   height: auto !important;
   min-height: 0 !important;
   padding: 20px 18px;
+
+  /* The card was still losing the FIRST row after all of the above.
+     overflow:visible was only half the answer.
+
+     It is a centred flex column. When the sum is taller than the
+     card, centring pushes the overflow equally ABOVE and below, and
+     the part above renders outside the card, behind the progress bar
+     sitting over it. Only the top number disappears, which is
+     exactly what the children kept reporting.
+
+     Starting at the top means the card grows downward, where there
+     is nothing to hide behind. */
+  justify-content: flex-start !important;
 }
+
+/* A little air above the column so a tall sum never sits against the
+   card edge. */
+.col-rows{ margin-top: 2px; }
+
+/* And the card sits above anything sticky rather than under it. */
+.card-wrap{ position: relative; z-index: 1; overflow: visible; }
 .card-decoration{ display: none; }
 
 /* The type shrinks as the column gets longer, rather than the column

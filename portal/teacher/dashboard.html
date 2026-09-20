@@ -1394,7 +1394,10 @@ async function loadWsResults() {
       resps.forEach(function(r) {
         var pct = Math.round(r.score / r.total * 100);
         var col = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--orange)' : 'var(--red)';
-        html += '<div class="roster-row" style="cursor:default;">';
+        /* The row in the Worksheet Results tab. An earlier edit made the
+           one in loadSubmissions clickable instead — two functions draw a
+           roster-row and I changed the wrong one. */
+        html += '<div class="roster-row" style="cursor:pointer;" onclick="openStudent(\'' + r.student_id + '\')" title="See every sum this child answered">';
         html += '<div style="flex:1;font-size:.875rem;font-weight:700;">' + (function(){var allS=[];BATCHES.forEach(function(b){allS=allS.concat(b.students);});var found=allS.find(function(s){return s.id===r.student_id;});return found?found.name:'Student';})() + '</div>';
         html += '<div style="font-size:.78rem;color:var(--text3);margin-right:12px;">' + fmtDate(r.submitted_at) + '</div>';
         html += '<div style="font-weight:800;color:' + col + ';">' + r.score + '/' + r.total + ' (' + pct + '%)</div></div>';

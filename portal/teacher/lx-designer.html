@@ -2616,10 +2616,12 @@ function previewAsChild() {
               String(q.question || '') + '</div>' +
           '</div>' +
           '<div>' +
-            '<div style="font-size:.8rem;font-weight:800;color:#555;margin-bottom:6px;">' +
-              '🧮 Set your answer on the abacus</div>' +
-            '<div style="background:#fff;border-radius:14px;padding:26px;text-align:center;' +
-              'color:#8892A4;font-size:.82rem;">the abacus appears here</div>' +
+            (selectedProgram === 'vedic'
+              ? vedicPreviewPanel(q)
+              : '<div style="font-size:.8rem;font-weight:800;color:#555;margin-bottom:6px;">' +
+                  '\uD83E\uDDEE Set your answer on the abacus</div>' +
+                '<div style="background:#fff;border-radius:14px;padding:26px;text-align:center;' +
+                  'color:#8892A4;font-size:.82rem;">the abacus appears here</div>') +
             (opts
               ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:14px;">' +
                 opts.map(function (o) {
@@ -2647,6 +2649,37 @@ function previewAsChild() {
     i = Math.max(0, Math.min(qs.length - 1, i + d));
     draw();
   };
+  /* The preview drew an abacus for every worksheet, so a Vedic sheet
+     said "set your answer on the abacus" — a tool a Vedic child does
+     not use. This shows what that child actually gets: the method and,
+     for the first few of each, its steps. */
+  function vedicPreviewPanel(q) {
+    var steps = q.steps || null;
+    var method = q.method || '';
+    var h = '<div style="font-size:.8rem;font-weight:800;color:#04616a;margin-bottom:6px;">' +
+      '\u0950 ' + (method ? 'Using: ' + method : 'Work it through') + '</div>';
+    if (steps && steps.length) {
+      h += '<div style="background:#fff;border-radius:14px;padding:14px 16px;">' +
+        steps.map(function (s, i) {
+          return '<div style="display:flex;gap:10px;align-items:center;padding:7px 0;' +
+            'border-bottom:1px solid #E6E9F0;font-size:.86rem;">' +
+            '<span style="width:22px;height:22px;border-radius:50%;background:#E7F6F7;' +
+              'color:#04616a;font-size:.7rem;font-weight:900;display:flex;' +
+              'align-items:center;justify-content:center;flex-shrink:0;">' + (i + 1) + '</span>' +
+            '<span style="flex:1;">' + String(s.ask || '') + '</span>' +
+            '<span style="font-weight:900;color:#2E7D32;">' + String(s.answer) + '</span>' +
+          '</div>';
+        }).join('') +
+        '<div style="font-size:.74rem;color:#8892A4;margin-top:8px;">' +
+          'Guided like this for the first few of each method, then answer only.</div></div>';
+    } else {
+      h += '<div style="background:#fff;border-radius:14px;padding:18px;text-align:center;' +
+        'color:#8892A4;font-size:.82rem;">Answered directly \u2014 the working is shown ' +
+        'after they answer.</div>';
+    }
+    return h;
+  }
+
   window.closeChildPreview = function () {
     var el = document.getElementById('childPreview');
     if (el) el.remove();

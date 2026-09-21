@@ -265,9 +265,15 @@ var VedicSteps = (function (S) {
     first_ten_last_same: function (a, b, L) {
       var fa = Math.floor(a / 10), fb = Math.floor(b / 10);
       var u = a % 10;
+      /* Add u scaled by what the first parts total: u for 2-digit
+         numbers (they total 10), 10u for 3-digit (they total 100).
+         The last step always matched the answer, so this middle step
+         being wrong at Level 6 went unnoticed until the working itself
+         was checked. */
+      var add = u * (fa + fb) / 10;
       return [
-        { ask: 'Leading digits: ' + fa + ' x ' + fb, answer: fa * fb, hint: '' },
-        { ask: 'Add the common units digit: + ' + u, answer: fa * fb + u, hint: 'That is the left part' },
+        { ask: 'Leading parts: ' + fa + ' x ' + fb, answer: fa * fb, hint: '' },
+        { ask: 'Add ' + add + ' for the shared last digit', answer: fa * fb + add, hint: 'That is the left part' },
         { ask: 'Units squared: ' + u + ' x ' + u, answer: u * u, hint: 'Fills two digits' },
         { ask: 'So the answer is', answer: a * b, hint: '' }
       ];

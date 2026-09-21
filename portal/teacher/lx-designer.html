@@ -1774,6 +1774,10 @@ async function generateFromEngine() {
                   : ((q.text || '') + ' = ?'),
         answer: String(q.answer),
         method: q.label || '',
+        /* The worksheet draws each method in its own frame, so it needs
+           the method's key and the two numbers, not just the text. */
+        method_key: q.method || '',
+        a: q.a, b: q.b, level: q.level || level,
         emoji: story ? (story.emoji || '') : '',
         steps: q.steps || q.workingShown || null,
         guided: !!q.guided,

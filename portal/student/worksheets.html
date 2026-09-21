@@ -424,6 +424,10 @@
 </div></nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+<script src="../js/sutra-rules.js"></script>
+<script src="../js/vedic-steps.js"></script>
+<script src="../js/vedic-frames.js"></script>
 <script src="../js/access.js"></script>
 <script src="../js/speech.js"></script>
 <script src="../js/profiles.js"></script>
@@ -757,6 +761,22 @@ function renderQuestion(wsId, q, idx, group){
 }
 
 function renderWorking(wsId, q, idx) {
+  /* Megha approved the fill-in frames: each method in its own paper
+     layout, orange boxes for the child. Where a question knows its
+     method and the numbers, draw that frame. The plain list below is
+     kept for any question that does not. */
+  if (typeof VedicFrames !== 'undefined' && q.method_key && q.a !== undefined) {
+    VedicFrames.injectCss();
+    var fr = VedicFrames.render({ method: q.method_key, a: q.a, b: q.b, level: q.level,
+                                  answer: q.answer }, 'inp-' + wsId + '-' + idx);
+    window._vfSlots = window._vfSlots || {};
+    window._vfSlots[wsId + ':' + idx] = fr.slots;
+    return '<div class="q-card wk-card">' +
+      (q.method ? '<div class="wk-method">\u0950 ' + escWk(q.method) + '</div>' : '') +
+      '<div class="q-text">' + escWk(q.question) + '</div>' + fr.html +
+    '</div><div class="feedback" id="fb-' + wsId + '-' + idx + '"></div>';
+  }
+
   var steps = q.steps, last = steps.length - 1;
   var rows = steps.map(function (s, k) {
     var isAns = k === last;
@@ -843,7 +863,26 @@ function checkAnswer(wsId, qIdx, encodedAnswers){
      working. Each is marked on its own, and what the child wrote is
      kept so a teacher can see which step broke. */
   var stepVals = null, stepOk = null;
-  if (Array.isArray(q.steps) && q.steps.length >= 2) {
+  var frameSlots = window._vfSlots && window._vfSlots[wsId + ':' + qIdx];
+  if (frameSlots && frameSlots.length) {
+    /* A frame's working boxes, every one filled and marked. */
+    stepVals = []; stepOk = [];
+    for (var fi = 0; fi < frameSlots.length; fi++) {
+      var fs = frameSlots[fi];
+      if (fs.final) continue;
+      var fb2 = document.getElementById(fs.id);
+      if (!fb2) continue;
+      var fv = fb2.value.trim();
+      if (!fv) { fb2.focus(); return; }
+      var fw = String(fs.want);
+      var fgood = cleanAnswer(fv) === cleanAnswer(fw) ||
+        (!isNaN(parseFloat(fv)) && !isNaN(parseFloat(fw)) &&
+         Math.abs(parseFloat(fv) - parseFloat(fw)) < 0.001);
+      fb2.classList.add(fgood ? 'correct' : 'wrong');
+      fb2.readOnly = true;
+      stepVals.push(fv); stepOk.push(fgood);
+    }
+  } else if (Array.isArray(q.steps) && q.steps.length >= 2) {
     stepVals = []; stepOk = [];
     for (var k = 0; k < q.steps.length - 1; k++) {
       var box = document.getElementById('inp-' + wsId + '-' + qIdx + '-s' + k);

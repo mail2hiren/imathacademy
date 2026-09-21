@@ -329,6 +329,26 @@
 @media (min-width:1100px){
   .fs-body > .fs-question-wrap > .fs-question .col-rows{font-size:2.1rem;}
 }
+  .wk-card{text-align:left;}
+  .wk-method{font-size:.74rem;font-weight:900;color:#04616a;background:#E7F6F7;
+             display:inline-block;padding:4px 10px;border-radius:20px;margin-bottom:8px;}
+  .wk-grid{margin-top:12px;border-top:1.5px solid #E6E9F0;}
+  .wk-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #EEF1F6;}
+  .wk-n{width:24px;height:24px;border-radius:50%;background:#E7F6F7;color:#04616a;
+        font-size:.72rem;font-weight:900;display:flex;align-items:center;
+        justify-content:center;flex-shrink:0;}
+  .wk-ask{flex:1;font-size:.9rem;color:#4A5160;line-height:1.35;}
+  .wk-in{width:92px;padding:9px;border:2px solid #CFE7E9;border-radius:9px;
+         font-family:inherit;font-size:1.05rem;font-weight:800;text-align:center;}
+  .wk-in:focus{outline:none;border-color:#04949D;}
+  .wk-in.correct{border-color:#2E7D32;background:#F1F8F2;}
+  .wk-in.wrong{border-color:#C62828;background:#FDF1F1;}
+  .wk-ans{border-bottom:none;padding-top:12px;}
+  .wk-ans .wk-n{background:#04949D;color:#fff;}
+  .wk-ans .wk-ask{font-weight:900;color:#1F2430;}
+  .wk-ans .wk-in{width:120px;border-color:#04949D;}
+  .wk-note{font-size:.74rem;color:#8892A4;margin-top:8px;}
+  @media (max-width:420px){ .wk-in{width:74px;} .wk-ans .wk-in{width:98px;} }
 </style>
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
@@ -719,12 +739,60 @@ function renderQuestion(wsId, q, idx, group){
     </div>
     <div class="feedback" id="fb-${wsId}-${idx}"></div>`;
   }
+  /* A Vedic question carries its method's working. The child fills
+     every box, all visible at once, the way it is written on paper,
+     and each box is marked on its own. The last box is the answer and
+     keeps the usual id, so checking, Next and Submit carry on as they
+     did. */
+  if (Array.isArray(q.steps) && q.steps.length >= 2) {
+    return renderWorking(wsId, q, idx);
+  }
+
   return `<div class="q-card">
     <div class="q-text">${q.question}</div>
     <input class="q-input" id="inp-${wsId}-${idx}" type="text" inputmode="numeric" placeholder="Your answer..." autocomplete="off"
       onkeydown="if(event.key==='Enter')checkAnswer('${wsId}',${idx},'')">
   </div>
   <div class="feedback" id="fb-${wsId}-${idx}"></div>`;
+}
+
+function renderWorking(wsId, q, idx) {
+  var steps = q.steps, last = steps.length - 1;
+  var rows = steps.map(function (s, k) {
+    var isAns = k === last;
+    var id = isAns ? ('inp-' + wsId + '-' + idx) : ('inp-' + wsId + '-' + idx + '-s' + k);
+    var word = typeof s.answer === 'string' && isNaN(Number(s.answer));
+    return '<div class="wk-row' + (isAns ? ' wk-ans' : '') + '">' +
+      '<span class="wk-n">' + (isAns ? '=' : (k + 1)) + '</span>' +
+      '<span class="wk-ask">' + escWk(s.ask) + '</span>' +
+      '<input class="wk-in" id="' + id + '" type="text" ' +
+        'inputmode="' + (word ? 'text' : 'numeric') + '" autocomplete="off" ' +
+        'placeholder="' + (isAns ? 'answer' : '') + '" ' +
+        'onkeydown="if(event.key===\'Enter\')wkNext(\'' + wsId + '\',' + idx + ',' + k + ',' + last + ')">' +
+    '</div>';
+  }).join('');
+  return '<div class="q-card wk-card">' +
+    (q.method ? '<div class="wk-method">\u0950 ' + escWk(q.method) + '</div>' : '') +
+    '<div class="q-text">' + escWk(q.question) + '</div>' +
+    '<div class="wk-grid">' + rows + '</div>' +
+    '<div class="wk-note">Show your working in every box, then the answer.</div>' +
+  '</div>' +
+  '<div class="feedback" id="fb-' + wsId + '-' + idx + '"></div>';
+}
+
+/* Enter moves to the next box rather than submitting mid-working. */
+function wkNext(wsId, idx, k, last) {
+  if (k >= last) { checkAnswer(wsId, idx, ''); return; }
+  var nx = (k + 1 === last)
+    ? document.getElementById('inp-' + wsId + '-' + idx)
+    : document.getElementById('inp-' + wsId + '-' + idx + '-s' + (k + 1));
+  if (nx) nx.focus();
+}
+
+function escWk(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, function (ch) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch];
+  });
 }
 
 function renderResult(ws, qs, r){
@@ -771,6 +839,27 @@ function checkAnswer(wsId, qIdx, encodedAnswers){
   const val=input.value.trim();
   if(!val){input.focus();return;}
 
+  /* Every working box must be filled — the point of the sheet is the
+     working. Each is marked on its own, and what the child wrote is
+     kept so a teacher can see which step broke. */
+  var stepVals = null, stepOk = null;
+  if (Array.isArray(q.steps) && q.steps.length >= 2) {
+    stepVals = []; stepOk = [];
+    for (var k = 0; k < q.steps.length - 1; k++) {
+      var box = document.getElementById('inp-' + wsId + '-' + qIdx + '-s' + k);
+      if (!box) continue;
+      var bv = box.value.trim();
+      if (!bv) { box.focus(); return; }
+      var want = String(q.steps[k].answer);
+      var good = cleanAnswer(bv) === cleanAnswer(want) ||
+        (!isNaN(parseFloat(bv)) && !isNaN(parseFloat(want)) &&
+         Math.abs(parseFloat(bv) - parseFloat(want)) < 0.001);
+      box.classList.add(good ? 'correct' : 'wrong');
+      box.readOnly = true;
+      stepVals.push(bv); stepOk.push(good);
+    }
+  }
+
   // Check answer
   const expected = cleanAnswer(String(q.answer||''));
   const given    = cleanAnswer(val.trim());
@@ -778,11 +867,22 @@ function checkAnswer(wsId, qIdx, encodedAnswers){
 
   input.classList.add(isCorrect?'correct':'wrong');
   fb.className=`feedback show ${isCorrect?'correct':'wrong'}`;
+  var slips = stepOk ? stepOk.filter(function (x) { return !x; }).length : 0;
+  if (isCorrect && slips) {
+    fb.className = 'feedback show wrong';
+    fb.textContent = `\u2705 Right answer \u2014 but check the working: ${slips} box${slips === 1 ? '' : 'es'} marked red.`;
+  } else
   fb.textContent=isCorrect?`✅ Correct! Well done!`:`❌ Not quite. ${expected?'Answer: '+expected:'Try again!'}`;
 
   // Store answer
   if(!responses[wsId]) responses[wsId]={answers:{},correct:{},currentQ:0};
   responses[wsId].answers[qIdx]=val;
+  /* Saved under separate keys so answers[i] is exactly as before — the
+     marks view and the 360 page read it and must not break. */
+  if (stepVals) {
+    responses[wsId].answers['w' + qIdx] = stepVals;
+    responses[wsId].answers['wok' + qIdx] = stepOk;
+  }
   responses[wsId].correct[qIdx]=isCorrect;
 
   // XP pop on correct

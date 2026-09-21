@@ -491,6 +491,8 @@
 <script src="../js/vedic-gen.js"></script>
 <script src="../js/vedic-steps.js"></script>
 <script src="../js/vedic-engine.js"></script>
+<script src="../js/vedic-frames.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
 <script src="../js/exercises.js"></script>
 <script src="../js/practice-engine.js"></script>
 <script>
@@ -2658,6 +2660,29 @@ function previewAsChild() {
      not use. This shows what that child actually gets: the method and,
      for the first few of each, its steps. */
   function vedicPreviewPanel(q) {
+    /* Megha approves a sheet from this preview, so it has to show what
+       the child will actually get. It showed my earlier step list while
+       the worksheet drew the fill-in frames — she was approving a
+       layout no child would see. It now draws the same frame, with the
+       working filled in so she can check it at a glance. */
+    if (typeof VedicFrames !== 'undefined' && q.method_key && q.a !== undefined) {
+      VedicFrames.injectCss();
+      var fr = VedicFrames.render({ method: q.method_key, a: q.a, b: q.b,
+                                    level: q.level, answer: q.answer }, 'pv');
+      var filled = fr.html;
+      fr.slots.forEach(function (s) {
+        var re = new RegExp('(<input[^>]*id="' + s.id + '"[^>]*?)>');
+        filled = filled.replace(re, '$1 value="' + String(s.want).replace(/"/g, '&quot;') +
+          '" readonly tabindex="-1">');
+      });
+      return '<div style="font-size:.8rem;font-weight:800;color:#04616a;margin-bottom:6px;">' +
+          '\u0950 ' + (q.method || 'Work it through') + '</div>' +
+        '<div style="background:#fff;border-radius:14px;padding:12px 14px;">' + filled +
+          '<div style="font-size:.74rem;color:#8892A4;margin-top:10px;text-align:center;">' +
+            'The child sees these boxes empty, and fills each orange one.</div>' +
+        '</div>';
+    }
+
     var steps = q.steps || null;
     var method = q.method || '';
     var h = '<div style="font-size:.8rem;font-weight:800;color:#04616a;margin-bottom:6px;">' +

@@ -40,10 +40,20 @@ var VedicFrames = (function () {
     this.slots = [];
     this.n = 0;
   }
+  /* A box is as wide as the number it expects, plus room either side.
+     A fixed width fitted two digits and clipped a Level 7 cube, which
+     can run to nine. The minimum keeps a one-digit box easy to tap. */
+  function widthFor(want, isAns) {
+    var len = String(want == null ? '' : want).length;
+    var ch = Math.max(isAns ? 4 : 2, len) + 1.6;
+    return 'width:' + ch + 'ch;';
+  }
+
   Builder.prototype.slot = function (want, hint, cls) {
     var id = this.prefix + '-f' + (this.n++);
     this.slots.push({ id: id, want: want, hint: hint });
     return '<input class="vf-slot' + (cls ? ' ' + cls : '') + '" id="' + id + '" ' +
+      'style="' + widthFor(want, false) + '" ' +
       'data-vf="' + esc(this.prefix) + '" autocomplete="off" ' +
       'inputmode="' + (typeof want === 'string' && isNaN(Number(want)) ? 'text' : 'numeric') + '" ' +
       'aria-label="' + esc(hint) + '">';
@@ -52,6 +62,7 @@ var VedicFrames = (function () {
     this.slots.push({ id: this.prefix, want: want, hint: 'Now the whole answer', final: true });
     return '<div class="vf-final"><span class="vf-eq">=</span>' +
       '<input class="vf-slot vf-ans" id="' + this.prefix + '" data-vf="' + esc(this.prefix) + '" ' +
+      'style="' + widthFor(want, true) + '" ' +
       'autocomplete="off" inputmode="' +
         (typeof want === 'string' && isNaN(Number(want)) ? 'text' : 'numeric') + '" ' +
       'placeholder="answer" aria-label="The whole answer"></div>';
@@ -209,7 +220,7 @@ var VedicFrames = (function () {
         cols.push({ sum: s, how: parts.join(' + ') });
       }
       return '<div class="vf-base">' + given(q.a, true) + ' <span class="vf-op">&times;</span> ' + given(q.b, true) + '</div>' +
-        '<div class="vf-parts" style="grid-template-columns:repeat(' + cols.length + ',1fr)">' +
+        '<div class="vf-parts' + (cols.length > 4 ? ' many' : '') + '" style="' + (cols.length > 4 ? '' : 'grid-template-columns:repeat(' + cols.length + ',1fr)') + '">' +
           cols.map(function (col, k) {
             return '<div class="vf-part"><div class="vf-how">' + esc(col.how) + '</div>' +
               B.slot(col.sum, 'Column ' + (k + 1) + ': ' + col.how) + '</div>';
@@ -224,7 +235,7 @@ var VedicFrames = (function () {
   function duplexFrame(B, q) {
     var cols = duplexCols(q.a);
     return '<div class="vf-base">' + given(q.a, true) + '<span class="vf-op">&sup2;</span> by duplex</div>' +
-      '<div class="vf-parts" style="grid-template-columns:repeat(' + Math.min(cols.length, 4) + ',1fr)">' +
+      '<div class="vf-parts' + (cols.length > 4 ? ' many' : '') + '" style="' + (cols.length > 4 ? '' : 'grid-template-columns:repeat(' + cols.length + ',1fr)') + '">' +
         cols.map(function (col, k) {
           return '<div class="vf-part"><div class="vf-how">' + esc(col.how) + '</div>' +
             B.slot(col.sum, 'Duplex ' + (k + 1) + ': ' + col.how) + '</div>';
@@ -256,7 +267,7 @@ var VedicFrames = (function () {
       }
       return '<div class="vf-base">' + given(n, true) + ' <span class="vf-op">&times; 111</span></div>' +
         '<div class="vf-note">Each column adds a digit and its two neighbours.</div>' +
-        '<div class="vf-parts" style="grid-template-columns:repeat(' + cols3.length + ',1fr)">' +
+        '<div class="vf-parts' + (cols3.length > 4 ? ' many' : '') + '" style="' + (cols3.length > 4 ? '' : 'grid-template-columns:repeat(' + cols3.length + ',1fr)') + '">' +
           cols3.map(function (col, k) {
             return '<div class="vf-part"><div class="vf-how">' + col.how + '</div>' +
               B.slot(col.sum, 'Add the neighbours: ' + col.how) + '</div>';
@@ -272,7 +283,7 @@ var VedicFrames = (function () {
     }
     cells.push('<div class="vf-part"><div class="vf-how">Last</div>' + B.slot(d[d.length - 1], 'Write the last digit') + '</div>');
     return '<div class="vf-base">' + given(n, true) + ' <span class="vf-op">&times; 11</span></div>' +
-      '<div class="vf-parts" style="grid-template-columns:repeat(' + cells.length + ',1fr)">' + cells.join('') + '</div>' +
+      '<div class="vf-parts' + (cells.length > 4 ? ' many' : '') + '" style="' + (cells.length > 4 ? '' : 'grid-template-columns:repeat(' + cells.length + ',1fr)') + '">' + cells.join('') + '</div>' +
       '<div class="vf-note">If a pair adds past 9, carry to the left.</div>' +
       B.answer(n * mult);
   }
@@ -334,7 +345,7 @@ var VedicFrames = (function () {
 
     return '<div class="vf-base">' + given(q.a) + ' &minus; ' + given(q.b) + '</div>' +
       head +
-      '<div class="vf-parts" style="grid-template-columns:repeat(' + cells.length + ',1fr)">' + cells.join('') + '</div>' +
+      '<div class="vf-parts' + (cells.length > 4 ? ' many' : '') + '" style="' + (cells.length > 4 ? '' : 'grid-template-columns:repeat(' + cells.length + ',1fr)') + '">' + cells.join('') + '</div>' +
       '<div class="vf-note">All from 9, and the last from 10. Zeros at the end stay zeros.</div>' +
       B.answer(q.a - q.b);
   }
@@ -387,10 +398,10 @@ var VedicFrames = (function () {
       'font-variant-numeric:tabular-nums;color:var(--vf-ink);}' +
     '.vf-given.big{font-size:1.9rem;}' +
     '.vf-slot{font-family:"Baloo 2",system-ui,sans-serif;font-weight:800;font-size:1.4rem;' +
-      'width:3.4ch;min-width:58px;height:50px;text-align:center;border:2.5px solid var(--vf-fill);' +
+      'min-width:52px;max-width:100%;height:50px;text-align:center;border:2.5px solid var(--vf-fill);' +
       'border-radius:12px;background:var(--vf-fill-soft);color:var(--vf-ink);' +
       'font-variant-numeric:tabular-nums;}' +
-    '.vf-slot.wide{width:4.4ch;min-width:78px;}' +
+    '.vf-slot.wide{min-width:72px;}' +
     '.vf-slot:focus{outline:3px solid var(--vf-teal);outline-offset:2px;}' +
     '.vf-slot.correct,.vf-slot.good{border-color:var(--vf-good);background:var(--vf-good-soft);color:var(--vf-good);}' +
     '.vf-slot.wrong,.vf-slot.bad{border-color:var(--vf-bad);background:var(--vf-bad-soft);}' +
@@ -411,6 +422,7 @@ var VedicFrames = (function () {
     '.vf-cgrid{display:grid;grid-template-columns:1fr 1fr;row-gap:30px;text-align:center;}' +
     '.vf-under{height:3px;background:var(--vf-ink);border-radius:2px;margin-top:10px;}' +
     '.vf-parts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;}' +
+    '.vf-parts.many{grid-template-columns:repeat(auto-fit,minmax(96px,1fr));}' +
     '.vf-part{display:flex;flex-direction:column;align-items:center;gap:6px;border:1.5px solid var(--vf-rule);' +
       'border-radius:14px;padding:9px 4px 11px;}' +
     '.vf-chain{border-top:1.5px solid var(--vf-rule);margin-top:4px;}' +
@@ -421,9 +433,11 @@ var VedicFrames = (function () {
     '.vf-final{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;' +
       'padding-top:12px;border-top:2px dashed var(--vf-rule);}' +
     '.vf-eq{font-family:"Baloo 2",sans-serif;font-weight:800;font-size:1.6rem;color:var(--vf-muted);}' +
-    '.vf-ans{width:auto;min-width:130px;font-size:1.6rem;border-color:var(--vf-teal);}' +
-    '@media(max-width:400px){.vf-slot{min-width:50px;height:46px;font-size:1.25rem;}' +
-      '.vf-slot.wide{min-width:66px;}.vf-parts{gap:5px;}.vf-cross{width:170px;}}';
+    '.vf-ans{min-width:120px;font-size:1.6rem;border-color:var(--vf-teal);}' +
+    '@media(max-width:400px){.vf-slot{min-width:46px;height:46px;font-size:1.25rem;}' +
+      '.vf-slot.wide{min-width:62px;}.vf-parts{gap:5px;}.vf-cross{width:170px;}' +
+      '.vf-parts.many{grid-template-columns:repeat(auto-fit,minmax(84px,1fr));}' +
+      '.vf-ans{font-size:1.4rem;}}';
 
   function injectCss() {
     if (typeof document === 'undefined' || document.getElementById('vf-css')) return;

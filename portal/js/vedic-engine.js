@@ -63,6 +63,23 @@ var VedicEngine = (function (S, G) {
       return { error: 'The questions did not pass their own check' };
     }
 
+    /* The working. Without this every question went out bare, so
+       the teacher's preview had nothing to show and a child was never
+       walked through a method — the thing Megha asked for most.
+
+       Megha's rule: guided for the first few of each METHOD, then
+       answer only with the working revealed afterwards. */
+    var seenPer = {};
+    var upto = o.guideFirst || 3;
+    res.questions.forEach(function (q) {
+      var st = (typeof VedicSteps !== 'undefined') ? VedicSteps.forSum(q) : null;
+      seenPer[q.method] = (seenPer[q.method] || 0) + 1;
+      q.guided = !!st && seenPer[q.method] <= upto;
+      q.steps = q.guided ? st : null;
+      q.workingShown = q.guided ? null : st;     // revealed after answering
+      q.tellMethod = q.guided || level <= 2;
+    });
+
     res.levelName = cfg.name;
     res.focus = cfg.focus;
     return res;

@@ -814,7 +814,27 @@ var WordProblems = (function () {
       return pick(opts);
     }
 
-    var f = shapes[q.method];
+    /* The engine was rebuilt on Megha's 41 methods with new names,
+       and this still looked up the old ones — so every Vedic story
+       returned nothing and fell back to a bare sum. The new names are
+       mapped onto the story shapes that suit them. */
+    var ALIAS = {
+      nikhilam_sub: 'allFromNine', friend_comp: 'complement',
+      doubling: 'doubling', halving: 'halving', split_merge: 'splitMerge',
+      stacking: 'stacking', by_eleven: 'byEleven', urdhva: 'urdhva',
+      ekadhikena: 'ekadhikena', sq_2d_5: 'ekadhikena', sq_3d_5: 'ekadhikena',
+      antyayor: 'antyayor', base_mult: 'nikhilamMult', working_base: 'workingBase',
+      by_nines: 'urdhva', mult_11s: 'urdhva', twelve_to_19: 'urdhva',
+      first_ten_last_same: 'antyayor', by_5_25_50: 'urdhva', repeating: 'urdhva',
+      sq_2d: 'duplex', sq_3d: 'duplex', sq_4d: 'duplex',
+      cube_1d: 'cubing', cube_2d: 'cubing', cube_3d: 'cubing',
+      basic_div: 'nikhilamDiv', adv_div: 'nikhilamDiv', div_by_nine: 'nikhilamDiv',
+      div_5_25_50: 'nikhilamDiv',
+      sqrt_perfect: 'squareRoot', cbrt_perfect: 'cubeRoot', digit_sum: 'digitSum'
+    };
+    var f = shapes[q.method] || shapes[ALIAS[q.method]];
+    /* Divisibility and percentages are not stories about objects, so
+       they stay as they are rather than being forced into one. */
     if (!f) return null;
 
     var lines;

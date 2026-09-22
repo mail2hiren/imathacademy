@@ -730,6 +730,10 @@ function applyActivityVisibility() {
 function selectLevel(el, lv) {
   document.querySelectorAll('.level-card').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
+  /* A new level starts from "Everything"; a method picked at another
+     level is not a sensible carry-over. Redrawing the SAME level keeps
+     her choice. */
+  if (selectedLevel !== lv) selectedConcept = null;
   selectedLevel = lv;
   document.getElementById('levelSummary').textContent = LEVEL_SUMMARIES[lv] || '';
   // Filter concepts to only show ones valid at this level
@@ -784,7 +788,22 @@ function drawVedicConcepts() {
       : 'From the approved plan. Put it into the curriculum on the Vedic course map to change it.') +
     (src.error ? ' (Could not read the course map: ' + src.error + ')' : '') + '</div>';
   host.innerHTML = html;
-  selectedConcept = null;
+
+  /* KEEP her choice. This list is redrawn before every worksheet, so
+     that a change in the course map shows at once — and it used to
+     reset the choice to "Everything" each time, so whatever method she
+     picked, the sheet was built from the whole level. Her choice now
+     survives the redraw, and is only dropped if the course map no
+     longer teaches that method at this level. */
+  if (selectedConcept && keys.indexOf(selectedConcept) < 0) selectedConcept = null;
+  if (selectedConcept) {
+    var chosen = host.querySelector('[data-concept="' + selectedConcept + '"]');
+    if (chosen) {
+      host.querySelectorAll('.concept-opt').forEach(function (o) { o.classList.remove('selected'); });
+      chosen.classList.add('selected');
+      var r = chosen.querySelector('input'); if (r) r.checked = true;
+    }
+  }
 }
 /* A line of plain words for each method, so a teacher sees when it
    applies without opening the syllabus. */

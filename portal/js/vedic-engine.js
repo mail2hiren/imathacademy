@@ -46,11 +46,32 @@ var VedicEngine = (function (S, G) {
      If the curriculum holds nothing for Vedic, the engine uses its
      built-in plan — which is her approved plan — and says so. */
   var syncedAt = 0, SYNC_MS = 5000, lastSync = { source: 'built-in', rows: 0 };
+  var PLAN_MARKER = '__vedic_plan_v41';     // written by the course map once the plan is in
 
   async function sync(sb, force) {
     if (!sb) return lastSync;
     if (!force && Date.now() - syncedAt < SYNC_MS) return lastSync;
     try {
+      /* Trusted only once the approved plan has been put in. An earlier
+         draft of the Vedic curriculum may still be in the database, with
+         old method names — and some old names (doubling, halving,
+         stacking, crosswise) match new ones. Trusting any rows it
+         recognised, the engine read a half-old plan, and Level 1 lost
+         All from 9, last from 10, whose old name was allFromNine.
+
+         The course map writes this marker LAST, after checking the whole
+         plan arrived. Without it the curriculum is ignored, whatever it
+         holds, and the built-in approved plan is used. */
+      var mk = await sb.from('curriculum_concepts').select('id')
+        .eq('program_code', 'vedic').eq('concept_code', PLAN_MARKER).limit(1);
+      if (mk.error) throw mk.error;
+      if (!mk.data || !mk.data.length) {
+        S.setLevelMap(null);
+        lastSync = { source: 'built-in', rows: 0, reason: 'The approved plan is not in the curriculum yet' };
+        syncedAt = Date.now();
+        return lastSync;
+      }
+
       var r = await sb.from('curriculum_level_concepts')
         .select('level_code, status, curriculum_concepts(concept_code)')
         .eq('program_code', 'vedic');
@@ -156,7 +177,7 @@ var VedicEngine = (function (S, G) {
 
   return {
     LEVELS: LEVELS, breakdown: breakdown, sync: sync, forget: forget,
-    source: function () { return lastSync; },
+    source: function () { return lastSync; }, PLAN_MARKER: PLAN_MARKER,
     buildPage: buildPage, whichMethodPage: whichMethodPage, auditPage: auditPage,
     methodsAt: S.methodsAt, readyAt: S.readyAt, notReady: S.notReady
   };

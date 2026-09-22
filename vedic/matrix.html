@@ -127,6 +127,7 @@ var sb = supabase.createClient(
   'https://bhullfoajenhkxlkiubs.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc');
 var PROG = 'vedic';
+var MARKER = '__vedic_plan_v41';   // the engine trusts the curriculum only once this exists
 var METHODS = {}; PLAN.methods.forEach(function (m) { METHODS[m.key] = m; });
 var CONCEPT_ID = {};   // method key -> curriculum_concepts.id
 var STATUS = {};       // 'L:key' -> I/P/M/R
@@ -161,20 +162,30 @@ async function load() {
     return;
   }
   CONCEPT_ID = {};
-  (cc.data || []).forEach(function (c) { if (METHODS[c.concept_code]) CONCEPT_ID[c.concept_code] = c.id; });
+  var hasMarker = false;
+  (cc.data || []).forEach(function (c) {
+    if (c.concept_code === MARKER) hasMarker = true;
+    if (METHODS[c.concept_code]) CONCEPT_ID[c.concept_code] = c.id;
+  });
   STATUS = {};
   (lc.data || []).forEach(function (r) {
     var k = r.curriculum_concepts && r.curriculum_concepts.concept_code;
     if (!k || !METHODS[k] || !r.status || r.status === 'N') return;
     STATUS[parseInt(r.level_code.replace(/^L/, ''), 10) + ':' + k] = r.status;
   });
-  LIVE = Object.keys(STATUS).length > 0;
+  /* Live only once the approved plan is in. Rows without the marker
+     are an older draft \u2014 the engine ignores them, and so must this. */
+  var staleRows = Object.keys(STATUS).length;
+  LIVE = hasMarker;
+  if (!LIVE) STATUS = {};
 
   if (!LIVE) {
     /* Show the approved plan, locked, with the one step that unlocks it. */
     PLAN.plan.forEach(function (p) { STATUS[p[0] + ':' + p[1]] = p[2]; });
     banner('setup',
       '<b>This is Megha\u2019s approved plan, not yet in the curriculum.</b><br>' +
+      (staleRows ? 'The curriculum holds ' + staleRows + ' rows from an older draft, which worksheets are ' +
+                   'ignoring. Putting the plan in replaces them.<br>' : '') +
       'Put it in first, and every change after that will reach LX Designer straight away.' +
       '<br><button onclick="seed()">Put the approved plan into the curriculum</button>');
   } else {
@@ -205,6 +216,13 @@ async function ensureConcept(key) {
 async function seed() {
   banner('setup', 'Putting the approved plan in\u2026');
   try {
+    /* 1. Retire the older draft: every existing Vedic row set to "not
+          taught" rather than deleted, so nothing is lost and nothing old
+          can be read as part of the new plan. */
+    var off = await sb.from('curriculum_level_concepts').update({ status: 'N' }).eq('program_code', PROG);
+    if (off.error) throw off.error;
+
+    /* 2. One concept per method, then the 76 placements. */
     var keys = Object.keys(METHODS);
     for (var i = 0; i < keys.length; i++) await ensureConcept(keys[i]);
     var rows = PLAN.plan.map(function (p) {
@@ -213,15 +231,29 @@ async function seed() {
     var up = await sb.from('curriculum_level_concepts')
       .upsert(rows, { onConflict: 'program_code,level_code,concept_id' }).select('concept_id');
     if (up.error) throw up.error;
-    /* counted back: success is claimed only if every row is there */
-    var back = await sb.from('curriculum_level_concepts').select('concept_id', { count: 'exact', head: false })
-      .eq('program_code', PROG).neq('status', 'N');
-    var n = (back.data || []).length;
-    if (n < rows.length) throw new Error('only ' + n + ' of ' + rows.length + ' rows are there');
+
+    /* 3. Counted back before anything trusts it. */
+    var back = await sb.from('curriculum_level_concepts')
+      .select('status, curriculum_concepts(concept_code)').eq('program_code', PROG).neq('status', 'N');
+    if (back.error) throw back.error;
+    var n = (back.data || []).filter(function (r) {
+      return r.curriculum_concepts && METHODS[r.curriculum_concepts.concept_code];
+    }).length;
+    if (n !== rows.length) throw new Error(n + ' of ' + rows.length + ' placements arrived');
+
+    /* 4. The marker, LAST. Only now does the engine start reading the
+          curriculum instead of the built-in plan. */
+    var mk = await sb.from('curriculum_concepts').insert({
+      program_code: PROG, concept_code: MARKER,
+      concept_name: 'Vedic plan in the curriculum (do not delete)', category: 'system'
+    }).select('id');
+    if (mk.error || !mk.data || !mk.data.length)
+      throw new Error('the plan went in but could not be marked ready: ' +
+        ((mk.error && mk.error.message) || 'nothing written'));
     await load();
   } catch (e) {
     banner('err', 'The plan did not go in: ' + esc(e.message || String(e)) +
-      '. Nothing has changed for worksheets.');
+      '. Worksheets carry on using the approved plan, so children are unaffected.');
   }
 }
 

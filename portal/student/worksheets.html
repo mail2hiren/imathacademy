@@ -349,6 +349,8 @@
   .wk-ans .wk-in{width:120px;border-color:#04949D;}
   .wk-note{font-size:.74rem;color:#8892A4;margin-top:8px;}
   @media (max-width:420px){ .wk-in{width:74px;} .wk-ans .wk-in{width:98px;} }
+  .vedic-note{ margin-top:14px; padding:10px 12px; border-radius:12px; background:#E7F6F7;
+                color:#04616a; font-size:.82rem; font-weight:800; text-align:center; }
 </style>
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
@@ -725,8 +727,20 @@ function renderSolver(ws,qs,r,status){
       ${cur>0?`<button class="q-nav-btn btn-prev" onclick="prevQ('${ws.id}')">← Back</button>`:''}
       <button class="q-nav-btn btn-check" id="checkBtn-${ws.id}" onclick="checkAnswer('${ws.id}',${cur},'${encodeAnswers(qs)}')">Check answer</button>
     </div>`:''}
-    ${qs.length?`<div class="abacus-slot" data-ws="${ws.id}" data-idx="${cur}"></div>`:''}
+    ${qs.length && !isVedicSheet(ws, qs)
+        ? `<div class="abacus-slot" data-ws="${ws.id}" data-idx="${cur}"></div>`
+        : (qs.length ? `<div class="vedic-note">\u0950 Vedic Maths \u2014 use the method. No abacus needed.</div>` : '')}
   </div>`;
+}
+
+/* A Vedic worksheet is worked by method, not on an abacus. Every sheet
+   was given an abacus to set the answer on, whatever programme it came
+   from, so a Vedic child saw the wrong instrument. The worksheet records
+   its programme; older Vedic sheets are recognised by their questions,
+   which carry the method they use. */
+function isVedicSheet(ws, qs) {
+  if (ws && ws.program_code) return ws.program_code === 'vedic';
+  return (qs || []).some(function (q) { return q && (q.method_key || /^\u0950/.test(q.method || '')); });
 }
 
 function encodeAnswers(qs){
@@ -1114,6 +1128,22 @@ function buildAbacusFor(wsId, inputEl) {
   if (typeof Abacus === 'undefined' || typeof abacusModeFor !== 'function') return null;
 
   var sheet = (allWs || []).find(function (w) { return w.id === wsId; }) || {};
+
+  /* A Vedic sheet is worked by method, so neither solver gets an
+     abacus. This is the one builder both solvers use — the fullscreen
+     one, which every route opens, as well as the inline card — so the
+     check lives here rather than in either of them. */
+  var vedic = sheet.program_code
+    ? sheet.program_code === 'vedic'
+    : String(sheet.content || '').indexOf('method_key') > -1;
+  if (vedic) {
+    var note = document.createElement('div');
+    note.className = 'abacus-slot';
+    note.setAttribute('data-mounted', '1');
+    note.innerHTML = '<div class="vedic-note">\u0950 Vedic Maths \u2014 use the method. No abacus needed.</div>';
+    return note;
+  }
+
   var level = (currentUser && currentUser.current_level != null) ? currentUser.current_level : 0;
   var mode  = abacusModeFor(level, sheet.concept || '', sheet.abacus_mode);
 

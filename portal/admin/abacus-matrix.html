@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Abacus &mdash; the whole course on one page</title>
+<link rel="icon" type="image/png" href="/assets/icon-32.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{ --org:#E67D21; --org-soft:#FFF1E2; --org-ink:#8a4b00;
+         --ink:#1F2430; --t2:#4A5160; --t3:#8892A4; --line:#E6E9F0;
+         --good:#2E7D32; --warn:#EF6C00; --bad:#C62828; --bg:#F5F7FC; }
+  :root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px);
+         padding-bottom:env(safe-area-inset-bottom,0px); }
+  *,*::before,*::after{ box-sizing:inherit; margin:0; padding:0; }
+  body{ font-family:'Nunito',system-ui,sans-serif; background:var(--bg); color:var(--ink);
+        -webkit-font-smoothing:antialiased; }
+
+  .top{ background:#fff; border-bottom:1.5px solid var(--line); padding:11px 15px;
+        display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .top a.back{ color:var(--t3); text-decoration:none; font-size:1.25rem; }
+  .top h1{ font-size:1.02rem; font-weight:900; }
+  .top p{ font-size:.76rem; color:var(--t3); }
+  .legend{ display:flex; gap:10px; margin-left:auto; font-size:.7rem; font-weight:800;
+           color:var(--t2); flex-wrap:wrap; }
+  .legend span{ display:inline-flex; align-items:center; gap:4px; }
+  .legend i{ display:inline-block; width:18px; height:14px; border-radius:3px;
+             font-style:normal; font-size:.6rem; font-weight:900; text-align:center;
+             line-height:14px; color:#fff; }
+
+  .warnings{ background:#FFF8F0; border-bottom:1.5px solid #FFD9B0; padding:9px 15px;
+             font-size:.8rem; color:var(--org-ink); }
+  .warnings b{ font-weight:900; }
+  .warnings div{ padding:2px 0; }
+  .warnings:empty{ display:none; }
+
+  .scroller{ overflow:auto; max-height:calc(100vh - 150px); background:#fff; }
+  table{ border-collapse:separate; border-spacing:0; width:100%; font-size:.78rem; }
+  th,td{ border-bottom:1px solid var(--line); border-right:1px solid var(--line);
+         padding:7px 8px; vertical-align:top; text-align:left; }
+  th.m,td.m{ position:sticky; left:0; z-index:3; background:#fff; min-width:176px;
+             max-width:176px; border-right:2px solid var(--line); }
+  thead th{ position:sticky; top:0; z-index:4; background:#FFF8F0; text-align:center;
+            font-weight:900; white-space:nowrap; }
+  thead th.m{ z-index:5; text-align:left; }
+  thead .lv{ font-size:.9rem; color:var(--org-ink); }
+  thead .nm{ font-size:.62rem; color:var(--t3); font-weight:800; white-space:normal;
+             max-width:104px; line-height:1.25; margin:1px auto 0; }
+
+  tr.cat td{ background:#F1F3F8; font-weight:900; font-size:.66rem; letter-spacing:.9pt;
+             text-transform:uppercase; color:var(--t2); }
+
+  td.cell{ min-width:98px; max-width:140px; text-align:center; cursor:pointer; }
+  td.cell:hover{ outline:2px solid var(--org); outline-offset:-2px; }
+  td.cell.ro{ cursor:default; text-align:left; }
+  td.cell.ro:hover{ outline:none; }
+  .st{ display:inline-block; min-width:26px; padding:3px 7px; border-radius:6px;
+       font-weight:900; font-size:.74rem; color:#fff; }
+  .st.I{ background:var(--org); }
+  .st.P{ background:#F4A45E; }
+  .st.M{ background:#6D8FB8; }
+  .st.R{ background:#B9C4D4; color:#3A4556; }
+  td.gap{ background:repeating-linear-gradient(45deg,#FFF3E3,#FFF3E3 6px,#FFE7CC 6px,#FFE7CC 12px); }
+  td.gap::after{ content:'gap?'; font-size:.62rem; font-weight:900; color:var(--warn); }
+  td.empty-col{ background:#FFF4F4; }
+  .fl{ display:block; font-size:.72rem; color:var(--t2); line-height:1.35; padding:2px 0;
+       border-bottom:1px dashed var(--line); }
+  .fl:last-child{ border-bottom:none; }
+  .num{ font-weight:900; font-size:.8rem; color:var(--ink); }
+  .dim{ color:var(--t3); font-size:.7rem; }
+  .yes{ color:var(--good); font-weight:900; } .no{ color:var(--t3); font-weight:800; }
+
+  td.m .nm{ font-weight:900; font-size:.82rem; }
+  td.m .sub{ font-size:.66rem; color:var(--t3); }
+
+  #sheet{ position:fixed; inset:0; background:rgba(20,26,40,.45); z-index:40;
+          display:none; align-items:flex-end; justify-content:center; }
+  #sheet.show{ display:flex; }
+  .sheet-in{ background:#fff; border-radius:16px 16px 0 0; width:100%; max-width:480px;
+             padding:18px; padding-bottom:calc(18px + env(safe-area-inset-bottom,0px)); }
+  .sheet-in h2{ font-size:1.02rem; font-weight:900; }
+  .sheet-in .at{ font-size:.8rem; color:var(--org-ink); font-weight:800; margin-top:3px; }
+  .opts{ display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:14px; }
+  .opt{ padding:11px; border:1.5px solid var(--line); border-radius:10px; background:#fff;
+        font:800 .84rem 'Nunito',sans-serif; color:var(--t2); cursor:pointer; text-align:left; }
+  .opt b{ display:block; font-size:.9rem; color:var(--ink); }
+  .opt.on{ border-color:var(--org); background:var(--org-soft); }
+  .opt.none{ grid-column:1/-1; }
+  .msg{ font-size:.82rem; margin-top:10px; min-height:1.3em; }
+  .msg.ok{ color:var(--good); font-weight:800; } .msg.err{ color:var(--bad); font-weight:800; }
+  .close{ width:100%; padding:12px; margin-top:12px; border:none; border-radius:11px;
+          background:var(--org); color:#fff; font:900 .9rem 'Nunito',sans-serif; cursor:pointer; }
+  button:focus-visible{ outline:3px solid var(--org); outline-offset:2px; }
+  .spin{ padding:40px; text-align:center; color:var(--t3); }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="back" href="dashboard.html" aria-label="Back to admin">&larr;</a>
+  <div>
+    <h1>&#129482; The whole Abacus course on one page</h1>
+    <p>Read live from your curriculum. Tap a concept cell to change it.</p>
+  </div>
+  <div class="legend">
+    <span><i style="background:var(--org)">I</i>Introduced</span>
+    <span><i style="background:#F4A45E">P</i>Practised</span>
+    <span><i style="background:#6D8FB8">M</i>Mastered</span>
+    <span><i style="background:#B9C4D4;color:#3A4556">R</i>Revision</span>
+  </div>
+</div>
+<div class="warnings" id="warnings"></div>
+<div class="scroller"><div id="grid"><div class="spin">Reading your curriculum&hellip;</div></div></div>
+
+<div id="sheet" onclick="if(event.target.id==='sheet')closeSheet()">
+  <div class="sheet-in" id="sheetIn" role="dialog" aria-modal="true"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   The Abacus course as a matrix
+   ------------------------------------------------------------
+   Megha liked the Vedic matrix because it showed the whole shape of
+   the course at once. This does the same for Abacus, with one
+   difference: it reads her LIVE curriculum rather than a copy, so
+   what she sees is exactly what the worksheet engine uses, and a
+   change she makes here is a change to the engine.
+
+   Every read is filtered to program_code = 'abacus'. Leaving that
+   filter off is what broke the Abacus engine when Vedic went in, and
+   a matrix that quietly blended both programmes would be worse than
+   no matrix.
+
+   Two kinds of problem are picked out automatically, because they
+   are exactly what a level-by-level view hides:
+     - a level with no concepts at all
+     - a concept taught either side of a level but missing from it
+   ============================================================ */
+
+var sb = supabase.createClient(
+  'https://bhullfoajenhkxlkiubs.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc');
+
+var PROG = 'abacus';
+var LEVELS = [], CONCEPTS = [], LINKS = {}, FORMULAS = {}, BANDS = {};
+var open = null;
+
+var STATUS = {
+  I: 'Introduced', P: 'Practised', M: 'Mastered', R: 'Revision'
+};
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+  return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+function lvNum(code){ return parseInt(String(code).replace(/^L/, ''), 10); }
+
+async function load() {
+  var s = await sb.auth.getSession();
+  if (!s.data.session) { location.href = '../../login.html'; return; }
+
+  var [lv, cc, lc, fm, dr] = await Promise.all([
+    sb.from('curriculum_levels').select('*').eq('program_code', PROG),
+    sb.from('curriculum_concepts').select('*').eq('program_code', PROG),
+    sb.from('curriculum_level_concepts').select('*').eq('program_code', PROG),
+    sb.from('curriculum_formulas').select('level_code, formula_name, is_active').eq('program_code', PROG),
+    sb.from('curriculum_difficulty_rules').select('*').eq('program_code', PROG)
+  ]);
+
+  /* A read that failed is said out loud. An empty matrix that is really
+     a failed query would send her back to re-enter work that is fine. */
+  var fails = [['levels', lv], ['concepts', cc], ['level concepts', lc], ['formulas', fm], ['bands', dr]]
+    .filter(function (p) { return p[1].error; })
+    .map(function (p) { return p[0] + ': ' + p[1].error.message; });
+  if (fails.length) {
+    document.getElementById('grid').innerHTML =
+      '<div class="spin" style="color:var(--bad)">Could not read the curriculum &mdash; ' +
+      esc(fails.join('; ')) + '</div>';
+    return;
+  }
+
+  LEVELS = (lv.data || []).sort(function (a, b) { return lvNum(a.level_code) - lvNum(b.level_code); });
+  CONCEPTS = cc.data || [];
+  LINKS = {};
+  (lc.data || []).forEach(function (r) {
+    if (r.status && r.status !== 'N') LINKS[r.concept_id + ':' + r.level_code] = r;
+  });
+  FORMULAS = {};
+  (fm.data || []).forEach(function (f) {
+    if (f.is_active === false) return;
+    (FORMULAS[f.level_code] = FORMULAS[f.level_code] || []).push(f.formula_name);
+  });
+  BANDS = {};
+  (dr.data || []).forEach(function (b) {
+    (BANDS[b.level_code] = BANDS[b.level_code] || {})[b.difficulty] = b;
+  });
+
+  draw();
+}
+
+/* A concept is "used" if it appears at any level; unused ones would
+   only be clutter. Order follows first appearance, so the matrix reads
+   in the order a child meets things. */
+function usedConcepts() {
+  return CONCEPTS.map(function (c) {
+    var first = null;
+    LEVELS.forEach(function (l) {
+      if (first === null && LINKS[c.id + ':' + l.level_code]) first = lvNum(l.level_code);
+    });
+    return { c: c, first: first };
+  }).filter(function (x) { return x.first !== null; })
+    .sort(function (a, b) { return a.first - b.first || String(a.c.concept_name).localeCompare(b.c.concept_name); })
+    .map(function (x) { return x.c; });
+}
+
+function draw() {
+  var used = usedConcepts();
+  var warn = [];
+
+  var h = '<table><thead><tr><th class="m">&nbsp;</th>';
+  LEVELS.forEach(function (l) {
+    h += '<th><div class="lv">' + esc(l.level_code) + '</div>' +
+         '<div class="nm">' + esc(l.core_focus || l.level_name || '') + '</div></th>';
+  });
+  h += '</tr></thead><tbody>';
+
+  /* ── concepts ── */
+  h += '<tr class="cat"><td colspan="' + (LEVELS.length + 1) + '">What each level teaches</td></tr>';
+
+  var emptyLevels = LEVELS.filter(function (l) {
+    return !used.some(function (c) { return LINKS[c.id + ':' + l.level_code]; });
+  }).map(function (l) { return l.level_code; });
+  if (emptyLevels.length) warn.push('<b>' + emptyLevels.join(', ') + '</b> ' +
+    (emptyLevels.length === 1 ? 'has' : 'have') + ' no concepts at all, so the worksheet engine ' +
+    'does not know what ' + (emptyLevels.length === 1 ? 'it teaches' : 'they teach') + '.');
+
+  used.forEach(function (c) {
+    h += '<tr><td class="m"><div class="nm">' + esc(c.concept_name) + '</div>' +
+      '<div class="sub">' + esc(c.concept_code || '') + '</div></td>';
+
+    LEVELS.forEach(function (l, idx) {
+      var link = LINKS[c.id + ':' + l.level_code];
+      var isEmptyCol = emptyLevels.indexOf(l.level_code) > -1;
+
+      /* taught before AND after this level, but not at it: probably an
+         omission rather than a decision */
+      var before = LEVELS.slice(0, idx).some(function (x) { return LINKS[c.id + ':' + x.level_code]; });
+      var after  = LEVELS.slice(idx + 1).some(function (x) { return LINKS[c.id + ':' + x.level_code]; });
+      var gap = !link && before && after && !isEmptyCol;
+      if (gap) warn.push('<b>' + esc(c.concept_name) + '</b> is taught before and after ' +
+        '<b>' + esc(l.level_code) + '</b> but not at it.');
+
+      h += '<td class="cell' + (gap ? ' gap' : '') + (isEmptyCol && !link ? ' empty-col' : '') + '" ' +
+        'onclick="tap(\'' + c.id + '\',\'' + l.level_code + '\')">' +
+        (link ? '<span class="st ' + esc(link.status) + '">' + esc(link.status) + '</span>' : '') +
+        '</td>';
+    });
+    h += '</tr>';
+  });
+
+  /* ── formula master ── */
+  h += '<tr class="cat"><td colspan="' + (LEVELS.length + 1) + '">Formula master</td></tr>';
+  h += '<tr><td class="m"><div class="nm">Formulas</div><div class="sub">from the Formula Master tab</div></td>';
+  LEVELS.forEach(function (l) {
+    var fs = FORMULAS[l.level_code] || [];
+    h += '<td class="cell ro">' + (fs.length
+      ? fs.map(function (f) { return '<span class="fl">' + esc(f) + '</span>'; }).join('')
+      : '<span class="dim">none</span>') + '</td>';
+  });
+  h += '</tr>';
+
+  /* ── how each level runs ── */
+  h += '<tr class="cat"><td colspan="' + (LEVELS.length + 1) + '">How each level runs</td></tr>';
+
+  function row(label, sub, fn) {
+    var r = '<tr><td class="m"><div class="nm">' + label + '</div>' +
+      (sub ? '<div class="sub">' + sub + '</div>' : '') + '</td>';
+    LEVELS.forEach(function (l) { r += '<td class="cell ro">' + fn(l) + '</td>'; });
+    return r + '</tr>';
+  }
+  function yn(v) { return v ? '<span class="yes">yes</span>' : '<span class="no">no</span>'; }
+  function band(l, d) {
+    var b = (BANDS[l.level_code] || {})[d];
+    return b ? '<span class="num">' + (b.min_number == null ? '?' : b.min_number) + '&ndash;' +
+      (b.max_number == null ? '?' : b.max_number) + '</span><br>' +
+      '<span class="dim">' + (b.min_rows || '?') + '&ndash;' + (b.max_rows || '?') + ' rows</span>'
+      : '<span class="dim">not set</span>';
+  }
+
+  h += row('Numbers up to', 'multiplication and division', function (l) {
+    return l.max_number == null ? '<span class="dim">not set</span>'
+      : '<span class="num">' + l.max_number + '</span>';
+  });
+  h += row('Easy', 'addition and subtraction', function (l) { return band(l, 'easy'); });
+  h += row('Medium', 'addition and subtraction', function (l) { return band(l, 'medium'); });
+  h += row('Hard', 'addition and subtraction', function (l) { return band(l, 'hard'); });
+  h += row('Multiplication', '', function (l) { return yn(l.multiplication_allowed); });
+  h += row('Division', '', function (l) { return yn(l.division_allowed); });
+  h += row('Pass mark', '', function (l) {
+    return l.test_pass_mark == null ? '<span class="dim">&ndash;</span>'
+      : '<span class="num">' + l.test_pass_mark + '%</span>';
+  });
+
+  var noBands = LEVELS.filter(function (l) { return !BANDS[l.level_code]; }).map(function (l) { return l.level_code; });
+  if (noBands.length) warn.push('<b>' + noBands.join(', ') + '</b> ' +
+    (noBands.length === 1 ? 'has' : 'have') + ' no difficulty bands, so Easy, Medium and Hard ' +
+    'have nothing to go on there.');
+
+  h += '</tbody></table>';
+  document.getElementById('grid').innerHTML = h;
+
+  document.getElementById('warnings').innerHTML = warn.length
+    ? '<div><b>Worth a look:</b></div>' + warn.map(function (w) { return '<div>&bull; ' + w + '</div>'; }).join('')
+    : '';
+}
+
+/* ── changing a concept cell ─────────────────────────────── */
+function tap(conceptId, levelCode) {
+  var c = CONCEPTS.filter(function (x) { return x.id === conceptId; })[0];
+  if (!c) return;
+  open = { conceptId: conceptId, levelCode: levelCode };
+  var cur = LINKS[conceptId + ':' + levelCode];
+  var curSt = cur ? cur.status : null;
+
+  var h = '<h2>' + esc(c.concept_name) + '</h2>' +
+    '<div class="at">Level ' + esc(levelCode.replace(/^L/, '')) + '</div>' +
+    '<div class="opts">' +
+      ['I','P','M','R'].map(function (k) {
+        return '<button class="opt' + (curSt === k ? ' on' : '') + '" onclick="setStatus(\'' + k + '\')">' +
+          '<b>' + k + '</b>' + STATUS[k] + '</button>';
+      }).join('') +
+      '<button class="opt none' + (!curSt ? ' on' : '') + '" onclick="setStatus(\'N\')">' +
+        '<b>&ndash;</b>Not taught at this level</button>' +
+    '</div>' +
+    '<div class="msg" id="msg" role="status"></div>' +
+    '<button class="close" onclick="closeSheet()">Done</button>';
+
+  document.getElementById('sheetIn').innerHTML = h;
+  document.getElementById('sheet').classList.add('show');
+}
+
+async function setStatus(st) {
+  if (!open) return;
+  var msg = document.getElementById('msg');
+  msg.className = 'msg'; msg.textContent = 'Saving\u2026';
+
+  /* The save is checked by reading back the row it wrote. A save that
+     silently wrote nothing is the fault that cost Megha an evening of
+     re-entering work, so success is only claimed when the row exists. */
+  var res = await sb.from('curriculum_level_concepts').upsert({
+    program_code: PROG,
+    level_code: open.levelCode,
+    concept_id: open.conceptId,
+    status: st
+  }, { onConflict: 'program_code,level_code,concept_id' }).select();
+
+  if (res.error || !res.data || !res.data.length) {
+    msg.className = 'msg err';
+    msg.textContent = 'Not saved: ' + ((res.error && res.error.message) || 'nothing was written');
+    return;
+  }
+
+  var k = open.conceptId + ':' + open.levelCode;
+  if (st === 'N') delete LINKS[k];
+  else LINKS[k] = res.data[0];
+
+  msg.className = 'msg ok';
+  msg.textContent = st === 'N' ? 'Saved \u2014 no longer taught here.' : 'Saved as ' + STATUS[st] + '.';
+  draw();
+  tap(open.conceptId, open.levelCode);
+  document.getElementById('msg').className = 'msg ok';
+  document.getElementById('msg').textContent = msg.textContent;
+}
+
+function closeSheet() {
+  document.getElementById('sheet').classList.remove('show');
+  open = null;
+}
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheet(); });
+
+load().catch(function (e) {
+  document.getElementById('grid').innerHTML =
+    '<div class="spin" style="color:var(--bad)">Could not load: ' + esc(e.message) + '</div>';
+});
+</script>
+</body>
+</html>

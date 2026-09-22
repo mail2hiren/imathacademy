@@ -33,28 +33,43 @@
       <img src="../../assets/logo.png" alt="iMathAcademy" style="height:32px;width:auto;object-fit:contain;">
     </div>
     <nav>
+      <!-- Grouped by what the admin is doing. The last five items used a
+           different set of styles from the rest (sb-item, borrowed from
+           another page), which is why they sat out of line; and several
+           were filed in the wrong place — "My teaching" and "Teacher
+           share" under Curriculum, Enquiries under Finance. -->
       <div class="nav-sec">Overview</div>
-      <button class="nav-item active" onclick="showTab('overview',this)"><span class="nav-icon">📊</span> Dashboard</button>
+      <button class="nav-item active" onclick="showTab('overview',this)"><span class="nav-icon">&#128202;</span> Dashboard</button>
+
       <div class="nav-sec">People</div>
-      <button class="nav-item" onclick="showTab('students',this)"><span class="nav-icon">🎓</span> Students</button>
-      <button class="nav-item" onclick="showTab('teachers',this)"><span class="nav-icon">👩‍🏫</span> Teachers</button>
-      <button class="nav-item" onclick="showTab('parents',this)"><span class="nav-icon">👨‍👩‍👧</span> Parents</button>
+      <button class="nav-item" onclick="showTab('students',this)"><span class="nav-icon">&#127891;</span> Students</button>
+      <button class="nav-item" onclick="showTab('teachers',this)"><span class="nav-icon">&#128105;&#8205;&#127979;</span> Teachers</button>
+      <button class="nav-item" onclick="showTab('parents',this)"><span class="nav-icon">&#128106;</span> Parents</button>
+
       <div class="nav-sec">Classes</div>
-      <button class="nav-item" onclick="showTab('batches',this)"><span class="nav-icon">📚</span> Batches</button>
-      <button class="nav-item" onclick="showTab('associations',this)"><span class="nav-icon">🔗</span> Associations</button>
-      <div class="nav-sec">Content</div>
-      <button class="nav-item" onclick="showTab('lessons',this)"><span class="nav-icon">▶️</span> Lessons</button>
-      <div class="nav-sec">Finance</div>
-      <button class="nav-item" onclick="showTab('fees',this)"><span class="nav-icon">💰</span> Fees</button>
-      <button class="nav-item" onclick="showTab('pricing', this)"><span class="sb-icon">🌍</span> Pricing</button>
-      <button class="nav-item" onclick="showTab('subscriptions',this)"><span class="nav-icon">🔑</span> Subscriptions</button>
-      <button class="nav-item" onclick="showTab('enquiries',this)"><span class="nav-icon">📬</span> Enquiries</button>
-    <div class="sb-section">Curriculum</div>
-      <a href="../teacher/dashboard.html" class="sb-item">🎓 My teaching</a>
-<a href="revenue.html" class="sb-item">💰 Teacher share</a>
-<a href="/vedic/" class="sb-item">🔯 Vedic curriculum forms</a>
-<a href="curriculum.html" style="text-decoration:none;" class="sb-item"><span class="sb-icon">📚</span> Curriculum Designer</a>
-      </nav>
+      <button class="nav-item" onclick="showTab('batches',this)"><span class="nav-icon">&#128218;</span> Batches</button>
+      <button class="nav-item" onclick="showTab('associations',this)"><span class="nav-icon">&#128279;</span> Associations</button>
+
+      <div class="nav-sec">Admissions</div>
+      <button class="nav-item" onclick="showTab('enquiries',this)"><span class="nav-icon">&#128236;</span> Enquiries</button>
+
+      <div class="nav-sec">Curriculum</div>
+      <a class="nav-item" href="abacus-matrix.html"><span class="nav-icon">&#129482;</span> Abacus course map</a>
+      <a class="nav-item" href="/vedic/matrix.html"><span class="nav-icon">&#2384;</span> Vedic course map</a>
+      <a class="nav-item" href="curriculum.html"><span class="nav-icon">&#9881;&#65039;</span> Curriculum Designer</a>
+      <button class="nav-item" onclick="showTab('lessons',this)"><span class="nav-icon">&#9654;&#65039;</span> Lessons</button>
+
+      <div class="nav-sec">Money</div>
+      <button class="nav-item" onclick="showTab('fees',this)"><span class="nav-icon">&#128176;</span> Fees</button>
+      <button class="nav-item" onclick="showTab('subscriptions',this)"><span class="nav-icon">&#128273;</span> Subscriptions</button>
+      <button class="nav-item" onclick="showTab('pricing',this)"><span class="nav-icon">&#127757;</span> Pricing</button>
+      <a class="nav-item" href="revenue.html"><span class="nav-icon">&#129309;</span> Teacher share</a>
+
+      <div class="nav-sec">Tools</div>
+      <a class="nav-item" href="report-generator.html"><span class="nav-icon">&#128196;</span> Reports</a>
+      <a class="nav-item" href="deployment-checklist.html"><span class="nav-icon">&#9989;</span> Setup checklist</a>
+      <a class="nav-item" href="../teacher/dashboard.html"><span class="nav-icon">&#128105;&#8205;&#127979;</span> Switch to teacher view</a>
+    </nav>
     <div class="sidebar-user">
       <div class="av av-admin" id="adminAv">A</div>
       <div class="user-info">

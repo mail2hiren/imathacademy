@@ -246,7 +246,7 @@ sync();
   var pick = document.getElementById('pick');
   var levels = {};
   try {
-    var lv = await sb.from('curriculum_levels').select('level_code, level_name');
+    var lv = await sb.from('curriculum_levels').select('level_code, level_name').eq('program_code', 'abacus');
     (lv.data || []).forEach(function (l) { levels[l.level_code] = l.level_name; });
   } catch (e) { /* level names are a nicety, not a requirement */ }
 

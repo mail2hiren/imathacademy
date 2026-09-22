@@ -83,13 +83,13 @@ var PracticeEngine = (function () {
       // back to defaults instead of every rule being lost at once.
       var lv = await sb.from('curriculum_levels')
         .select('level_code, max_number, allow_zero, negative_numbers_allowed, ' +
-                'multiplication_allowed, division_allowed, min_rows, max_rows')
+                'multiplication_allowed, division_allowed, min_rows, max_rows').eq('program_code', 'abacus')
         .eq('level_code', code).single();
       if (lv.error) throw lv.error;
 
       try {
         var shape = await sb.from('curriculum_levels')
-          .select('ex_beads_to_numbers, ex_orals, sums_per_page, pages_per_session, orals_per_session')
+          .select('ex_beads_to_numbers, ex_orals, sums_per_page, pages_per_session, orals_per_session').eq('program_code', 'abacus')
           .eq('level_code', code).single();
         if (!shape.error && shape.data) Object.assign(lv.data, shape.data);
       } catch (e2) {
@@ -119,7 +119,7 @@ var PracticeEngine = (function () {
     // Her formula names decide the multiplication and division shapes
     try {
       var fs = await sb.from('curriculum_formulas')
-        .select('formula_name').eq('level_code', code).eq('is_active', true);
+        .select('formula_name').eq('program_code', 'abacus').eq('level_code', code).eq('is_active', true);
       (fs.data || []).forEach(function (f) {
         var sh = parseShape(f.formula_name);
         if (!sh) return;
@@ -129,7 +129,7 @@ var PracticeEngine = (function () {
 
     try {
       var cs = await sb.from('curriculum_level_concepts')
-        .select('status, curriculum_concepts(concept_code)')
+        .select('status, curriculum_concepts(concept_code)').eq('program_code', 'abacus')
         .eq('level_code', code);
       var live = (cs.data || [])
         .filter(function (r) { return r.status && r.status !== 'N' && r.curriculum_concepts; })
@@ -145,7 +145,7 @@ var PracticeEngine = (function () {
 
     try {
       var rr = await sb.from('curriculum_row_rules')
-        .select('digit_pattern, min_rows, max_rows, sort_order')
+        .select('digit_pattern, min_rows, max_rows, sort_order').eq('program_code', 'abacus')
         .eq('level_code', code).order('sort_order');
       if (rr.error) throw rr.error;
       rules.rowRules = (rr.data || []).filter(function (r) { return PATTERNS[r.digit_pattern]; });

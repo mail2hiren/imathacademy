@@ -179,7 +179,7 @@ async function loadCurriculumLevels() {
   if (LEVELS_CACHE) return LEVELS_CACHE;
   try {
     const { data, error } = await sb.from('curriculum_levels')
-      .select('level_code, level_name, core_focus')
+      .select('level_code, level_name, core_focus').eq('program_code', 'abacus')
       .order('level_code');
     if (error) throw error;
     LEVELS_CACHE = data || [];

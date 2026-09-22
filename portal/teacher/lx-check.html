@@ -149,7 +149,7 @@ async function checkLevel(level){
     var upto = [];
     for (var L = 0; L <= level; L++) upto.push('L' + L);
     var cRes = await sb.from('curriculum_level_concepts')
-      .select('status, curriculum_concepts(concept_code)')
+      .select('status, curriculum_concepts(concept_code)').eq('program_code', 'abacus')
       .in('level_code', upto);
     (cRes.data || []).forEach(function (row) {
       if (!row.status || row.status === 'N' || !row.curriculum_concepts) return;
@@ -260,7 +260,7 @@ async function checkLevel(level){
        exist here, so this reported "no bands set" on every level for
        data it had never loaded. Read them properly. */
     var drRes = await sb.from('curriculum_difficulty_rules')
-      .select('difficulty, max_number, min_rows, max_rows')
+      .select('difficulty, max_number, min_rows, max_rows').eq('program_code', 'abacus')
       .eq('level_code', 'L' + level);
     var dr = {};
     (drRes.data || []).forEach(function (row) { dr[row.difficulty] = row; });

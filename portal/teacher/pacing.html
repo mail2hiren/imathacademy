@@ -110,7 +110,7 @@ async function load(){
 
   try {
     var lv = await sb.from('curriculum_levels')
-      .select('level_code, level_name, max_number, min_rows, max_rows');
+      .select('level_code, level_name, max_number, min_rows, max_rows').eq('program_code', 'abacus');
     (lv.data||[]).forEach(function(l){ levels[l.level_code]=l; });
   } catch(e){}
 

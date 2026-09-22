@@ -541,19 +541,19 @@ async function loadCurriculum() {
   try {
     // Load levels
     var lvRes = await sb.from('curriculum_levels')
-      .select('level_code,level_name,core_focus,age_min,age_max,min_digits,max_digits,min_number,max_number,min_rows,max_rows,allow_zero,anzan_allowed,multiplication_allowed,division_allowed,decimals_allowed,negative_numbers_allowed,physical_abacus,guardrail_notes');
+      .select('level_code,level_name,core_focus,age_min,age_max,min_digits,max_digits,min_number,max_number,min_rows,max_rows,allow_zero,anzan_allowed,multiplication_allowed,division_allowed,decimals_allowed,negative_numbers_allowed,physical_abacus,guardrail_notes').eq('program_code', 'abacus');
     
     // Load concept progressions with concept names
     var lcRes = await sb.from('curriculum_level_concepts')
-      .select('level_code,status,curriculum_concepts(id,concept_name,concept_code,category)');
+      .select('level_code,status,curriculum_concepts(id,concept_name,concept_code,category)').eq('program_code', 'abacus');
     
     // Load difficulty rules
     var drRes = await sb.from('curriculum_difficulty_rules')
-      .select('level_code,difficulty,min_digits,max_digits,min_number,max_number,min_rows,max_rows,notes');
+      .select('level_code,difficulty,min_digits,max_digits,min_number,max_number,min_rows,max_rows,notes').eq('program_code', 'abacus');
     
     // Load formulas
     var fmRes = await sb.from('curriculum_formulas')
-      .select('level_code,formula_name,method,example,curriculum_concepts(concept_name)');
+      .select('level_code,formula_name,method,example,curriculum_concepts(concept_name)').eq('program_code', 'abacus');
     // Build CURRICULUM map
     (lvRes.data || []).forEach(function(lv) {
       var lvNum = parseInt(lv.level_code.replace('L',''));

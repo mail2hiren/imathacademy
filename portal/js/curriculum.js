@@ -29,7 +29,7 @@ async function loadCurriculumRules(level) {
   try {
     var lv = await sb.from('curriculum_levels')
       .select('level_code, level_name, core_focus, physical_abacus, anzan_allowed, ' +
-              'min_digits, max_digits, min_number, max_number, min_rows, max_rows')
+              'min_digits, max_digits, min_number, max_number, min_rows, max_rows').eq('program_code', 'abacus')
       .eq('level_code', code).single();
     if (lv.error) throw lv.error;
     CURRICULUM_RULES[code] = lv.data || {};
@@ -41,7 +41,7 @@ async function loadCurriculumRules(level) {
 
   try {
     var cs = await sb.from('curriculum_level_concepts')
-      .select('status, curriculum_concepts(concept_code)')
+      .select('status, curriculum_concepts(concept_code)').eq('program_code', 'abacus')
       .eq('level_code', code);
     if (cs.error) throw cs.error;
     var map = {};
@@ -251,7 +251,7 @@ function nextStepFor(p) {
 async function allLevels() {
   try {
     var res = await sb.from('curriculum_levels')
-      .select('level_code, level_name, core_focus')
+      .select('level_code, level_name, core_focus').eq('program_code', 'abacus')
       .order('level_code');
     if (res.error) throw res.error;
     return res.data || [];
@@ -282,7 +282,7 @@ async function levelConcepts(level) {
   var code = 'L' + level;
   try {
     var res = await sb.from('curriculum_level_concepts')
-      .select('status, concept_id, curriculum_concepts(concept_code, concept_name)')
+      .select('status, concept_id, curriculum_concepts(concept_code, concept_name)').eq('program_code', 'abacus')
       .eq('level_code', code);
     if (res.error) throw res.error;
 

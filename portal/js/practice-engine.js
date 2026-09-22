@@ -793,6 +793,22 @@ function bandFor(rules, pos) {
        than asking for nothing, and LX then threw even those away. Where
        the level does not teach the thing chosen, it says so rather than
        quietly handing back something else. */
+    /* Decimals as a focus: every sum in decimals, at any level whose
+       course map teaches them (Level 8 practises them, for instance,
+       even though Level 7 introduces them). */
+    if (o.concept === 'decimals') {
+      if ((rules.concepts || []).indexOf('decimals') < 0 && !rules.decimals) {
+        return { level: level, rules: rules, questions: [],
+                 error: 'Level ' + level + ' does not teach decimals in the curriculum' };
+      }
+      rules.decimals = rules.decimals || 1;
+      /* A focus means every sum is that thing. At a level that also
+         teaches negatives, nearly half a "decimals" sheet came out as
+         negative whole numbers. */
+      rules.negative = false;
+      rules.allowNegativeResult = false;
+    }
+
     var ONLY = { multiplication: multiplication, division: division };
     if (o.concept && (ONLY[o.concept] || o.concept === 'negative')) {
       var teaches = o.concept === 'negative' ? rules.negative : rules[o.concept];

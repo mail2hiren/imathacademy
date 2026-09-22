@@ -513,7 +513,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
   function hideEl(id) { const e = document.getElementById(id); if(e) e.style.display = 'none'; }
   function showFlex(id) { const e = document.getElementById(id); if(e) e.style.display = 'flex'; }
 let allBatches = [], batchStudents = {}, teacherSession = null;
-let selectedLevel = 1, selectedConcept = 'add_sub', selectedActivity = 'column_sums';
+let selectedLevel = 1, selectedConcept = null, selectedActivity = 'column_sums';
 let generatedContent = { worksheet:'', answerkey:'', lessonplan:'', parentnote:'' };
 let currentOutTab = 'worksheet';
 // ── HELPERS ──────────────────────────────────────────────────
@@ -767,7 +767,8 @@ function drawVedicConcepts() {
     /* Her own wording for what this level does with the method — one
        source of truth rather than a second description written here.
        shortWhenVedic further down is now unused. */
-    var sub = (m && m.levels && m.levels[selectedLevel]) || '';
+    var sub = (Sutras.scopeOf ? Sutras.scopeOf(k, selectedLevel)
+                              : ((m && m.levels && m.levels[selectedLevel]) || ''));
     if (bd.intro.indexOf(k) < 0) sub = 'Carried on. ' + sub;
     return '<label class="concept-opt" data-concept="' + k + '" ' +
       'onclick="selectConcept(this,\'' + k + '\')">' +
@@ -824,7 +825,7 @@ function restoreAbacusConcepts() {
   var host = document.getElementById('conceptGrid');
   if (host && ABACUS_CONCEPT_HTML !== null) {
     host.innerHTML = ABACUS_CONCEPT_HTML;
-    selectedConcept = 'add_sub';
+    selectedConcept = null;
   }
 }
 /* Brings LX up to date with the course map: the engine's rules and
@@ -849,12 +850,93 @@ document.addEventListener('visibilitychange', function () {
 });
 window.addEventListener('focus', function () { refreshCurriculum(); });
 
+/* ── Concept Focus: WHAT is practised ────────────────────────
+   Built from the level's own concepts in the course map, like the
+   Vedic list, so a concept she adds there appears here and one she
+   removes disappears. Only concepts the worksheet engine can build a
+   sheet around are offered; Anzan, Counting and Number Recognition are
+   recorded in the course map for planning and are not a kind of sum. */
+var ABACUS_FOCUS = {
+  big_friends:    { name: 'Big Friends',            sub: 'Every sum uses the Big Friends formula' },
+  small_friends:  { name: 'Small Friends',          sub: 'Every sum uses the Small Friends formula' },
+  combination:    { name: 'Combination formula',    sub: 'Every sum needs the Combination formula' },
+  direct_add:     { name: 'Direct addition',        sub: 'Addition with no formula' },
+  direct_sub:     { name: 'Direct subtraction',     sub: 'Subtraction with no formula' },
+  multiplication: { name: 'Multiplication',         sub: 'Shapes from your formula master' },
+  division:       { name: 'Division',               sub: 'Shapes from your formula master' },
+  decimals:       { name: 'Decimals',               sub: 'Every sum in decimals' },
+  negative:       { name: 'Negative numbers',       sub: 'Sums that go below zero' }
+};
+/* Her concept codes vary a little in wording, so they are read by
+   meaning rather than exact spelling. */
+function focusKeyFor(code) {
+  var c = String(code || '').toLowerCase();
+  if (ABACUS_FOCUS[c]) return c;
+  if (/big/.test(c) && /friend/.test(c)) return 'big_friends';
+  if (/small/.test(c) && /friend/.test(c)) return 'small_friends';
+  if (/combin|family|mixed/.test(c)) return 'combination';
+  if (/multipl/.test(c)) return 'multiplication';
+  if (/divis/.test(c)) return 'division';
+  if (/decimal/.test(c)) return 'decimals';
+  if (/negativ/.test(c)) return 'negative';
+  if (/direct/.test(c) && /add/.test(c)) return 'direct_add';
+  if (/direct/.test(c) && /sub/.test(c)) return 'direct_sub';
+  return null;
+}
+var STATUS_WORD = { I: 'New at this level', P: 'Practised', M: 'Mastered', R: 'Revision' };
+
+function drawAbacusConcepts(lv) {
+  var host = document.getElementById('conceptGrid');
+  if (!host) return;
+  var curr = CURRICULUM[lv];
+  var list = (curr && curr.concepts) || [];
+  var order = { I: 0, P: 1, M: 2, R: 3 };
+  var seen = {}, items = [];
+  /* "New at this level" first. order.I is 0, and 0 || 9 is 9, which put
+     the new concepts last — so the test is written out in full. */
+  function rank(s) { return Object.prototype.hasOwnProperty.call(order, s) ? order[s] : 9; }
+  list.slice().sort(function (a, b) { return rank(a.status) - rank(b.status); })
+    .forEach(function (c) {
+      if (!c.status || c.status === 'N') return;
+      var k = focusKeyFor(c.code);
+      if (!k || seen[k]) return;
+      seen[k] = true;
+      items.push({ key: k, status: c.status });
+    });
+
+  var html = '<label class="concept-opt selected" data-concept="" onclick="selectConcept(this,null)">' +
+    '<input type="radio" name="concept" checked>' +
+    '<div><div class="concept-opt-name">Everything in this level</div>' +
+    '<div class="concept-opt-sub">A mix of all it teaches</div></div></label>';
+  html += items.map(function (it) {
+    var f = ABACUS_FOCUS[it.key];
+    return '<label class="concept-opt" data-concept="' + it.key + '" ' +
+      'onclick="selectConcept(this,\'' + it.key + '\')">' +
+      '<input type="radio" name="concept">' +
+      '<div><div class="concept-opt-name">' + f.name + '</div>' +
+      '<div class="concept-opt-sub">' + (STATUS_WORD[it.status] || '') + ' \u00b7 ' + f.sub + '</div></div></label>';
+  }).join('');
+  html += '<div style="grid-column:1/-1;font-size:.72rem;color:var(--text3);margin-top:4px;">' +
+    (list.length
+      ? 'From the Abacus course map \u2014 change it there and this list follows.'
+      : 'Level ' + lv + ' has no concepts in the course map yet, so only a mix of the level is available.') +
+    '</div>';
+  host.innerHTML = html;
+
+  /* keep her choice if it still exists at this level */
+  if (selectedConcept && !seen[selectedConcept]) selectedConcept = null;
+  if (selectedConcept) {
+    var el = host.querySelector('[data-concept="' + selectedConcept + '"]');
+    if (el) selectConcept(el, selectedConcept);
+  }
+}
+
 function filterConceptsForLevel(lv) {
   /* Vedic has its own methods; the abacus filtering below does not
      apply to them at all. */
   if (selectedProgram === 'vedic') { drawVedicConcepts(); return; }
-  if (ABACUS_CONCEPT_HTML !== null) restoreAbacusConcepts();
-  var opts = document.querySelectorAll('.concept-opt');
+  drawAbacusConcepts(lv);
+  var opts = [];      // the fixed list is gone; nothing left to dim
   function enableAll() {
     opts.forEach(function(opt) {
       opt.style.opacity = '1';
@@ -2063,7 +2145,13 @@ async function generateFromEngine() {
     if (q.type === 'beads' || q.type === 'oral') return false;
     if (focusType) return q.type === focusType;
     if (selectedConcept === 'negative') return !!q.negative;
-    if (selectedActivity === 'column_sums') return q.type === 'column';
+    if (selectedConcept === 'decimals') return q.type === 'column' && !q.negative;
+    /* The activity is HOW a sum is shown, never WHICH sums. "Column sums"
+       used to keep only additions, so "everything at Level 4" lost all
+       its multiplication. Only word problems are a display choice here:
+       they appear when the activity is Story problems or Mixed. */
+    if (q.type === 'story') return selectedActivity === 'story_problems' || selectedActivity === 'mixed';
+    if (selectedActivity === 'column_sums') return true;
     // Her Level 4 to 6 work is multiplication and division. Both were
     // being generated and then thrown away, because no activity asked
     // for them.
@@ -2951,7 +3039,11 @@ async function init() {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) { window.location.href='../../login.html'; return; }
     teacherSession = session;
-  loadCurriculum();
+  /* Once her curriculum has arrived, draw the level's own concepts, so
+     the page's built-in list is never what she sees. */
+  loadCurriculum().then(function () {
+    try { filterConceptsForLevel(selectedLevel); } catch (e) { console.warn(e); }
+  });
   drawLevelCards();
     const { data: profile } = await sb.from('users').select('*').eq('id', session.user.id).single();
     if (!profile || (profile.role !== 'teacher' && profile.role !== 'admin')) {

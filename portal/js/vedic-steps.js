@@ -525,7 +525,8 @@ var VedicSteps = (function (S) {
     var f = STEPS[q.method];
     if (!f) return null;
     try {
-      var s = f(q.a, q.b, q.level);
+      /* the method's own scope for this level, which may be borrowed */
+      var s = f(q.a, q.b, q.scopeLevel || q.level);
       return (s && s.length) ? s : null;
     } catch (e) {
       console.warn('Could not build steps for ' + q.method + ':', e.message);

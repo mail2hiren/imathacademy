@@ -141,6 +141,8 @@ async function init() {
   if (lv === null) { location.href = 'vedic-home.html'; return; }
   level = lv;
 
+  /* The course map decides which methods this level practises. */
+  if (VedicEngine.sync) await VedicEngine.sync(sb, true);
   var page = VedicEngine.buildPage(level, { count: 10, guideFirst: 3 });
 
   /* Said plainly rather than faked. This is the lesson from the

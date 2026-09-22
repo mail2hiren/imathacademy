@@ -214,18 +214,22 @@ var VedicGen = (function (S) {
   function one(key, level, opts) {
     var m = S.METHODS[key];
     var build = BUILD[key];
-    if (!m || !m.ready || !build || !m.levels[level]) return null;
+    if (!m || !m.ready || !build) return null;
+    if (!(S.taughtAt ? S.taughtAt(key, level) : m.levels[level])) return null;
+    /* Numbers are built at the method's own scope for this level, which
+       may be borrowed from the nearest level if she has moved it. */
+    var sL = S.scopeLevel ? S.scopeLevel(key, level) : level;
     var o = opts || {};
 
     for (var t = 0; t < 120; t++) {
-      var pr = build(level);
+      var pr = build(sL);
       var a = pr[0], b = pr[1];
 
       // THE GATE
       if (!S.isAllowed(key, a, b, level)) continue;
 
       var ans;
-      try { ans = m.answer(a, b, level); } catch (e) { continue; }
+      try { ans = m.answer(a, b, sL); } catch (e) { continue; }
       if (ans === null || ans === undefined) continue;
       if (typeof ans === 'number' && (!isFinite(ans) || ans < 0)) continue;
       if (o.maxAnswer && typeof ans === 'number' && ans > o.maxAnswer) continue;
@@ -236,9 +240,9 @@ var VedicGen = (function (S) {
 
       return {
         method: key, label: m.label, cat: m.cat, shape: m.shape,
-        level: level, scope: m.levels[level],
+        level: level, scope: m.levels[sL], scopeLevel: sL,
         a: a, b: b,
-        text: m.text(a, b, level),
+        text: m.text(a, b, sL),
         answer: shown, raw: ans,
         detail: m.detail ? m.detail(a, b) : null
       };
@@ -278,7 +282,7 @@ var VedicGen = (function (S) {
         return;
       }
       var m = S.METHODS[q.method];
-      var want = m.answer(q.a, q.b, q.level || level);
+      var want = m.answer(q.a, q.b, q.scopeLevel || q.level || level);
       var shown = (typeof want === 'object')
         ? (want.r ? want.q + ' r ' + want.r : String(want.q))
         : String(want);

@@ -670,18 +670,53 @@ var Sutras = (function () {
      Nothing reaches a child without passing here, and a method
      that is not ready never passes.
      ─────────────────────────────────────────────────────────── */
+  /* ── Which method is taught at which level ─────────────────
+     The built-in plan is Megha's approved one. When her course map
+     has been saved to the curriculum, THAT decides instead, so a
+     change she makes there reaches the next worksheet. */
+  var LEVEL_MAP = null;      // { 1: ['nikhilam_sub', ...], ... } from the curriculum
+  var STATUS_MAP = null;     // { '1:nikhilam_sub': 'I', ... }
+
+  function setLevelMap(map, statuses) {
+    LEVEL_MAP = map || null;
+    STATUS_MAP = statuses || null;
+  }
+  function usingCurriculum() { return !!LEVEL_MAP; }
+
+  /* A method's scope is written per level — 2-digit x 11 at Level 2,
+     3-digit x 11 at Level 3. If she puts a method at a level it has no
+     scope for, it takes the nearest one: the level below if there is
+     one, otherwise the level above. */
+  function scopeLevel(key, level) {
+    var m = METHODS[key];
+    if (!m) return level;
+    if (m.levels[level]) return level;
+    var have = Object.keys(m.levels).map(Number).sort(function (x, y) { return x - y; });
+    var below = have.filter(function (n) { return n < level; });
+    if (below.length) return below[below.length - 1];
+    return have[0];
+  }
+
+  function taughtAt(key, level) {
+    if (LEVEL_MAP) return (LEVEL_MAP[level] || []).indexOf(key) > -1;
+    return !!(METHODS[key] && METHODS[key].levels[level]);
+  }
+
   function isAllowed(key, a, b, level) {
     var m = METHODS[key];
     if (!m || !m.ready) return false;
-    if (!m.levels[level]) return false;        // not taught at this level
-    try { return !!m.applies(a, b, level); }
+    if (!taughtAt(key, level)) return false;   // not taught at this level
+    try { return !!m.applies(a, b, scopeLevel(key, level)); }
     catch (e) { return false; }
   }
 
   function methodsAt(level) {
-    return Object.keys(METHODS).filter(function (k) {
-      return METHODS[k].levels[level];
-    });
+    return Object.keys(METHODS).filter(function (k) { return taughtAt(k, level); });
+  }
+
+  function statusAt(key, level) {
+    if (STATUS_MAP && STATUS_MAP[level + ':' + key]) return STATUS_MAP[level + ':' + key];
+    return null;
   }
 
   function readyAt(level) {
@@ -694,11 +729,13 @@ var Sutras = (function () {
 
   function scopeOf(key, level) {
     var m = METHODS[key];
-    return (m && m.levels[level]) || '';
+    return (m && m.levels[scopeLevel(key, level)]) || '';
   }
 
   return {
     METHODS: METHODS, isAllowed: isAllowed,
+    setLevelMap: setLevelMap, usingCurriculum: usingCurriculum,
+    scopeLevel: scopeLevel, taughtAt: taughtAt, statusAt: statusAt,
     methodsAt: methodsAt, readyAt: readyAt, notReady: notReady, scopeOf: scopeOf,
     deviation: deviation, isBaseMultiple: isBaseMultiple, digitSum: digitSum,
     isPerfectSquare: isPerfectSquare, isPerfectCube: isPerfectCube

@@ -775,6 +775,13 @@ function drawVedicConcepts() {
       '<div><div class="concept-opt-name">' + label + '</div>' +
       '<div class="concept-opt-sub">' + sub + '</div></div></label>';
   }).join('');
+  /* Where this list comes from, said once and quietly. */
+  var src = (VedicEngine.source && VedicEngine.source()) || {};
+  html += '<div style="grid-column:1/-1;font-size:.72rem;color:var(--text3);margin-top:4px;">' +
+    (src.source === 'curriculum'
+      ? 'From the Vedic course map \u2014 change it there and this list follows.'
+      : 'From the approved plan. Put it into the curriculum on the Vedic course map to change it.') +
+    (src.error ? ' (Could not read the course map: ' + src.error + ')' : '') + '</div>';
   host.innerHTML = html;
   selectedConcept = null;
 }
@@ -828,7 +835,13 @@ async function refreshCurriculum() {
   try {
     if (typeof PracticeEngine !== 'undefined' && PracticeEngine.forgetRules) PracticeEngine.forgetRules();
     await loadCurriculum(true);
-    if (selectedProgram !== 'vedic') filterConceptsForLevel(selectedLevel);
+    /* Vedic's course map lives in the curriculum too; read it so a
+       method she switched on or off is on or off here. */
+    if (typeof VedicEngine !== 'undefined' && VedicEngine.sync) {
+      VedicEngine.forget();
+      await VedicEngine.sync(sb, true);
+    }
+    filterConceptsForLevel(selectedLevel);
   } catch (e) { console.warn('Could not refresh the curriculum:', e); }
 }
 document.addEventListener('visibilitychange', function () {
@@ -1783,6 +1796,9 @@ async function generateFromEngine() {
       var bdE = VedicEngine.breakdown(level);
       if (bdE.intro.length) vOpts.methods = bdE.intro;
     }
+
+    /* Whatever the course map says right now. */
+    if (VedicEngine.sync) await VedicEngine.sync(sb, true);
 
     var vPage = (selectedActivity === 'which_method')
       ? VedicEngine.whichMethodPage(level, vOpts)

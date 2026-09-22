@@ -2,289 +2,313 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Vedic Maths &mdash; the whole course on one page</title>
 <link rel="icon" type="image/png" href="/assets/icon-32.png">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  :root{--teal:#04949D;--soft:#E7F6F7;--ink:#04616a;--orange:#E67D21;
-        --green:#2E7D32;--red:#C62828;
-        --t1:#1F2430;--t2:#4A5160;--t3:#8892A4;--line:#E6E9F0;}
-  body{font-family:'Nunito',sans-serif;background:#F5F7FC;color:var(--t1);
-       -webkit-font-smoothing:antialiased;}
+  :root{ --teal:#04949D; --soft:#E7F6F7; --ink:#04616a; --t1:#1F2430; --t2:#4A5160;
+         --t3:#8892A4; --line:#E6E9F0; --good:#2E7D32; --bad:#C62828; --warn:#EF6C00; }
+  :root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px);
+         padding-bottom:env(safe-area-inset-bottom,0px); }
+  *,*::before,*::after{ box-sizing:inherit; margin:0; padding:0; }
+  body{ font-family:'Nunito',system-ui,sans-serif; background:#F5F7FC; color:var(--t1);
+        -webkit-font-smoothing:antialiased; }
+  .top{ background:#fff; border-bottom:1.5px solid var(--line); padding:11px 15px;
+        display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .top a.back{ color:var(--t3); text-decoration:none; font-size:1.25rem; }
+  .top h1{ font-size:1.02rem; font-weight:900; }
+  .top p{ font-size:.76rem; color:var(--t3); }
+  .legend{ display:flex; gap:10px; margin-left:auto; font-size:.7rem; font-weight:800;
+           color:var(--t2); flex-wrap:wrap; }
+  .legend span{ display:inline-flex; align-items:center; gap:4px; }
+  .legend i{ display:inline-block; width:18px; height:14px; border-radius:3px; font-style:normal;
+             font-size:.6rem; font-weight:900; text-align:center; line-height:14px; color:#fff; }
 
-  .top{background:#fff;border-bottom:1.5px solid var(--line);padding:11px 15px;
-       display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-  .top h1{font-size:1.02rem;font-weight:900;}
-  .top p{font-size:.76rem;color:var(--t3);}
-  .legend{display:flex;gap:11px;margin-left:auto;font-size:.7rem;
-          color:var(--t2);font-weight:800;flex-wrap:wrap;}
-  .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;
-            margin-right:4px;vertical-align:-1px;}
-  .legend .new i{background:var(--teal);}
-  .legend .on i{background:#BFE4E7;}
-  .legend .ed i{background:#FFCC80;}
+  .banner{ padding:12px 15px; font-size:.86rem; border-bottom:1.5px solid var(--line); }
+  .banner.setup{ background:#FFF8F0; color:#8a4b00; }
+  .banner.live{ background:#EEF8F3; color:#1B5E20; font-size:.8rem; }
+  .banner.err{ background:#FDECEA; color:var(--bad); }
+  .banner button{ margin-top:8px; padding:10px 16px; border:none; border-radius:10px;
+                  background:var(--teal); color:#fff; font:900 .88rem 'Nunito',sans-serif; cursor:pointer; }
+  .banner:empty{ display:none; }
 
-  /* ── the matrix ── */
-  .scroller{overflow:auto;max-height:calc(100vh - 118px);background:#fff;}
-  table{border-collapse:separate;border-spacing:0;width:100%;font-size:.78rem;}
+  .scroller{ overflow:auto; max-height:calc(100vh - 150px); background:#fff; }
+  table{ border-collapse:separate; border-spacing:0; width:100%; font-size:.78rem; }
+  th,td{ border-bottom:1px solid var(--line); border-right:1px solid var(--line);
+         padding:7px 8px; vertical-align:top; text-align:left; }
+  th.m,td.m{ position:sticky; left:0; z-index:3; background:#fff; min-width:176px; max-width:176px;
+             border-right:2px solid var(--line); }
+  thead th{ position:sticky; top:0; z-index:4; background:#F2FAFA; text-align:center;
+            font-weight:900; white-space:nowrap; }
+  thead th.m{ z-index:5; text-align:left; }
+  thead .lv{ font-size:.9rem; color:var(--ink); }
+  tr.cat td{ background:#F1F3F8; font-weight:900; font-size:.66rem; letter-spacing:.9pt;
+             text-transform:uppercase; color:var(--t2); }
+  td.cell{ min-width:110px; max-width:150px; cursor:pointer; line-height:1.3; }
+  td.cell:hover{ outline:2px solid var(--teal); outline-offset:-2px; }
+  td.cell.locked{ cursor:not-allowed; }
+  td.cell.on{ background:var(--soft); }
+  td.cell.borrow{ background:#FFF8EC; }
+  .st{ display:inline-block; min-width:22px; padding:1px 6px; border-radius:5px; font-weight:900;
+       font-size:.66rem; color:#fff; margin-bottom:3px; }
+  .st.I{ background:var(--teal); } .st.P{ background:#5DB5BA; } .st.M{ background:#6D8FB8; }
+  .st.R{ background:#B9C4D4; color:#3A4556; }
+  .sc{ font-size:.72rem; color:var(--t2); display:block; }
+  .bw{ font-size:.62rem; color:var(--warn); font-weight:900; display:block; margin-top:2px; }
+  td.m .nm{ font-weight:900; font-size:.82rem; line-height:1.25; }
+  td.m .sk{ font-size:.66rem; color:var(--t3); font-style:italic; }
+  td.m .nr{ font-size:.62rem; color:var(--bad); font-weight:900; }
 
-  th,td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);
-        padding:7px 8px;text-align:left;vertical-align:top;}
-
-  /* the method name stays put while the levels scroll */
-  th.m,td.m{position:sticky;left:0;z-index:3;background:#fff;min-width:172px;
-            max-width:172px;border-right:2px solid var(--line);}
-  thead th{position:sticky;top:0;z-index:4;background:#F7F9FF;
-           font-size:.72rem;font-weight:900;text-align:center;white-space:nowrap;}
-  thead th.m{z-index:5;background:#F7F9FF;text-align:left;}
-  thead th .lv{font-size:.88rem;color:var(--ink);}
-  thead th .nm{font-size:.62rem;color:var(--t3);font-weight:800;
-               max-width:112px;white-space:normal;line-height:1.25;margin-top:1px;}
-
-  td.cell{min-width:118px;max-width:150px;cursor:pointer;line-height:1.3;}
-  td.cell.new{background:var(--soft);}
-  td.cell.carry{background:#F4FAFB;color:var(--t2);}
-  td.cell:hover{outline:2px solid var(--teal);outline-offset:-2px;}
-  td.cell.empty{cursor:pointer;background:#fff;}
-  td.cell.empty:hover{background:#FAFBFF;}
-  td.cell .tag{display:block;font-size:.6rem;font-weight:900;letter-spacing:.4pt;
-               color:var(--ink);text-transform:uppercase;margin-bottom:2px;}
-  td.cell.carry .tag{color:var(--t3);}
-  td.cell.ok{box-shadow:inset 3px 0 0 var(--green);}
-  td.cell.edited{background:#FFF8F0;box-shadow:inset 3px 0 0 var(--orange);}
-  td.cell.removed{background:#FAFAFA;color:#bbb;text-decoration:line-through;}
-
-  td.m .nm{font-weight:900;font-size:.82rem;line-height:1.25;}
-  td.m .sk{font-size:.66rem;color:var(--t3);font-style:italic;}
-  tr.cathead td{background:#EEF2FA;font-weight:900;font-size:.68rem;
-                letter-spacing:.9pt;text-transform:uppercase;color:var(--t2);
-                position:sticky;left:0;}
-
-  /* ── the tap sheet ── */
-  #sheet{position:fixed;inset:0;background:rgba(20,26,40,.45);z-index:40;
-         display:none;align-items:flex-end;justify-content:center;}
-  #sheet.show{display:flex;}
-  .sheet-in{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:520px;
-            padding:18px;max-height:82vh;overflow:auto;}
-  .sheet-in h2{font-size:1.04rem;font-weight:900;}
-  .sheet-in .sk{font-size:.74rem;color:var(--t3);font-style:italic;}
-  .sheet-in .at{font-size:.8rem;color:var(--ink);font-weight:800;margin-top:7px;}
-  .sheet-in .sc{font-size:.9rem;color:var(--t2);background:#F7F9FF;border-radius:9px;
-                padding:10px 12px;margin-top:8px;}
-  .sheet-in h3{font-size:.68rem;font-weight:900;letter-spacing:.9pt;color:var(--t3);
-               text-transform:uppercase;margin:15px 0 7px;}
-  .opts{display:flex;gap:6px;flex-wrap:wrap;}
-  .opt{padding:9px 13px;border:1.5px solid var(--line);border-radius:10px;background:#fff;
-       font-family:inherit;font-size:.82rem;font-weight:800;color:var(--t2);cursor:pointer;}
-  .opt.on-ok{background:#E8F5E9;border-color:#A5D6A7;color:#1B5E20;}
-  .opt.on-ed{background:#FFF3E0;border-color:#FFCC80;color:#8a4b00;}
-  .opt.on-no{background:#FDECEA;border-color:#FFCDD2;color:#B71C1C;}
-  .sheet-in textarea{width:100%;padding:10px 12px;border:1.5px solid var(--line);
-    border-radius:10px;font-family:inherit;font-size:.88rem;min-height:56px;margin-top:9px;}
-  .close{width:100%;padding:13px;margin-top:16px;border:none;border-radius:12px;
-         background:var(--teal);color:#fff;font-family:inherit;font-size:.92rem;
-         font-weight:900;cursor:pointer;}
-
-  #bar{background:#fff;border-top:1.5px solid var(--line);padding:9px 15px;
-       display:flex;align-items:center;gap:11px;font-size:.76rem;font-weight:800;
-       color:var(--t3);}
-  #bar .prog{height:6px;background:var(--line);border-radius:4px;flex:1;overflow:hidden;}
-  #bar .prog i{display:block;height:100%;background:var(--green);width:0;transition:width .25s;}
+  #sheet{ position:fixed; inset:0; background:rgba(20,26,40,.45); z-index:40; display:none;
+          align-items:flex-end; justify-content:center; }
+  #sheet.show{ display:flex; }
+  .sheet-in{ background:#fff; border-radius:16px 16px 0 0; width:100%; max-width:480px; padding:18px;
+             padding-bottom:calc(18px + env(safe-area-inset-bottom,0px)); }
+  .sheet-in h2{ font-size:1.02rem; font-weight:900; }
+  .sheet-in .at{ font-size:.8rem; color:var(--ink); font-weight:800; margin-top:3px; }
+  .sheet-in .scope{ font-size:.86rem; color:var(--t2); background:#F7F9FF; border-radius:9px;
+                    padding:9px 11px; margin-top:9px; }
+  .opts{ display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:12px; }
+  .opt{ padding:11px; border:1.5px solid var(--line); border-radius:10px; background:#fff;
+        font:800 .84rem 'Nunito',sans-serif; color:var(--t2); cursor:pointer; text-align:left; }
+  .opt b{ display:block; font-size:.9rem; color:var(--t1); }
+  .opt.on{ border-color:var(--teal); background:var(--soft); }
+  .opt.none{ grid-column:1/-1; }
+  .msg{ font-size:.82rem; margin-top:10px; min-height:1.3em; }
+  .msg.ok{ color:var(--good); font-weight:800; } .msg.err{ color:var(--bad); font-weight:800; }
+  .close{ width:100%; padding:12px; margin-top:12px; border:none; border-radius:11px; background:var(--teal);
+          color:#fff; font:900 .9rem 'Nunito',sans-serif; cursor:pointer; }
+  button:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+  .spin{ padding:40px; text-align:center; color:var(--t3); }
 </style>
 </head>
 <body>
-
 <div class="top">
+  <a class="back" href="/portal/admin/dashboard.html" aria-label="Back to admin">&larr;</a>
   <div>
     <h1>&#2384; The whole Vedic course on one page</h1>
-    <p>41 methods down the side, your eight levels across the top. Tap any cell.</p>
+    <p>A change here shows on the very next Vedic worksheet in LX Designer.</p>
   </div>
   <div class="legend">
-    <span class="new"><i></i>New here</span>
-    <span class="on"><i></i>Continuing</span>
-    <span class="ed"><i></i>You changed it</span>
+    <span><i style="background:var(--teal)">I</i>Introduced</span>
+    <span><i style="background:#5DB5BA">P</i>Practised</span>
+    <span><i style="background:#6D8FB8">M</i>Mastered</span>
+    <span><i style="background:#B9C4D4;color:#3A4556">R</i>Revision</span>
   </div>
 </div>
-
-<div class="scroller"><div id="grid"></div></div>
-
-<div id="bar">
-  <span id="barTxt">0 of 41 methods looked at</span>
-  <span class="prog"><i id="barFill"></i></span>
-</div>
+<div class="banner" id="banner"></div>
+<div class="scroller"><div id="grid"><div class="spin">Reading the curriculum&hellip;</div></div></div>
 
 <div id="sheet" onclick="if(event.target.id==='sheet')closeSheet()">
-  <div class="sheet-in" id="sheetIn"></div>
+  <div class="sheet-in" id="sheetIn" role="dialog" aria-modal="true"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>window.supabase = supabase;</script>
-<script src="draft-store.js"></script>
 <script>
 /* ============================================================
-   The course as a matrix
+   The Vedic course map, live
    ------------------------------------------------------------
-   Reviewing level by level meant Megha could judge each method
-   well and still not see the shape of the whole thing — which is
-   exactly how the earlier draft ended up with one method at Level
-   4 and seven at Level 5.
+   Megha approved the plan on this page. It now edits the curriculum
+   itself, and the Vedic engine reads the curriculum before every
+   worksheet \u2014 so switching a method on or off here changes the
+   next sheet in LX Designer.
 
-   Here every method is a row and every level a column, so the
-   distribution is visible at a glance: a row stretching across
-   four columns is a method whose complexity is being built up, and
-   a sparse column is a thin level.
-
-   Tapping a cell says what happens at that level and lets her move
-   it, remove it, or say it is wrong — without leaving the view.
+   One safeguard matters. The engine trusts the curriculum once it
+   holds any Vedic rows. If she edited a single cell into an empty
+   curriculum, that one row would become the whole course and every
+   other method would disappear. So until the approved plan is in the
+   curriculum, editing is locked, and the first step is to put the
+   whole plan in \u2014 checked by counting it back.
    ============================================================ */
 
-var DATA = {"levels": [{"n": 1, "name": "Foundation", "focus": "Complements, doubling, and confident addition"}, {"n": 2, "name": "Building up", "focus": "Bigger bases, first multiplication, and checking your work"}, {"n": 3, "name": "Multiplication and first division", "focus": "Crosswise multiplication, the first special squares, and sharing out"}, {"n": 4, "name": "Base methods", "focus": "Multiplying near a base, three-digit work, and more division"}, {"n": 5, "name": "Squares, cubes and harder division", "focus": "Squaring anything, cubing, and the nines"}, {"n": 6, "name": "Bigger numbers", "focus": "Three-digit squares and cubes, larger bases, divisibility"}, {"n": 7, "name": "Four digits and percentages", "focus": "Four-digit squares, three-digit cubes, and percentages"}, {"n": 8, "name": "Roots and percentage change", "focus": "Square and cube roots, the harder divisibility tests, and percentage change"}], "rows": [{"id": "split_merge", "cat": "Addition", "name": "Split and merge", "sanskrit": "", "firstSeen": 1, "cells": {"1": "Adding a number within 3 of a ten", "2": "Adding near a hundred", "3": "Subtracting by the same adjustment", "4": "Chained adjustments in one sum"}}, {"id": "stacking", "cat": "Addition", "name": "Stacking", "sanskrit": "", "firstSeen": 1, "cells": {"1": "2-digit + 1-digit, and 2-digit + 2-digit", "2": "3-digit columns", "3": "Longer columns with carries throughout"}}, {"id": "nikhilam_sub", "cat": "Subtraction", "name": "All from 9, last from 10", "sanskrit": "Nikhilam Navatashcaramam Dashatah", "firstSeen": 1, "cells": {"1": "From 100 and 1000, and their multiples", "2": "From 10000 and 100000, and their multiples", "3": "Any base, including where the answer needs padding"}}, {"id": "friend_comp", "cat": "Number work", "name": "Friend complement", "sanskrit": "Purana-Apuranabhyam", "firstSeen": 1, "cells": {"1": "Complements to 10 and 100", "2": "Complements to 1000", "3": "Complements used inside a longer calculation"}}, {"id": "doubling", "cat": "Number work", "name": "Doubling", "sanskrit": "Anurupyena", "firstSeen": 1, "cells": {"1": "Single digit and 2-digit numbers", "2": "3-digit and 4-digit numbers", "3": "Repeated doubling for x4 and x8"}}, {"id": "halving", "cat": "Number work", "name": "Halving", "sanskrit": "Anurupyena", "firstSeen": 3, "cells": {"3": "Even 2-digit numbers", "4": "Even 3-digit numbers, and repeated halving for /4", "5": "Odd numbers, giving a half"}}, {"id": "by_eleven", "cat": "Multiplication", "name": "Add the neighbour", "sanskrit": "Sopantyadvayamantyam", "firstSeen": 2, "cells": {"2": "2-digit x 11", "3": "3-digit x 11", "4": "2-digit x 111 and 3-digit x 111"}}, {"id": "urdhva", "cat": "Multiplication", "name": "Vertically and crosswise", "sanskrit": "Urdhva-Tiryagbhyam", "firstSeen": 2, "cells": {"2": "2-digit x 1-digit", "3": "2-digit x 2-digit", "4": "3-digit x 2-digit", "5": "3-digit x 3-digit"}}, {"id": "antyayor", "cat": "Multiplication", "name": "Same first, friends after", "sanskrit": "Antyayordashake'pi", "firstSeen": 3, "cells": {"3": "Same tens digit, units adding to 10", "4": "Same hundreds, and 3-digit cases"}}, {"id": "base_mult", "cat": "Multiplication", "name": "Base method", "sanskrit": "Nikhilam", "firstSeen": 4, "cells": {"4": "Both numbers just below 100", "5": "Above the base, and one above one below", "6": "Bases of 1000 and beyond"}}, {"id": "working_base", "cat": "Multiplication", "name": "Working base", "sanskrit": "Anurupyena", "firstSeen": 4, "cells": {"4": "Near 50", "5": "Near 200, 250 and 500", "6": "Any convenient working base"}}, {"id": "by_nines", "cat": "Multiplication", "name": "Multiplying by 9, 99, 999", "sanskrit": "Ekanyunena Purvena", "firstSeen": 5, "cells": {"5": "By 9 and 99", "6": "By 999 and 9999"}}, {"id": "mult_11s", "cat": "Multiplication", "name": "Multiples of 11", "sanskrit": "", "firstSeen": 5, "cells": {"5": "By 22, 33, 44 and the rest"}}, {"id": "first_ten_last_same", "cat": "Multiplication", "name": "First digits total 10, last digits the same", "sanskrit": "Purvanna Samuccayah", "firstSeen": 5, "cells": {"5": "2-digit cases", "6": "3-digit cases"}}, {"id": "twelve_to_19", "cat": "Multiplication", "name": "Multiplying by 12 to 19", "sanskrit": "Sopantyadvayamantyam", "firstSeen": 6, "cells": {"6": "Any 2-digit number by 12 through 19"}}, {"id": "repeating", "cat": "Multiplication", "name": "Repeating numbers", "sanskrit": "Number splitting", "firstSeen": 6, "cells": {"6": "Numbers like 3333 x 3333", "7": "Mixed repeating patterns"}}, {"id": "by_5_25_50", "cat": "Multiplication", "name": "Multiplying by 5, 25, 50 and 500", "sanskrit": "", "firstSeen": 6, "cells": {"6": "Halving and shifting the point"}}, {"id": "basic_div", "cat": "Division", "name": "Basic division", "sanskrit": "", "firstSeen": 3, "cells": {"3": "Dividing by 2, 5 and 10", "4": "Dividing by 3 and 4", "5": "Mixed, with remainders"}}, {"id": "adv_div", "cat": "Division", "name": "Advanced division", "sanskrit": "", "firstSeen": 4, "cells": {"4": "Dividing by 4 and 6", "5": "Dividing by 7 and 8", "6": "Dividing by 9, and larger divisors"}}, {"id": "div_by_nine", "cat": "Division", "name": "Dividing by 9", "sanskrit": "Nikhilam", "firstSeen": 4, "cells": {"4": "The running-sum shortcut for 9"}}, {"id": "div_5_25_50", "cat": "Division", "name": "Dividing by 5, 25, 50 and 500", "sanskrit": "", "firstSeen": 7, "cells": {"7": "Doubling and shifting the point"}}, {"id": "ekadhikena", "cat": "Squares", "name": "One more than the one before", "sanskrit": "Ekadhikena Purvena", "firstSeen": 3, "cells": {"3": "Squaring a 2-digit number ending in 5", "4": "Squaring a 3-digit number ending in 5"}}, {"id": "sq_2d_5", "cat": "Squares", "name": "Squaring a 2-digit number ending in 5", "sanskrit": "Ekadhikena Purvena", "firstSeen": 3, "cells": {"3": "15 through 95"}}, {"id": "sq_3d_5", "cat": "Squares", "name": "Squaring a 3-digit number ending in 5", "sanskrit": "Ekadhikena Purvena", "firstSeen": 4, "cells": {"4": "105 through 995"}}, {"id": "sq_2d", "cat": "Squares", "name": "Squaring any 2-digit number", "sanskrit": "Dwandwa Yoga", "firstSeen": 5, "cells": {"5": "The duplex method, any 2-digit number"}}, {"id": "sq_3d", "cat": "Squares", "name": "Squaring any 3-digit number", "sanskrit": "Dwandwa Yoga", "firstSeen": 6, "cells": {"6": "The duplex method extended"}}, {"id": "sq_4d", "cat": "Squares", "name": "Squaring any 4-digit number", "sanskrit": "Dwandwa Yoga", "firstSeen": 7, "cells": {"7": "The duplex method, four digits"}}, {"id": "cube_1d", "cat": "Cubes", "name": "Cube of a single digit", "sanskrit": "", "firstSeen": 5, "cells": {"5": "1 through 9"}}, {"id": "cube_2d", "cat": "Cubes", "name": "Cube of a 2-digit number", "sanskrit": "Anurupyena", "firstSeen": 6, "cells": {"6": "The ratio series"}}, {"id": "cube_3d", "cat": "Cubes", "name": "Cube of a 3-digit number", "sanskrit": "Anurupyena", "firstSeen": 7, "cells": {"7": "Extended to three digits"}}, {"id": "sqrt_perfect", "cat": "Roots", "name": "Square root of a perfect square", "sanskrit": "Vilokanam", "firstSeen": 8, "cells": {"8": "By inspection, perfect squares only"}}, {"id": "sqrt_general", "cat": "Roots", "name": "Square root of any number", "sanskrit": "Dwandwa Yoga", "firstSeen": 8, "cells": {"8": "The general method, including non-perfect squares"}}, {"id": "cbrt_perfect", "cat": "Roots", "name": "Cube root of a perfect cube", "sanskrit": "Vilokanam", "firstSeen": 8, "cells": {"8": "By inspection, perfect cubes only"}}, {"id": "digit_sum", "cat": "Number theory", "name": "Digit sum", "sanskrit": "Beejank", "firstSeen": 2, "cells": {"2": "Reducing a number to a single digit", "3": "Checking an addition", "4": "Checking a multiplication"}}, {"id": "divis_2_3_5_10", "cat": "Number theory", "name": "Divisibility by 2, 3, 5 and 10", "sanskrit": "", "firstSeen": 5, "cells": {"5": "The four simplest tests"}}, {"id": "divis_4_8_9", "cat": "Number theory", "name": "Divisibility by 4, 8 and 9", "sanskrit": "", "firstSeen": 6, "cells": {"6": "Last two digits, last three, and the digit sum"}}, {"id": "divis_6_15", "cat": "Number theory", "name": "Divisibility by 6 and 15", "sanskrit": "", "firstSeen": 7, "cells": {"7": "Combining two tests"}}, {"id": "divis_7_13_19", "cat": "Number theory", "name": "Divisibility by 7, 13 and 19", "sanskrit": "Vestanas (osculation)", "firstSeen": 8, "cells": {"8": "The osculator method"}}, {"id": "percent_of", "cat": "Percentages", "name": "Finding a percentage of a number", "sanskrit": "", "firstSeen": 7, "cells": {"7": "Simple percentages: 10%, 25%, 50%", "8": "Any percentage"}}, {"id": "percent_fraction", "cat": "Percentages", "name": "Fractional percentages", "sanskrit": "", "firstSeen": 7, "cells": {"7": "12.5% and 6.25%, as one eighth and one sixteenth", "8": "33.33%, 16.66% and the rest"}}, {"id": "percent_change", "cat": "Percentages", "name": "Increase and decrease in percentage", "sanskrit": "", "firstSeen": 8, "cells": {"8": "Both directions, and successive changes"}}], "order": ["Addition", "Subtraction", "Number work", "Multiplication", "Division", "Squares", "Cubes", "Roots", "Number theory", "Percentages"]};
-var state = { verdicts: {}, moveTo: {}, notes: {} };
-var open = null;
+var PLAN = {"methods": [{"key": "nikhilam_sub", "label": "All from 9, last from 10", "cat": "Subtraction", "sanskrit": "Nikhilam Navatashcaramam Dashatah", "ready": true, "scopes": {"1": "From 100 and 1000, and their multiples", "2": "From 10000 and 100000, and their multiples", "3": "Any base, including where the answer needs padding"}}, {"key": "friend_comp", "label": "Friend complement", "cat": "Number work", "sanskrit": "Purana-Apuranabhyam", "ready": true, "scopes": {"1": "Complements to 10 and 100", "2": "Complements to 1000", "3": "Complements used inside a longer calculation"}}, {"key": "doubling", "label": "Doubling", "cat": "Number work", "sanskrit": "Anurupyena", "ready": true, "scopes": {"1": "Single digit and 2-digit numbers", "2": "3-digit and 4-digit numbers", "3": "Repeated doubling for x4 and x8"}}, {"key": "halving", "label": "Halving", "cat": "Number work", "sanskrit": "Anurupyena", "ready": true, "scopes": {"3": "Even 2-digit numbers", "4": "Even 3-digit numbers, and repeated halving for /4", "5": "Odd numbers, giving a half"}}, {"key": "split_merge", "label": "Split and merge", "cat": "Addition", "sanskrit": "", "ready": true, "scopes": {"1": "Adding a number within 3 of a ten", "2": "Adding near a hundred", "3": "Subtracting by the same adjustment", "4": "Chained adjustments in one sum"}}, {"key": "stacking", "label": "Stacking", "cat": "Addition", "sanskrit": "", "ready": true, "scopes": {"1": "2-digit + 1-digit, and 2-digit + 2-digit", "2": "3-digit columns", "3": "Longer columns with carries throughout"}}, {"key": "by_eleven", "label": "Add the neighbour", "cat": "Multiplication", "sanskrit": "Sopantyadvayamantyam", "ready": true, "scopes": {"2": "2-digit x 11", "3": "3-digit x 11", "4": "2-digit x 111 and 3-digit x 111"}}, {"key": "urdhva", "label": "Vertically and crosswise", "cat": "Multiplication", "sanskrit": "Urdhva-Tiryagbhyam", "ready": true, "scopes": {"2": "2-digit x 1-digit", "3": "2-digit x 2-digit", "4": "3-digit x 2-digit", "5": "3-digit x 3-digit"}}, {"key": "ekadhikena", "label": "One more than the one before", "cat": "Squares", "sanskrit": "Ekadhikena Purvena", "ready": true, "scopes": {"3": "Squaring a 2-digit number ending in 5", "4": "Squaring a 3-digit number ending in 5"}}, {"key": "antyayor", "label": "Same first, friends after", "cat": "Multiplication", "sanskrit": "Antyayordashake'pi", "ready": true, "scopes": {"3": "Same tens digit, units adding to 10", "4": "Same hundreds, and 3-digit cases"}}, {"key": "base_mult", "label": "Base method", "cat": "Multiplication", "sanskrit": "Nikhilam", "ready": true, "scopes": {"4": "Both numbers just below 100", "5": "Above the base, and one above one below", "6": "Bases of 1000 and beyond"}}, {"key": "working_base", "label": "Working base", "cat": "Multiplication", "sanskrit": "Anurupyena", "ready": true, "scopes": {"4": "Near 50", "5": "Near 200, 250 and 500", "6": "Any convenient working base"}}, {"key": "by_nines", "label": "Multiplying by 9, 99, 999", "cat": "Multiplication", "sanskrit": "Ekanyunena Purvena", "ready": true, "scopes": {"5": "By 9 and 99", "6": "By 999 and 9999"}}, {"key": "mult_11s", "label": "Multiples of 11", "cat": "Multiplication", "sanskrit": "", "ready": true, "scopes": {"5": "By 22, 33, 44 and the rest"}}, {"key": "twelve_to_19", "label": "Multiplying by 12 to 19", "cat": "Multiplication", "sanskrit": "Sopantyadvayamantyam", "ready": true, "scopes": {"6": "Any 2-digit number by 12 through 19"}}, {"key": "first_ten_last_same", "label": "First digits total 10, last digits the same", "cat": "Multiplication", "sanskrit": "Purvanna Samuccayah", "ready": true, "scopes": {"5": "2-digit cases", "6": "3-digit cases"}}, {"key": "by_5_25_50", "label": "Multiplying by 5, 25, 50 and 500", "cat": "Multiplication", "sanskrit": "", "ready": true, "scopes": {"6": "Halving and shifting the point"}}, {"key": "repeating", "label": "Repeating numbers", "cat": "Multiplication", "sanskrit": "Number splitting", "ready": true, "scopes": {"6": "Numbers like 3333 x 3333", "7": "Mixed repeating patterns"}}, {"key": "basic_div", "label": "Basic division", "cat": "Division", "sanskrit": "", "ready": true, "scopes": {"3": "Dividing by 2, 5 and 10", "4": "Dividing by 3 and 4", "5": "Mixed, with remainders"}}, {"key": "adv_div", "label": "Advanced division", "cat": "Division", "sanskrit": "", "ready": true, "scopes": {"4": "Dividing by 4 and 6", "5": "Dividing by 7 and 8", "6": "Dividing by 9, and larger divisors"}}, {"key": "div_by_nine", "label": "Dividing by 9", "cat": "Division", "sanskrit": "Nikhilam", "ready": true, "scopes": {"4": "The running-sum shortcut for 9"}}, {"key": "div_5_25_50", "label": "Dividing by 5, 25, 50 and 500", "cat": "Division", "sanskrit": "", "ready": true, "scopes": {"7": "Doubling and shifting the point"}}, {"key": "sq_2d_5", "label": "Squaring a 2-digit number ending in 5", "cat": "Squares", "sanskrit": "Ekadhikena Purvena", "ready": true, "scopes": {"3": "15 through 95"}}, {"key": "sq_3d_5", "label": "Squaring a 3-digit number ending in 5", "cat": "Squares", "sanskrit": "Ekadhikena Purvena", "ready": true, "scopes": {"4": "105 through 995"}}, {"key": "sq_2d", "label": "Squaring any 2-digit number", "cat": "Squares", "sanskrit": "Dwandwa Yoga", "ready": true, "scopes": {"5": "The duplex method, any 2-digit number"}}, {"key": "sq_3d", "label": "Squaring any 3-digit number", "cat": "Squares", "sanskrit": "Dwandwa Yoga", "ready": true, "scopes": {"6": "The duplex method extended"}}, {"key": "sq_4d", "label": "Squaring any 4-digit number", "cat": "Squares", "sanskrit": "Dwandwa Yoga", "ready": true, "scopes": {"7": "The duplex method, four digits"}}, {"key": "cube_1d", "label": "Cube of a single digit", "cat": "Cubes", "sanskrit": "", "ready": true, "scopes": {"5": "1 through 9"}}, {"key": "cube_2d", "label": "Cube of a 2-digit number", "cat": "Cubes", "sanskrit": "Anurupyena", "ready": true, "scopes": {"6": "The ratio series"}}, {"key": "cube_3d", "label": "Cube of a 3-digit number", "cat": "Cubes", "sanskrit": "Anurupyena", "ready": true, "scopes": {"7": "Extended to three digits"}}, {"key": "sqrt_perfect", "label": "Square root of a perfect square", "cat": "Roots", "sanskrit": "Vilokanam", "ready": true, "scopes": {"8": "By inspection, perfect squares only"}}, {"key": "cbrt_perfect", "label": "Cube root of a perfect cube", "cat": "Roots", "sanskrit": "Vilokanam", "ready": true, "scopes": {"8": "By inspection, perfect cubes only"}}, {"key": "sqrt_general", "label": "Square root of any number", "cat": "Roots", "sanskrit": "Dwandwa Yoga", "ready": false, "scopes": {"8": "The general method, including non-perfect squares"}}, {"key": "digit_sum", "label": "Digit sum", "cat": "Number theory", "sanskrit": "Beejank", "ready": true, "scopes": {"2": "Reducing a number to a single digit", "3": "Checking an addition", "4": "Checking a multiplication"}}, {"key": "divis_2_3_5_10", "label": "Divisibility by 2, 3, 5 and 10", "cat": "Number theory", "sanskrit": "", "ready": true, "scopes": {"5": "The four simplest tests"}}, {"key": "divis_4_8_9", "label": "Divisibility by 4, 8 and 9", "cat": "Number theory", "sanskrit": "", "ready": true, "scopes": {"6": "Last two digits, last three, and the digit sum"}}, {"key": "divis_6_15", "label": "Divisibility by 6 and 15", "cat": "Number theory", "sanskrit": "", "ready": true, "scopes": {"7": "Combining two tests"}}, {"key": "divis_7_13_19", "label": "Divisibility by 7, 13 and 19", "cat": "Number theory", "sanskrit": "Vestanas (osculation)", "ready": true, "scopes": {"8": "The osculator method"}}, {"key": "percent_of", "label": "Finding a percentage of a number", "cat": "Percentages", "sanskrit": "", "ready": true, "scopes": {"7": "Simple percentages: 10%, 25%, 50%", "8": "Any percentage"}}, {"key": "percent_fraction", "label": "Fractional percentages", "cat": "Percentages", "sanskrit": "", "ready": true, "scopes": {"7": "12.5% and 6.25%, as one eighth and one sixteenth", "8": "33.33%, 16.66% and the rest"}}, {"key": "percent_change", "label": "Increase and decrease in percentage", "cat": "Percentages", "sanskrit": "", "ready": true, "scopes": {"8": "Both directions, and successive changes"}}], "plan": [[1, "nikhilam_sub", "I"], [1, "friend_comp", "I"], [1, "doubling", "I"], [1, "split_merge", "I"], [1, "stacking", "I"], [2, "by_eleven", "I"], [2, "urdhva", "I"], [2, "digit_sum", "I"], [2, "nikhilam_sub", "P"], [2, "friend_comp", "P"], [2, "doubling", "P"], [2, "split_merge", "P"], [2, "stacking", "P"], [3, "halving", "I"], [3, "ekadhikena", "I"], [3, "antyayor", "I"], [3, "basic_div", "I"], [3, "sq_2d_5", "I"], [3, "nikhilam_sub", "P"], [3, "friend_comp", "P"], [3, "doubling", "P"], [3, "split_merge", "P"], [3, "stacking", "P"], [3, "by_eleven", "P"], [3, "urdhva", "P"], [3, "digit_sum", "P"], [4, "base_mult", "I"], [4, "working_base", "I"], [4, "adv_div", "I"], [4, "div_by_nine", "I"], [4, "sq_3d_5", "I"], [4, "halving", "P"], [4, "split_merge", "P"], [4, "by_eleven", "P"], [4, "urdhva", "P"], [4, "ekadhikena", "P"], [4, "antyayor", "P"], [4, "basic_div", "P"], [4, "digit_sum", "P"], [5, "by_nines", "I"], [5, "mult_11s", "I"], [5, "first_ten_last_same", "I"], [5, "sq_2d", "I"], [5, "cube_1d", "I"], [5, "divis_2_3_5_10", "I"], [5, "halving", "P"], [5, "urdhva", "P"], [5, "base_mult", "P"], [5, "working_base", "P"], [5, "basic_div", "P"], [5, "adv_div", "P"], [6, "twelve_to_19", "I"], [6, "by_5_25_50", "I"], [6, "repeating", "I"], [6, "sq_3d", "I"], [6, "cube_2d", "I"], [6, "divis_4_8_9", "I"], [6, "base_mult", "P"], [6, "working_base", "P"], [6, "by_nines", "P"], [6, "first_ten_last_same", "P"], [6, "adv_div", "P"], [7, "div_5_25_50", "I"], [7, "sq_4d", "I"], [7, "cube_3d", "I"], [7, "divis_6_15", "I"], [7, "percent_of", "I"], [7, "percent_fraction", "I"], [7, "repeating", "P"], [8, "sqrt_perfect", "I"], [8, "cbrt_perfect", "I"], [8, "sqrt_general", "I"], [8, "divis_7_13_19", "I"], [8, "percent_change", "I"], [8, "percent_of", "P"], [8, "percent_fraction", "P"]]};
+var sb = supabase.createClient(
+  'https://bhullfoajenhkxlkiubs.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc');
+var PROG = 'vedic';
+var METHODS = {}; PLAN.methods.forEach(function (m) { METHODS[m.key] = m; });
+var CONCEPT_ID = {};   // method key -> curriculum_concepts.id
+var STATUS = {};       // 'L:key' -> I/P/M/R
+var LIVE = false, open = null;
+var CATS = ['Addition','Subtraction','Number work','Multiplication','Division',
+            'Squares','Cubes','Roots','Number theory','Percentages'];
+var WORDS = { I:'Introduced', P:'Practised', M:'Mastered', R:'Revision' };
 
-function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
-  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
-function key(id, L) { return id + ':' + L; }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+  return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
 
-/* Short enough for a cell; the full wording is in the tap sheet. */
-function brief(s) {
-  var t = String(s || '');
-  return t.length > 52 ? t.slice(0, 50).replace(/[,;]\s*\S*$/, '') + '\u2026' : t;
+/* The scope a method uses at a level: its own, or the nearest it has. */
+function scopeLevel(key, L) {
+  var sc = METHODS[key].scopes || {};
+  if (sc[L]) return L;
+  var have = Object.keys(sc).map(Number).sort(function (a, b) { return a - b; });
+  var below = have.filter(function (n) { return n < L; });
+  return below.length ? below[below.length - 1] : have[0];
 }
 
+async function load() {
+  var s = await sb.auth.getSession();
+  if (!s.data.session) { location.href = '/login.html'; return; }
+
+  var [cc, lc] = await Promise.all([
+    sb.from('curriculum_concepts').select('id, concept_code').eq('program_code', PROG),
+    sb.from('curriculum_level_concepts')
+      .select('level_code, status, concept_id, curriculum_concepts(concept_code)').eq('program_code', PROG)
+  ]);
+  if (cc.error || lc.error) {
+    banner('err', 'Could not read the curriculum: ' + esc((cc.error || lc.error).message));
+    return;
+  }
+  CONCEPT_ID = {};
+  (cc.data || []).forEach(function (c) { if (METHODS[c.concept_code]) CONCEPT_ID[c.concept_code] = c.id; });
+  STATUS = {};
+  (lc.data || []).forEach(function (r) {
+    var k = r.curriculum_concepts && r.curriculum_concepts.concept_code;
+    if (!k || !METHODS[k] || !r.status || r.status === 'N') return;
+    STATUS[parseInt(r.level_code.replace(/^L/, ''), 10) + ':' + k] = r.status;
+  });
+  LIVE = Object.keys(STATUS).length > 0;
+
+  if (!LIVE) {
+    /* Show the approved plan, locked, with the one step that unlocks it. */
+    PLAN.plan.forEach(function (p) { STATUS[p[0] + ':' + p[1]] = p[2]; });
+    banner('setup',
+      '<b>This is Megha\u2019s approved plan, not yet in the curriculum.</b><br>' +
+      'Put it in first, and every change after that will reach LX Designer straight away.' +
+      '<br><button onclick="seed()">Put the approved plan into the curriculum</button>');
+  } else {
+    banner('live', 'Live \u2014 ' + Object.keys(STATUS).length + ' methods placed across 8 levels. ' +
+      'Tap any cell to change it; the next Vedic worksheet follows.');
+  }
+  draw();
+}
+
+function banner(kind, html) {
+  var b = document.getElementById('banner');
+  b.className = 'banner ' + kind; b.innerHTML = html;
+}
+
+/* ── putting the approved plan in ─────────────────────────── */
+async function ensureConcept(key) {
+  if (CONCEPT_ID[key]) return CONCEPT_ID[key];
+  var m = METHODS[key];
+  var ins = await sb.from('curriculum_concepts').insert({
+    program_code: PROG, concept_code: key, concept_name: m.label, category: m.cat
+  }).select('id');
+  if (ins.error || !ins.data || !ins.data.length) throw new Error('could not add ' + m.label + ': ' +
+    ((ins.error && ins.error.message) || 'nothing written'));
+  CONCEPT_ID[key] = ins.data[0].id;
+  return CONCEPT_ID[key];
+}
+
+async function seed() {
+  banner('setup', 'Putting the approved plan in\u2026');
+  try {
+    var keys = Object.keys(METHODS);
+    for (var i = 0; i < keys.length; i++) await ensureConcept(keys[i]);
+    var rows = PLAN.plan.map(function (p) {
+      return { program_code: PROG, level_code: 'L' + p[0], concept_id: CONCEPT_ID[p[1]], status: p[2] };
+    });
+    var up = await sb.from('curriculum_level_concepts')
+      .upsert(rows, { onConflict: 'program_code,level_code,concept_id' }).select('concept_id');
+    if (up.error) throw up.error;
+    /* counted back: success is claimed only if every row is there */
+    var back = await sb.from('curriculum_level_concepts').select('concept_id', { count: 'exact', head: false })
+      .eq('program_code', PROG).neq('status', 'N');
+    var n = (back.data || []).length;
+    if (n < rows.length) throw new Error('only ' + n + ' of ' + rows.length + ' rows are there');
+    await load();
+  } catch (e) {
+    banner('err', 'The plan did not go in: ' + esc(e.message || String(e)) +
+      '. Nothing has changed for worksheets.');
+  }
+}
+
+/* ── drawing ──────────────────────────────────────────────── */
 function draw() {
   var h = '<table><thead><tr><th class="m">Method</th>';
-  DATA.levels.forEach(function (l) {
-    h += '<th><div class="lv">L' + l.n + '</div>' +
-         '<div class="nm">' + esc(l.name) + '</div></th>';
-  });
+  for (var L = 1; L <= 8; L++) h += '<th><div class="lv">L' + L + '</div></th>';
   h += '</tr></thead><tbody>';
-
-  var lastCat = null;
-  DATA.rows.forEach(function (r) {
-    if (r.cat !== lastCat) {
-      lastCat = r.cat;
-      h += '<tr class="cathead"><td colspan="9">' + esc(r.cat) + '</td></tr>';
-    }
-    h += '<tr><td class="m"><div class="nm">' + esc(r.name) + '</div>' +
-         (r.sanskrit ? '<div class="sk">' + esc(r.sanskrit) + '</div>' : '') + '</td>';
-
-    DATA.levels.forEach(function (l) {
-      var scope = r.cells[String(l.n)] || r.cells[l.n];
-      var k = key(r.id, l.n);
-      var v = state.verdicts[k];
-      if (!scope) {
-        h += '<td class="cell empty" onclick="tap(\'' + r.id + '\',' + l.n + ')"></td>';
-        return;
+  CATS.forEach(function (cat) {
+    var ms = PLAN.methods.filter(function (m) { return m.cat === cat; });
+    if (!ms.length) return;
+    h += '<tr class="cat"><td colspan="9">' + esc(cat) + '</td></tr>';
+    ms.forEach(function (m) {
+      h += '<tr><td class="m"><div class="nm">' + esc(m.label) + '</div>' +
+        (m.sanskrit ? '<div class="sk">' + esc(m.sanskrit) + '</div>' : '') +
+        (m.ready ? '' : '<div class="nr">not built yet \u2014 worksheets skip it</div>') + '</td>';
+      for (var L = 1; L <= 8; L++) {
+        var st = STATUS[L + ':' + m.key];
+        var sL = scopeLevel(m.key, L), borrow = st && sL !== L;
+        h += '<td class="cell' + (st ? ' on' : '') + (borrow ? ' borrow' : '') + (LIVE ? '' : ' locked') +
+          '" onclick="tap(\'' + m.key + '\',' + L + ')">' +
+          (st ? '<span class="st ' + st + '">' + st + '</span>' +
+                '<span class="sc">' + esc(m.scopes[sL] || '') + '</span>' +
+                (borrow ? '<span class="bw">using its Level ' + sL + ' scope</span>' : '') : '') +
+          '</td>';
       }
-      var isNew = r.firstSeen === l.n;
-      var cls = 'cell ' + (isNew ? 'new' : 'carry') +
-                (v === 'keep' ? ' ok' : v === 'move' ? ' edited' : v === 'drop' ? ' removed' : '');
-      h += '<td class="' + cls + '" onclick="tap(\'' + r.id + '\',' + l.n + ')">' +
-           '<span class="tag">' + (isNew ? 'New' : 'Again') + '</span>' +
-           esc(brief(scope)) + '</td>';
+      h += '</tr>';
     });
-    h += '</tr>';
   });
-  h += '</tbody></table>';
-  document.getElementById('grid').innerHTML = h;
-  bar();
+  document.getElementById('grid').innerHTML = h + '</tbody></table>';
 }
 
-function tap(id, L) {
-  var r = DATA.rows.filter(function (x) { return x.id === id; })[0];
-  if (!r) return;
-  open = { id: id, L: L };
-  var scope = r.cells[String(L)] || r.cells[L];
-  var k = key(id, L);
-  var v = state.verdicts[k];
-
-  var h = '<h2>' + esc(r.name) + '</h2>' +
-    (r.sanskrit ? '<div class="sk">' + esc(r.sanskrit) + '</div>' : '') +
-    '<div class="at">Level ' + L + ' &middot; ' +
-      esc((DATA.levels.filter(function(x){return x.n===L;})[0]||{}).name || '') + '</div>';
-
-  if (scope) {
-    h += '<div class="sc">' + esc(scope) + '</div>';
-    h += '<h3>Is this right for Level ' + L + '?</h3><div class="opts">' +
-      '<button class="opt' + (v==='keep'?' on-ok':'') + '" onclick="mark(\'keep\')">' +
-        '&#10003; Yes</button>' +
-      '<button class="opt' + (v==='move'?' on-ed':'') + '" onclick="mark(\'move\')">' +
-        '&#8646; Belongs elsewhere</button>' +
-      '<button class="opt' + (v==='drop'?' on-no':'') + '" onclick="mark(\'drop\')">' +
-        '&#10005; Not at this level</button>' +
-      '</div>';
-    if (v === 'move') {
-      h += '<h3>Which level instead?</h3><div class="opts">' +
-        [1,2,3,4,5,6,7,8].map(function (n) {
-          return '<button class="opt' + (state.moveTo[k]===n?' on-ed':'') +
-            '" onclick="setMove(' + n + ')">L' + n + '</button>';
-        }).join('') + '</div>';
-    }
-  } else {
-    /* An empty cell is a real question: should this method also be
-       taught here? She can add it without typing anything. */
-    h += '<div class="sc" style="color:var(--t3);">Not taught at this level at present.</div>' +
-      '<h3>Should it be?</h3><div class="opts">' +
-      '<button class="opt' + (v==='add'?' on-ok':'') + '" onclick="mark(\'add\')">' +
-        '&#43; Add it here</button>' +
-      '<button class="opt' + (v==='fine'?' on-ok':'') + '" onclick="mark(\'fine\')">' +
-        '&#10003; No, this is fine</button></div>';
+/* ── changing a cell ──────────────────────────────────────── */
+function tap(key, L) {
+  if (!LIVE) {
+    banner('setup', '<b>Put the approved plan in first</b> \u2014 until then a change here could ' +
+      'replace the whole course with one method.<br>' +
+      '<button onclick="seed()">Put the approved plan into the curriculum</button>');
+    return;
   }
-
-  h += '<h3>Anything to add?</h3>' +
-    '<textarea placeholder="Optional \u2014 what changes, or what is missing" ' +
-    'oninput="setNote(this.value)">' + esc(state.notes[k] || '') + '</textarea>';
-  h += '<button class="close" onclick="closeSheet()">Done</button>';
-
+  var m = METHODS[key]; open = { key: key, L: L };
+  var cur = STATUS[L + ':' + key] || null, sL = scopeLevel(key, L);
+  var h = '<h2>' + esc(m.label) + '</h2><div class="at">Level ' + L + '</div>' +
+    '<div class="scope">At this level: <b>' + esc(m.scopes[sL] || '') + '</b>' +
+      (sL !== L ? '<br><span style="color:var(--warn);font-weight:800;">It has no Level ' + L +
+        ' scope of its own, so it uses its Level ' + sL + ' one.</span>' : '') + '</div>' +
+    '<div class="opts">' +
+      ['I','P','M','R'].map(function (s) {
+        return '<button class="opt' + (cur === s ? ' on' : '') + '" onclick="setSt(\'' + s + '\')">' +
+          '<b>' + s + '</b>' + WORDS[s] + '</button>';
+      }).join('') +
+      '<button class="opt none' + (!cur ? ' on' : '') + '" onclick="setSt(\'N\')"><b>&ndash;</b>Not taught at this level</button>' +
+    '</div><div class="msg" id="msg" role="status"></div>' +
+    '<button class="close" onclick="closeSheet()">Done</button>';
   document.getElementById('sheetIn').innerHTML = h;
   document.getElementById('sheet').classList.add('show');
 }
 
-function mark(v) {
+async function setSt(st) {
   if (!open) return;
-  state.verdicts[key(open.id, open.L)] = v;
-  save(); tap(open.id, open.L); draw();
-}
-function setMove(n) {
-  if (!open) return;
-  state.moveTo[key(open.id, open.L)] = n;
-  save(); tap(open.id, open.L);
-}
-function setNote(v) {
-  if (!open) return;
-  state.notes[key(open.id, open.L)] = v;
-  save();
-}
-function closeSheet() {
-  document.getElementById('sheet').classList.remove('show');
-  open = null;
-}
-
-/* Progress by METHOD rather than by cell: a method is looked at once
-   any of its cells has been answered. 41 is a friendlier number to
-   work through than 90-odd cells. */
-function bar() {
-  var done = DATA.rows.filter(function (r) {
-    return Object.keys(r.cells).some(function (L) { return state.verdicts[key(r.id, L)]; });
-  }).length;
-  document.getElementById('barTxt').textContent =
-    done + ' of ' + DATA.rows.length + ' methods looked at';
-  document.getElementById('barFill').style.width =
-    Math.round(done / DATA.rows.length * 100) + '%';
-}
-
-function save() { try { Draft.save('matrix', 'vedic41', state); } catch (e) {} }
-
-(async function () {
+  var msg = document.getElementById('msg');
+  msg.className = 'msg'; msg.textContent = 'Saving\u2026';
   try {
-    var d = await Draft.load('matrix', 'vedic41');
-    if (d) state = Object.assign(state, d);
-  } catch (e) {}
-  draw();
-})();
+    var cid = await ensureConcept(open.key);
+    var res = await sb.from('curriculum_level_concepts').upsert({
+      program_code: PROG, level_code: 'L' + open.L, concept_id: cid, status: st
+    }, { onConflict: 'program_code,level_code,concept_id' }).select();
+    if (res.error || !res.data || !res.data.length)
+      throw new Error((res.error && res.error.message) || 'nothing was written');
+    var k = open.L + ':' + open.key;
+    if (st === 'N') delete STATUS[k]; else STATUS[k] = st;
+    draw();
+    var kept = open;
+    tap(kept.key, kept.L);
+    var m2 = document.getElementById('msg');
+    m2.className = 'msg ok';
+    m2.textContent = (st === 'N' ? 'Saved \u2014 not taught here.' : 'Saved as ' + WORDS[st] + '.') +
+      ' The next Vedic worksheet at Level ' + kept.L + ' will follow this.';
+  } catch (e) {
+    msg.className = 'msg err'; msg.textContent = 'Not saved: ' + e.message;
+  }
+}
+
+function closeSheet() { document.getElementById('sheet').classList.remove('show'); open = null; }
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSheet(); });
+
+load().catch(function (e) { banner('err', 'Could not load: ' + esc(e.message)); });
 </script>
 </body>
 </html>

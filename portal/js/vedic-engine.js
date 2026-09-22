@@ -37,13 +37,63 @@ var VedicEngine = (function (S, G) {
          outcome: 'Find any square or cube root. Test divisibility by 7, 13 and 19. Handle percentage increase and decrease.' }
   };
 
+  /* ── Reading the course map ─────────────────────────────────
+     Megha's Vedic course map is saved to the curriculum. Before a
+     worksheet is built the engine reads it, so a method she switches on
+     or off at a level is on or off in the very next sheet. Read for a
+     few seconds at most, like the Abacus rules.
+
+     If the curriculum holds nothing for Vedic, the engine uses its
+     built-in plan — which is her approved plan — and says so. */
+  var syncedAt = 0, SYNC_MS = 5000, lastSync = { source: 'built-in', rows: 0 };
+
+  async function sync(sb, force) {
+    if (!sb) return lastSync;
+    if (!force && Date.now() - syncedAt < SYNC_MS) return lastSync;
+    try {
+      var r = await sb.from('curriculum_level_concepts')
+        .select('level_code, status, curriculum_concepts(concept_code)')
+        .eq('program_code', 'vedic');
+      if (r.error) throw r.error;
+      var map = {}, st = {}, n = 0;
+      (r.data || []).forEach(function (row) {
+        var code = row.curriculum_concepts && row.curriculum_concepts.concept_code;
+        if (!code || !S.METHODS[code]) return;          // not a method the engine knows
+        if (!row.status || row.status === 'N') return;
+        var L = parseInt(String(row.level_code).replace(/^L/, ''), 10);
+        (map[L] = map[L] || []).push(code);
+        st[L + ':' + code] = row.status;
+        n++;
+      });
+      if (n) { S.setLevelMap(map, st); lastSync = { source: 'curriculum', rows: n }; }
+      else   { S.setLevelMap(null);    lastSync = { source: 'built-in', rows: 0 }; }
+    } catch (e) {
+      /* A failed read is said, not hidden: the built-in plan is used and
+         the caller can tell the teacher. */
+      S.setLevelMap(null);
+      lastSync = { source: 'built-in', rows: 0, error: e.message || String(e) };
+    }
+    syncedAt = Date.now();
+    return lastSync;
+  }
+  function forget() { syncedAt = 0; }
+
   /** What this level introduces, and what it carries on. */
   function breakdown(level) {
     var here = S.methodsAt(level);
     var intro = [], carried = [];
     here.forEach(function (k) {
-      var lv = Object.keys(S.METHODS[k].levels).map(Number);
-      (Math.min.apply(null, lv) === level ? intro : carried).push(k);
+      /* Her status decides where the curriculum says; otherwise a
+         method is new at the first level that teaches it. */
+      var st = S.statusAt ? S.statusAt(k, level) : null;
+      var isNew;
+      if (st) isNew = st === 'I';
+      else {
+        var first = null;
+        for (var L = 1; L <= 8; L++) if (S.taughtAt ? S.taughtAt(k, L) : S.METHODS[k].levels[L]) { first = L; break; }
+        isNew = first === level;
+      }
+      (isNew ? intro : carried).push(k);
     });
     return { intro: intro, carried: carried };
   }
@@ -62,23 +112,6 @@ var VedicEngine = (function (S, G) {
       console.error('Vedic page failed its audit:', bad);
       return { error: 'The questions did not pass their own check' };
     }
-
-    /* The working. Without this every question went out bare, so
-       the teacher's preview had nothing to show and a child was never
-       walked through a method — the thing Megha asked for most.
-
-       Megha's rule: guided for the first few of each METHOD, then
-       answer only with the working revealed afterwards. */
-    var seenPer = {};
-    var upto = o.guideFirst || 3;
-    res.questions.forEach(function (q) {
-      var st = (typeof VedicSteps !== 'undefined') ? VedicSteps.forSum(q) : null;
-      seenPer[q.method] = (seenPer[q.method] || 0) + 1;
-      q.guided = !!st && seenPer[q.method] <= upto;
-      q.steps = q.guided ? st : null;
-      q.workingShown = q.guided ? null : st;     // revealed after answering
-      q.tellMethod = q.guided || level <= 2;
-    });
 
     res.levelName = cfg.name;
     res.focus = cfg.focus;
@@ -122,7 +155,8 @@ var VedicEngine = (function (S, G) {
   }
 
   return {
-    LEVELS: LEVELS, breakdown: breakdown,
+    LEVELS: LEVELS, breakdown: breakdown, sync: sync, forget: forget,
+    source: function () { return lastSync; },
     buildPage: buildPage, whichMethodPage: whichMethodPage, auditPage: auditPage,
     methodsAt: S.methodsAt, readyAt: S.readyAt, notReady: S.notReady
   };

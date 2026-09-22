@@ -2050,8 +2050,19 @@ async function generateFromEngine() {
     signBias:  tOptsEarly.addOnly ? 'add' : (tOptsEarly.subOnly ? 'sub' : null),
     concept:   selectedConcept && selectedConcept !== 'revision' ? selectedConcept : null
   });
+  /* The level cannot do what she asked: say so, rather than handing
+     back a sheet of something else. */
+  if (session.error) throw new Error(session.error);
+
+  /* Concept Focus decides WHAT the sums are; the activity decides how
+     they are laid out. "Column sums" kept only column additions, so a
+     Multiplication focus had every multiplication question thrown away
+     and the sheet filled with additions. The focus comes first now. */
+  var focusType = { multiplication: 'multiplication', division: 'division' }[selectedConcept] || null;
   var wanted = session.questions.filter(function (q) {
     if (q.type === 'beads' || q.type === 'oral') return false;
+    if (focusType) return q.type === focusType;
+    if (selectedConcept === 'negative') return !!q.negative;
     if (selectedActivity === 'column_sums') return q.type === 'column';
     // Her Level 4 to 6 work is multiplication and division. Both were
     // being generated and then thrown away, because no activity asked
@@ -2065,8 +2076,25 @@ async function generateFromEngine() {
   // other shapes: that is what turned a Multiplication sheet into a
   // mixture.
   if (wanted.length < count) {
-    var extra = session.questions.filter(function (q) { return q.type === 'column'; });
-    wanted = wanted.concat(extra.filter(function (q) { return wanted.indexOf(q) < 0; }));
+    /* Topped up with MORE OF THE SAME, never with a different kind of
+       sum — a Multiplication sheet stays multiplication. */
+    if (focusType || selectedConcept === 'negative') {
+      var seenTop = {};
+      wanted.forEach(function (q) { seenTop[q.rows ? q.rows.join(',') : q.a + ':' + q.b] = true; });
+      for (var tt = 0; tt < count * 30 && wanted.length < count; tt++) {
+        var more = focusType === 'multiplication' ? PracticeEngine.makeMultiplication(earlyRules)
+                 : focusType === 'division'       ? PracticeEngine.makeDivision(earlyRules)
+                 : PracticeEngine.negativeSum(earlyRules);
+        if (!more) continue;
+        var kk = more.rows ? more.rows.join(',') : more.a + ':' + more.b;
+        if (seenTop[kk] && tt < count * 20) continue;
+        seenTop[kk] = true;
+        wanted.push(more);
+      }
+    } else {
+      var extra = session.questions.filter(function (q) { return q.type === 'column'; });
+      wanted = wanted.concat(extra.filter(function (q) { return wanted.indexOf(q) < 0; }));
+    }
   }
   wanted = wanted.slice(0, count);
   var questions = wanted.map(function (q) {
@@ -2074,6 +2102,11 @@ async function generateFromEngine() {
       type:     'calculation',
       question: engineQuestionText(q),
       answer:   String(q.answer),
+      /* Kept, not stripped. Without the rows the check below saw nothing
+         to check, so "addition only" and "no zero totals" were never
+         enforced on these sheets — every question passed by default. */
+      rows:     q.rows || undefined,
+      negative: q.negative || undefined,
       hint: q.type === 'column' ? 'Work down the column on your abacus'
           : q.type === 'multiplication' ? 'Multiply on your abacus'
           : q.type === 'division' ? 'Divide on your abacus' : ''
@@ -2086,6 +2119,7 @@ async function generateFromEngine() {
     // Anything breaking what she asked for is rebuilt until it obeys
     var band = applyDifficulty(lvlRules, tOpts);
     questions.forEach(function (q) {
+      if (!q.rows) return;                 // multiplication and division are not columns to heal
       if (obeysConstraints(q, tOpts)) return;
       for (var t = 0; t < 50; t++) {
         var repl = freshColumn(lvlRules, (q.rows && q.rows.length) || 3, band.max);

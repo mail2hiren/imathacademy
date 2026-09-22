@@ -787,6 +787,36 @@ function bandFor(rules, pos) {
 
     var total = o.count || rules.sumsPerPage;
 
+    /* A focus on multiplication, division or negative numbers means a
+       sheet OF that. The focus used to be ignored for all three: asking
+       for multiplication at Level 4 gave fewer multiplication questions
+       than asking for nothing, and LX then threw even those away. Where
+       the level does not teach the thing chosen, it says so rather than
+       quietly handing back something else. */
+    var ONLY = { multiplication: multiplication, division: division };
+    if (o.concept && (ONLY[o.concept] || o.concept === 'negative')) {
+      var teaches = o.concept === 'negative' ? rules.negative : rules[o.concept];
+      if (!teaches) {
+        return { level: level, rules: rules, questions: [],
+                 error: 'Level ' + level + ' does not teach ' +
+                        (o.concept === 'negative' ? 'negative numbers' : o.concept) +
+                        ' in the curriculum' };
+      }
+      var only = [], seen = {}, guard = 0;
+      while (only.length < total && guard < total * 30) {
+        guard++;
+        var q = o.concept === 'negative' ? negativeSum(rules) : ONLY[o.concept](rules);
+        if (!q) continue;
+        var key = (q.rows ? q.rows.join(',') : q.a + ':' + q.b);
+        /* every question on the page different, as she asks at every
+           level; a repeat is allowed only once the level has run out */
+        if (seen[key] && guard < total * 20) continue;
+        seen[key] = true;
+        only.push(q);
+      }
+      return { level: level, rules: rules, questions: only };
+    }
+
     // Aim the page at where this child actually is
     var pos  = o.position;
     if (pos === undefined && o.studentId) {
@@ -874,6 +904,7 @@ function bandFor(rules, pos) {
   ,
     /* One builder and one check, shared with LX Designer, so the two
        can never disagree about what a level allows. */
+    makeMultiplication: multiplication, makeDivision: division,
     isLegal: columnIsAllowed, negativeSum: negativeSum,
     shownMax: shownMax, decimalPlacesFor: decimalPlacesFor,
     forgetRules: forgetRules

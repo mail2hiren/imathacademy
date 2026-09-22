@@ -514,12 +514,27 @@ function parseQuestions(content){
             question: engineBuilt ? cleanText(q.question)
                                   : stripAnswerFromQuestion(q.question, ans),
             answer:   ans,
-            emoji:    q.emoji || '🧮',
+            /* A Vedic question is not an abacus question, so it is not
+               given the abacus picture by default. */
+            emoji:    q.emoji || (q.method_key ? '' : '🧮'),
             type:     q.type  || 'calculation',
             pairs:    q.pairs,
             items:    q.items,
             beadsFor: q.beadsFor,
             speak:    q.speak,
+            /* Everything a Vedic frame is drawn from. This rebuild kept
+               only the fields above, so the method and its two numbers
+               were thrown away the moment a sheet was opened — and
+               every Vedic question fell back to a plain answer box. */
+            method_key: q.method_key,
+            method:     q.method,
+            a:          q.a,
+            b:          q.b,
+            level:      q.level,
+            scopeLevel: q.scopeLevel,
+            steps:      q.steps,
+            rows:       q.rows,
+            negative:   q.negative
           };
         });
       }
@@ -1379,7 +1394,8 @@ function showFsQuestion() {
   wrap.className = 'fs-question-wrap';
   var emoji = document.createElement('div');
   emoji.className = 'fs-emoji';
-  emoji.textContent = q.emoji || (isVedic ? '\u0950' : '🧮');
+  /* An older Vedic sheet may still carry the abacus picture from before. */
+  emoji.textContent = isVedic ? '\u0950' : (q.emoji || '🧮');
   wrap.appendChild(emoji);
   var qtext = document.createElement('div');
   qtext.className = 'fs-question';

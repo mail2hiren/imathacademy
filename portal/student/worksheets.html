@@ -351,6 +351,12 @@
   @media (max-width:420px){ .wk-in{width:74px;} .wk-ans .wk-in{width:98px;} }
   .vedic-note{ margin-top:14px; padding:10px 12px; border-radius:12px; background:#E7F6F7;
                 color:#04616a; font-size:.82rem; font-weight:800; text-align:center; }
+  /* The Vedic frame in the fullscreen solver */
+  .fs-frame{ background:#fff; border-radius:16px; padding:14px 14px 10px; width:100%;
+             max-width:560px; margin:0 auto; box-shadow:0 1px 0 #DCE3EC; }
+  .fs-method{ display:inline-block; font-size:.78rem; font-weight:900; color:#04616a;
+              background:#E7F6F7; padding:4px 10px; border-radius:20px; }
+  .fs-frame-note{ font-size:.76rem; color:#8892A4; text-align:center; margin-top:8px; }
 </style>
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
@@ -1358,11 +1364,22 @@ function showFsQuestion() {
   document.getElementById('fsProgress').style.width = pct + '%';
   var body = document.getElementById('fsBody');
   body.innerHTML = '';
+
+  /* This solver was built for Abacus, and a Vedic sheet inherited all of
+     it: multiple choice and "Move the beads" chosen from the child's
+     ABACUS level, the question read aloud because that level was low,
+     and an abacus emoji. A Vedic sheet is worked in the method's own
+     frame instead — the layout Megha approved — with nothing from
+     the abacus. */
+  var fsSheet = (allWs || []).find(function (w) { return w.id === fsCurrentWsId; }) || {};
+  var isVedic = isVedicSheet(fsSheet, fsQuestions);
+  window._fsSlots = null;
+
   var wrap = document.createElement('div');
   wrap.className = 'fs-question-wrap';
   var emoji = document.createElement('div');
   emoji.className = 'fs-emoji';
-  emoji.textContent = q.emoji || '🧮';
+  emoji.textContent = q.emoji || (isVedic ? '\u0950' : '🧮');
   wrap.appendChild(emoji);
   var qtext = document.createElement('div');
   qtext.className = 'fs-question';
@@ -1394,8 +1411,12 @@ function showFsQuestion() {
   /* A five-year-old cannot read the question, so it is read to them —
      twice, in the same female Indian voice practice now uses. There
      is a button to hear it again as often as they like. */
-  var speakIt = (q.speak || group === 'tiny' || (currentUser && (currentUser.current_level || 0) <= 1))
-                && typeof Speech !== 'undefined';
+  /* Read aloud for the youngest Abacus children. Vedic starts at 11,
+     and the level here is the child's Abacus level, which says nothing
+     about their Vedic work. */
+  var speakIt = !isVedic &&
+                (q.speak || group === 'tiny' || (currentUser && (currentUser.current_level || 0) <= 1)) &&
+                typeof Speech !== 'undefined';
   if (speakIt) {
     var plain = String(q.question || '').replace(/\n/g, ', ').replace(/\u2212/g, ' minus ');
     var hear = document.createElement('button');
@@ -1429,9 +1450,46 @@ function showFsQuestion() {
      value and a child was left with a read-only box and no way to
      answer at all. Not worth risking on a string comparison. */
   var lvl = (currentUser && currentUser.current_level != null) ? currentUser.current_level : 0;
-  var showChoices = (group === 'tiny') || (group === 'rising') || lvl <= 4;
+  var showChoices = !isVedic && ((group === 'tiny') || (group === 'rising') || lvl <= 4);
 
-  if (showChoices) {
+  var framed = false;
+  if (isVedic && typeof VedicFrames !== 'undefined' && q.method_key && q.a !== undefined) {
+    /* The method's own paper layout, orange boxes for the child. The
+       final box takes the id fsInput, so the answer check below reads
+       it exactly as it always has. */
+    VedicFrames.injectCss();
+    var fr = VedicFrames.render({ method: q.method_key, a: q.a, b: q.b,
+                                  level: q.level, answer: q.answer }, 'fsInput');
+    window._fsSlots = fr.slots;
+    var frameBox = document.createElement('div');
+    frameBox.className = 'fs-frame';
+    frameBox.innerHTML = (q.method ? '<div class="fs-method">\u0950 ' + String(q.method) + '</div>' : '') +
+      fr.html + '<div class="fs-frame-note">Fill every orange box, then the answer.</div>';
+    inputWrap.appendChild(frameBox);
+    input = frameBox.querySelector('#fsInput') || input;
+    /* Enter moves to the next box; on the last, it checks. */
+    var ids = fr.slots.map(function (s) { return s.id; });
+    ids.forEach(function (id, k) {
+      var el = frameBox.querySelector('#' + id);
+      if (!el) return;
+      el.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        var next = ids[k + 1] && frameBox.querySelector('#' + ids[k + 1]);
+        if (next) next.focus(); else fsTryAnswer();
+      });
+    });
+    framed = true;
+  } else if (isVedic) {
+    /* An older Vedic sheet that did not keep its method: a plain box to
+       type the answer into, which is still the right way to answer. */
+    input.readOnly = false;
+    inputWrap.appendChild(input);
+    framed = true;
+  }
+
+  if (framed) {
+    /* the frame is in */
+  } else if (showChoices) {
     // The box still exists so the beads have somewhere to write to,
     // and so fsTryAnswer keeps working unchanged. It is shown small
     // and read-only above the choices, so a child can see what the
@@ -1512,7 +1570,7 @@ function showFsQuestion() {
 
   // Abacus below the check button, per Megha's layout:
   // question -> answer box -> check -> abacus
-  var ab = buildAbacusFor(fsCurrentWsId, input);
+  var ab = isVedic ? null : buildAbacusFor(fsCurrentWsId, input);
   var fsBodyEl = document.getElementById('fsBody');
   if (ab) {
     wrap.appendChild(ab);
@@ -1528,7 +1586,10 @@ function showFsQuestion() {
   }
 
   body.appendChild(wrap);
-  setTimeout(function() { input.focus(); }, 100);
+  setTimeout(function() {
+    var first = window._fsSlots && window._fsSlots[0] && document.getElementById(window._fsSlots[0].id);
+    (first || input).focus();
+  }, 100);
 }
 
 
@@ -1577,6 +1638,36 @@ function fsTryAnswer() {
     return;
   }
 
+  /* A Vedic frame: every working box must be filled, each is marked on
+     its own, and what the child wrote is kept beside the answer so the
+     teacher can see which step went wrong. */
+  var wVals = null, wOk = null;
+  if (window._fsSlots && window._fsSlots.length) {
+    wVals = []; wOk = [];
+    for (var si = 0; si < window._fsSlots.length; si++) {
+      var sl = window._fsSlots[si];
+      if (sl.final) continue;
+      var box = document.getElementById(sl.id);
+      if (!box) continue;
+      var bv = box.value.trim();
+      if (!bv) { box.focus(); feedback.className = 'fs-feedback';
+                 feedback.textContent = 'Fill every orange box first.'; return; }
+      var want = String(sl.want);
+      var good = cleanAnswer(bv) === cleanAnswer(want) ||
+        (!isNaN(parseFloat(bv)) && !isNaN(parseFloat(want)) &&
+         Math.abs(parseFloat(bv) - parseFloat(want)) < 0.001);
+      wVals.push(bv); wOk.push(good);
+    }
+    for (var sj = 0, n2 = 0; sj < window._fsSlots.length; sj++) {
+      var s2 = window._fsSlots[sj]; if (s2.final) continue;
+      var b2 = document.getElementById(s2.id);
+      if (b2) { b2.classList.add(wOk[n2] ? 'correct' : 'wrong'); b2.readOnly = true; }
+      n2++;
+    }
+    store.answers['w' + fsCurrentQIdx] = wVals;
+    store.answers['wok' + fsCurrentQIdx] = wOk;
+  }
+
   fsMarkChoices(expected, isCorrect);
 
   store.answers[fsCurrentQIdx] = val;
@@ -1591,12 +1682,21 @@ function fsTryAnswer() {
     x.style.pointerEvents = 'none';
   });
 
-  if (isCorrect) {
+  var slips = wOk ? wOk.filter(function (x) { return !x; }).length : 0;
+  if (isCorrect && slips) {
+    /* The answer is right but the working is not: a guess, or an answer
+       remembered rather than worked. Said plainly, and left on screen
+       long enough to see which boxes are red. */
+    feedback.className = 'fs-feedback wrong';
+    feedback.textContent = 'Right answer \u2014 but check the working: ' + slips +
+      ' box' + (slips === 1 ? '' : 'es') + ' marked red.';
+    setTimeout(function(){ fsNav(1); }, 3200);
+  } else if (isCorrect) {
     feedback.className = 'fs-feedback correct';
     var cheers = ['Correct!','Brilliant!','Amazing!','Perfect!','Excellent!'];
     feedback.textContent = cheers[Math.floor(Math.random()*cheers.length)];
     input.classList.add('celebrate');
-    setTimeout(function(){ fsNav(1); }, 900);
+    setTimeout(function(){ fsNav(1); }, wOk ? 1400 : 900);
   } else {
     // Say what it should have been. A child who is only told "wrong"
     // learns nothing from it.

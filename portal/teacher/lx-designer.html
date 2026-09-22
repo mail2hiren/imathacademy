@@ -291,6 +291,14 @@
           <input type="radio" name="concept">
           <div><div class="concept-opt-name">Division</div><div class="concept-opt-sub">Based on current level</div></div>
         </label>
+        <label class="concept-opt" data-concept="decimals" onclick="selectConcept(this,'decimals')">
+          <input type="radio" name="concept">
+          <div><div class="concept-opt-name">Decimals</div><div class="concept-opt-sub">Where the level teaches them</div></div>
+        </label>
+        <label class="concept-opt" data-concept="negative" onclick="selectConcept(this,'negative')">
+          <input type="radio" name="concept">
+          <div><div class="concept-opt-name">Negative numbers</div><div class="concept-opt-sub">Sums that go below zero</div></div>
+        </label>
         <label class="concept-opt" data-concept="anzan" onclick="selectConcept(this,'anzan')">
           <input type="radio" name="concept">
           <div><div class="concept-opt-name">Anzan — mental abacus</div><div class="concept-opt-sub">No physical abacus</div></div>
@@ -536,8 +544,14 @@ const LEVEL_SUMMARIES = {
   7: 'Level 7 — Expert.',
   8: 'Level 8 — Master.',
 };
-async function loadCurriculum() {
-  if (CURRICULUM_LOADED) return;
+async function loadCurriculum(force) {
+  /* Read ONCE and never again meant a change Megha made in the course
+     map never reached LX until she reloaded the page. force re-reads it. */
+  if (CURRICULUM_LOADED && !force) return;
+  if (force) {
+    Object.keys(CURRICULUM).forEach(function (k) { delete CURRICULUM[k]; });
+    CURRICULUM_LOADED = false;
+  }
   try {
     // Load levels
     var lvRes = await sb.from('curriculum_levels')
@@ -806,6 +820,22 @@ function restoreAbacusConcepts() {
     selectedConcept = 'add_sub';
   }
 }
+/* Brings LX up to date with the course map: the engine's rules and
+   LX's own copy of the curriculum are both read afresh, and the concept
+   panel is redrawn. Called before every worksheet and whenever she comes
+   back to this tab, so a change in the matrix shows here at once. */
+async function refreshCurriculum() {
+  try {
+    if (typeof PracticeEngine !== 'undefined' && PracticeEngine.forgetRules) PracticeEngine.forgetRules();
+    await loadCurriculum(true);
+    if (selectedProgram !== 'vedic') filterConceptsForLevel(selectedLevel);
+  } catch (e) { console.warn('Could not refresh the curriculum:', e); }
+}
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState === 'visible') refreshCurriculum();
+});
+window.addEventListener('focus', function () { refreshCurriculum(); });
+
 function filterConceptsForLevel(lv) {
   /* Vedic has its own methods; the abacus filtering below does not
      apply to them at all. */
@@ -833,6 +863,8 @@ function filterConceptsForLevel(lv) {
     if (c.indexOf('multipl') > -1 || c.indexOf('times') > -1) return ['multiplication'];
     if (c.indexOf('divi') > -1) return ['division'];
     if (c.indexOf('revis') > -1 || c.indexOf('review') > -1) return ['revision'];
+    if (c.indexOf('decimal') > -1) return ['decimals', 'add_sub'];
+    if (c.indexOf('negativ') > -1) return ['negative', 'add_sub'];
     // direct add/sub, counting, number recognition, decimals, negatives, anything else
     return ['add_sub'];
   }
@@ -1448,35 +1480,48 @@ function obeysConstraints(sum, opts) {
   }
   return true;
 }
-function sumIsLegal(rows, rules) {
-  if (!rows || rows.length < 2 || typeof Beads === 'undefined') return true;
-  var v = rows[0];
-  if (v > rules.maxNumber) return false;
-  for (var i = 1; i < rows.length; i++) {
-    var kinds = Beads.stepKinds(v, rows[i]);
-    for (var k = 0; k < kinds.length; k++) {
-      // Judged on the list, so no formula can slip past by name
-      if (kinds[k] !== 'direct' && rules.formulas.indexOf(kinds[k]) < 0) return false;
-    }
-    v += rows[i];
-    if (v > rules.maxNumber || v < 0) return false;
+function sumIsLegal(rows, rules, extra) {
+  /* This used to be a second copy of the engine's check. It held
+     addition and subtraction to the level's number limit, knew nothing
+     of direction or negatives, and so disagreed with the engine about
+     what a level allows. Now it IS the engine's check. */
+  if (!rows || rows.length < 2) return true;
+  if (typeof PracticeEngine !== 'undefined' && PracticeEngine.isLegal) {
+    var tot = rows.reduce(function (a, b) { return a + b; }, 0);
+    return PracticeEngine.isLegal(Object.assign({ type: 'column', rows: rows,
+      answer: tot, negative: tot < 0 }, extra || {}), rules);
   }
   return true;
 }
 /** One fresh, legal column of the same shape. */
-function freshColumn(rules, rowCount, ceiling) {
+function freshColumn(rules, rowCount, ceiling, wantNegative) {
+  /* Built the same way the engine builds, so LX and practice cannot
+     disagree: the level's direction, decimals counted in rods, and
+     negatives at a level that teaches them. */
+  var PE = (typeof PracticeEngine !== 'undefined') ? PracticeEngine : null;
+  if (wantNegative || (selectedConcept === 'negative' && rules.negative)) {
+    var ng = PE && PE.negativeSum ? PE.negativeSum(rules, rowCount) : null;
+    if (ng) return ng;
+  }
   var mode = rules.formulas.length ? rules.formulas[0] : 'direct';
-  // Combination needs the ten as much as big friends does
   var floor = (mode === 'big' || mode === 'combination') ? 20 : 9;
-  for (var t = 0; t < 60; t++) {
-    var s = ColumnGen.column({
-      max: Math.max(floor, ceiling || rules.maxNumber),
-      rows: rowCount || 3,
-      mode: mode,
-      require: mode === 'direct' ? 0 : 1,
-      allowZero: rules.allowZero
-    });
-    if (s && sumIsLegal(s.rows, rules)) return s;
+  var dec = PE && PE.decimalPlacesFor ? PE.decimalPlacesFor(rules) : 0;
+  var top = Math.max(floor, ceiling || rules.addSubMax || rules.maxNumber);
+  for (var t = 0; t < 80; t++) {
+    var opts = {
+      max: PE && PE.shownMax ? PE.shownMax(rules, top) : top,
+      rows: rowCount || 3, mode: mode,
+      require: mode === 'direct' ? 0 : 1, allowZero: rules.allowZero,
+      decimals: dec,
+      signBias: rules.signBias || (rules.direction && rules.direction !== 'both' ? rules.direction : null)
+    };
+    var s = dec ? ColumnGen.decimalColumn(opts) : ColumnGen.column(opts);
+    if (!s) continue;
+    var ok = PE && PE.isLegal
+      ? PE.isLegal({ type: 'column', rows: s.rows, answer: s.answer,
+                     intRows: s.intRows, intAnswer: s.intAnswer, decimals: s.decimals }, rules)
+      : true;
+    if (ok) return s;
   }
   return null;
 }
@@ -2089,6 +2134,7 @@ async function generateWorksheet() {
     btn.innerHTML = '<span>Building…</span>';
     hideEl('assignBtn');   // the previous worksheet's button must not linger
     try {
+      await refreshCurriculum();          // whatever the matrix says now
       await loadCurriculumRulesForLevel();
       await generateFromEngine();
       toast('Worksheet built from the curriculum ⚡', 'success');

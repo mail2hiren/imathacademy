@@ -92,7 +92,11 @@ function column(opts) {
 
     for (var attempt = 0; attempt < 220; attempt++) {
       // Start anywhere in range, not just at a single digit
-      var start = randInt(1, Math.max(1, Math.floor(max * 0.6)));
+      /* A column of subtractions needs a high start or it runs out of
+         room after one step; a column of additions needs a low one. */
+      var start = opts.signBias === 'sub'
+        ? randInt(Math.max(1, Math.floor(max * 0.55)), max)
+        : randInt(1, Math.max(1, Math.floor(max * 0.6)));
       var value = start;
       var out   = [start];
       var got   = 0;

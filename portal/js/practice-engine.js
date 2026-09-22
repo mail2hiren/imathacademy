@@ -51,11 +51,19 @@ var PracticeEngine = (function () {
   /* ── Level rules ───────────────────────────────────────────
      Everything the generator needs, read from the curriculum.
      ──────────────────────────────────────────────────────── */
-  var rulesCache = {};
+  /* Megha expects a change in the course map to show on the very next
+   worksheet. Keeping the rules for the whole visit meant a change made
+   in another tab never arrived. They are kept for a few seconds only —
+   long enough that one sheet does not read the same level twenty
+   times, short enough that her changes are always picked up. */
+var rulesCache = {};
+var RULES_TTL_MS = 5000;
+function forgetRules() { rulesCache = {}; }
 
   async function loadLevelRules(level) {
     var code = 'L' + level;
-    if (rulesCache[code]) return rulesCache[code];
+    var hit = rulesCache[code];
+    if (hit && (Date.now() - hit._at) < RULES_TTL_MS) return hit;
 
     var rules = {
       levelCode: code,
@@ -134,6 +142,12 @@ var PracticeEngine = (function () {
       var live = (cs.data || [])
         .filter(function (r) { return r.status && r.status !== 'N' && r.curriculum_concepts; })
         .map(function (r) { return r.curriculum_concepts.concept_code; });
+      /* The full list is kept, so the engine and LX can act on anything
+         she sets in the course map — not only the three bead formulas. */
+      rules.concepts = live.slice();
+      rules.introduced = (cs.data || [])
+        .filter(function (r) { return r.status === 'I' && r.curriculum_concepts; })
+        .map(function (r) { return r.curriculum_concepts.concept_code; });
       if (live.indexOf('big_friends') > -1)   rules.formulas.push('big');
       if (live.indexOf('small_friends') > -1) rules.formulas.push('small');
       // Level 3 is built on the Combination formula: +10 -5 +x, used
@@ -163,6 +177,68 @@ var PracticeEngine = (function () {
       }];
     }
 
+    /* ── What her curriculum says about this level ──────────────────
+       Each of these reads what she has set, so a change in the course
+       map changes the next worksheet. */
+    var names = [];
+    try {
+      var fn = await sb.from('curriculum_formulas').select('formula_name, is_active')
+        .eq('program_code', 'abacus').eq('level_code', code);
+      names = (fn.data || []).filter(function (f) { return f.is_active !== false; })
+        .map(function (f) { return String(f.formula_name || '').toLowerCase(); });
+    } catch (e5) {}
+    var concepts = rules.concepts || [];
+
+    /* Multiplication and division follow the course map too. The
+       level's own switch said yes or no, and a concept marked "not
+       taught" in the matrix changed nothing — she would untick it and
+       still get multiplication. Now both must agree.
+
+       A level with no concepts at all (Level 7 today) is one she has
+       not filled in yet, and there the switch decides, so an empty
+       level still produces work while the matrix flags it. */
+    if (concepts.length) {
+      if (concepts.indexOf('multiplication') < 0) { rules.multiplication = false; rules.multShapes = []; }
+      if (concepts.indexOf('division') < 0)       { rules.division = false;       rules.divShapes = []; }
+    }
+
+    /* Direction. Her formula master names the direction of each friend
+       formula — "Big friends Addition" at Level 1, "Big friends
+       subtraction" at Level 2 — and her level focus says the same. So
+       a level whose friend formulas are all subtraction works in
+       subtraction, one whose are all addition in addition, and one with
+       both mixes them. */
+    var friendish = names.filter(function (n) {
+      return /friend|combination/.test(n) && !/multipl|divis/.test(n);
+    });
+    var hasAdd = friendish.some(function (n) { return /addition|\badd\b/.test(n); });
+    var hasSub = friendish.some(function (n) { return /subtraction|\bsub\b/.test(n); });
+    rules.direction = (hasAdd && !hasSub) ? 'add' : (hasSub && !hasAdd) ? 'sub' : 'both';
+
+    /* Decimals and negatives, from either the course map or the formula
+       master — whichever she has filled in. */
+    rules.decimals = (concepts.indexOf('decimals') > -1 &&
+                      (rules.introduced || []).indexOf('decimals') > -1) ||
+                     names.some(function (n) { return /decimal/.test(n); }) ? 1 : 0;
+    rules.negative = concepts.indexOf('negative') > -1 ||
+                     names.some(function (n) { return /negative/.test(n); });
+    if (rules.negative) rules.allowNegativeResult = true;
+
+    /* Her rule: the difficulty bands govern addition and subtraction;
+       multiplication and division follow the formula master. So a sum
+       of additions may go as high as the level's highest band even when
+       the level's own number limit is lower — that limit is for
+       multiplication and division. */
+    try {
+      var bd = await sb.from('curriculum_difficulty_rules').select('max_number')
+        .eq('program_code', 'abacus').eq('level_code', code);
+      var top = (bd.data || []).reduce(function (m, b) {
+        return (b.max_number != null && b.max_number > m) ? b.max_number : m;
+      }, 0);
+      rules.addSubMax = top || rules.maxNumber;
+    } catch (e6) { rules.addSubMax = rules.maxNumber; }
+
+    rules._at = Date.now();
     rulesCache[code] = rules;
     return rules;
   }
@@ -224,10 +300,15 @@ var PracticeEngine = (function () {
      bead work for 3.5 + 1.2 is the bead work for 35 + 12 — so the
      generator builds whole rods and shifts the point. */
   function decimalPlacesFor(rules) {
-    if (!rules) return 0;
-    if (rules.decimals) return rules.decimals;
-    if (rules.formulas && rules.formulas.indexOf('decimal') > -1) return 1;
-    return 0;
+    return (rules && rules.decimals) ? rules.decimals : 0;
+  }
+
+  /* On an abacus 4.6 is set as 46 across two rods. Her bands are counted
+     in rods, so a band of 999 means sums up to 99.9 — treating it as
+     the number shown gave 4729.1 + 5070.6 when her examples are 4.6 + 2.7. */
+  function shownMax(rules, rodMax) {
+    var p = decimalPlacesFor(rules);
+    return p ? Math.max(1, rodMax / Math.pow(10, p)) : rodMax;
   }
 
   function columnSum(rules, mental, progress) {
@@ -242,14 +323,22 @@ var PracticeEngine = (function () {
     if (typeof ColumnGen !== 'undefined' && typeof Beads !== 'undefined') {
       var mode = rules.formulas.length ? pick(rules.formulas) : 'direct';
       var thr  = typeof progress === 'number' ? progress : Math.random();
+      /* At a negatives level, some of the sums go below zero. */
+      if (rules.negative && Math.random() < 0.45) {
+        var ng = negativeSum(rules);
+        if (ng && columnIsAllowed(ng, rules)) return ng;
+      }
       var built = ColumnGen[decimalPlacesFor(rules) ? 'decimalColumn' : 'column']({
               decimals: decimalPlacesFor(rules),
-        max:       Math.max(9, Math.round(rules.maxNumber * (0.45 + 0.55 * thr))),
+        /* addition and subtraction up to the level's highest band */
+        max:       shownMax(rules, Math.max(9, Math.round((rules.addSubMax || rules.maxNumber) * (0.45 + 0.55 * thr)))),
         rows:      n,
         mode:      mode,
         require:   mode === 'direct' ? 0 : (thr < 0.35 ? 1 : 2),
         allowZero: rules.allowZero,
-        signBias:  rules.signBias || null   // addition only / subtraction only
+        /* the teacher's choice wins; otherwise the level's own direction,
+           so Level 2 works in subtraction as her curriculum says */
+        signBias:  rules.signBias || (rules.direction !== 'both' ? rules.direction : null)
       });
       if (built) {
         q = { type: 'column', pattern: rule.digit_pattern,
@@ -437,8 +526,9 @@ var PracticeEngine = (function () {
     for (var t = 0; t < 30; t++) {
       var s = ColumnGen[decimalPlacesFor(rules) ? 'decimalColumn' : 'column']({
               decimals: decimalPlacesFor(rules),
-        max: ceiling, rows: rowsWanted, mode: mode,
-        require: mode === 'direct' ? 0 : 1, allowZero: rules.allowZero
+        max: shownMax(rules, ceiling), rows: rowsWanted, mode: mode,
+        require: mode === 'direct' ? 0 : 1, allowZero: rules.allowZero,
+        signBias: rules.signBias || (rules.direction !== 'both' ? rules.direction : null)
       });
       if (!s) continue;
       if (!columnIsAllowed({ type: 'column', rows: s.rows, answer: s.answer }, rules)) continue;
@@ -457,7 +547,50 @@ var PracticeEngine = (function () {
     return null;
   }
 
+/* Negative numbers, Level 8. Her method is the complement rule: the
+   abacus shows a large number and the child reads it as a negative.
+   Her examples are 5 - 9 = -4 and 33 - 43 = -10: a positive start and a
+   larger subtraction that carries the total below zero.
+
+   The bead model works on rods that cannot hold a minus, so these are
+   checked for their arithmetic and their size rather than bead by bead —
+   every step through zero is a complement, which is the lesson. */
+function negativeSum(rules, rows) {
+  var lim = Math.max(9, Math.min(rules.addSubMax || rules.maxNumber || 99, 999));
+  var n = rows || (Math.random() < 0.6 ? 2 : 3);
+  for (var t = 0; t < 60; t++) {
+    var start = 1 + Math.floor(Math.random() * Math.max(1, Math.floor(lim * 0.6)));
+    var out = [start], v = start;
+    for (var i = 1; i < n; i++) {
+      var last = i === n - 1;
+      /* the last step makes sure the total ends below zero */
+      var take = last
+        ? v + 1 + Math.floor(Math.random() * Math.max(1, Math.floor(lim * 0.4)))
+        : 1 + Math.floor(Math.random() * Math.max(1, Math.floor(lim * 0.5)));
+      var sign = last || Math.random() < 0.6 ? -1 : 1;
+      out.push(sign * take);
+      v += sign * take;
+    }
+    if (v >= 0 || Math.abs(v) > lim) continue;
+    /* Every number, not just the total, must fit the level. The last
+       step is sized to push the total below zero, and on a longer sum
+       that could ask for more than the level allows — a sum that fails
+       its own check should never be built. */
+    if (out.some(function (x) { return Math.abs(x) > lim; })) continue;
+    return { type: 'column', rows: out, answer: v, negative: true };
+  }
+  return null;
+}
+
 function columnIsAllowed(q, rules) {
+  /* A negative sum is judged on its arithmetic and size; its steps
+     through zero are complements by design. */
+  if (q && q.negative) {
+    if (!rules.negative) return false;
+    var tot = q.rows.reduce(function (a, b) { return a + b; }, 0);
+    var lim = Math.max(9, rules.addSubMax || rules.maxNumber || 99);
+    return tot === Number(q.answer) && q.rows.every(function (n) { return Math.abs(n) <= lim; });
+  }
   if (!q || q.type !== 'column' && q.type !== 'oral') return true;
   if (typeof Beads === 'undefined') return true;
   if (!q.rows || !q.rows.length) return false;
@@ -475,9 +608,22 @@ function columnIsAllowed(q, rules) {
      directly would let every step past, because stepKinds returns
      nothing for a fraction. */
   var rowsToCheck = q.intRows || q.rows;
+  /* Addition and subtraction are held to the difficulty bands, per her
+     rule, so the limit here is the highest band rather than the level's
+     own number limit, which belongs to multiplication and division. */
+  var addSubLimit = rules.addSubMax || rules.maxNumber;
+
+  /* A level that works in one direction must not be handed a sum in the
+     other. Built correctly this never triggers; it stops anything that
+     built a column some other way. */
+  var dir = rules.signBias || rules.direction;
+  if (dir === 'add' || dir === 'sub') {
+    var steps = (q.intRows || q.rows).slice(1);
+    if (steps.some(function (n) { return dir === 'add' ? n < 0 : n > 0; })) return false;
+  }
   var maxToCheck  = q.intRows
-    ? rules.maxNumber * Math.pow(10, q.decimals || 1)
-    : rules.maxNumber;
+    ? addSubLimit * Math.pow(10, q.decimals || 1)
+    : addSubLimit;
   var v = rowsToCheck[0];
 
   if (v > maxToCheck || v < floorV) return false;
@@ -588,13 +734,27 @@ function bandFor(rules, pos) {
      ──────────────────────────────────────────────────────── */
   async function buildSession(level, opts) {
     var o = opts || {};
-    var rules = await loadLevelRules(level);
+    /* A COPY. The rules come from a shared cache, and changing them here
+       changed them for the next sheet too: one Easy sheet shrank the
+       level's limit, and every Medium and Hard sheet after it came out
+       at Easy's numbers until the page was reloaded. */
+    var shared = await loadLevelRules(level);
+    var rules = Object.assign({}, shared, {
+      formulas:   (shared.formulas   || []).slice(),
+      rowRules:   (shared.rowRules   || []).map(function (r) { return Object.assign({}, r); }),
+      multShapes: (shared.multShapes || []).slice(),
+      divShapes:  (shared.divShapes  || []).slice(),
+      concepts:   (shared.concepts   || []).slice()
+    });
 
-    /* What a teacher picks has to reach the numbers. Difficulty, a
-       ceiling, a row range — these used to be worked out in the LX
-       Designer and then not passed in, so every sheet came from the
-       level's full range whatever was selected. */
-    if (o.maxNumber) rules.maxNumber = Math.min(rules.maxNumber, o.maxNumber);
+    /* What a teacher picks has to reach the numbers.
+
+       Her rule: the difficulty band governs ADDITION AND SUBTRACTION, so
+       the band the teacher chose becomes the limit for those. The
+       level's own limit stays as it is — it belongs to multiplication
+       and division, which follow the formula master. Taking the smaller
+       of the two used to cap Level 6 Hard at 9999 when she set 99999. */
+    if (o.maxNumber) rules.addSubMax = o.maxNumber;
     if (o.minRows || o.maxRows) {
       var lo = o.minRows || 3, hi = o.maxRows || lo + 2;
       rules.rowRules = (rules.rowRules || []).map(function (r) {
@@ -711,5 +871,11 @@ function bandFor(rules, pos) {
     columnText:     columnText,
     PATTERNS:       PATTERNS,
     _makeColumn:    makeColumn      // exposed for testing
+  ,
+    /* One builder and one check, shared with LX Designer, so the two
+       can never disagree about what a level allows. */
+    isLegal: columnIsAllowed, negativeSum: negativeSum,
+    shownMax: shownMax, decimalPlacesFor: decimalPlacesFor,
+    forgetRules: forgetRules
   };
 })();

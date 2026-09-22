@@ -63,6 +63,10 @@
   td.gap{ background:repeating-linear-gradient(45deg,#FFF3E3,#FFF3E3 6px,#FFE7CC 6px,#FFE7CC 12px); }
   td.gap::after{ content:'gap?'; font-size:.62rem; font-weight:900; color:var(--warn); }
   td.empty-col{ background:#FFF4F4; }
+  .tag{ display:inline-block; margin-top:3px; font-size:.6rem; font-weight:900;
+         letter-spacing:.3pt; padding:1px 6px; border-radius:4px; }
+  .tag.w{ background:#E8F5E9; color:#1B5E20; }
+  .tag.p{ background:#EEF1F6; color:var(--t3); }
   .fl{ display:block; font-size:.72rem; color:var(--t2); line-height:1.35; padding:2px 0;
        border-bottom:1px dashed var(--line); }
   .fl:last-child{ border-bottom:none; }
@@ -100,7 +104,7 @@
   <a class="back" href="dashboard.html" aria-label="Back to admin">&larr;</a>
   <div>
     <h1>&#129482; The whole Abacus course on one page</h1>
-    <p>Read live from your curriculum. Tap a concept cell to change it.</p>
+    <p>Read live from your curriculum. A change here shows on the very next worksheet in LX Designer.</p>
   </div>
   <div class="legend">
     <span><i style="background:var(--org)">I</i>Introduced</span>
@@ -145,6 +149,19 @@ var sb = supabase.createClient(
 var PROG = 'abacus';
 var LEVELS = [], CONCEPTS = [], LINKS = {}, FORMULAS = {}, BANDS = {};
 var open = null;
+
+/* What each concept makes the worksheet engine do. A concept in this
+   list changes the next worksheet; one not in it is for planning only,
+   and is marked so, so nothing here saves and silently does nothing. */
+var DRIVES = {
+  big_friends:    'Big Friends formula allowed in sums',
+  small_friends:  'Small Friends formula allowed in sums',
+  combination:    'Combination formula allowed in sums',
+  multiplication: 'Multiplication sums at this level',
+  division:       'Division sums at this level',
+  decimals:       'Decimal sums at this level',
+  negative:       'Sums that go below zero'
+};
 
 var STATUS = {
   I: 'Introduced', P: 'Practised', M: 'Mastered', R: 'Revision'
@@ -234,8 +251,12 @@ function draw() {
     'does not know what ' + (emptyLevels.length === 1 ? 'it teaches' : 'they teach') + '.');
 
   used.forEach(function (c) {
+    var drives = DRIVES[c.concept_code];
     h += '<tr><td class="m"><div class="nm">' + esc(c.concept_name) + '</div>' +
-      '<div class="sub">' + esc(c.concept_code || '') + '</div></td>';
+      (drives
+        ? '<span class="tag w" title="' + esc(drives) + '">changes worksheets</span>'
+        : '<span class="tag p" title="Recorded for planning; worksheets do not change">planning only</span>') +
+      '</td>';
 
     LEVELS.forEach(function (l, idx) {
       var link = LINKS[c.id + ':' + l.level_code];
@@ -259,7 +280,8 @@ function draw() {
 
   /* ── formula master ── */
   h += '<tr class="cat"><td colspan="' + (LEVELS.length + 1) + '">Formula master</td></tr>';
-  h += '<tr><td class="m"><div class="nm">Formulas</div><div class="sub">from the Formula Master tab</div></td>';
+  h += '<tr><td class="m"><div class="nm">Formulas</div>' +
+    '<span class="tag w" title="Sets multiplication and division shapes, and whether a level works in addition or subtraction">changes worksheets</span></td>';
   LEVELS.forEach(function (l) {
     var fs = FORMULAS[l.level_code] || [];
     h += '<td class="cell ro">' + (fs.length
@@ -286,13 +308,13 @@ function draw() {
       : '<span class="dim">not set</span>';
   }
 
-  h += row('Numbers up to', 'multiplication and division', function (l) {
+  h += row('Numbers up to', 'multiplication and division · changes worksheets', function (l) {
     return l.max_number == null ? '<span class="dim">not set</span>'
       : '<span class="num">' + l.max_number + '</span>';
   });
-  h += row('Easy', 'addition and subtraction', function (l) { return band(l, 'easy'); });
-  h += row('Medium', 'addition and subtraction', function (l) { return band(l, 'medium'); });
-  h += row('Hard', 'addition and subtraction', function (l) { return band(l, 'hard'); });
+  h += row('Easy', 'addition and subtraction · changes worksheets', function (l) { return band(l, 'easy'); });
+  h += row('Medium', 'addition and subtraction · changes worksheets', function (l) { return band(l, 'medium'); });
+  h += row('Hard', 'addition and subtraction · changes worksheets', function (l) { return band(l, 'hard'); });
   h += row('Multiplication', '', function (l) { return yn(l.multiplication_allowed); });
   h += row('Division', '', function (l) { return yn(l.division_allowed); });
   h += row('Pass mark', '', function (l) {
@@ -364,7 +386,10 @@ async function setStatus(st) {
   else LINKS[k] = res.data[0];
 
   msg.className = 'msg ok';
-  msg.textContent = st === 'N' ? 'Saved \u2014 no longer taught here.' : 'Saved as ' + STATUS[st] + '.';
+  var c0 = CONCEPTS.filter(function (x) { return x.id === open.conceptId; })[0] || {};
+  msg.textContent = (st === 'N' ? 'Saved \u2014 no longer taught here.' : 'Saved as ' + STATUS[st] + '.') +
+    (DRIVES[c0.concept_code] ? ' The next worksheet in LX will follow this.'
+                             : ' This is for planning; worksheets do not change.');
   draw();
   tap(open.conceptId, open.levelCode);
   document.getElementById('msg').className = 'msg ok';

@@ -83,6 +83,7 @@ var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6I
 var sb = supabase.createClient(SURL, SKEY);
 
 var students = [], positions = {}, levels = {}, me = null;
+var programs = {};   /* student id -> the programmes they learn */
 
 function toast(m){ var t=document.getElementById('toast'); t.textContent=m;
   t.style.display='block'; setTimeout(function(){t.style.display='none';},2400); }
@@ -125,6 +126,16 @@ async function load(){
     (ps.data||[]).forEach(function(p){ positions[p.student_id+'|'+p.level_code]=p; });
   } catch(e){}
 
+  /* Which programmes each child learns, and at what level in each. */
+  try {
+    var pr = await sb.from('student_programs')
+      .select('student_id, program_code, current_level, is_active');
+    (pr.data||[]).forEach(function(p){
+      if (p.is_active === false) return;
+      (programs[p.student_id] = programs[p.student_id] || []).push(p);
+    });
+  } catch(e){ console.warn('Could not read the programmes:', e); }
+
   render();
 }
 
@@ -132,9 +143,23 @@ function render(){
   var el = document.getElementById('list');
   if(!students.length){ el.innerHTML='<div class="empty">No active students.</div>'; return; }
 
+  /* One card per PROGRAMME the child learns, not one per child. This
+     screen showed the Abacus place only, so a child's Vedic pacing
+     could neither be seen nor set. Vedic positions are kept as VL1,
+     VL2 ... so the two programmes never share a row. */
   el.innerHTML = students.map(function(s){
-    var lvl  = s.current_level != null ? s.current_level : 0;
-    var code = 'L'+lvl;
+    var mine = (programs[s.id] || []).filter(function(p){ return p.current_level != null; });
+    if (!mine.length) {
+      mine = [{ program_code:'abacus', current_level: s.current_level != null ? s.current_level : 0 }];
+    }
+    return mine.map(function(pr){ return card(s, pr.program_code, pr.current_level); }).join('');
+  }).join('');
+}
+
+function card(s, program, level){
+    var vedic = program === 'vedic';
+    var lvl   = level != null ? level : 0;
+    var code  = (vedic ? 'VL' : 'L') + lvl;
     var lv   = levels[code] || { max_number:99, min_rows:3, max_rows:5, level_name:'' };
     var p    = positions[s.id+'|'+code] || { position:0.10, floor_pos:0, sessions:0 };
     var pos  = Number(p.position), floor = Number(p.floor_pos||0);
@@ -143,7 +168,8 @@ function render(){
 
     return '<div class="card">' +
       '<div class="head"><div class="name">'+esc(s.full_name)+'</div>' +
-        '<div class="lvl">Level '+lvl+(lv.level_name?' · '+esc(lv.level_name):'')+'</div></div>' +
+        '<div class="lvl">'+(vedic?'\u0950 Vedic':'\uD83E\uDDEE Abacus')+' Level '+lvl+
+          (!vedic && lv.level_name?' \u00b7 '+esc(lv.level_name):'')+'</div></div>' +
       '<div class="meta">'+(p.sessions||0)+' session'+((p.sessions||0)===1?'':'s')+
         (p.updated_at ? ' · last moved '+new Date(p.updated_at).toLocaleDateString('en-IN',
           {day:'numeric',month:'short'}) : '')+'</div>' +
@@ -159,8 +185,12 @@ function render(){
         'onchange="savePos(\''+s.id+'\',\''+code+'\',this.value)">' +
       '<div class="rangelabel"><span>just arrived</span><span>full range</span></div>' +
 
-      '<div class="band" id="band-'+s.id+'">Getting numbers '+band.start+'–'+band.end+
-        ', about '+rows+' rows</div>' +
+      '<div class="band" id="band-'+s.id+'-'+code+'">' +
+        (vedic
+          ? 'Sums pitched ' + (pos < 0.34 ? 'easy' : pos < 0.67 ? 'medium' : 'hard') +
+            ' \u2014 Vedic has methods rather than number bands'
+          : 'Getting numbers '+band.start+'\u2013'+band.end+', about '+rows+' rows') +
+      '</div>' +
       '<div class="bandsub">'+(floor>0
         ? 'Floor set at '+Math.round(floor*100)+'% — cannot drop below this'
         : 'No floor set')+'</div>' +
@@ -171,18 +201,28 @@ function render(){
         (floor>0 ? '<button class="btn" onclick="clearFloor(\''+s.id+'\',\''+code+'\')">Remove floor</button>' : '') +
       '</div>' +
     '</div>';
-  }).join('');
+
 }
 
 /* Move the slider and the numbers update as you drag — she is
    choosing a range of sums, not an abstract score. */
 function preview(id, code, v){
   var pos = v/100;
+  /* The card's id now carries the programme, since a child can have a
+     card for each; looking up 'band-<id>' alone found nothing and the
+     line stopped updating as the slider moved. */
+  var el = document.getElementById('band-'+id+'-'+code);
+  if(!el) return;
+  if (/^VL/.test(code)) {
+    el.textContent = 'Sums pitched ' +
+      (pos < 0.34 ? 'easy' : pos < 0.67 ? 'medium' : 'hard') +
+      ' \u2014 Vedic has methods rather than number bands';
+    return;
+  }
   var lvl = levels[code] || { max_number:99, min_rows:3, max_rows:5 };
   var b = bandFor(lvl.max_number, pos);
   var r = rowsFor(pos, lvl.min_rows||3, lvl.max_rows||5);
-  var el = document.getElementById('band-'+id);
-  if(el) el.textContent = 'Getting numbers '+b.start+'–'+b.end+', about '+r+' rows';
+  el.textContent = 'Getting numbers '+b.start+'\u2013'+b.end+', about '+r+' rows';
 }
 
 async function savePos(id, code, v){

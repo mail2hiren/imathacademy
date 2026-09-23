@@ -355,16 +355,44 @@ async function loadOverview(uid, profile){
   document.getElementById('xpNext').textContent = (500-xpInBand)+' XP to next milestone';
   document.getElementById('statStreak').textContent = streak;
 
-  // Level progress (12 weeks per level)
-  const enrollDate = new Date(profile.created_at||Date.now());
-  const weeksIn = Math.min(12, Math.ceil((Date.now()-enrollDate)/604800000));
-  const levelPct = Math.max(8, Math.round(weeksIn/12*100));
+  /* How far through the level THIS CHILD is, from their own work,
+     rather than from how many weeks have passed since they joined.
+     The engine already keeps this and aims every page at it; the child
+     could not see it.
+
+     Shown as words and a bar, never as a number like "1.5" — a number
+     invites children to compare themselves with each other, and this
+     is meant to encourage one child to carry on. */
   document.getElementById('levelNum').textContent = lv;
   document.getElementById('levelDesc').textContent = LEVEL_DESC[lv]||'';
-  document.getElementById('levelBar').style.width = levelPct+'%';
-  document.getElementById('levelWeek').textContent = 'Week '+weeksIn+' of 12';
-  const estDate = new Date(enrollDate); estDate.setDate(estDate.getDate()+84);
-  document.getElementById('levelEst').textContent = 'Est. completion: '+fmtDate(estDate.toISOString());
+  let posPct = null, posSessions = 0;
+  try {
+    if (typeof PracticeEngine !== 'undefined' && PracticeEngine.loadPosition) {
+      const st = await PracticeEngine.loadPosition(uid, lv);
+      if (st && typeof st.position === 'number') {
+        posPct = Math.max(4, Math.round(st.position * 100));
+        posSessions = st.sessions || 0;
+      }
+    }
+  } catch (e) { console.warn('Could not read the position:', e); }
+
+  if (posPct !== null) {
+    const words = posPct < 20 ? 'Just started this level'
+                : posPct < 40 ? 'Finding your feet'
+                : posPct < 60 ? 'About halfway through'
+                : posPct < 80 ? 'Getting near the end'
+                : 'Nearly ready for the next level';
+    document.getElementById('levelBar').style.width = posPct+'%';
+    document.getElementById('levelWeek').textContent = words;
+    document.getElementById('levelEst').textContent = posSessions
+      ? 'The sums grow with you \u2014 ' + posSessions + ' session' + (posSessions===1?'':'s') + ' so far'
+      : 'The sums grow with you as you practise';
+  } else {
+    /* Nothing recorded yet, so nothing is invented. */
+    document.getElementById('levelBar').style.width = '4%';
+    document.getElementById('levelWeek').textContent = 'Just started this level';
+    document.getElementById('levelEst').textContent = 'Practise and this will fill up';
+  }
 
   // Practice sessions this week
   const weekStart = getWeekStart();
@@ -573,6 +601,9 @@ async function init(){
 
 init();
 </script>
-  <script src="../js/student-nav.js"></script>
+  <script src="../js/bead-rules.js"></script>
+<script src="../js/column-gen.js"></script>
+<script src="../js/practice-engine.js"></script>
+<script src="../js/student-nav.js"></script>
 </body>
 </html>

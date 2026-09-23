@@ -100,6 +100,9 @@
 <script src="../js/sutra-rules.js"></script>
 <script src="../js/vedic-gen.js"></script>
 <script src="../js/vedic-steps.js"></script>
+<script src="../js/bead-rules.js"></script>
+<script src="../js/column-gen.js"></script>
+<script src="../js/practice-engine.js"></script>
 <script src="../js/vedic-engine.js"></script>
 <script>
 /* ============================================================
@@ -143,7 +146,18 @@ async function init() {
 
   /* The course map decides which methods this level practises. */
   if (VedicEngine.sync) await VedicEngine.sync(sb, true);
-  var page = VedicEngine.buildPage(level, { count: 10, guideFirst: 3 });
+  /* Where this child stands inside the level decides how hard the sums
+     are — the same idea as Abacus, where the position picks the number
+     band. Vedic has no bands, so it picks Easy, Medium or Hard. */
+  var pos = 0.10;
+  try {
+    if (typeof PracticeEngine !== 'undefined' && PracticeEngine.loadPosition) {
+      var st = await PracticeEngine.loadPosition(me, level, 'vedic');
+      if (st && typeof st.position === 'number') pos = st.position;
+    }
+  } catch (e) { console.warn('Could not read the position:', e); }
+
+  var page = VedicEngine.buildPage(level, { count: 10, guideFirst: 3, position: pos });
 
   /* Said plainly rather than faked. This is the lesson from the
      abacus side, where a silent fallback gave children the wrong
@@ -413,6 +427,12 @@ async function finish() {
     }).select();
     if (res.error) throw res.error;
     if (!res.data || !res.data.length) throw new Error('nothing written');
+
+    /* Move the child along the Vedic level on the strength of this
+       session, kept separately from their Abacus place. */
+    if (typeof PracticeEngine !== 'undefined' && PracticeEngine.recordOutcome) {
+      await PracticeEngine.recordOutcome(me, level, right, questions.length, 'vedic');
+    }
   } catch (e) {
     console.warn('Session not saved:', e.message);
   }

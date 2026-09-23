@@ -668,8 +668,17 @@ function columnIsAllowed(q, rules) {
    what they practise today — not when they move up a level, which
    stays the three gates.
    ─────────────────────────────────────────────────────────── */
-async function loadPosition(studentId, level) {
-  var code = 'L' + level;
+/* Where a child's place in a level is kept. The table keys on a level
+   code, which both programmes would otherwise share — Abacus L1 and
+   Vedic L1 are different levels and must not be one row. Abacus keeps
+   'L1' exactly as it is, so nothing already recorded moves; Vedic uses
+   'VL1'. No change to the table, and nothing to run. */
+function posCode(level, program) {
+  return (program === 'vedic' ? 'VL' : 'L') + level;
+}
+
+async function loadPosition(studentId, level, program) {
+  var code = posCode(level, program);
   var def  = { position: 0.10, floor: 0, sessions: 0 };
   if (!studentId) return def;
   try {
@@ -693,11 +702,11 @@ async function loadPosition(studentId, level) {
  * more slowly than it goes forward, and never below the teacher's
  * floor.
  */
-async function recordOutcome(studentId, level, correct, attempted) {
+async function recordOutcome(studentId, level, correct, attempted, program) {
   if (!studentId || !attempted) return;
-  var code = 'L' + level;
+  var code = posCode(level, program);
   try {
-    var cur = await loadPosition(studentId, level);
+    var cur = await loadPosition(studentId, level, program);
     var pct = correct / attempted;
 
     var step = pct >= 0.90 ? 0.040
@@ -850,7 +859,7 @@ function bandFor(rules, pos) {
     // Aim the page at where this child actually is
     var pos  = o.position;
     if (pos === undefined && o.studentId) {
-      var st = await loadPosition(o.studentId, level);
+      var st = await loadPosition(o.studentId, level, o.program);
       pos = st.position;
     }
     if (pos === undefined) pos = 0.10;
@@ -921,6 +930,7 @@ function bandFor(rules, pos) {
 
   return {
     loadPosition: loadPosition, recordOutcome: recordOutcome, bandFor: bandFor,
+    posCode: posCode,
     loadLevelRules: loadLevelRules,
     buildSession:   buildSession,
     columnSum:      columnSum,

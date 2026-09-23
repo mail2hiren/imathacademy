@@ -119,10 +119,25 @@ var VedicEngine = (function (S, G) {
     return { intro: intro, carried: carried };
   }
 
+  /* Where the child stands inside the level, as Abacus does it: a
+     position from 0 to 1. Vedic has no number bands, so the position
+     chooses how hard the sums are — the same Easy, Medium and Hard the
+     generator already understands for every method. */
+  function difficultyFor(position) {
+    if (typeof position !== 'number') return null;
+    return position < 0.34 ? 'easy' : position < 0.67 ? 'medium' : 'hard';
+  }
+
   function buildPage(level, opts) {
     var o = opts || {};
     var cfg = LEVELS[level];
     if (!cfg) return { error: 'No such level: ' + level };
+
+    /* A difficulty chosen by the teacher wins; otherwise the child's
+       own position decides. */
+    if (!o.difficulty && typeof o.position === 'number') {
+      o = Object.assign({}, o, { difficulty: difficultyFor(o.position) });
+    }
 
     var res = G.page(level, o.count || 10, o);
     if (res.error) return res;
@@ -177,6 +192,7 @@ var VedicEngine = (function (S, G) {
 
   return {
     LEVELS: LEVELS, breakdown: breakdown, sync: sync, forget: forget,
+    difficultyFor: difficultyFor,
     source: function () { return lastSync; }, PLAN_MARKER: PLAN_MARKER,
     buildPage: buildPage, whichMethodPage: whichMethodPage, auditPage: auditPage,
     methodsAt: S.methodsAt, readyAt: S.readyAt, notReady: S.notReady

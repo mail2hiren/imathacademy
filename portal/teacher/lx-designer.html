@@ -3116,7 +3116,12 @@ async function assignToStudents() {
       concept:      selectedConcept,
       activity:     selectedActivity,
       abacus_mode:  (document.getElementById('abacusMode') || {}).value || 'default',
-      batch_id:     batchId   || null,
+      /* NAMING ONE CHILD MEANS ONE CHILD. The batch has to be chosen
+         first just to list its children, and both were then saved on
+         the sheet — so a sheet meant for Jayani carried her batch too,
+         and a child's list asks for "mine OR my batch's". The whole
+         batch got it. */
+      batch_id:     studentId ? null : (batchId || null),
       student_id:   studentId || null,
       created_by:   session.user.id,
       created_at:   new Date().toISOString(),
@@ -3226,7 +3231,8 @@ async function reuseWorksheet(wsId, title) {
       ...original,
       id:         undefined,
       title:      newTitle,
-      batch_id:   batchId || null,
+      /* same here: a named child is not a batch */
+      batch_id:   studentId ? null : (batchId || null),
       student_id: studentId || null,
       created_by: session.user.id,
       created_at: new Date().toISOString(),

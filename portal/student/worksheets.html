@@ -1266,7 +1266,11 @@ async function init(){
     let wsData=[];
     if(batchIds.length){
       const{data}=await sb.from('lx_worksheets').select('*').eq('is_active',true)
-        .or(`student_id.eq.${session.user.id},batch_id.in.(${batchIds.join(',')})`)
+        /* Mine, or my batch's AND addressed to nobody in particular. Without
+         that second condition a sheet meant for one child was shown to
+         everyone in her batch, and sheets already saved that way would
+         have gone on doing it. */
+        .or(`student_id.eq.${session.user.id},and(student_id.is.null,batch_id.in.(${batchIds.join(',')}))`)
         .order('created_at',{ascending:false});
       wsData=data||[];
     } else {

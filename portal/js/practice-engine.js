@@ -330,8 +330,17 @@ function forgetRules() { rulesCache = {}; }
       }
       var built = ColumnGen[decimalPlacesFor(rules) ? 'decimalColumn' : 'column']({
               decimals: decimalPlacesFor(rules),
-        /* addition and subtraction up to the level's highest band */
-        max:       shownMax(rules, Math.max(9, Math.round((rules.addSubMax || rules.maxNumber) * (0.45 + 0.55 * thr)))),
+        /* The size is the child's OWN band, not a share of the level's
+           top. The old formula never went below 45% of the ceiling,
+           which was fair when a level topped out at 9999 and wrong once
+           addition ran to 99999: a child starting Level 6 was handed
+           sums near 36,000.
+
+           A formula needs room to be used at all — a Big Friends step
+           cannot happen below 20 — so that is the floor. */
+        max:       shownMax(rules, Math.max(
+                     (mode === 'big' || mode === 'combination') ? 20 : 9,
+                     Math.round((rules.addSubMax || rules.maxNumber) * thr))),
         rows:      n,
         mode:      mode,
         require:   mode === 'direct' ? 0 : (thr < 0.35 ? 1 : 2),
@@ -718,7 +727,12 @@ async function recordOutcome(studentId, level, correct, attempted) {
  */
 function bandFor(rules, pos) {
   var lo = 9;
-  var hi = rules.maxNumber;
+  /* The same ceiling the sums themselves use. Addition and subtraction
+     now run to the highest difficulty band, and sizing the child's
+     band from the level's own limit instead left the aim adrift: at
+     Level 6 a child at the start of the level was still being given
+     sums around 45,000. */
+  var hi = rules.addSubMax || rules.maxNumber;
   var centre = lo + (hi - lo) * Math.pow(pos, 1.3);
 
   return {
@@ -857,7 +871,8 @@ function bandFor(rules, pos) {
       // the hard end — not from the easiest sum in the level to the
       // hardest, which is what made question twenty impossible.
       var acrossPage = plain > 1 ? i / (plain - 1) : 0.5;
-      var thr = (band.start + (band.end - band.start) * acrossPage) / Math.max(1, rules.maxNumber);
+      var thr = (band.start + (band.end - band.start) * acrossPage) /
+                Math.max(1, rules.addSubMax || rules.maxNumber);
       var mix = mixFor(rules);
       var r = Math.random();
       var q;

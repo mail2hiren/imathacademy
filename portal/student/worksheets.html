@@ -433,6 +433,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+<!-- the engine that keeps a child's place within a level (L1.1, L1.2 ...) -->
+<script src="../js/bead-rules.js"></script>
+<script src="../js/column-gen.js"></script>
+<script src="../js/practice-engine.js"></script>
 <script src="../js/sutra-rules.js"></script>
 <script src="../js/vedic-steps.js"></script>
 <script src="../js/vedic-frames.js"></script>
@@ -1084,6 +1088,25 @@ async function submitWorksheet(wsId, qs){
       student_id:session.user.id, questions_correct:score,
       questions_attempted:total, xp_awarded:xp, topic:'worksheet'
     });
+
+    /* A returned worksheet moves the child along the level — L1.1
+       towards L1.9 — which is what the engine aims the next sheet and
+       the next practice at. Nothing called this before, so a child's
+       position only ever changed when a teacher set it by hand.
+
+       The sheet's OWN level is used, not the child's current level, and
+       only for Abacus: positions are kept against a level code that both
+       programmes share, so a Vedic sheet must not move an Abacus one. */
+    try {
+      const sheet = (allWs || []).find(w => w.id === wsId) || {};
+      const prog  = sheet.program_code || 'abacus';
+      const lvl   = (sheet.level != null) ? sheet.level
+                  : (currentUser && currentUser.current_level != null ? currentUser.current_level : null);
+      if (prog === 'abacus' && lvl != null &&
+          typeof PracticeEngine !== 'undefined' && PracticeEngine.recordOutcome) {
+        await PracticeEngine.recordOutcome(session.user.id, lvl, score, total);
+      }
+    } catch (e) { console.warn('Could not record the position:', e); }
     await sb.from('users').update({xp_points:(currentUser.xp_points||0)+xp}).eq('id',session.user.id);
     currentUser.xp_points=(currentUser.xp_points||0)+xp;
 

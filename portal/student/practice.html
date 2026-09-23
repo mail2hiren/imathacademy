@@ -1640,6 +1640,25 @@ function endSession() {
       xp_awarded:        sessionXP,
       topic:     'flashcard',
     });
+
+    /* Move the child along the level — L1.1 towards L1.9 — on the
+       strength of this session. The engine already aims each page at
+       where the child stands; THIS is what moves them, and it was
+       written and exported but never called from anywhere, so every
+       child stayed wherever their teacher last put them. Forward on
+       90%, a nudge at 70%, gently back below that, and never below the
+       floor a teacher has set.
+
+       Positions are kept against a level code, which Abacus and Vedic
+       share, so only Abacus practice moves them. */
+    try {
+      if (typeof PracticeEngine !== 'undefined' && PracticeEngine.recordOutcome) {
+        await PracticeEngine.recordOutcome(session.user.id,
+          (profile && profile.current_level != null) ? profile.current_level : 0,
+          correctCount, questions.length);
+      }
+    } catch (e) { console.warn('Could not record the position:', e); }
+
     // Update XP on profile
     await sb.from('users').update({
       xp_points:  (profile.xp_points || 0) + sessionXP,

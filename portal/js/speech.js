@@ -153,9 +153,51 @@ var Speech = (function () {
   }
 
   /** Say one thing once. */
+  /* ── Saying the maths out loud ──────────────────────────────
+     A sum was handed over exactly as written — "33 − 43" — and what
+     a device made of the minus sign was its own business. Megha's
+     children heard the numbers with no "minus" at all, which for
+     negative numbers at Level 8 changes the question entirely.
+
+     Every sign is now said as a word, and each row is a short phrase
+     so a child can keep up. A hyphen is only treated as minus next to
+     a digit, so "3-digit" is still read as words. */
+  function forMaths(text) {
+    var t = String(text == null ? '' : text);
+
+    t = t.replace(/\r/g, '');
+    t = t.replace(/\n+/g, ' , ');                  // one row, then a breath
+
+    t = t.replace(/[\u00d7]/g, ' times ');
+    t = t.replace(/(\d)\s*[x*]\s*(\d)/gi, '$1 times $2');
+    t = t.replace(/[\u00f7]/g, ' divided by ');
+    t = t.replace(/(\d)\s*\/\s*(\d)/g, '$1 divided by $2');
+    t = t.replace(/\+/g, ' plus ');
+    t = t.replace(/=/g, ' equals ');
+    t = t.replace(/\^2|\u00b2/g, ' squared ');
+    t = t.replace(/\^3|\u00b3/g, ' cubed ');
+    t = t.replace(/%/g, ' percent ');
+
+    /* the minus, in both of its jobs */
+    t = t.replace(/[\u2212\u2013\u2014]/g, '-');   // a real minus, en dash, em dash
+    t = t.replace(/(^|[\s,(])-\s*(\d)/g, '$1 minus $2');   // a negative number
+    t = t.replace(/(\d)\s*-\s*(\d)/g, '$1 minus $2');     // taking away
+
+    t = t.replace(/(\d)\.(\d)/g, '$1 point $2');   // 4.6 -> four point six
+    t = t.replace(/(\d)\s+r\s+(\d)/g, '$1 remainder $2');   // 14 r 2
+    t = t.replace(/\?/g, '');
+    t = t.replace(/\s{2,}/g, ' ').trim();
+    /* "33 minus 43 equals" with nothing after it — the child supplies
+       the answer, so the word is left hanging. Dropped. */
+    t = t.replace(/\s*equals\s*$/i, '');
+    return t;
+  }
+
   function say(text, opts) {
     if (!window.speechSynthesis) return;
-    var u = dress(new SpeechSynthesisUtterance(String(text)), opts);
+    var o = opts || {};
+    var words = o.raw ? String(text) : forMaths(text);
+    var u = dress(new SpeechSynthesisUtterance(words), o);
     window.speechSynthesis.speak(u);
   }
 
@@ -178,7 +220,8 @@ var Speech = (function () {
     function next() {
       if (token !== undefined && o.stillWanted && !o.stillWanted(token)) return;
       if (i >= times) { if (o.onDone) o.onDone(); return; }
-      var u = dress(new SpeechSynthesisUtterance(String(text)), {
+      var u = dress(new SpeechSynthesisUtterance(
+        o.raw ? String(text) : forMaths(text)), {
         rate:  (o.rate || 0.75) - (i * 0.05),   // a touch slower each time
         pitch: o.pitch
       });
@@ -207,6 +250,7 @@ var Speech = (function () {
 
   return {
     say: say, sayTwice: sayTwice, stop: stop, unlock: unlock,
+    forMaths: forMaths,
     voices: voices, current: current, setVoiceByName: setVoiceByName,
     dress: dress
   };

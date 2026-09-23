@@ -2760,20 +2760,49 @@ async function contentForChild(studentId, level, baseQuestions) {
     while (out.length < baseQuestions.length && guard < baseQuestions.length * 40) {
       guard++;
       var shape = baseQuestions[out.length];
-      var rowCount = (shape && shape.rows && shape.rows.length) || 3;
-      var through = out.length / baseQuestions.length;
-      var stepCeil = Math.max(band.start, Math.round(band.start + (ceil - band.start) * through));
-      var s = freshColumn(rules, rowCount, stepCeil);
+
+      /* KEEP THE KIND OF SUM. This built a column every time, whatever
+         the sheet was, so a multiplication worksheet pitched to each
+         child came back as column addition and subtraction — Megha
+         assigned multiplication and the children got adding up.
+
+         The kind is read from the sum it is replacing: a column has its
+         rows, and multiplication and division are recognised by their
+         sign. */
+      var txt  = String((shape && shape.question) || '');
+      var kind = (shape && shape.rows && shape.rows.length) ? 'column'
+               : /[\u00d7x*]/i.test(txt) ? 'multiplication'
+               : /[\u00f7\/]/.test(txt) ? 'division'
+               : (shape && shape.negative) ? 'negative' : 'column';
+
+      var s = null;
+      if (kind === 'multiplication' && PracticeEngine.makeMultiplication) {
+        s = PracticeEngine.makeMultiplication(rules);
+      } else if (kind === 'division' && PracticeEngine.makeDivision) {
+        s = PracticeEngine.makeDivision(rules);
+      } else if (kind === 'negative' && PracticeEngine.negativeSum) {
+        s = PracticeEngine.negativeSum(rules);
+      } else {
+        var rowCount = (shape && shape.rows && shape.rows.length) || 3;
+        var through = out.length / baseQuestions.length;
+        var stepCeil = Math.max(band.start, Math.round(band.start + (ceil - band.start) * through));
+        s = freshColumn(rules, rowCount, stepCeil);
+      }
       if (!s) continue;
-      if (!obeysConstraints(s, opts)) continue;
+      /* Add-only and no-zero apply to columns; they say nothing about a
+         multiplication. */
+      if (s.rows && !obeysConstraints(s, opts)) continue;
       if (seen[s.answer] && out.length < baseQuestions.length - 2) continue;
       seen[s.answer] = true;
       out.push({
         type: 'calculation',
-        question: PracticeEngine.columnText(s),
+        question: s.rows ? PracticeEngine.columnText(s) : engineQuestionText(s),
         answer: String(s.answer),
-        hint: 'Work down the column on your abacus',
-        rows: s.rows
+        hint: s.rows ? 'Work down the column on your abacus'
+            : kind === 'multiplication' ? 'Multiply on your abacus'
+            : kind === 'division' ? 'Divide on your abacus' : '',
+        rows: s.rows,
+        negative: s.negative || undefined
       });
     }
     if (out.length < baseQuestions.length) return null;   // fall back to the shared sheet

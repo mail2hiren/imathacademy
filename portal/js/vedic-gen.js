@@ -104,9 +104,13 @@ var VedicGen = (function (S) {
       return [near(), near()];
     },
 
-    working_base: function (L) {
+    working_base: function (L, o) {
       var wb = pick(L === 4 ? [50] : L === 5 ? [200, 250, 500] : [50, 200, 250, 500, 2000]);
-      var tol = Math.max(2, Math.round(wb * 0.08));
+      /* Easy keeps both numbers close to the working base; hard spreads
+         them, which is where the ratio step starts to bite. */
+      var share = (o && o.difficulty === 'easy') ? 0.04
+                : (o && o.difficulty === 'hard') ? 0.10 : 0.08;
+      var tol = Math.max(2, Math.round(wb * share));
       function near() { var d = ri(1, tol); return Math.random() < 0.5 ? wb + d : wb - d; }
       return [near(), near()];
     },
@@ -218,6 +222,15 @@ var VedicGen = (function (S) {
 
   function gcd(x, y) { return y ? gcd(y, x % y) : x; }
 
+  /* How big a sum is, for choosing between candidates. The answer is
+     the fairest measure across methods that look nothing alike — a
+     divisibility question, a cube root and a percentage. */
+  function weight(q) {
+    var n = Math.abs(Number(String(q.answer).replace(/[^0-9.\-]/g, '')) || 0);
+    if (!n && typeof q.a === 'number') n = Math.abs(q.a) + Math.abs(q.b || 0);
+    return n;
+  }
+
   /** One sum for a method at a level, or null said plainly. */
   function one(key, level, opts) {
     var m = S.METHODS[key];
@@ -261,6 +274,43 @@ var VedicGen = (function (S) {
     return null;
   }
 
+  /* Easy, Medium and Hard for EVERY method, not only the few written by
+     hand. Several sums are built and one is chosen by size: the easier
+     third for Easy, the middle for Medium, the harder third for Hard.
+
+     A method with its own rule about difficulty — All from 9 keeping to
+     100 and 1000 on Easy — has already applied it inside build(), so
+     this only chooses between sums that are all a fair fit. */
+  /* For these, a bigger answer is an EASIER sum: 98 x 97 sits closest to
+     100, which is the simplest case of the base method. Their difficulty
+     is the distance from the base, applied inside build(), so choosing
+     between candidates by size would invert it. */
+  var DIFF_IN_BUILD = { base_mult: 1, working_base: 1 };
+
+  function oneAt(key, level, opts) {
+    var o = opts || {};
+    var d = o.difficulty;
+    if (DIFF_IN_BUILD[key]) return one(key, level, o);
+    if (!d || d === 'medium' && !o.spread) {
+      /* medium is the middle by definition; one sum is enough unless a
+         spread was asked for */
+      if (!d) return one(key, level, o);
+    }
+    var pool = [];
+    for (var t = 0; t < 9 && pool.length < 6; t++) {
+      var q = one(key, level, o);
+      if (q) pool.push(q);
+    }
+    if (!pool.length) return null;
+    if (pool.length < 3) return pool[0];
+    pool.sort(function (x, y) { return weight(x) - weight(y); });
+    var third = Math.max(1, Math.floor(pool.length / 3));
+    var band = d === 'easy' ? pool.slice(0, third)
+             : d === 'hard' ? pool.slice(-third)
+             : pool.slice(third, pool.length - third).concat(pool.slice(third, third + 1));
+    return band[Math.floor(Math.random() * band.length)] || pool[0];
+  }
+
   /** A page for a level, across the methods it teaches. */
   function page(level, count, opts) {
     var o = opts || {};
@@ -271,7 +321,7 @@ var VedicGen = (function (S) {
     while (out.length < count && guard < count * 60) {
       guard++;
       var key = keys[out.length % keys.length];
-      var q = one(key, level, o);
+      var q = oneAt(key, level, o);
       if (!q) continue;
       if (seen[q.text]) continue;
       seen[q.text] = true;
@@ -304,7 +354,7 @@ var VedicGen = (function (S) {
     return bad;
   }
 
-  return { one: one, page: page, audit: audit, BUILD: BUILD };
+  return { one: oneAt, oneExact: one, page: page, audit: audit, BUILD: BUILD, weight: weight };
 })(typeof Sutras !== 'undefined' ? Sutras : require('./sutra-rules.js'));
 
 if (typeof module !== 'undefined') module.exports = VedicGen;

@@ -1249,6 +1249,29 @@ async function init(){
         .eq('student_id',session.user.id).order('created_at',{ascending:false});
       wsData=data||[];
     }
+    /* Only the programmes this child is actually enrolled in. A Vedic
+       sheet assigned to a whole Abacus batch reached every child in it,
+       including those who do not learn Vedic at all — Inaaya's login
+       showed Vedic worksheets. A sheet with no programme recorded is an
+       older Abacus one. */
+    try {
+      const { data: progs, error: progErr } = await sb.from('student_programs')
+        .select('program_code, is_active').eq('student_id', session.user.id);
+      if (progErr) throw progErr;
+      const mine = (progs || []).filter(p => p.is_active !== false).map(p => p.program_code);
+      /* If the enrolment cannot be read, show everything rather than an
+         empty list — a child seeing nothing is worse than seeing one
+         sheet too many, and the teacher's side now filters as well. */
+      if (mine.length) {
+        const before = wsData.length;
+        wsData = wsData.filter(w => mine.indexOf(w.program_code || 'abacus') > -1);
+        if (wsData.length !== before) {
+          console.log('Hidden ' + (before - wsData.length) +
+            ' worksheet(s) for programmes this child is not enrolled in');
+        }
+      }
+    } catch (e) { console.warn('Could not read the programmes for this child:', e); }
+
     allWs=wsData;
 
     // Check if opened with worksheet ID in URL hash — after data loads

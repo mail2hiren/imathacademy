@@ -22,16 +22,22 @@ var VedicGen = (function (S) {
      a single-number method. */
   var BUILD = {
 
-    nikhilam_sub: function (L) {
+    nikhilam_sub: function (L, o) {
       var bases = L <= 1 ? [100, 1000] : L === 2 ? [10000, 100000] : [100, 1000, 10000];
       var base = pick(bases);
-      var a = base * (Math.random() < 0.45 ? ri(2, 9) : 1);
+      var easy = o && o.difficulty === 'easy';
+      var hard = o && o.difficulty === 'hard';
+      /* Easy: the base itself. Medium: sometimes a multiple. Hard: a
+         multiple more often, which is the harder reading. */
+      var chance = easy ? 0 : hard ? 0.7 : 0.35;
+      var a = base * (Math.random() < chance ? ri(2, 9) : 1);
       var b = ri(Math.floor(base / 10), a - 1);
       return [a, b];
     },
 
-    friend_comp: function (L) {
-      var base = pick(L <= 1 ? [10, 100] : [10, 100, 1000]);
+    friend_comp: function (L, o) {
+      var base = (o && o.difficulty === 'easy' && L <= 1) ? 10
+               : pick(L <= 1 ? [10, 100] : [10, 100, 1000]);
       return [ri(Math.max(1, Math.floor(base / 10)), base - 1), base];
     },
 
@@ -82,8 +88,10 @@ var VedicGen = (function (S) {
       return [h * 10 + u2, h * 10 + (10 - u2)];
     },
 
-    base_mult: function (L) {
-      if (L === 4) return [100 - ri(1, 10), 100 - ri(1, 10)];
+    base_mult: function (L, o) {
+      /* Easy keeps both numbers within 5 of the base, hard spreads them. */
+      var sp = (o && o.difficulty === 'easy') ? 5 : (o && o.difficulty === 'hard') ? 12 : 10;
+      if (L === 4) return [100 - ri(1, sp), 100 - ri(1, sp)];
       if (L === 5) {
         // at least one above the base
         return Math.random() < 0.5
@@ -222,7 +230,10 @@ var VedicGen = (function (S) {
     var o = opts || {};
 
     for (var t = 0; t < 120; t++) {
-      var pr = build(sL);
+      /* The difficulty reaches the numbers. Easy keeps to the plainest
+         case of the method — at Level 1, Megha wants All from 9 to give
+         only 100 and 1000, not 300 or 4000. */
+      var pr = build(sL, o);
       var a = pr[0], b = pr[1];
 
       // THE GATE

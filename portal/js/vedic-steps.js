@@ -106,12 +106,31 @@ var VedicSteps = (function (S) {
       ];
     },
 
+    /* Megha: the tens must be shown as well. "Then the rest, with any
+       carry" hid the step where the carry is actually used, which is
+       the part a child gets wrong. Each place is now its own box, from
+       the units leftwards, and the carry is named. */
     stacking: function (a, b) {
-      var ua = a % 10, ub = b % 10;
-      return [
-        { ask: 'Units: ' + ua + ' + ' + ub, answer: ua + ub, hint: 'Carry if it passes 9' },
-        { ask: 'Then the rest, with any carry. The answer is', answer: a + b, hint: '' }
-      ];
+      var steps = [];
+      var da = String(a).split('').reverse().map(Number);
+      var db = String(b).split('').reverse().map(Number);
+      var places = ['Units', 'Tens', 'Hundreds', 'Thousands'];
+      var n = Math.max(da.length, db.length);
+      var carry = 0;
+      for (var i = 0; i < n; i++) {
+        var x = da[i] || 0, y = db[i] || 0;
+        var sum = x + y + carry;
+        steps.push({
+          ask: (places[i] || 'Next') + ': ' + x + ' + ' + y +
+               (carry ? ' + ' + carry + ' carried' : ''),
+          answer: sum,
+          hint: sum > 9 ? 'Write the last digit and carry the 1' : ''
+        });
+        carry = sum > 9 ? Math.floor(sum / 10) : 0;
+      }
+      if (carry) steps.push({ ask: 'The carry on the left', answer: carry, hint: '' });
+      steps.push({ ask: 'Put the digits together. The answer is', answer: a + b, hint: '' });
+      return steps;
     },
 
     /* ── MULTIPLICATION ── */

@@ -1886,7 +1886,11 @@ async function generateFromEngine() {
          them or the level's own scope breaks. What it changes is how
          long the guided steps last, and whether the page keeps to the
          newest methods or ranges over the whole level. */
-      guideFirst: vDiff === 'easy' ? 5 : vDiff === 'hard' ? 1 : 3
+      guideFirst: vDiff === 'easy' ? 5 : vDiff === 'hard' ? 1 : 3,
+      /* The difficulty reaches the numbers as well as the guided steps.
+         Megha: Easy at Level 1 should give only 100 and 1000 for All
+         from 9, not 300 or 4000. */
+      difficulty: vDiff
     };
     if (selectedConcept) {
       vOpts.methods = [selectedConcept];
@@ -2919,6 +2923,30 @@ function previewAsChild() {
   draw();
   document.body.appendChild(ov);
 }
+/* Who may receive a sheet from this programme. A Vedic sheet given to a
+   whole Abacus batch reached every child in it, Vedic or not — which is
+   how Inaaya ended up with Vedic worksheets. */
+async function enrolledIn(program, ids) {
+  if (!ids.length) return { ok: [], skipped: [], unknown: false };
+  var r = await sb.from('student_programs')
+    .select('student_id, program_code, is_active').in('student_id', ids);
+  if (r.error) {
+    /* Unknown rather than assumed: nothing is silently withheld from a
+       child who should have it. */
+    console.warn('Could not read enrolments:', r.error);
+    return { ok: ids, skipped: [], unknown: true };
+  }
+  var live = {};
+  (r.data || []).forEach(function (p) {
+    if (p.is_active !== false) (live[p.student_id] = live[p.student_id] || []).push(p.program_code);
+  });
+  var ok = [], skipped = [];
+  ids.forEach(function (id) {
+    if ((live[id] || []).indexOf(program) > -1) ok.push(id); else skipped.push(id);
+  });
+  return { ok: ok, skipped: skipped, unknown: false };
+}
+
 async function assignToStudents() {
   const batchId   = document.getElementById('batchSel').value;
   const studentId = document.getElementById('studentSel').value;
@@ -2937,6 +2965,44 @@ async function assignToStudents() {
   btn.disabled = true;
   try {
     const { data: { session } } = await sb.auth.getSession();
+
+    /* Only children enrolled in this programme. A batch is expanded to
+       its children first, so a Vedic sheet can go to the Vedic learners
+       inside an Abacus batch without reaching the others. */
+    var skippedNames = [];
+    var progWord = selectedProgram === 'vedic' ? 'Vedic Maths' : 'Abacus';
+    if (many.length) {
+      var chk = await enrolledIn(selectedProgram, many.map(function (k) { return k.id; }));
+      if (!chk.unknown && chk.skipped.length) {
+        skippedNames = many.filter(function (k) { return chk.skipped.indexOf(k.id) > -1; })
+                           .map(function (k) { return k.name; });
+        many = many.filter(function (k) { return chk.ok.indexOf(k.id) > -1; });
+      }
+      if (!many.length) {
+        toast('None of those children are enrolled in ' + progWord + ' \u2014 nothing assigned', 'error');
+        btn.textContent = 'Assign'; btn.disabled = false; return;
+      }
+    } else if (batchId) {
+      var kids = (batchStudents[batchId] || []);
+      var chk2 = await enrolledIn(selectedProgram, kids.map(function (s) { return s.id; }));
+      if (!chk2.unknown && chk2.skipped.length) {
+        skippedNames = kids.filter(function (s) { return chk2.skipped.indexOf(s.id) > -1; })
+                           .map(function (s) { return s.name; });
+        many = kids.filter(function (s) { return chk2.ok.indexOf(s.id) > -1; })
+                   .map(function (s) { return { id: s.id, name: s.name }; });
+        if (!many.length) {
+          toast('No child in this batch is enrolled in ' + progWord + ' \u2014 nothing assigned', 'error');
+          btn.textContent = 'Assign'; btn.disabled = false; return;
+        }
+      }
+    } else if (studentId) {
+      var chk3 = await enrolledIn(selectedProgram, [studentId]);
+      if (!chk3.unknown && !chk3.ok.length) {
+        toast('That child is not enrolled in ' + progWord + ' \u2014 nothing assigned', 'error');
+        btn.textContent = 'Assign'; btn.disabled = false; return;
+      }
+    }
+
     // One copy each, so every child keeps their own score and history
     if (many.length) {
       var tOpt = teacherOptions();
@@ -2998,7 +3064,12 @@ async function assignToStudents() {
       }));
       var n = Object.keys(custom).length;
       toast('Assigned to ' + many.length + ' child' + (many.length === 1 ? '' : 'ren') +
-            (n ? ' — ' + n + ' pitched to their own level' : ''), 'success');
+            (n ? ' \u2014 ' + n + ' pitched to their own level' : '') +
+            (skippedNames.length
+              ? ' \u2014 skipped ' + skippedNames.length + ' not enrolled in ' + progWord +
+                ' (' + skippedNames.slice(0, 3).join(', ') +
+                (skippedNames.length > 3 ? ' and others' : '') + ')'
+              : ''), 'success');
       btn.textContent = '✓ Assigned to ' + many.length;
       btn.disabled = false;
       pickAll(false);

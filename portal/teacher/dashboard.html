@@ -196,7 +196,10 @@
     .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--blue);
       border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 10px;}
     @keyframes spin{to{transform:rotate(360deg)}}
-  </style>
+    /* Links in the sidebar look and behave like the buttons beside them. */
+  a.sb-item{ display:flex; align-items:center; text-decoration:none; color:inherit;
+             box-sizing:border-box; width:100%; }
+</style>
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="apple-touch-icon" sizes="152x152" href="/assets/icon-152.png">
@@ -221,11 +224,12 @@
       <img src="../../assets/logo.png" alt="iMathAcademy" style="height:32px;width:auto;object-fit:contain;">
     </div>
     <nav class="sb-nav">
-    <nav class="sb-nav">
       <!-- Grouped by what Megha is actually doing: teaching a class,
-           then marking what came back, then looking at a child. The
-           two marking screens were in different sections, which is
-           why finding a child's answers meant hunting. -->
+           then marking what came back, then looking at a child, then
+           the tools. Four finished pages had no link at all — pacing,
+           certificates, the worksheet checker and help — so the only
+           way to reach them was to know the address. There was also a
+           second, stray <nav> opening tag left from an earlier repair. -->
       <div class="sb-section">Overview</div>
       <button class="sb-item active" id="nav-dashboard" onclick="showTab('dashboard',this)">
         <span class="sb-icon">&#128202;</span> Dashboard
@@ -255,9 +259,24 @@
       <button class="sb-item" id="nav-students" onclick="showTab('students',this)">
         <span class="sb-icon">&#128200;</span> Student Progress
       </button>
+      <a class="sb-item" href="pacing.html">
+        <span class="sb-icon">&#127919;</span> Pacing
+      </a>
       <button class="sb-item" id="nav-attendance" onclick="showTab('attendance',this)">
         <span class="sb-icon">&#9989;</span> Attendance
       </button>
+
+      <a class="sb-item" href="certificate.html">
+        <span class="sb-icon">&#127894;</span> Certificates
+      </a>
+
+      <div class="sb-section">Tools</div>
+      <a class="sb-item" href="lx-check.html">
+        <span class="sb-icon">&#128269;</span> Check a worksheet
+      </a>
+      <a class="sb-item" href="help.html">
+        <span class="sb-icon">&#10067;</span> Help
+      </a>
     </nav>
     <div class="sb-footer">
       <div class="sb-user" style="margin-bottom:10px;">

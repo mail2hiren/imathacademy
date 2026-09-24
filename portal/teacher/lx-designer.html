@@ -3015,10 +3015,12 @@ async function assignToStudents() {
       var kids = (batchStudents[batchId] || []);
       var chk2 = await enrolledIn(selectedProgram, kids.map(function (s) { return s.id; }));
       if (!chk2.unknown && chk2.skipped.length) {
+        /* These rows carry full_name, not name. Reading the wrong one
+           left every per-child sheet titled "Level 4 — undefined". */
         skippedNames = kids.filter(function (s) { return chk2.skipped.indexOf(s.id) > -1; })
-                           .map(function (s) { return s.name; });
+                           .map(function (s) { return s.full_name || s.name || 'a child'; });
         many = kids.filter(function (s) { return chk2.ok.indexOf(s.id) > -1; })
-                   .map(function (s) { return { id: s.id, name: s.name }; });
+                   .map(function (s) { return { id: s.id, name: s.full_name || s.name || 'a child' }; });
         if (!many.length) {
           toast('No child in this batch is enrolled in ' + progWord + ' \u2014 nothing assigned', 'error');
           btn.textContent = 'Assign'; btn.disabled = false; return;
@@ -3053,7 +3055,8 @@ async function assignToStudents() {
       var rows = many.map(function (kid) {
         var mine = custom[kid.id];
         return {
-          title:       'Level ' + selectedLevel + ' — ' + kid.name + ' — ' +
+          title:       'Level ' + selectedLevel +
+                       (kid.name ? ' \u2014 ' + kid.name : '') + ' \u2014 ' +
                        new Date().toLocaleDateString('en-IN', { day:'numeric', month:'short' }),
           content:     mine ? mine.content : content,
           answer_key:  mine ? mine.answerKey : (generatedContent.answerkey || null),

@@ -495,7 +495,12 @@ var WordProblems = (function () {
       return lines;
     });
 
-    if (!owned && !isCricketStat) shapes.push(function () {
+    /* Only when the sum really is two numbers. This shape names the
+       first two rows and nothing else, so on a three- or four-row sum
+       the child was asked for an answer that needed a number the story
+       never mentioned: "Ananya counted 205, Myra counted 212, how many
+       between them?" with the answer 503. */
+    if (!owned && !isCricketStat && two) shapes.push(function () {
       var other = pick(NAMES.filter(function (x) { return x.n !== name; }));
       return [name + ' counted ' + count(rows[0], thing) + '.',
               other.n + ' counted ' + count(Math.abs(rows[1]), thing) + '.',
@@ -634,7 +639,35 @@ var WordProblems = (function () {
               'How many ' + thing.many + ' now?'];
     });
 
-    var lines = pick(shapes)();
+    /* Every number in the sum must appear in the words, or the child is
+       being asked for an answer they cannot reach. A shape that leaves
+       one out is not used; if none of them mentions them all, the plain
+       "then this arrived, then that went away" telling does, because it
+       walks every row.
+
+       This is a check rather than trust: a third of the stories had
+       this fault, and a new shape could bring it back. */
+    function tellsAll(ls) {
+      var said = (ls.join(' ').match(/\d+/g) || []).map(Number);
+      return rows.every(function (n) { return said.indexOf(Math.abs(n)) > -1; });
+    }
+    function everyRow() {
+      return ['There were ' + count(rows[0], thing) + '.',
+              rows.slice(1).map(function (n) {
+                return n > 0 ? count(n, thing) + ' more arrived.'
+                             : count(-n, thing) + ' went away.';
+              }).join(' '),
+              'How many ' + thing.many + ' now?'];
+    }
+
+    var lines = null;
+    var tries = shapes.slice();
+    while (tries.length) {
+      var idx = Math.floor(Math.random() * tries.length);
+      var candidate = tries.splice(idx, 1)[0]();
+      if (tellsAll(candidate)) { lines = candidate; break; }
+    }
+    if (!lines) lines = everyRow();
 
     return {
       type:     'story',
@@ -814,27 +847,7 @@ var WordProblems = (function () {
       return pick(opts);
     }
 
-    /* The engine was rebuilt on Megha's 41 methods with new names,
-       and this still looked up the old ones — so every Vedic story
-       returned nothing and fell back to a bare sum. The new names are
-       mapped onto the story shapes that suit them. */
-    var ALIAS = {
-      nikhilam_sub: 'allFromNine', friend_comp: 'complement',
-      doubling: 'doubling', halving: 'halving', split_merge: 'splitMerge',
-      stacking: 'stacking', by_eleven: 'byEleven', urdhva: 'urdhva',
-      ekadhikena: 'ekadhikena', sq_2d_5: 'ekadhikena', sq_3d_5: 'ekadhikena',
-      antyayor: 'antyayor', base_mult: 'nikhilamMult', working_base: 'workingBase',
-      by_nines: 'urdhva', mult_11s: 'urdhva', twelve_to_19: 'urdhva',
-      first_ten_last_same: 'antyayor', by_5_25_50: 'urdhva', repeating: 'urdhva',
-      sq_2d: 'duplex', sq_3d: 'duplex', sq_4d: 'duplex',
-      cube_1d: 'cubing', cube_2d: 'cubing', cube_3d: 'cubing',
-      basic_div: 'nikhilamDiv', adv_div: 'nikhilamDiv', div_by_nine: 'nikhilamDiv',
-      div_5_25_50: 'nikhilamDiv',
-      sqrt_perfect: 'squareRoot', cbrt_perfect: 'cubeRoot', digit_sum: 'digitSum'
-    };
-    var f = shapes[q.method] || shapes[ALIAS[q.method]];
-    /* Divisibility and percentages are not stories about objects, so
-       they stay as they are rather than being forced into one. */
+    var f = shapes[q.method];
     if (!f) return null;
 
     var lines;

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tests &mdash; iMath Academy</title>
+<link rel="icon" type="image/png" href="/assets/icon-32.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#1F2430; --t2:#4A5160; --t3:#8892A4; --line:#E6E9F0; --bg:#F5F7FC;
+         --org:#E67D21; --org-soft:#FFF1E2; --org-ink:#8a4b00;
+         --teal:#04949D; --teal-soft:#E7F6F7; --teal-ink:#04616a;
+         --good:#2E7D32; --bad:#C62828; --warn:#EF6C00; }
+  :root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px);
+         padding-bottom:env(safe-area-inset-bottom,0px); }
+  *,*::before,*::after{ box-sizing:inherit; margin:0; padding:0; }
+  body{ font-family:'Nunito',system-ui,sans-serif; background:var(--bg); color:var(--ink);
+        -webkit-font-smoothing:antialiased; }
+
+  .top{ background:#fff; border-bottom:1.5px solid var(--line); padding:11px 15px;
+        display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .top a.back{ color:var(--t3); text-decoration:none; font-size:1.25rem; }
+  .top h1{ font-size:1.02rem; font-weight:900; }
+  .top p{ font-size:.76rem; color:var(--t3); }
+  .progs{ margin-left:auto; display:flex; gap:6px; }
+  .progs button{ padding:7px 13px; border-radius:999px; border:2px solid var(--line);
+                 background:#fff; font:800 .82rem 'Nunito',sans-serif; color:var(--t2); cursor:pointer; }
+  .progs button[aria-pressed="true"]{ border-color:var(--teal); background:var(--teal-soft); color:var(--teal-ink); }
+
+  .banner{ padding:12px 15px; font-size:.86rem; border-bottom:1.5px solid var(--line); }
+  .banner.err{ background:#FDECEA; color:var(--bad); }
+  .banner.info{ background:#FFF8F0; color:var(--org-ink); }
+  .banner code{ font-family:ui-monospace,monospace; background:#fff; padding:1px 5px; border-radius:4px; }
+  .banner:empty{ display:none; }
+
+  .wrap{ max-width:1000px; margin:0 auto; padding:16px 14px 40px; }
+
+  table{ border-collapse:separate; border-spacing:0; width:100%; background:#fff;
+         border-radius:14px; overflow:hidden; font-size:.82rem; }
+  th,td{ border-bottom:1px solid var(--line); padding:9px 10px; text-align:left; vertical-align:top; }
+  thead th{ background:#F7F9FF; font-weight:900; font-size:.74rem; letter-spacing:.5pt;
+            text-transform:uppercase; color:var(--t3); }
+  td.lv{ font-weight:900; white-space:nowrap; }
+  td.lv span{ display:block; font-size:.7rem; color:var(--t3); font-weight:800; }
+  td.cell{ cursor:pointer; min-width:170px; }
+  td.cell:hover{ background:#FAFBFF; }
+  .pill{ display:inline-block; font-size:.66rem; font-weight:900; padding:2px 7px;
+         border-radius:5px; margin-bottom:3px; }
+  .pill.published{ background:#E8F5E9; color:#1B5E20; }
+  .pill.draft{ background:#FFF3E0; color:var(--org-ink); }
+  .pill.none{ background:#EEF1F6; color:var(--t3); }
+  .cell .sum{ font-size:.76rem; color:var(--t2); line-height:1.35; }
+  .cell .add{ color:var(--teal); font-weight:800; font-size:.78rem; }
+  tr.short td.lv::after{ content:' needs 2'; font-size:.64rem; color:var(--warn); font-weight:900; }
+
+  .note{ font-size:.78rem; color:var(--t3); margin-top:12px; }
+
+  /* ── the blueprint ── */
+  #sheet{ position:fixed; inset:0; background:rgba(20,26,40,.45); z-index:40;
+          display:none; align-items:flex-end; justify-content:center; }
+  #sheet.show{ display:flex; }
+  .sheet-in{ background:#fff; border-radius:16px 16px 0 0; width:100%; max-width:640px;
+             padding:18px; padding-bottom:calc(18px + env(safe-area-inset-bottom,0px));
+             max-height:92vh; overflow:auto; }
+  .sheet-in h2{ font-size:1.05rem; font-weight:900; }
+  .sheet-in .at{ font-size:.8rem; color:var(--teal-ink); font-weight:800; margin-top:2px; }
+  .lab{ font-size:.7rem; font-weight:900; letter-spacing:.6pt; text-transform:uppercase;
+        color:var(--t3); margin:14px 0 6px; }
+  .opts{ display:flex; gap:6px; flex-wrap:wrap; }
+  .opt{ padding:8px 12px; border:1.5px solid var(--line); border-radius:9px; background:#fff;
+        font:800 .8rem 'Nunito',sans-serif; color:var(--t2); cursor:pointer; }
+  .opt[aria-pressed="true"]{ border-color:var(--teal); background:var(--teal-soft); color:var(--teal-ink); }
+
+  .sec{ border:1.5px solid var(--line); border-radius:12px; padding:12px; margin-bottom:9px; }
+  .sec h3{ font-size:.9rem; font-weight:900; }
+  .sec .row{ display:flex; gap:6px; flex-wrap:wrap; margin-top:7px; align-items:center; }
+  .sec .row > span{ font-size:.76rem; color:var(--t3); font-weight:800; min-width:74px; }
+  .sec .kill{ float:right; border:none; background:none; color:var(--bad);
+              font:900 .8rem 'Nunito',sans-serif; cursor:pointer; }
+  .totals{ background:#F7F9FF; border-radius:10px; padding:10px 12px; font-size:.82rem;
+           font-weight:800; color:var(--t2); margin-top:10px; }
+  .msg{ font-size:.82rem; min-height:1.3em; margin-top:10px; }
+  .msg.ok{ color:var(--good); font-weight:800; } .msg.err{ color:var(--bad); font-weight:800; }
+  .acts{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .btn{ flex:1; min-width:130px; padding:12px; border:none; border-radius:11px; background:var(--teal);
+        color:#fff; font:900 .88rem 'Nunito',sans-serif; cursor:pointer; }
+  .btn.ghost{ background:#fff; color:var(--t2); border:1.5px solid var(--line); }
+  .btn.warn{ background:#fff; color:var(--org-ink); border:1.5px solid var(--org); }
+  button:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+  .spin{ padding:40px; text-align:center; color:var(--t3); }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="back" href="dashboard.html" aria-label="Back to admin">&larr;</a>
+  <div>
+    <h1>&#128221; Tests</h1>
+    <p>Design each paper. A level needs at least two passed before a certificate.</p>
+  </div>
+  <div class="progs" id="progs"></div>
+</div>
+<div class="banner" id="banner"></div>
+<div class="wrap"><div id="body"><div class="spin">Reading your tests&hellip;</div></div></div>
+
+<div id="sheet" onclick="if(event.target.id==='sheet')close_()">
+  <div class="sheet-in" id="sheetIn" role="dialog" aria-modal="true"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   The test matrix
+   ------------------------------------------------------------
+   Levels down the side, Test 1 and Test 2 across, because Megha's
+   rule is at least two passed papers per level before a certificate
+   — two papers let her split the methods between them, which one
+   paper cannot do.
+
+   A paper is a BLUEPRINT, not a fixed set of sums: each section says
+   which concept, how many questions, how big, and how it reaches the
+   child — written, read aloud, or mentally with no abacus. The sums
+   themselves are generated from it, so a child who fails gets a fresh
+   paper of the same design rather than the same numbers again.
+
+   Nothing here generates anything yet. This is the design step; the
+   generator and the child's test screen come next, and they will read
+   exactly what she sets here.
+   ============================================================ */
+
+var sb = supabase.createClient(
+  'https://bhullfoajenhkxlkiubs.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc');
+
+var PROG = 'abacus';
+var LEVELS = [], CONCEPTS = {}, BLUEPRINTS = {}, open_ = null, draft = null;
+
+/* How a section reaches the child. Her words, not jargon. */
+var DELIVERY = {
+  written: { name: 'Written',          sub: 'The sums are on the page' },
+  oral:    { name: 'Read aloud',       sub: 'The teacher or the app reads them out' },
+  mental:  { name: 'Mental, no abacus', sub: 'Worked in the head \u2014 anzan' },
+  flash:   { name: 'Flashed',          sub: 'Shown briefly, then gone' }
+};
+var COUNTS = [5, 10, 15, 20, 25];
+var DIGITS = [1, 2, 3, 4, 5];
+var ROWS   = [2, 3, 4, 5, 6, 8, 10];
+var MINS   = [null, 5, 10, 15, 20, 30, 45];
+var PASSES = [70, 80, 90, 100];
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+  return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+function banner(kind, html){ var b = document.getElementById('banner'); b.className='banner '+kind; b.innerHTML=html; }
+
+async function load() {
+  var s = await sb.auth.getSession();
+  if (!s.data.session) { location.href = '../../login.html'; return; }
+
+  /* The tables may not be there yet. Said plainly, with the file to
+     run, rather than an empty page that looks broken \u2014 and nothing
+     else on this screen pretends to work until they are. */
+  var bp = await sb.from('test_blueprints').select('*').eq('program_code', PROG);
+  if (bp.error) {
+    var missing = /does not exist|schema cache|relation/i.test(bp.error.message || '');
+    banner('err', missing
+      ? '<b>The test tables are not in the database yet.</b> Run <code>024_tests.sql</code> ' +
+        'and reload this page. Nothing else has to change, and nothing that works today is affected.'
+      : 'Could not read the tests: ' + esc(bp.error.message));
+    document.getElementById('body').innerHTML = '';
+    return;
+  }
+
+  BLUEPRINTS = {};
+  (bp.data || []).forEach(function (b) { BLUEPRINTS[b.level_code + '|' + b.test_no] = b; });
+
+  var lv = await sb.from('curriculum_levels')
+    .select('level_code, level_name, test_pass_mark').eq('program_code', PROG);
+  if (lv.error) { banner('err', 'Could not read the levels: ' + esc(lv.error.message)); return; }
+  LEVELS = (lv.data || []).sort(function (a, b) {
+    return parseInt(String(a.level_code).replace(/\D/g, ''), 10) -
+           parseInt(String(b.level_code).replace(/\D/g, ''), 10);
+  });
+
+  /* Only the concepts each level actually teaches can be tested. */
+  var cc = await sb.from('curriculum_level_concepts')
+    .select('level_code, status, curriculum_concepts(concept_code, concept_name)')
+    .eq('program_code', PROG);
+  CONCEPTS = {};
+  (cc.data || []).forEach(function (r) {
+    if (!r.curriculum_concepts || !r.status || r.status === 'N') return;
+    (CONCEPTS[r.level_code] = CONCEPTS[r.level_code] || []).push({
+      code: r.curriculum_concepts.concept_code,
+      name: r.curriculum_concepts.concept_name,
+      status: r.status
+    });
+  });
+
+  banner('info', 'A certificate needs <b>two passed papers</b> at a level. ' +
+    'A child who fails gets a fresh paper of the same design, not the same numbers.');
+  drawProgs();
+  draw();
+}
+
+function drawProgs() {
+  document.getElementById('progs').innerHTML = [['abacus','\uD83E\uDDEE Abacus'],['vedic','\u0950 Vedic']]
+    .map(function (p) {
+      return '<button aria-pressed="' + (p[0] === PROG) + '" onclick="pickProg(\'' + p[0] + '\')">' +
+        p[1] + '</button>';
+    }).join('');
+}
+function pickProg(p) { PROG = p; document.getElementById('body').innerHTML =
+  '<div class="spin">Reading&hellip;</div>'; load(); }
+
+function summary(b) {
+  if (!b) return '<span class="pill none">not designed</span><div class="add">+ design this paper</div>';
+  var secs = b.sections || [];
+  var qs = secs.reduce(function (n, s) { return n + (Number(s.count) || 0); }, 0);
+  var ways = {};
+  secs.forEach(function (s) { ways[s.delivery || 'written'] = true; });
+  return '<span class="pill ' + (b.status === 'published' ? 'published' : 'draft') + '">' +
+      esc(b.status) + '</span>' +
+    '<div class="sum">' + esc(b.title || 'Untitled') + '<br>' +
+      secs.length + ' section' + (secs.length === 1 ? '' : 's') + ' \u00b7 ' + qs + ' questions<br>' +
+      Object.keys(ways).map(function (w) { return (DELIVERY[w] || {}).name || w; }).join(', ') +
+      (b.time_limit_mins ? ' \u00b7 ' + b.time_limit_mins + ' min' : '') +
+      ' \u00b7 pass ' + b.pass_mark + '%' +
+    '</div>';
+}
+
+function draw() {
+  var most = 2;
+  Object.keys(BLUEPRINTS).forEach(function (k) {
+    var n = Number(k.split('|')[1]); if (n > most) most = n;
+  });
+
+  var h = '<table><thead><tr><th>Level</th>';
+  for (var t = 1; t <= most; t++) h += '<th>Test ' + t + '</th>';
+  h += '<th></th></tr></thead><tbody>';
+
+  LEVELS.forEach(function (l) {
+    var made = 0;
+    for (var t = 1; t <= most; t++) if (BLUEPRINTS[l.level_code + '|' + t]) made++;
+    h += '<tr' + (made < 2 ? ' class="short"' : '') + '>' +
+      '<td class="lv">' + esc(l.level_code) + '<span>' + esc(l.level_name || '') + '</span></td>';
+    for (var t2 = 1; t2 <= most; t2++) {
+      h += '<td class="cell" onclick="edit(\'' + l.level_code + '\',' + t2 + ')">' +
+        summary(BLUEPRINTS[l.level_code + '|' + t2]) + '</td>';
+    }
+    h += '<td class="cell" onclick="edit(\'' + l.level_code + '\',' + (most + 1) + ')">' +
+      '<div class="add">+ another</div></td></tr>';
+  });
+  h += '</tbody></table>' +
+    '<div class="note">A level marked <b>needs 2</b> has fewer than two papers, so no child can ' +
+    'earn its certificate yet. Tap any cell to design or change a paper.</div>';
+  document.getElementById('body').innerHTML = h;
+}
+
+/* ── designing one paper ─────────────────────────────────── */
+function edit(levelCode, testNo) {
+  var existing = BLUEPRINTS[levelCode + '|' + testNo];
+  var lv = LEVELS.filter(function (l) { return l.level_code === levelCode; })[0] || {};
+  open_ = { levelCode: levelCode, testNo: testNo, id: existing ? existing.id : null };
+  draft = existing ? JSON.parse(JSON.stringify(existing)) : {
+    program_code: PROG, level_code: levelCode, test_no: testNo,
+    title: 'Level ' + levelCode.replace(/\D/g, '') + ' \u2014 Test ' + testNo,
+    sections: [], pass_mark: lv.test_pass_mark || 80,
+    time_limit_mins: 15, attempts_allowed: 3, retake_wait_hours: 24, status: 'draft'
+  };
+  if (!Array.isArray(draft.sections)) draft.sections = [];
+  paint();
+  document.getElementById('sheet').classList.add('show');
+}
+
+function paint() {
+  var avail = CONCEPTS[open_.levelCode] || [];
+  var qs = draft.sections.reduce(function (n, s) { return n + (Number(s.count) || 0); }, 0);
+
+  var h = '<h2>' + esc(draft.title) + '</h2>' +
+    '<div class="at">' + esc(open_.levelCode) + ' \u00b7 Test ' + open_.testNo + '</div>';
+
+  h += '<div class="lab">Sections</div>';
+  if (!draft.sections.length) {
+    h += '<div class="sec" style="color:var(--t3);font-size:.84rem;">' +
+      'No sections yet. Add one for each group of methods you want this paper to cover \u2014 ' +
+      'that is how Test 1 and Test 2 come to ask different things.</div>';
+  }
+  h += draft.sections.map(function (s, i) {
+    var cname = (avail.filter(function (c) { return c.code === s.concept; })[0] || {}).name || s.concept;
+    return '<div class="sec">' +
+      '<button class="kill" onclick="dropSection(' + i + ')">Remove</button>' +
+      '<h3>' + esc(cname || 'Choose a method') + '</h3>' +
+
+      '<div class="row"><span>Method</span>' +
+        avail.map(function (c) {
+          return '<button class="opt" aria-pressed="' + (s.concept === c.code) + '" ' +
+            'onclick="setSec(' + i + ',\'concept\',\'' + c.code + '\')">' + esc(c.name) + '</button>';
+        }).join('') +
+      '</div>' +
+
+      '<div class="row"><span>Questions</span>' +
+        COUNTS.map(function (n) {
+          return '<button class="opt" aria-pressed="' + (Number(s.count) === n) + '" ' +
+            'onclick="setSec(' + i + ',\'count\',' + n + ')">' + n + '</button>';
+        }).join('') +
+      '</div>' +
+
+      '<div class="row"><span>Digits</span>' +
+        DIGITS.map(function (n) {
+          return '<button class="opt" aria-pressed="' + (Number(s.digits) === n) + '" ' +
+            'onclick="setSec(' + i + ',\'digits\',' + n + ')">' + n + '</button>';
+        }).join('') +
+      '</div>' +
+
+      '<div class="row"><span>Rows</span>' +
+        ROWS.map(function (n) {
+          return '<button class="opt" aria-pressed="' + (Number(s.rows) === n) + '" ' +
+            'onclick="setSec(' + i + ',\'rows\',' + n + ')">' + n + '</button>';
+        }).join('') +
+      '</div>' +
+
+      '<div class="row"><span>How</span>' +
+        Object.keys(DELIVERY).map(function (d) {
+          return '<button class="opt" aria-pressed="' + ((s.delivery || 'written') === d) + '" ' +
+            'title="' + esc(DELIVERY[d].sub) + '" ' +
+            'onclick="setSec(' + i + ',\'delivery\',\'' + d + '\')">' + DELIVERY[d].name + '</button>';
+        }).join('') +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  h += '<div class="acts"><button class="btn ghost" onclick="addSection()">+ Add a section</button></div>';
+
+  h += '<div class="lab">The whole paper</div>' +
+    '<div class="row" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">' +
+      '<span style="font-size:.76rem;color:var(--t3);font-weight:800;min-width:74px;">Pass mark</span>' +
+      PASSES.map(function (p) {
+        return '<button class="opt" aria-pressed="' + (draft.pass_mark === p) + '" ' +
+          'onclick="setTop(\'pass_mark\',' + p + ')">' + p + '%</button>';
+      }).join('') +
+    '</div>' +
+    '<div class="row" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:7px;">' +
+      '<span style="font-size:.76rem;color:var(--t3);font-weight:800;min-width:74px;">Time</span>' +
+      MINS.map(function (m) {
+        return '<button class="opt" aria-pressed="' + (draft.time_limit_mins === m) + '" ' +
+          'onclick="setTop(\'time_limit_mins\',' + (m === null ? 'null' : m) + ')">' +
+          (m === null ? 'No limit' : m + ' min') + '</button>';
+      }).join('') +
+    '</div>' +
+    '<div class="row" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:7px;">' +
+      '<span style="font-size:.76rem;color:var(--t3);font-weight:800;min-width:74px;">Attempts</span>' +
+      [1,2,3,5].map(function (n) {
+        return '<button class="opt" aria-pressed="' + (draft.attempts_allowed === n) + '" ' +
+          'onclick="setTop(\'attempts_allowed\',' + n + ')">' + n + '</button>';
+      }).join('') +
+      '<span style="font-size:.74rem;color:var(--t3);">a fresh paper each time</span>' +
+    '</div>' +
+    '<div class="row" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:7px;">' +
+      '<span style="font-size:.76rem;color:var(--t3);font-weight:800;min-width:74px;">Wait between</span>' +
+      [0,4,24,48].map(function (n) {
+        return '<button class="opt" aria-pressed="' + (draft.retake_wait_hours === n) + '" ' +
+          'onclick="setTop(\'retake_wait_hours\',' + n + ')">' +
+          (n === 0 ? 'None' : n + ' hours') + '</button>';
+      }).join('') +
+    '</div>';
+
+  h += '<div class="totals">' + draft.sections.length + ' section' +
+    (draft.sections.length === 1 ? '' : 's') + ' \u00b7 <b>' + qs + ' questions</b>' +
+    (qs ? ' \u00b7 pass at ' + Math.ceil(qs * draft.pass_mark / 100) + ' right' : '') + '</div>';
+
+  h += '<div class="msg" id="msg" role="status"></div>' +
+    '<div class="acts">' +
+      '<button class="btn" onclick="save(\'draft\')">Save as draft</button>' +
+      '<button class="btn warn" onclick="save(\'published\')">' +
+        (draft.status === 'published' ? 'Save, keep published' : 'Publish') + '</button>' +
+      '<button class="btn ghost" onclick="close_()">Close</button>' +
+    '</div>' +
+    '<div class="note">A draft is yours to work on. Published means children may be given it.</div>';
+
+  document.getElementById('sheetIn').innerHTML = h;
+}
+
+function addSection() {
+  var avail = CONCEPTS[open_.levelCode] || [];
+  draft.sections.push({
+    concept: avail.length ? avail[0].code : '',
+    count: 10, digits: 2, rows: 3, delivery: 'written', note: ''
+  });
+  paint();
+}
+function dropSection(i) { draft.sections.splice(i, 1); paint(); }
+function setSec(i, key, val) { draft.sections[i][key] = val; paint(); }
+function setTop(key, val) { draft[key] = val; paint(); }
+
+async function save(status) {
+  var msg = document.getElementById('msg');
+  if (!draft.sections.length) {
+    msg.className = 'msg err'; msg.textContent = 'Add at least one section first.'; return;
+  }
+  var noMethod = draft.sections.filter(function (s) { return !s.concept; }).length;
+  if (noMethod) {
+    msg.className = 'msg err';
+    msg.textContent = noMethod + ' section' + (noMethod === 1 ? '' : 's') + ' still need a method.';
+    return;
+  }
+  msg.className = 'msg'; msg.textContent = 'Saving\u2026';
+
+  var row = {
+    program_code: PROG, level_code: open_.levelCode, test_no: open_.testNo,
+    title: draft.title, sections: draft.sections, pass_mark: draft.pass_mark,
+    time_limit_mins: draft.time_limit_mins, attempts_allowed: draft.attempts_allowed,
+    retake_wait_hours: draft.retake_wait_hours, status: status,
+    updated_at: new Date().toISOString()
+  };
+
+  /* Read back before claiming it saved. */
+  var res = await sb.from('test_blueprints')
+    .upsert(row, { onConflict: 'program_code,level_code,test_no' }).select();
+  if (res.error || !res.data || !res.data.length) {
+    msg.className = 'msg err';
+    msg.textContent = 'Not saved: ' + ((res.error && res.error.message) || 'nothing was written');
+    return;
+  }
+  BLUEPRINTS[open_.levelCode + '|' + open_.testNo] = res.data[0];
+  draft.status = status;
+  msg.className = 'msg ok';
+  msg.textContent = status === 'published'
+    ? 'Published. Children at this level can be given this paper once the test screen is in.'
+    : 'Saved as a draft. Nothing goes to a child until you publish it.';
+  draw();
+  paint();
+  document.getElementById('msg').className = 'msg ok';
+  document.getElementById('msg').textContent = msg.textContent;
+}
+
+function close_() { document.getElementById('sheet').classList.remove('show'); open_ = null; draft = null; }
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close_(); });
+
+load().catch(function (e) { banner('err', 'Could not load: ' + esc(e.message)); });
+</script>
+</body>
+</html>

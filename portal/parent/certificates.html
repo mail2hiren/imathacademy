@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Certificates &mdash; iMath Academy</title>
+<link rel="icon" type="image/png" href="/assets/icon-32.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Fredoka:wght@600&family=Comfortaa:wght@600;700&family=Great+Vibes&display=swap" rel="stylesheet">
+<style>
+  :root{ --blue:#1565C0; --orange:#E67D21; --teal:#04949D; --gold:#B8860B;
+         --t1:#1F2430; --t2:#4A5160; --t3:#8892A4; --line:#E6E9F0; --bg:#F5F7FC; }
+  :root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px);
+         padding-bottom:env(safe-area-inset-bottom,0px); }
+  *,*::before,*::after{ box-sizing:inherit; margin:0; padding:0; }
+  body{ font-family:'Nunito',system-ui,sans-serif; background:var(--bg); color:var(--t1);
+        -webkit-font-smoothing:antialiased; }
+
+  .top{ background:#fff; border-bottom:1.5px solid var(--line); padding:12px 16px;
+        display:flex; align-items:center; gap:12px; }
+  .top a.back{ color:var(--t3); text-decoration:none; font-size:1.3rem; }
+  .top h1{ font-size:1.05rem; font-weight:900; }
+  .top p{ font-size:.78rem; color:var(--t3); }
+
+  .wrap{ max-width:1000px; margin:0 auto; padding:16px 14px 40px; }
+
+  .whose{ display:flex; gap:7px; flex-wrap:wrap; margin-bottom:14px; }
+  .whose button{ padding:8px 14px; border-radius:999px; border:2px solid var(--line);
+                 background:#fff; font:800 .86rem 'Nunito',sans-serif; color:var(--t2); cursor:pointer; }
+  .whose button[aria-pressed="true"]{ border-color:var(--teal); background:#E7F6F7; color:#04616a; }
+
+  .list{ display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:10px; }
+  .cert{ background:#fff; border:2px solid var(--line); border-radius:16px; padding:14px;
+         cursor:pointer; text-align:left; font-family:inherit; }
+  .cert[aria-pressed="true"]{ border-color:var(--gold); box-shadow:0 0 0 3px #FFF6E0; }
+  .cert .ribbon{ font-size:1.5rem; }
+  .cert h3{ font-size:.98rem; font-weight:900; margin-top:4px; }
+  .cert .who{ font-size:.8rem; color:var(--t2); }
+  .cert .when{ font-size:.74rem; color:var(--t3); margin-top:4px; }
+  .cert .no{ font-size:.68rem; color:var(--t3); font-variant-numeric:tabular-nums; }
+
+  .stage{ margin-top:16px; background:#fff; border-radius:18px; padding:14px;
+          box-shadow:0 2px 14px rgba(20,30,60,.07); }
+  .paper{ width:100%; aspect-ratio:2000/1414; background:#FAFBFD; border-radius:10px;
+          overflow:hidden; display:flex; align-items:center; justify-content:center; }
+  .paper canvas{ width:100%; height:auto; display:block; }
+  .acts{ display:flex; gap:9px; margin-top:12px; flex-wrap:wrap; }
+  .btn{ flex:1; min-width:150px; padding:13px; border:none; border-radius:12px;
+        background:var(--teal); color:#fff; font:900 .92rem 'Nunito',sans-serif; cursor:pointer; }
+  .btn.ghost{ background:#fff; color:var(--teal); border:2px solid var(--teal); }
+  .btn:disabled{ opacity:.5; cursor:default; }
+  button:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+
+  .empty{ background:#fff; border-radius:16px; padding:34px 20px; text-align:center; }
+  .empty .big{ font-size:2.4rem; }
+  .empty h2{ font-size:1.05rem; font-weight:900; margin-top:8px; }
+  .empty p{ font-size:.88rem; color:var(--t2); margin-top:6px; }
+  .note{ font-size:.76rem; color:var(--t3); margin-top:10px; text-align:center; }
+  .err{ background:#FDECEA; color:#B71C1C; border-radius:12px; padding:12px 14px;
+        font-size:.86rem; font-weight:800; }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="back" href="#" id="backLink" aria-label="Back">&larr;</a>
+  <div>
+    <h1>&#127942; Certificates</h1>
+    <p id="sub">Every certificate awarded so far</p>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="whose" id="whose"></div>
+  <div id="body"><div class="empty"><div class="big">&#8987;</div><h2>Looking for certificates&hellip;</h2></div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/certificate-draw.js"></script>
+<script>
+/* ============================================================
+   Certificates for a child and for a parent
+   ------------------------------------------------------------
+   One page serves both: a child sees their own, a parent sees each of
+   their children and picks between them. Which it is comes from the
+   role on the account, not from the address, so neither can see the
+   other's by changing the link.
+
+   Nothing is stored as a file. Each certificate is redrawn from the
+   award the teacher made, so what a parent downloads today is the
+   same certificate, with the same number, as the day it was given.
+   ============================================================ */
+
+var sb = supabase.createClient(
+  'https://bhullfoajenhkxlkiubs.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc');
+
+var KIDS = [];        // { id, name }
+var CERTS = [];       // one per award
+var LEVELS = {};      // level_code -> level name, per programme
+var whoseId = null, chosen = null, busy = false;
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+  return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+function fail(msg){ document.getElementById('body').innerHTML = '<div class="err">' + esc(msg) + '</div>'; }
+
+async function start() {
+  var s = await sb.auth.getSession();
+  if (!s.data.session) { location.href = '../../login.html'; return; }
+  var me = s.data.session.user.id;
+
+  var prof = await sb.from('users').select('id, full_name, role').eq('id', me).maybeSingle();
+  if (prof.error) { fail('Could not read the account: ' + prof.error.message); return; }
+  var role = (prof.data && prof.data.role) || 'student';
+  document.getElementById('backLink').setAttribute('href',
+    role === 'parent' ? 'dashboard.html' : 'dashboard.html');
+
+  /* Whose certificates. A parent's children come from the link the
+     academy made; a child only ever sees their own. */
+  if (role === 'parent') {
+    var link = await sb.from('parent_student')
+      .select('student_id, users:student_id(full_name)').eq('parent_id', me);
+    if (link.error) { fail('Could not read your children: ' + link.error.message); return; }
+    KIDS = (link.data || []).map(function (r) {
+      return { id: r.student_id, name: (r.users && r.users.full_name) || 'Your child' };
+    });
+    document.getElementById('sub').textContent =
+      KIDS.length > 1 ? 'Choose a child, then a certificate' : 'Every certificate awarded so far';
+    if (!KIDS.length) {
+      document.getElementById('body').innerHTML =
+        '<div class="empty"><div class="big">&#128100;</div>' +
+        '<h2>No child is linked to this account yet</h2>' +
+        '<p>Please ask the academy to link your child, and the certificates will appear here.</p></div>';
+      return;
+    }
+  } else {
+    KIDS = [{ id: me, name: (prof.data && prof.data.full_name) || 'You' }];
+  }
+  whoseId = KIDS[0].id;
+
+  /* The level names, so a certificate reads "Level 4 — Intermediate". */
+  try {
+    var lv = await sb.from('curriculum_levels').select('program_code, level_code, level_name');
+    (lv.data || []).forEach(function (l) {
+      LEVELS[(l.program_code || 'abacus') + '|' + l.level_code] = l.level_name;
+    });
+  } catch (e) { /* a nicety, not a requirement */ }
+
+  var ids = KIDS.map(function (k) { return k.id; });
+  /* select('*') on purpose. Awarding does not record a programme, and
+     naming a column that does not exist fails the WHOLE query and
+     would show "no certificates" to a child who has them. The
+     programme is read from the level code instead: VL1 is Vedic. */
+  var comp = await sb.from('student_level_completions')
+    .select('*').in('student_id', ids);
+  if (comp.error) { fail('Could not read the certificates: ' + comp.error.message); return; }
+
+  CERTS = (comp.data || []).filter(function (r) { return r.certificate_number || r.completed_at; })
+    .sort(function (a, b) {
+      return String(b.completed_at || '').localeCompare(String(a.completed_at || ''));
+    });
+
+  drawWhose();
+  drawList();
+}
+
+function drawWhose() {
+  var el = document.getElementById('whose');
+  if (KIDS.length < 2) { el.innerHTML = ''; return; }
+  el.innerHTML = KIDS.map(function (k) {
+    var n = CERTS.filter(function (c) { return c.student_id === k.id; }).length;
+    return '<button aria-pressed="' + (k.id === whoseId) + '" onclick="pickChild(\'' + k.id + '\')">' +
+      esc(k.name) + ' &middot; ' + n + '</button>';
+  }).join('');
+}
+function pickChild(id) { whoseId = id; chosen = null; drawWhose(); drawList(); }
+
+function certFor(row) {
+  var prog = row.program_code || (/^VL/.test(row.level_code || '') ? 'vedic' : 'abacus');
+  var name = LEVELS[prog + '|' + String(row.level_code).replace(/^V/, '')] ||
+             LEVELS[prog + '|' + row.level_code] || '';
+  var lines = CertificateDraw.linesFor(row, name,
+    prog === 'vedic' ? 'Vedic Maths programme' : 'International ABACUS program');
+  var who = (KIDS.filter(function (k) { return k.id === row.student_id; })[0] || {}).name || '';
+  return {
+    name: who, line1: lines.line1, line2: lines.line2, level: lines.level,
+    date: row.completed_at, certificate_number: row.certificate_number, programme: prog
+  };
+}
+
+function drawList() {
+  var mine = CERTS.filter(function (c) { return c.student_id === whoseId; });
+  var body = document.getElementById('body');
+
+  if (!mine.length) {
+    var who = (KIDS.filter(function (k) { return k.id === whoseId; })[0] || {}).name || '';
+    body.innerHTML = '<div class="empty"><div class="big">&#127775;</div>' +
+      '<h2>No certificates yet</h2>' +
+      '<p>' + (KIDS.length > 1 ? esc(who) + ' will' : 'You will') +
+      ' get one on finishing a level \u2014 and it will appear here to keep, print or download.</p></div>';
+    return;
+  }
+
+  if (!chosen) chosen = mine[0];
+  body.innerHTML =
+    '<div class="list">' + mine.map(function (c, i) {
+      var d = certFor(c);
+      return '<button class="cert" aria-pressed="' + (c === chosen) + '" onclick="pickCert(' + i + ')">' +
+        '<div class="ribbon">&#127942;</div>' +
+        '<h3>Level ' + esc(d.level) + (d.programme === 'vedic' ? ' \u00b7 Vedic' : '') + '</h3>' +
+        '<div class="who">' + esc(d.line1.replace(/^Certificate of Completion for /, '')) + '</div>' +
+        '<div class="when">' + esc(CertificateDraw.prettyDate(c.completed_at) || 'Awarded') + '</div>' +
+        (c.certificate_number ? '<div class="no">' + esc(c.certificate_number) + '</div>' : '') +
+      '</button>';
+    }).join('') + '</div>' +
+    '<div class="stage">' +
+      '<div class="paper" id="paper"></div>' +
+      '<div class="acts">' +
+        '<button class="btn" id="dl" onclick="doDownload()">&#11015; Download</button>' +
+        '<button class="btn ghost" id="pr" onclick="doPrint()">&#128424; Print</button>' +
+      '</div>' +
+      '<div class="note">Saved as a picture you can keep, send on, or print on A4 landscape.</div>' +
+    '</div>';
+  show();
+}
+
+function pickCert(i) {
+  var mine = CERTS.filter(function (c) { return c.student_id === whoseId; });
+  chosen = mine[i];
+  drawList();
+}
+
+async function show() {
+  var paper = document.getElementById('paper');
+  if (!paper || !chosen) return;
+  paper.innerHTML = '';
+  var c = await CertificateDraw.draw(certFor(chosen));
+  paper.appendChild(c);
+}
+
+async function doDownload() {
+  if (busy || !chosen) return;
+  busy = true;
+  var b = document.getElementById('dl'); b.disabled = true; b.textContent = 'Saving\u2026';
+  try { await CertificateDraw.download(certFor(chosen)); }
+  catch (e) { alert('Could not save the certificate: ' + e.message); }
+  b.disabled = false; b.innerHTML = '&#11015; Download'; busy = false;
+}
+
+async function doPrint() {
+  if (busy || !chosen) return;
+  busy = true;
+  try { await CertificateDraw.print(certFor(chosen)); }
+  catch (e) { alert('Could not print the certificate: ' + e.message); }
+  busy = false;
+}
+
+start().catch(function (e) { fail('Could not load: ' + e.message); });
+</script>
+</body>
+</html>

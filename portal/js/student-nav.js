@@ -27,6 +27,7 @@ var STUDENT_NAV = [
 
   { section: 'My stuff' },
   { href: 'progress.html',     icon: '📊', label: 'Progress' },
+  { href: 'certificates.html', icon: '🏆', label: 'Certificates' },
 
   { section: 'Account' },
   { href: 'subscription.html', icon: '💳', label: 'Subscription' }

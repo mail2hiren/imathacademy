@@ -110,26 +110,36 @@ var VedicSteps = (function (S) {
        carry" hid the step where the carry is actually used, which is
        the part a child gets wrong. Each place is now its own box, from
        the units leftwards, and the carry is named. */
+    /* Left to right, as Vedic is worked — hundreds, then tens, then
+       units. Megha: "the student should solve the sums from left to
+       right". It ran the school way before, units first with a carry
+       chained along, which is the opposite habit.
+
+       Each column's total is written IN FULL, with no carrying as you
+       go: 573 + 637 gives 11, 10 and 10, and putting those in their
+       places gives 1210. The places do the carrying. */
     stacking: function (a, b) {
+      var sa = String(a), sb = String(b);
+      var width = Math.max(sa.length, sb.length);
+      while (sa.length < width) sa = '0' + sa;
+      while (sb.length < width) sb = '0' + sb;
+
+      var PLACE = { 1: 'Units', 2: 'Tens', 3: 'Hundreds', 4: 'Thousands', 5: 'Ten thousands' };
       var steps = [];
-      var da = String(a).split('').reverse().map(Number);
-      var db = String(b).split('').reverse().map(Number);
-      var places = ['Units', 'Tens', 'Hundreds', 'Thousands'];
-      var n = Math.max(da.length, db.length);
-      var carry = 0;
-      for (var i = 0; i < n; i++) {
-        var x = da[i] || 0, y = db[i] || 0;
-        var sum = x + y + carry;
+      for (var i = 0; i < width; i++) {
+        var x = Number(sa[i]), y = Number(sb[i]);
+        var place = PLACE[width - i] || 'Next';
         steps.push({
-          ask: (places[i] || 'Next') + ': ' + x + ' + ' + y +
-               (carry ? ' + ' + carry + ' carried' : ''),
-          answer: sum,
-          hint: sum > 9 ? 'Write the last digit and carry the 1' : ''
+          ask: place + ': ' + x + ' + ' + y,
+          answer: x + y,
+          hint: 'Write the whole total \u2014 do not carry yet'
         });
-        carry = sum > 9 ? Math.floor(sum / 10) : 0;
       }
-      if (carry) steps.push({ ask: 'The carry on the left', answer: carry, hint: '' });
-      steps.push({ ask: 'Put the digits together. The answer is', answer: a + b, hint: '' });
+      steps.push({
+        ask: 'Now put them in their places. The answer is',
+        answer: a + b,
+        hint: 'The first total counts ' + Math.pow(10, width - 1) + 's'
+      });
       return steps;
     },
 

@@ -24,6 +24,7 @@ var STUDENT_NAV = [
   { href: 'practice.html',     icon: '⚡', label: 'Practice' },
   { href: 'worksheets.html',   icon: '📋', label: 'Worksheets' },
   { href: 'weekly-quiz.html',  icon: '⭐', label: 'Weekly Challenge' },
+  { href: 'test.html',         icon: '📝', label: 'Level tests' },
 
   { section: 'My stuff' },
   { href: 'progress.html',     icon: '📊', label: 'Progress' },

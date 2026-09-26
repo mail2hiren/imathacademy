@@ -108,6 +108,14 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/bead-rules.js"></script>
+<script src="../js/column-gen.js"></script>
+<script src="../js/practice-engine.js"></script>
+<script src="../js/sutra-rules.js"></script>
+<script src="../js/vedic-gen.js"></script>
+<script src="../js/vedic-steps.js"></script>
+<script src="../js/vedic-engine.js"></script>
+<script src="../js/test-gen.js"></script>
 <script>
 /* ============================================================
    The test matrix
@@ -372,9 +380,12 @@ function paint() {
       '<button class="btn" onclick="save(\'draft\')">Save as draft</button>' +
       '<button class="btn warn" onclick="save(\'published\')">' +
         (draft.status === 'published' ? 'Save, keep published' : 'Publish') + '</button>' +
+      '<button class="btn ghost" onclick="preview()">See the paper this makes</button>' +
       '<button class="btn ghost" onclick="close_()">Close</button>' +
     '</div>' +
-    '<div class="note">A draft is yours to work on. Published means children may be given it.</div>';
+    '<div class="note">A draft is yours to work on. Published means children may be given it. ' +
+    'Every child at this level sits the same paper, and a retake is a fresh one of the same design.</div>' +
+    '<div id="paper"></div>';
 
   document.getElementById('sheetIn').innerHTML = h;
 }
@@ -430,6 +441,62 @@ async function save(status) {
   paint();
   document.getElementById('msg').className = 'msg ok';
   document.getElementById('msg').textContent = msg.textContent;
+}
+
+/* The paper her blueprint actually makes, from the same generator a
+   child will be given, so what she judges here is what they sit. */
+async function preview() {
+  var host = document.getElementById('paper');
+  if (!host) return;
+  host.innerHTML = '<div class="lab">The paper</div><div class="spin">Building\u2026</div>';
+  try {
+    var paper = await TestGen.build({
+      program_code: PROG, level_code: open_.levelCode, test_no: open_.testNo,
+      sections: draft.sections, pass_mark: draft.pass_mark
+    });
+    var bad = await TestGen.audit(paper);
+    var byDelivery = {};
+    paper.questions.forEach(function (q) {
+      (byDelivery[q.delivery] = byDelivery[q.delivery] || []).push(q);
+    });
+
+    var h = '<div class="lab">The paper this makes</div>';
+    if (paper.problems.length) {
+      h += '<div class="sec" style="border-color:var(--org);background:var(--org-soft);">' +
+        '<b>Worth knowing</b><br>' + paper.problems.map(esc).join('<br>') +
+        '<div style="font-size:.78rem;margin-top:6px;">Usually the digits or rows leave the ' +
+        'level too little room. Try fewer questions in that section, or a bigger size.</div></div>';
+    }
+    if (bad.length) {
+      h += '<div class="sec" style="border-color:var(--bad);">' +
+        '<b>' + bad.length + ' question(s) fall outside this level</b><br>' +
+        bad.slice(0, 3).map(esc).join('<br>') + '</div>';
+    }
+    h += '<div class="totals">' + paper.total + ' questions \u00b7 pass at ' +
+      Math.ceil(paper.total * draft.pass_mark / 100) + ' right' +
+      (draft.time_limit_mins ? ' \u00b7 ' + draft.time_limit_mins + ' minutes' : '') + '</div>';
+
+    Object.keys(byDelivery).forEach(function (d) {
+      var qs = byDelivery[d];
+      h += '<div class="sec"><h3>' + ((DELIVERY[d] || {}).name || d) + ' \u00b7 ' +
+          qs.length + ' question' + (qs.length === 1 ? '' : 's') + '</h3>' +
+        '<div style="font-size:.74rem;color:var(--t3);">' + esc((DELIVERY[d] || {}).sub || '') + '</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">' +
+          qs.map(function (q) {
+            return '<div style="border:1px solid var(--line);border-radius:8px;padding:7px 9px;' +
+              'font-family:ui-monospace,monospace;font-size:.8rem;white-space:pre-line;">' +
+              esc(q.question) + '<div style="color:var(--good);font-weight:800;">= ' +
+              esc(q.answer) + '</div></div>';
+          }).join('') +
+        '</div></div>';
+    });
+    h += '<div class="note">Different numbers every time this is built \u2014 that is what makes a ' +
+      'retake a fresh paper rather than the same one again.</div>';
+    host.innerHTML = h;
+  } catch (e) {
+    host.innerHTML = '<div class="sec" style="border-color:var(--bad);">Could not build the paper: ' +
+      esc(e.message) + '</div>';
+  }
 }
 
 function close_() { document.getElementById('sheet').classList.remove('show'); open_ = null; draft = null; }

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tests &mdash; iMath Academy</title>
+<link rel="icon" type="image/png" href="/assets/icon-32.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{ --blue:#1565C0; --teal:#04949D; --teal-soft:#E7F6F7; --org:#E67D21;
+         --good:#2E7D32; --bad:#C62828; --t1:#1F2430; --t2:#4A5160; --t3:#8892A4;
+         --line:#E6E9F0; --bg:#F5F7FC; }
+  :root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px);
+         padding-bottom:env(safe-area-inset-bottom,0px); }
+  *,*::before,*::after{ box-sizing:inherit; margin:0; padding:0; }
+  body{ font-family:'Nunito',system-ui,sans-serif; background:var(--bg); color:var(--t1);
+        -webkit-font-smoothing:antialiased; }
+  .top{ background:#fff; border-bottom:1.5px solid var(--line); padding:12px 16px;
+        display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:10; }
+  .top a.back{ color:var(--t3); text-decoration:none; font-size:1.3rem; }
+  .top h1{ font-size:1.05rem; font-weight:900; }
+  .clock{ margin-left:auto; font-variant-numeric:tabular-nums; font-weight:900;
+          background:#EEF2FA; padding:6px 12px; border-radius:999px; font-size:.95rem; }
+  .clock.low{ background:#FDECEA; color:var(--bad); }
+  .wrap{ max-width:760px; margin:0 auto; padding:16px 14px 44px; }
+
+  .card{ background:#fff; border-radius:16px; padding:18px; box-shadow:0 2px 12px rgba(20,30,60,.06); }
+  .card h2{ font-size:1.05rem; font-weight:900; }
+  .card p{ font-size:.88rem; color:var(--t2); margin-top:6px; }
+  .meta{ display:flex; gap:7px; flex-wrap:wrap; margin-top:10px; }
+  .chip{ font-size:.74rem; font-weight:800; background:#EEF2FA; color:var(--t2);
+         padding:5px 11px; border-radius:999px; }
+  .list .card{ margin-bottom:10px; }
+  .btn{ width:100%; padding:14px; border:none; border-radius:13px; background:var(--teal);
+        color:#fff; font:900 .96rem 'Nunito',sans-serif; cursor:pointer; margin-top:12px; }
+  .btn.ghost{ background:#fff; color:var(--teal); border:2px solid var(--teal); }
+  .btn:disabled{ opacity:.5; cursor:default; }
+  button:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+
+  .qhead{ display:flex; align-items:baseline; gap:10px; }
+  .qhead .n{ font-size:.78rem; font-weight:900; color:var(--t3); }
+  .qhead .how{ font-size:.72rem; font-weight:800; color:var(--teal); background:var(--teal-soft);
+               padding:3px 9px; border-radius:999px; margin-left:auto; }
+  .sum{ font-family:ui-monospace,monospace; font-size:1.7rem; font-weight:800;
+        white-space:pre-line; line-height:1.3; margin:10px 0; text-align:center; }
+  .ans{ width:100%; max-width:220px; margin:0 auto; display:block; padding:12px;
+        border:2px solid var(--line); border-radius:12px; font-family:inherit;
+        font-size:1.3rem; font-weight:800; text-align:center; }
+  .ans:focus{ outline:none; border-color:var(--teal); }
+  .nav{ display:flex; gap:9px; margin-top:14px; }
+  .nav button{ flex:1; padding:12px; border-radius:12px; border:1.5px solid var(--line);
+               background:#fff; font:900 .9rem 'Nunito',sans-serif; color:var(--t2); cursor:pointer; }
+  .nav button.on{ background:var(--teal); color:#fff; border-color:var(--teal); }
+  .dots{ display:flex; gap:5px; flex-wrap:wrap; margin-top:12px; }
+  .dot{ width:26px; height:26px; border-radius:7px; border:1.5px solid var(--line);
+        background:#fff; font:800 .7rem 'Nunito',sans-serif; color:var(--t3); cursor:pointer; }
+  .dot.done{ background:var(--teal-soft); border-color:var(--teal); color:var(--teal); }
+  .dot.here{ outline:2px solid var(--teal); outline-offset:1px; }
+
+  .flash{ font-family:ui-monospace,monospace; font-size:2.1rem; font-weight:800;
+          text-align:center; white-space:pre-line; min-height:3.4em; }
+  .hidden{ visibility:hidden; }
+  .speak{ margin-top:8px; }
+
+  .result .big{ font-size:2.6rem; font-weight:900; }
+  .result .big.pass{ color:var(--good); } .result .big.fail{ color:var(--org); }
+  .row{ display:flex; align-items:center; gap:9px; padding:7px 0; border-bottom:1px solid var(--line);
+        font-size:.9rem; }
+  .row:last-child{ border-bottom:none; }
+  .row .mk{ width:22px; height:22px; border-radius:50%; flex-shrink:0; font-size:.68rem;
+            font-weight:900; display:flex; align-items:center; justify-content:center; }
+  .row .mk.ok{ background:#E8F5E9; color:#1B5E20; } .row .mk.no{ background:#FDECEA; color:#B71C1C; }
+  .row .q{ flex:1; font-family:ui-monospace,monospace; white-space:pre-line; }
+  .note{ font-size:.78rem; color:var(--t3); margin-top:10px; }
+  .err{ background:#FDECEA; color:var(--bad); border-radius:12px; padding:12px 14px;
+        font-size:.86rem; font-weight:800; }
+  .spin{ padding:36px; text-align:center; color:var(--t3); }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="back" href="dashboard.html" id="backLink" aria-label="Back">&larr;</a>
+  <h1 id="title">&#128221; Tests</h1>
+  <span class="clock" id="clock" style="display:none">--:--</span>
+</div>
+<div class="wrap"><div id="body"><div class="spin">Looking for your tests&hellip;</div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/speech.js"></script>
+<script src="../js/bead-rules.js"></script>
+<script src="../js/column-gen.js"></script>
+<script src="../js/practice-engine.js"></script>
+<script src="../js/sutra-rules.js"></script>
+<script src="../js/vedic-gen.js"></script>
+<script src="../js/vedic-steps.js"></script>
+<script src="../js/vedic-engine.js"></script>
+<script src="../js/test-gen.js"></script>
+<script>
+/* ============================================================
+   Sitting a test
+   ------------------------------------------------------------
+   Deliberately unlike the practice screen, in every way that matters:
+
+     no hints, no guided steps, no per-question marking, no abacus
+     on screen for a section she set as mental, one mark at the end,
+     and a clock if she set a time.
+
+   The paper is built when the child starts, from Megha's blueprint,
+   and kept with the attempt — so a result can be re-read exactly as
+   it was sat, whatever the blueprint says later.
+
+   A child who fails gets a FRESH paper of the same design next time,
+   never the same numbers.
+   ============================================================ */
+
+var sb = supabase.createClient(
+  'https://bhullfoajenhkxlkiubs.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc');
+
+var ME = null, PROFILE = null, PROGS = [], PAPERS = [], PAST = [];
+var sitting = null, at = 0, given = {}, ticker = null, endsAt = null, flashed = {};
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+  return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+function fail(m){ document.getElementById('body').innerHTML = '<div class="err">' + esc(m) + '</div>'; }
+function levelOf(program) {
+  var p = PROGS.filter(function (x) { return x.program_code === program; })[0];
+  return p && p.current_level != null ? p.current_level
+       : (PROFILE && PROFILE.current_level != null ? PROFILE.current_level : 0);
+}
+
+async function start() {
+  var s = await sb.auth.getSession();
+  if (!s.data.session) { location.href = '../../login.html'; return; }
+  ME = s.data.session.user.id;
+
+  var prof = await sb.from('users').select('*').eq('id', ME).maybeSingle();
+  PROFILE = prof.data || {};
+
+  var pr = await sb.from('student_programs').select('*').eq('student_id', ME);
+  PROGS = (pr.data || []).filter(function (p) { return p.is_active !== false; });
+  if (!PROGS.length) PROGS = [{ program_code: 'abacus', current_level: PROFILE.current_level || 0 }];
+
+  /* The papers published for the level this child is on, in each
+     programme they learn. */
+  var wanted = PROGS.map(function (p) {
+    return { program: p.program_code,
+             code: (p.program_code === 'vedic' ? 'VL' : 'L') + levelOf(p.program_code) };
+  });
+
+  var bp = await sb.from('test_blueprints').select('*').eq('status', 'published');
+  if (bp.error) {
+    fail(/does not exist|relation|schema cache/i.test(bp.error.message || '')
+      ? 'Tests are not set up yet. Your teacher will let you know when one is ready.'
+      : 'Could not read the tests: ' + bp.error.message);
+    return;
+  }
+  PAPERS = (bp.data || []).filter(function (b) {
+    return wanted.some(function (w) { return w.code === b.level_code; });
+  }).sort(function (a, b) { return a.test_no - b.test_no; });
+
+  var at_ = await sb.from('test_attempts').select('*').eq('student_id', ME);
+  PAST = at_.data || [];
+
+  drawList();
+}
+
+function attemptsOf(bp) {
+  return PAST.filter(function (a) {
+    return a.level_code === bp.level_code && a.test_no === bp.test_no && a.submitted_at;
+  });
+}
+function passedOf(bp) { return attemptsOf(bp).filter(function (a) { return a.passed; }).length > 0; }
+
+function waitLeft(bp) {
+  var mine = attemptsOf(bp).sort(function (a, b) {
+    return String(b.submitted_at).localeCompare(String(a.submitted_at)); });
+  if (!mine.length || !bp.retake_wait_hours) return 0;
+  var since = (Date.now() - new Date(mine[0].submitted_at)) / 3600000;
+  return Math.max(0, Math.ceil(bp.retake_wait_hours - since));
+}
+
+function drawList() {
+  document.getElementById('clock').style.display = 'none';
+  if (ticker) { clearInterval(ticker); ticker = null; }
+
+  if (!PAPERS.length) {
+    document.getElementById('body').innerHTML =
+      '<div class="card"><h2>No test waiting</h2>' +
+      '<p>When your teacher puts a test up for your level, it will appear here. ' +
+      'You need to pass two of them to finish a level.</p></div>';
+    return;
+  }
+
+  var passedCount = PAPERS.filter(passedOf).length;
+  var h = '<div class="card"><h2>Your level tests</h2>' +
+    '<p>Two passed tests finish a level and earn the certificate. ' +
+    'You have passed <b>' + passedCount + '</b> so far.</p></div><div class="list" style="margin-top:12px;">';
+
+  h += PAPERS.map(function (bp, i) {
+    var tried = attemptsOf(bp), passed = passedOf(bp);
+    var left = (bp.attempts_allowed || 3) - tried.length;
+    var wait = waitLeft(bp);
+    var best = tried.reduce(function (m, a) {
+      return (a.total && (a.score / a.total) > m) ? (a.score / a.total) : m; }, 0);
+
+    var why = passed ? 'Passed' : left <= 0 ? 'No attempts left \u2014 ask your teacher'
+            : wait > 0 ? 'You can try again in ' + wait + ' hour' + (wait === 1 ? '' : 's')
+            : tried.length ? 'Try again' : 'Ready when you are';
+
+    return '<div class="card">' +
+      '<h2>' + esc(bp.title || ('Test ' + bp.test_no)) + '</h2>' +
+      '<div class="meta">' +
+        '<span class="chip">' + esc(bp.level_code) + '</span>' +
+        '<span class="chip">pass ' + bp.pass_mark + '%</span>' +
+        (bp.time_limit_mins ? '<span class="chip">' + bp.time_limit_mins + ' min</span>' : '') +
+        '<span class="chip">' + Math.max(0, left) + ' of ' + (bp.attempts_allowed || 3) + ' tries left</span>' +
+        (tried.length ? '<span class="chip">best ' + Math.round(best * 100) + '%</span>' : '') +
+      '</div>' +
+      '<p>' + esc(why) + '</p>' +
+      (passed || left <= 0 || wait > 0 ? ''
+        : '<button class="btn" onclick="begin(' + i + ')">Start this test</button>') +
+    '</div>';
+  }).join('') + '</div>' +
+    '<div class="note">A test has no hints and is marked at the end. If you do not pass, ' +
+    'your next try is a new set of sums of the same kind.</div>';
+  document.getElementById('body').innerHTML = h;
+}
+
+/* ── sitting one ─────────────────────────────────────────── */
+async function begin(i) {
+  var bp = PAPERS[i];
+  document.getElementById('body').innerHTML = '<div class="spin">Getting your paper ready&hellip;</div>';
+  try {
+    var paper = await TestGen.build(bp);
+    if (!paper.total) throw new Error('this test could not be built \u2014 please tell your teacher');
+    sitting = { bp: bp, paper: paper, startedAt: new Date().toISOString() };
+    at = 0; given = {}; flashed = {};
+    if (bp.time_limit_mins) {
+      endsAt = Date.now() + bp.time_limit_mins * 60000;
+      document.getElementById('clock').style.display = '';
+      ticker = setInterval(tick, 1000);
+      tick();
+    } else { endsAt = null; }
+    drawQuestion();
+  } catch (e) { fail('Could not start the test: ' + e.message); }
+}
+
+function tick() {
+  if (!endsAt) return;
+  var left = Math.max(0, Math.round((endsAt - Date.now()) / 1000));
+  var c = document.getElementById('clock');
+  c.textContent = String(Math.floor(left / 60)).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0');
+  c.className = 'clock' + (left <= 60 ? ' low' : '');
+  /* Time up means the paper goes as it stands. It is not the child's
+     fault that it ended, so it is marked, not thrown away. */
+  if (left <= 0) { clearInterval(ticker); ticker = null; finish(true); }
+}
+
+function drawQuestion() {
+  var qs = sitting.paper.questions, q = qs[at];
+  var how = q.delivery || 'written';
+  var showSum = how !== 'flash' || flashed[at];
+
+  var h = '<div class="card">' +
+    '<div class="qhead"><span class="n">Question ' + (at + 1) + ' of ' + qs.length + '</span>' +
+      '<span class="how">' + (how === 'written' ? 'Written'
+        : how === 'oral' ? 'Listen' : how === 'mental' ? 'In your head' : 'Watch') + '</span></div>';
+
+  if (how === 'flash') {
+    h += '<div class="flash' + (showSum ? '' : ' hidden') + '" id="flash">' + esc(q.question) + '</div>' +
+      (flashed[at] ? '' : '<button class="btn ghost" onclick="doFlash()">Show me the sum</button>');
+  } else if (how === 'oral') {
+    h += '<div class="flash hidden">' + esc(q.question) + '</div>' +
+      '<button class="btn ghost speak" onclick="sayIt()">\uD83D\uDD0A Hear it' +
+      (given['heard' + at] ? ' again' : '') + '</button>';
+  } else {
+    h += '<div class="sum">' + esc(q.question) + '</div>';
+    if (how === 'mental') h += '<div class="note" style="text-align:center;">Work it in your head.</div>';
+  }
+
+  h += '<input class="ans" id="ans" inputmode="numeric" autocomplete="off" ' +
+      'value="' + esc(given[at] || '') + '" placeholder="Your answer" ' +
+      'oninput="given[' + at + ']=this.value" ' +
+      'onkeydown="if(event.key===\'Enter\')go(1)">' +
+    '<div class="nav">' +
+      (at > 0 ? '<button onclick="go(-1)">Back</button>' : '') +
+      (at < qs.length - 1 ? '<button class="on" onclick="go(1)">Next</button>'
+                          : '<button class="on" onclick="finish(false)">Finish and mark</button>') +
+    '</div>' +
+    '<div class="dots">' + qs.map(function (x, k) {
+      return '<button class="dot' + (given[k] ? ' done' : '') + (k === at ? ' here' : '') +
+        '" onclick="jump(' + k + ')" aria-label="Question ' + (k + 1) + '">' + (k + 1) + '</button>';
+    }).join('') + '</div>' +
+    '<div class="note">Answer in any order. Nothing is marked until you finish.</div>' +
+  '</div>';
+  document.getElementById('body').innerHTML = h;
+  var el = document.getElementById('ans'); if (el) el.focus();
+  if (how === 'oral' && !given['heard' + at]) sayIt();
+}
+
+function go(d) { jump(Math.min(sitting.paper.questions.length - 1, Math.max(0, at + d))); }
+function jump(k) { at = k; drawQuestion(); }
+
+function sayIt() {
+  var q = sitting.paper.questions[at];
+  given['heard' + at] = true;
+  if (typeof Speech !== 'undefined' && Speech.sayTwice) Speech.sayTwice(q.question);
+}
+
+/* Flashed: shown briefly, then gone, as she intends it. */
+function doFlash() {
+  flashed[at] = true;
+  var q = sitting.paper.questions[at];
+  var secs = Number((sitting.bp.sections || [])[q.section - 1] &&
+                    (sitting.bp.sections || [])[q.section - 1].flash_seconds) || 3;
+  drawQuestion();
+  var el = document.getElementById('flash');
+  if (el) setTimeout(function () { el.classList.add('hidden'); }, secs * 1000);
+}
+
+async function finish(ranOut) {
+  if (ticker) { clearInterval(ticker); ticker = null; }
+  document.getElementById('clock').style.display = 'none';
+  var qs = sitting.paper.questions;
+
+  var unanswered = qs.filter(function (x, k) { return !given[k]; }).length;
+  if (!ranOut && unanswered) {
+    if (!confirm(unanswered + ' question' + (unanswered === 1 ? '' : 's') +
+        ' still blank. Finish anyway?')) return;
+  }
+
+  function same(a, b) {
+    var x = String(a == null ? '' : a).replace(/\s+/g, '').toLowerCase();
+    var y = String(b == null ? '' : b).replace(/\s+/g, '').toLowerCase();
+    if (x === y) return true;
+    var nx = Number(x), ny = Number(y);
+    return x !== '' && isFinite(nx) && isFinite(ny) && Math.abs(nx - ny) < 1e-9;
+  }
+
+  var marks = qs.map(function (q, k) { return same(given[k], q.answer); });
+  var score = marks.filter(Boolean).length;
+  var pct = Math.round(score / qs.length * 100);
+  var passed = pct >= (sitting.bp.pass_mark || 80);
+
+  var answers = {};
+  qs.forEach(function (q, k) { answers[k] = given[k] == null ? '' : given[k]; });
+
+  var row = {
+    blueprint_id: sitting.bp.id, student_id: ME,
+    program_code: sitting.bp.program_code || 'abacus',
+    level_code: sitting.bp.level_code, test_no: sitting.bp.test_no,
+    attempt_no: attemptsOf(sitting.bp).length + 1,
+    questions: qs, answers: answers,
+    score: score, total: qs.length, passed: passed,
+    started_at: sitting.startedAt, submitted_at: new Date().toISOString()
+  };
+  var res = await sb.from('test_attempts').insert(row).select();
+  var saved = !res.error && res.data && res.data.length;
+  if (saved) PAST.push(res.data[0]);
+
+  var h = '<div class="card result">' +
+    (ranOut ? '<p><b>Time is up.</b> Your paper has been marked as it stood.</p>' : '') +
+    '<div class="big ' + (passed ? 'pass' : 'fail') + '">' + pct + '%</div>' +
+    '<p>' + score + ' right out of ' + qs.length +
+      ' \u00b7 pass mark ' + (sitting.bp.pass_mark || 80) + '%</p>' +
+    '<h2 style="margin-top:10px;">' + (passed ? 'Passed \u2014 well done!' : 'Not this time') + '</h2>' +
+    '<p>' + (passed
+      ? 'That is one of the two tests you need for this level.'
+      : 'Your next try will be a new set of sums of the same kind. Practise and come back.') + '</p>' +
+    (saved ? '' : '<p style="color:var(--bad);font-weight:800;">This result could not be saved \u2014 ' +
+      'please tell your teacher: ' + esc((res.error && res.error.message) || 'nothing was written') + '</p>') +
+    '<div style="margin-top:14px;">' + qs.map(function (q, k) {
+      return '<div class="row"><span class="mk ' + (marks[k] ? 'ok' : 'no') + '">' +
+        (marks[k] ? '\u2713' : '\u2715') + '</span>' +
+        '<span class="q">' + esc(q.question) + '</span>' +
+        '<span>' + (marks[k] ? '' : 'you put ' + esc(given[k] || '\u2014') + ', answer ') +
+        '<b>' + esc(q.answer) + '</b></span></div>';
+    }).join('') + '</div>' +
+    '<button class="btn" onclick="drawList()">Back to my tests</button>' +
+  '</div>';
+  document.getElementById('body').innerHTML = h;
+  sitting = null;
+}
+
+start().catch(function (e) { fail('Could not load: ' + e.message); });
+</script>
+</body>
+</html>

@@ -185,7 +185,11 @@ var Speech = (function () {
 
     t = t.replace(/(\d)\.(\d)/g, '$1 point $2');   // 4.6 -> four point six
     t = t.replace(/(\d)\s+r\s+(\d)/g, '$1 remainder $2');   // 14 r 2
-    t = t.replace(/\?/g, '');
+    /* "= ?" on a sum is not read out. A question mark at the end of a
+       sentence IS kept, because it is what makes the voice lift — and
+       a word problem read flat is harder for a young child to follow. */
+    t = t.replace(/(equals|=)\s*\?/gi, '');
+    if (!/[a-z]{3}/i.test(t)) t = t.replace(/\?/g, '');
     t = t.replace(/\s{2,}/g, ' ').trim();
     /* "33 minus 43 equals" with nothing after it — the child supplies
        the answer, so the word is left hanging. Dropped. */

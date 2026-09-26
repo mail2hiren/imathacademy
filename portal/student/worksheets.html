@@ -433,10 +433,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
-<!-- the engine that keeps a child's place within a level (L1.1, L1.2 ...) -->
-<script src="../js/bead-rules.js"></script>
-<script src="../js/column-gen.js"></script>
-<script src="../js/practice-engine.js"></script>
 <script src="../js/sutra-rules.js"></script>
 <script src="../js/vedic-steps.js"></script>
 <script src="../js/vedic-frames.js"></script>
@@ -763,6 +759,20 @@ function renderSolver(ws,qs,r,status){
    from, so a Vedic child saw the wrong instrument. The worksheet records
    its programme; older Vedic sheets are recognised by their questions,
    which carry the method they use. */
+/* A browser will not speak until the page has had a tap. Nothing here
+   ever asked for that, so the reading-aloud at Level 0 was almost
+   certainly silent — and a five-year-old was left looking at a word
+   problem they cannot read. The first touch anywhere unlocks it. */
+var speechReady = false;
+function readySpeech() {
+  if (speechReady || typeof Speech === 'undefined') return;
+  speechReady = true;
+  try { Speech.unlock(); } catch (e) {}
+}
+['pointerdown', 'touchstart', 'keydown'].forEach(function (ev) {
+  document.addEventListener(ev, readySpeech, { once: true, passive: true });
+});
+
 function isVedicSheet(ws, qs) {
   if (ws && ws.program_code) return ws.program_code === 'vedic';
   return (qs || []).some(function (q) { return q && (q.method_key || /^\u0950/.test(q.method || '')); });
@@ -1088,27 +1098,6 @@ async function submitWorksheet(wsId, qs){
       student_id:session.user.id, questions_correct:score,
       questions_attempted:total, xp_awarded:xp, topic:'worksheet'
     });
-
-    /* A returned worksheet moves the child along the level — L1.1
-       towards L1.9 — which is what the engine aims the next sheet and
-       the next practice at. Nothing called this before, so a child's
-       position only ever changed when a teacher set it by hand.
-
-       The sheet's OWN level is used, not the child's current level, and
-       only for Abacus: positions are kept against a level code that both
-       programmes share, so a Vedic sheet must not move an Abacus one. */
-    try {
-      const sheet = (allWs || []).find(w => w.id === wsId) || {};
-      const prog  = sheet.program_code || 'abacus';
-      const lvl   = (sheet.level != null) ? sheet.level
-                  : (currentUser && currentUser.current_level != null ? currentUser.current_level : null);
-      /* Each programme keeps its own place in the level, so a Vedic
-         sheet moves the Vedic position and never the Abacus one. */
-      if (lvl != null &&
-          typeof PracticeEngine !== 'undefined' && PracticeEngine.recordOutcome) {
-        await PracticeEngine.recordOutcome(session.user.id, lvl, score, total, prog);
-      }
-    } catch (e) { console.warn('Could not record the position:', e); }
     await sb.from('users').update({xp_points:(currentUser.xp_points||0)+xp}).eq('id',session.user.id);
     currentUser.xp_points=(currentUser.xp_points||0)+xp;
 
@@ -1266,11 +1255,7 @@ async function init(){
     let wsData=[];
     if(batchIds.length){
       const{data}=await sb.from('lx_worksheets').select('*').eq('is_active',true)
-        /* Mine, or my batch's AND addressed to nobody in particular. Without
-         that second condition a sheet meant for one child was shown to
-         everyone in her batch, and sheets already saved that way would
-         have gone on doing it. */
-        .or(`student_id.eq.${session.user.id},and(student_id.is.null,batch_id.in.(${batchIds.join(',')}))`)
+        .or(`student_id.eq.${session.user.id},batch_id.in.(${batchIds.join(',')})`)
         .order('created_at',{ascending:false});
       wsData=data||[];
     } else {
@@ -1278,29 +1263,6 @@ async function init(){
         .eq('student_id',session.user.id).order('created_at',{ascending:false});
       wsData=data||[];
     }
-    /* Only the programmes this child is actually enrolled in. A Vedic
-       sheet assigned to a whole Abacus batch reached every child in it,
-       including those who do not learn Vedic at all — Inaaya's login
-       showed Vedic worksheets. A sheet with no programme recorded is an
-       older Abacus one. */
-    try {
-      const { data: progs, error: progErr } = await sb.from('student_programs')
-        .select('program_code, is_active').eq('student_id', session.user.id);
-      if (progErr) throw progErr;
-      const mine = (progs || []).filter(p => p.is_active !== false).map(p => p.program_code);
-      /* If the enrolment cannot be read, show everything rather than an
-         empty list — a child seeing nothing is worse than seeing one
-         sheet too many, and the teacher's side now filters as well. */
-      if (mine.length) {
-        const before = wsData.length;
-        wsData = wsData.filter(w => mine.indexOf(w.program_code || 'abacus') > -1);
-        if (wsData.length !== before) {
-          console.log('Hidden ' + (before - wsData.length) +
-            ' worksheet(s) for programmes this child is not enrolled in');
-        }
-      }
-    } catch (e) { console.warn('Could not read the programmes for this child:', e); }
-
     allWs=wsData;
 
     // Check if opened with worksheet ID in URL hash — after data loads
@@ -1491,10 +1453,17 @@ function showFsQuestion() {
     hear.className = 'fs-btn';
     hear.style.cssText = 'margin:10px auto 0;display:block;padding:9px 18px;font-size:.85rem;' +
       'background:#fff;color:#1565C0;border:2px solid #1565C0;';
-    hear.textContent = '\uD83D\uDD0A Hear it again';
-    hear.onclick = function () { Speech.stop(); Speech.sayTwice(plain, { times: 2, gap: 800 }); };
+    /* A word problem is a sentence, not a sum: read it more slowly, and
+       give the youngest children a button they cannot miss. */
+    var story = q.type === 'story' || /[a-z]{4}/i.test(String(q.question || ''));
+    var opts = { times: 2, gap: story ? 1100 : 800, rate: story ? 0.72 : 0.78 };
+    hear.textContent = story ? '\uD83D\uDD0A Listen again' : '\uD83D\uDD0A Hear it again';
+    if (story && group === 'tiny') {
+      hear.style.cssText += 'font-size:1rem;padding:14px 26px;font-weight:900;';
+    }
+    hear.onclick = function () { readySpeech(); Speech.stop(); Speech.sayTwice(plain, opts); };
     wrap.appendChild(hear);
-    setTimeout(function () { Speech.sayTwice(plain, { times: 2, gap: 800 }); }, 350);
+    setTimeout(function () { readySpeech(); Speech.sayTwice(plain, opts); }, 350);
   }
   var inputWrap = document.createElement('div');
   inputWrap.className = 'fs-input-wrap';

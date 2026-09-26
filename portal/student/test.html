@@ -123,6 +123,18 @@ var sitting = null, at = 0, given = {}, ticker = null, endsAt = null, flashed = 
 
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
   return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+
+/* A browser will not speak until the page has had a tap, so a section
+   she set to be read aloud would be silent without this. */
+var speechReady = false;
+function readySpeech() {
+  if (speechReady || typeof Speech === 'undefined') return;
+  speechReady = true;
+  try { Speech.unlock(); } catch (e) {}
+}
+['pointerdown', 'touchstart', 'keydown'].forEach(function (ev) {
+  document.addEventListener(ev, readySpeech, { once: true, passive: true });
+});
 function fail(m){ document.getElementById('body').innerHTML = '<div class="err">' + esc(m) + '</div>'; }
 function levelOf(program) {
   var p = PROGS.filter(function (x) { return x.program_code === program; })[0];
@@ -304,6 +316,7 @@ function go(d) { jump(Math.min(sitting.paper.questions.length - 1, Math.max(0, a
 function jump(k) { at = k; drawQuestion(); }
 
 function sayIt() {
+  readySpeech();
   var q = sitting.paper.questions[at];
   given['heard' + at] = true;
   if (typeof Speech !== 'undefined' && Speech.sayTwice) Speech.sayTwice(q.question);

@@ -143,6 +143,8 @@ var sb = supabase.createClient(
 var PROG = 'abacus';
 var LEVELS = [], CONCEPTS = {}, BLUEPRINTS = {}, open_ = null, draft = null;
 var SAT = {};     // level|test -> { sat, passed } across the children
+var WAITING = {}; // level|test -> { studentId: true } assigned, not yet sat
+var KIDS = [];    // every active child, with the level they are on
 var ONLEVEL = {}; // level_code -> how many children are on it
 
 /* How a section reaches the child. Her words, not jargon. */
@@ -209,7 +211,8 @@ async function load() {
   /* Who has sat each paper, and how many children are on each level,
      so she can see at a glance who is still to do it. */
   try {
-    var ats = await sb.from('test_attempts').select('level_code, test_no, student_id, passed, submitted_at');
+    var ats = await sb.from('test_attempts')
+      .select('id, level_code, test_no, student_id, passed, submitted_at');
     SAT = {};
     (ats.data || []).filter(function (a) { return a.submitted_at; }).forEach(function (a) {
       var k = a.level_code + '|' + a.test_no;
@@ -220,10 +223,26 @@ async function load() {
     var kids = await sb.from('student_programs')
       .select('student_id, program_code, current_level, is_active').eq('program_code', PROG);
     ONLEVEL = {};
+    var lvlOf = {};
     (kids.data || []).forEach(function (k) {
       if (k.is_active === false || k.current_level == null) return;
       var code = (PROG === 'vedic' ? 'VL' : 'L') + k.current_level;
       ONLEVEL[code] = (ONLEVEL[code] || 0) + 1;
+      lvlOf[k.student_id] = code;
+    });
+
+    /* Every active child, so she can hand a paper to a named one. */
+    var us = await sb.from('users').select('id, full_name')
+      .eq('role', 'student').eq('is_active', true).order('full_name');
+    KIDS = (us.data || []).map(function (u) {
+      return { id: u.id, name: u.full_name, level: lvlOf[u.id] || null };
+    });
+
+    /* Assigned but not yet sat: an attempt row with nothing submitted. */
+    WAITING = {};
+    (ats.data || []).filter(function (a) { return !a.submitted_at; }).forEach(function (a) {
+      var k = a.level_code + '|' + a.test_no;
+      (WAITING[k] = WAITING[k] || {})[a.student_id] = true;
     });
   } catch (e) { SAT = {}; ONLEVEL = {}; }
 
@@ -257,9 +276,11 @@ function summary(b) {
           var s = SAT[b.level_code + '|' + b.test_no] || { sat: {}, passed: {} };
           var sat = Object.keys(s.sat).length, ok = Object.keys(s.passed).length;
           var on = ONLEVEL[b.level_code] || 0;
+          var w = Object.keys(WAITING[b.level_code + '|' + b.test_no] || {}).length;
           return '<div class="sum" style="color:var(--teal-ink);font-weight:800;">' +
-            (on ? sat + ' of ' + on + ' have sat it' : 'nobody is on this level') +
-            (sat ? ' \u00b7 ' + ok + ' passed' : '') + '</div>';
+            (w ? w + ' waiting to sit it' : (on ? sat + ' of ' + on + ' have sat it'
+                                               : 'nobody is on this level')) +
+            (sat ? ' \u00b7 ' + sat + ' sat \u00b7 ' + ok + ' passed' : '') + '</div>';
         })()
       : '') +
     '<div class="sum">' + esc(b.title || 'Untitled') + '<br>' +
@@ -432,6 +453,9 @@ function paint() {
       '<button class="btn" onclick="save(\'draft\')">Save as draft</button>' +
       '<button class="btn warn" onclick="save(\'published\')">' +
         (draft.status === 'published' ? 'Save, keep published' : 'Publish') + '</button>' +
+      (draft.status === 'published'
+        ? '<button class="btn" onclick="assignBox()">Give this to a child</button>'
+        : '') +
       '<button class="btn ghost" onclick="preview()">See the paper this makes</button>' +
       '<button class="btn ghost" onclick="close_()">Close</button>' +
     '</div>' +
@@ -529,6 +553,95 @@ async function save(status) {
   paint();
   document.getElementById('msg').className = 'msg ok';
   document.getElementById('msg').textContent = msg.textContent;
+}
+
+/* Giving a paper to a named child. The child is shown it waiting and
+   sits it when their teacher is there; nobody else sees it.
+
+   An assignment is an attempt row with nothing submitted yet, so the
+   same row becomes the result — no second table, and a paper cannot
+   be sat without having been given. */
+function assignBox() {
+  var key = open_.levelCode + '|' + open_.testNo;
+  var waiting = WAITING[key] || {};
+  var sat = (SAT[key] || { sat: {} }).sat;
+
+  var onLevel = KIDS.filter(function (k) { return k.level === open_.levelCode; });
+  var others  = KIDS.filter(function (k) { return k.level !== open_.levelCode; });
+
+  function row(k) {
+    var state = waiting[k.id] ? 'waiting' : sat[k.id] ? 'sat' : 'no';
+    return '<button class="opt" style="margin:0 6px 6px 0;" ' +
+      'aria-pressed="' + (state === 'waiting') + '" ' +
+      (state === 'sat' ? 'disabled title="Has already sat this paper"' :
+        'onclick="toggleAssign(\'' + k.id + '\')"') + '>' +
+      esc(k.name) + (k.level ? ' \u00b7 ' + esc(k.level) : '') +
+      (state === 'waiting' ? ' \u2713' : state === 'sat' ? ' \u2014 sat' : '') +
+    '</button>';
+  }
+
+  var h = '<div class="lab">Give this paper to</div>' +
+    (onLevel.length
+      ? '<div>' + onLevel.map(row).join('') + '</div>'
+      : '<div class="sec" style="color:var(--t3);font-size:.84rem;">No child is on ' +
+        esc(open_.levelCode) + ' at the moment.</div>') +
+    (others.length
+      ? '<div class="lab">Other children</div><div>' + others.map(row).join('') + '</div>'
+      : '') +
+    '<div class="msg" id="amsg" role="status"></div>' +
+    '<div class="note">A child sees only the papers given to them, and sits it when you are there. ' +
+    'Tap a name again to take it back.</div>';
+  document.getElementById('paper').innerHTML = h;
+}
+
+async function toggleAssign(studentId) {
+  var key = open_.levelCode + '|' + open_.testNo;
+  var waiting = WAITING[key] = WAITING[key] || {};
+  var msg = document.getElementById('amsg');
+  var kid = KIDS.filter(function (k) { return k.id === studentId; })[0] || {};
+  msg.className = 'msg'; msg.textContent = 'Saving\u2026';
+
+  try {
+    if (waiting[studentId]) {
+      /* Taking it back: only an attempt not yet sat may be removed. */
+      var del = await sb.from('test_attempts').delete()
+        .eq('student_id', studentId).eq('level_code', open_.levelCode)
+        .eq('test_no', open_.testNo).is('submitted_at', null);
+      if (del.error) throw del.error;
+      delete waiting[studentId];
+      msg.className = 'msg ok'; msg.textContent = 'Taken back from ' + (kid.name || 'that child') + '.';
+    } else {
+      var ins = await sb.from('test_attempts').insert({
+        blueprint_id: open_.id, student_id: studentId,
+        program_code: PROG, level_code: open_.levelCode, test_no: open_.testNo,
+        attempt_no: 1, questions: [], answers: {}
+      }).select();
+      if (ins.error) throw ins.error;
+      if (!ins.data || !ins.data.length) throw new Error('nothing was written');
+      waiting[studentId] = true;
+      try {
+        await sb.from('notifications').insert({
+          user_id: studentId, type: 'test',
+          title: '\uD83D\uDCDD A test is ready for you',
+          message: (draft.title || ('Test ' + open_.testNo)) +
+            ' is waiting under Level tests. Your teacher will be with you when you sit it.'
+        });
+      } catch (e) {}
+      msg.className = 'msg ok';
+      msg.textContent = 'Given to ' + (kid.name || 'that child') + '. They can see it now.';
+    }
+    assignBox();
+    document.getElementById('amsg').className = msg.className;
+    document.getElementById('amsg').textContent = msg.textContent;
+    draw();
+  } catch (e) {
+    var denied = /policy|permission|denied|row-level/i.test(e.message || '');
+    msg.className = 'msg err';
+    msg.textContent = denied
+      ? 'Not allowed yet \u2014 run 025_test_assign.sql, which lets a teacher give a paper to a child. ' +
+        'Nothing else needs changing.'
+      : 'Not saved: ' + (e.message || 'unknown');
+  }
 }
 
 /* The paper her blueprint actually makes, from the same generator a

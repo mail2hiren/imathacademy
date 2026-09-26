@@ -168,12 +168,25 @@ async function start() {
       : 'Could not read the tests: ' + bp.error.message);
     return;
   }
-  PAPERS = (bp.data || []).filter(function (b) {
-    return wanted.some(function (w) { return w.code === b.level_code; });
-  }).sort(function (a, b) { return a.test_no - b.test_no; });
-
   var at_ = await sb.from('test_attempts').select('*').eq('student_id', ME);
   PAST = at_.data || [];
+
+  /* Megha gives a paper to a named child, so a child sees the papers
+     GIVEN TO THEM — not everything published for their level. An
+     assignment is an attempt with nothing submitted yet.
+
+     A paper already passed or sat stays listed, so they can see what
+     they have done. */
+  var givenTo = {}, everSat = {};
+  PAST.forEach(function (a) {
+    var k = a.level_code + '|' + a.test_no;
+    if (a.submitted_at) everSat[k] = true; else givenTo[k] = a;
+  });
+  PAPERS = (bp.data || []).filter(function (b) {
+    var k = b.level_code + '|' + b.test_no;
+    return givenTo[k] || everSat[k];
+  }).sort(function (a, b) { return a.test_no - b.test_no; });
+  PAPERS.forEach(function (b) { b._given = givenTo[b.level_code + '|' + b.test_no] || null; });
 
   drawList();
 }
@@ -200,8 +213,8 @@ function drawList() {
   if (!PAPERS.length) {
     document.getElementById('body').innerHTML =
       '<div class="card"><h2>No test waiting</h2>' +
-      '<p>When your teacher puts a test up for your level, it will appear here. ' +
-      'You need to pass two of them to finish a level.</p></div>';
+      '<p>Your teacher will give you a test when you are ready for one, and it will ' +
+      'appear here. You need to pass two to finish a level.</p></div>';
     return;
   }
 
@@ -217,9 +230,11 @@ function drawList() {
     var best = tried.reduce(function (m, a) {
       return (a.total && (a.score / a.total) > m) ? (a.score / a.total) : m; }, 0);
 
-    var why = passed ? 'Passed' : left <= 0 ? 'No attempts left \u2014 ask your teacher'
+    var why = passed ? 'Passed'
+            : !bp._given ? 'Finished \u2014 ask your teacher for another try'
+            : left <= 0 ? 'No attempts left \u2014 ask your teacher'
             : wait > 0 ? 'You can try again in ' + wait + ' hour' + (wait === 1 ? '' : 's')
-            : tried.length ? 'Try again' : 'Ready when you are';
+            : tried.length ? 'Try again' : 'Your teacher has given you this test';
 
     return '<div class="card">' +
       '<h2>' + esc(bp.title || ('Test ' + bp.test_no)) + '</h2>' +
@@ -231,7 +246,7 @@ function drawList() {
         (tried.length ? '<span class="chip">best ' + Math.round(best * 100) + '%</span>' : '') +
       '</div>' +
       '<p>' + esc(why) + '</p>' +
-      (passed || left <= 0 || wait > 0 ? ''
+      (passed || left <= 0 || wait > 0 || !bp._given ? ''
         : '<button class="btn" onclick="begin(' + i + ')">Start this test</button>') +
     '</div>';
   }).join('') + '</div>' +
@@ -369,7 +384,14 @@ async function finish(ranOut) {
     score: score, total: qs.length, passed: passed,
     started_at: sitting.startedAt, submitted_at: new Date().toISOString()
   };
-  var res = await sb.from('test_attempts').insert(row).select();
+  /* Fill in the row the teacher created, so an assignment becomes its
+     own result. Only if there is none does a new row go in. */
+  var res;
+  if (sitting.bp._given && sitting.bp._given.id) {
+    res = await sb.from('test_attempts').update(row).eq('id', sitting.bp._given.id).select();
+  } else {
+    res = await sb.from('test_attempts').insert(row).select();
+  }
   var saved = !res.error && res.data && res.data.length;
   if (saved) PAST.push(res.data[0]);
 

@@ -154,6 +154,7 @@ var COUNTS = [5, 10, 15, 20, 25];
 var DIGITS = [1, 2, 3, 4, 5];
 var ROWS   = [2, 3, 4, 5, 6, 8, 10];
 var MINS   = [null, 5, 10, 15, 20, 30, 45];
+var FLASH  = [1, 2, 3, 4, 5, 8];        // seconds a flashed sum stays on screen
 var PASSES = [70, 80, 90, 100];
 
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
@@ -229,7 +230,11 @@ function summary(b) {
       esc(b.status) + '</span>' +
     '<div class="sum">' + esc(b.title || 'Untitled') + '<br>' +
       secs.length + ' section' + (secs.length === 1 ? '' : 's') + ' \u00b7 ' + qs + ' questions<br>' +
-      Object.keys(ways).map(function (w) { return (DELIVERY[w] || {}).name || w; }).join(', ') +
+      Object.keys(ways).map(function (w) {
+        var flash = w === 'flash' ? secs.filter(function (s) { return s.delivery === 'flash'; })[0] : null;
+        return ((DELIVERY[w] || {}).name || w) +
+               (flash ? ' ' + (Number(flash.flash_seconds) || 3) + 's' : '');
+      }).join(', ') +
       (b.time_limit_mins ? ' \u00b7 ' + b.time_limit_mins + ' min' : '') +
       ' \u00b7 pass ' + b.pass_mark + '%' +
     '</div>';
@@ -333,6 +338,19 @@ function paint() {
             'onclick="setSec(' + i + ',\'delivery\',\'' + d + '\')">' + DELIVERY[d].name + '</button>';
         }).join('') +
       '</div>' +
+
+      /* Only for a flashed section, where it is the whole point. Three
+         seconds is the starting figure, and hers to change. */
+      (s.delivery === 'flash'
+        ? '<div class="row"><span>On screen for</span>' +
+            FLASH.map(function (n) {
+              return '<button class="opt" aria-pressed="' +
+                ((Number(s.flash_seconds) || 3) === n) + '" ' +
+                'onclick="setSec(' + i + ',\'flash_seconds\',' + n + ')">' + n + 's</button>';
+            }).join('') +
+            '<span style="font-size:.74rem;color:var(--t3);min-width:0;">then it disappears</span>' +
+          '</div>'
+        : '') +
     '</div>';
   }).join('');
 
@@ -394,7 +412,7 @@ function addSection() {
   var avail = CONCEPTS[open_.levelCode] || [];
   draft.sections.push({
     concept: avail.length ? avail[0].code : '',
-    count: 10, digits: 2, rows: 3, delivery: 'written', note: ''
+    count: 10, digits: 2, rows: 3, delivery: 'written', flash_seconds: 3, note: ''
   });
   paint();
 }

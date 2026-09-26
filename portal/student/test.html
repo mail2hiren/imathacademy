@@ -360,6 +360,29 @@ async function finish(ranOut) {
   var saved = !res.error && res.data && res.data.length;
   if (saved) PAST.push(res.data[0]);
 
+  /* Tell the teacher who set the paper, and the parents. A test sat at
+     home with nobody told would leave Megha refreshing a screen to find
+     out, and a parent never knowing at all. */
+  if (saved) {
+    try {
+      var who = (PROFILE && PROFILE.full_name) || 'A student';
+      var line = who + ' \u2014 ' + (sitting.bp.title || ('Test ' + sitting.bp.test_no)) +
+        ': ' + score + '/' + qs.length + ' (' + pct + '%) \u2014 ' + (passed ? 'passed' : 'not passed');
+      var msgs = [];
+      if (sitting.bp.created_by) {
+        msgs.push({ user_id: sitting.bp.created_by, type: 'test_result',
+                    title: (passed ? '\u2705' : '\uD83D\uDCDD') + ' Test finished', message: line });
+      }
+      var par = await sb.from('parent_student').select('parent_id').eq('student_id', ME);
+      (par.data || []).forEach(function (p) {
+        msgs.push({ user_id: p.parent_id, type: 'test_result',
+                    title: (passed ? '\u2705 Test passed' : '\uD83D\uDCDD Test finished'),
+                    message: line });
+      });
+      if (msgs.length) await sb.from('notifications').insert(msgs);
+    } catch (e) { console.warn('Could not send the result on:', e); }
+  }
+
   var h = '<div class="card result">' +
     (ranOut ? '<p><b>Time is up.</b> Your paper has been marked as it stood.</p>' : '') +
     '<div class="big ' + (passed ? 'pass' : 'fail') + '">' + pct + '%</div>' +

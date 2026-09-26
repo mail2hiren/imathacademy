@@ -294,6 +294,9 @@ sync();
 var readyStudentId = null;
 var readyLevelCode = null;
 
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function (ch) {
+  return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[ch]; }); }
+
 async function checkReadiness(studentId, level) {
   var box = document.getElementById('readyBox');
   readyStudentId = studentId;
@@ -307,6 +310,43 @@ async function checkReadiness(studentId, level) {
 
   box.style.display = 'block';
 
+  /* Megha's rule: at least TWO passed papers at this level, because two
+     papers can split the methods between them and one cannot. Read
+     here rather than inside levelProgress, which several screens share.
+
+     A level with fewer than two papers designed cannot certify anyone,
+     and that is said plainly with the place to go and fix it — not
+     left as a refusal with no reason. */
+  var tests = { passed: 0, papers: 0, ready: false, noTables: false, why: '' };
+  try {
+    var bps = await sb.from('test_blueprints').select('test_no')
+      .eq('program_code', 'abacus').eq('level_code', readyLevelCode).eq('status', 'published');
+    if (bps.error) throw bps.error;
+    tests.papers = (bps.data || []).length;
+
+    var ats = await sb.from('test_attempts').select('test_no, passed')
+      .eq('student_id', studentId).eq('level_code', readyLevelCode).eq('passed', true);
+    if (ats.error) throw ats.error;
+    /* Two DIFFERENT papers, not the same one passed twice. */
+    var distinct = {};
+    (ats.data || []).forEach(function (a) { distinct[a.test_no] = true; });
+    tests.passed = Object.keys(distinct).length;
+    tests.ready = tests.passed >= 2;
+    if (tests.papers < 2) {
+      tests.why = 'This level has ' + tests.papers + ' published test' +
+        (tests.papers === 1 ? '' : 's') + '. Two are needed before anyone can be certified.';
+    } else if (!tests.ready) {
+      tests.why = 'Passed ' + tests.passed + ' of the 2 tests needed.';
+    }
+  } catch (e) {
+    /* The test tables may not be in the database yet. Said, not assumed
+       either way. */
+    tests.noTables = /does not exist|relation|schema cache/i.test(e.message || '');
+    tests.why = tests.noTables
+      ? 'Tests are not set up in the database yet, so the two-test rule cannot be checked.'
+      : 'Could not read the tests: ' + (e.message || 'unknown');
+  }
+
   if (p.alreadyCompleted) {
     box.style.background = '#E8F5E9';
     box.style.color = '#1B5E20';
@@ -315,13 +355,13 @@ async function checkReadiness(studentId, level) {
     return;
   }
 
-  if (p.canComplete) {
+  if (p.canComplete && tests.ready) {
     box.style.background = '#FFF8E1';
     box.style.color = '#E65100';
     box.innerHTML = '<strong>Ready for their certificate ✅</strong><br>' +
       'Worksheets ' + p.worksheets.done + '/' + p.worksheets.total + ' · ' +
       'practice ' + p.practice.done + '/' + p.practice.required + ' · ' +
-      'test ' + p.test.score + '%' +
+      'tests passed ' + tests.passed + '/2' +
       '<button id="awardBtn" style="display:block;width:100%;margin-top:9px;padding:9px;' +
       'border:none;border-radius:9px;background:#2E7D32;color:#fff;font-family:inherit;' +
       'font-size:.84rem;font-weight:900;cursor:pointer;">🎓 Award this certificate</button>';
@@ -332,8 +372,12 @@ async function checkReadiness(studentId, level) {
   box.style.background = '#FFEBEE';
   box.style.color = '#B71C1C';
   box.innerHTML = '<strong>Not finished yet</strong><br>' +
-    (typeof nextStepFor === 'function' ? nextStepFor(p) : '') +
-    '<br><span style="opacity:.8;">You can still print one, but nothing will be recorded.</span>';
+    (p.canComplete ? '' : (typeof nextStepFor === 'function' ? nextStepFor(p) : '') + '<br>') +
+    (tests.why ? esc(tests.why) + '<br>' : '') +
+    (tests.papers < 2 && !tests.noTables
+      ? '<a href="../admin/tests.html" style="color:inherit;font-weight:900;">Design the tests \u2192</a><br>'
+      : '') +
+    '<span style="opacity:.8;">You can still print one, but nothing will be recorded.</span>';
 }
 
 async function awardCertificate() {

@@ -95,6 +95,7 @@ var sb = supabase.createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc');
 
 var KIDS = [];        // { id, name }
+var TESTS = [];       // test attempts, so a parent sees progress towards the next certificate
 var CERTS = [];       // one per award
 var LEVELS = {};      // level_code -> level name, per programme
 var whoseId = null, chosen = null, busy = false;
@@ -159,6 +160,14 @@ async function start() {
       return String(b.completed_at || '').localeCompare(String(a.completed_at || ''));
     });
 
+  /* The tests behind the next certificate. Two passed papers earn one,
+     so a parent seeing "1 of 2" knows what is left — and a child who
+     has sat one gets the credit for it before the certificate exists. */
+  try {
+    var ta = await sb.from('test_attempts').select('*').in('student_id', ids);
+    TESTS = (ta.data || []).filter(function (a) { return a.submitted_at; });
+  } catch (e) { TESTS = []; }
+
   drawWhose();
   drawList();
 }
@@ -193,7 +202,7 @@ function drawList() {
 
   if (!mine.length) {
     var who = (KIDS.filter(function (k) { return k.id === whoseId; })[0] || {}).name || '';
-    body.innerHTML = '<div class="empty"><div class="big">&#127775;</div>' +
+    body.innerHTML = testsPanel() + '<div class="empty"><div class="big">&#127775;</div>' +
       '<h2>No certificates yet</h2>' +
       '<p>' + (KIDS.length > 1 ? esc(who) + ' will' : 'You will') +
       ' get one on finishing a level \u2014 and it will appear here to keep, print or download.</p></div>';
@@ -201,7 +210,7 @@ function drawList() {
   }
 
   if (!chosen) chosen = mine[0];
-  body.innerHTML =
+  body.innerHTML = testsPanel() +
     '<div class="list">' + mine.map(function (c, i) {
       var d = certFor(c);
       return '<button class="cert" aria-pressed="' + (c === chosen) + '" onclick="pickCert(' + i + ')">' +
@@ -221,6 +230,36 @@ function drawList() {
       '<div class="note">Saved as a picture you can keep, send on, or print on A4 landscape.</div>' +
     '</div>';
   show();
+}
+
+/* Progress towards the next certificate, in a parent's terms. */
+function testsPanel() {
+  var mine = TESTS.filter(function (a) { return a.student_id === whoseId; });
+  if (!mine.length) return '';
+  var byLevel = {};
+  mine.forEach(function (a) {
+    var L = byLevel[a.level_code] = byLevel[a.level_code] || { passed: {}, tries: 0, best: 0 };
+    L.tries++;
+    if (a.total) L.best = Math.max(L.best, Math.round(a.score / a.total * 100));
+    if (a.passed) L.passed[a.test_no] = true;
+  });
+  var rows = Object.keys(byLevel).sort().map(function (lc) {
+    var L = byLevel[lc], n = Object.keys(L.passed).length;
+    var lvl = String(lc).replace(/^V?L/, '');
+    return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;' +
+      'border-bottom:1px solid var(--line);font-size:.88rem;">' +
+      '<span style="flex:1;font-weight:800;">' + (/^VL/.test(lc) ? '\u0950 Vedic ' : '') +
+        'Level ' + esc(lvl) + '</span>' +
+      '<span style="color:var(--t3);font-size:.78rem;">' + L.tries + ' test' +
+        (L.tries === 1 ? '' : 's') + ' sat \u00b7 best ' + L.best + '%</span>' +
+      '<span style="font-weight:900;color:' + (n >= 2 ? 'var(--good)' : 'var(--gold)') + ';">' +
+        n + ' of 2 passed</span></div>';
+  }).join('');
+  return '<div class="stage" style="margin-top:0;margin-bottom:14px;">' +
+    '<div style="font-size:.72rem;font-weight:900;letter-spacing:.8pt;text-transform:uppercase;' +
+      'color:var(--t3);margin-bottom:6px;">Towards the next certificate</div>' + rows +
+    '<div class="note" style="text-align:left;margin-top:8px;">Two passed tests at a level earn ' +
+    'its certificate.</div></div>';
 }
 
 function pickCert(i) {

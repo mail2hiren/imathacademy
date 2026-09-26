@@ -142,6 +142,8 @@ var sb = supabase.createClient(
 
 var PROG = 'abacus';
 var LEVELS = [], CONCEPTS = {}, BLUEPRINTS = {}, open_ = null, draft = null;
+var SAT = {};     // level|test -> { sat, passed } across the children
+var ONLEVEL = {}; // level_code -> how many children are on it
 
 /* How a section reaches the child. Her words, not jargon. */
 var DELIVERY = {
@@ -204,6 +206,27 @@ async function load() {
     });
   });
 
+  /* Who has sat each paper, and how many children are on each level,
+     so she can see at a glance who is still to do it. */
+  try {
+    var ats = await sb.from('test_attempts').select('level_code, test_no, student_id, passed, submitted_at');
+    SAT = {};
+    (ats.data || []).filter(function (a) { return a.submitted_at; }).forEach(function (a) {
+      var k = a.level_code + '|' + a.test_no;
+      SAT[k] = SAT[k] || { sat: {}, passed: {} };
+      SAT[k].sat[a.student_id] = true;
+      if (a.passed) SAT[k].passed[a.student_id] = true;
+    });
+    var kids = await sb.from('student_programs')
+      .select('student_id, program_code, current_level, is_active').eq('program_code', PROG);
+    ONLEVEL = {};
+    (kids.data || []).forEach(function (k) {
+      if (k.is_active === false || k.current_level == null) return;
+      var code = (PROG === 'vedic' ? 'VL' : 'L') + k.current_level;
+      ONLEVEL[code] = (ONLEVEL[code] || 0) + 1;
+    });
+  } catch (e) { SAT = {}; ONLEVEL = {}; }
+
   banner('info', 'A certificate needs <b>two passed papers</b> at a level. ' +
     'A child who fails gets a fresh paper of the same design, not the same numbers.');
   drawProgs();
@@ -228,6 +251,17 @@ function summary(b) {
   secs.forEach(function (s) { ways[s.delivery || 'written'] = true; });
   return '<span class="pill ' + (b.status === 'published' ? 'published' : 'draft') + '">' +
       esc(b.status) + '</span>' +
+    /* Only worth saying for a published paper; a draft has nobody. */
+    (b.status === 'published'
+      ? (function () {
+          var s = SAT[b.level_code + '|' + b.test_no] || { sat: {}, passed: {} };
+          var sat = Object.keys(s.sat).length, ok = Object.keys(s.passed).length;
+          var on = ONLEVEL[b.level_code] || 0;
+          return '<div class="sum" style="color:var(--teal-ink);font-weight:800;">' +
+            (on ? sat + ' of ' + on + ' have sat it' : 'nobody is on this level') +
+            (sat ? ' \u00b7 ' + ok + ' passed' : '') + '</div>';
+        })()
+      : '') +
     '<div class="sum">' + esc(b.title || 'Untitled') + '<br>' +
       secs.length + ' section' + (secs.length === 1 ? '' : 's') + ' \u00b7 ' + qs + ' questions<br>' +
       Object.keys(ways).map(function (w) {
@@ -451,9 +485,45 @@ async function save(status) {
   }
   BLUEPRINTS[open_.levelCode + '|' + open_.testNo] = res.data[0];
   draft.status = status;
+
+  /* Publishing tells the children at that level, and their parents.
+     Without this the only way a child knew was being told in the room,
+     and a child sitting at home would never find out. */
+  var told = 0;
+  if (status === 'published') {
+    try {
+      var lvl = parseInt(open_.levelCode.replace(/\D/g, ''), 10);
+      var prog = PROG;
+      var kids = await sb.from('student_programs')
+        .select('student_id, program_code, current_level, is_active')
+        .eq('program_code', prog).eq('current_level', lvl);
+      var ids = (kids.data || []).filter(function (k) { return k.is_active !== false; })
+                                 .map(function (k) { return k.student_id; });
+      if (ids.length) {
+        var msgs = ids.map(function (id) {
+          return { user_id: id, type: 'test',
+                   title: '\uD83D\uDCDD A test is ready for you',
+                   message: (draft.title || ('Test ' + open_.testNo)) +
+                     ' is waiting under Level tests. ' +
+                     (draft.time_limit_mins ? draft.time_limit_mins + ' minutes. ' : '') +
+                     'Two passed tests finish the level.' };
+        });
+        var par = await sb.from('parent_student').select('parent_id, student_id').in('student_id', ids);
+        (par.data || []).forEach(function (p) {
+          msgs.push({ user_id: p.parent_id, type: 'test',
+                      title: '\uD83D\uDCDD A test is ready',
+                      message: 'A Level ' + lvl + ' test has been set. Your child can sit it from their login.' });
+        });
+        var nres = await sb.from('notifications').insert(msgs);
+        if (!nres.error) told = ids.length;
+      }
+    } catch (e) { console.warn('Could not tell the children:', e); }
+  }
   msg.className = 'msg ok';
   msg.textContent = status === 'published'
-    ? 'Published. Children at this level can be given this paper once the test screen is in.'
+    ? 'Published \u2014 ' + (told ? told + ' child' + (told === 1 ? '' : 'ren') + ' at this level ' +
+        (told === 1 ? 'has' : 'have') + ' been told, and their parents.'
+        : 'no child is on this level yet, so nobody has been told.')
     : 'Saved as a draft. Nothing goes to a child until you publish it.';
   draw();
   paint();

@@ -168,7 +168,7 @@ async function init() {
      select('*') asks for whatever is there instead of my guess at
      the schema, and the errors are surfaced below rather than
      swallowed. */
-  var [prof, progs, sessions, wsResp, quizzes, pacing] = await Promise.all([
+  var [prof, progs, sessions, wsResp, quizzes, pacing, tests] = await Promise.all([
     sb.from('users').select('*').eq('id', STUDENT_ID).maybeSingle(),
     sb.from('student_programs').select('*').eq('student_id', STUDENT_ID),
     sb.from('practice_sessions').select('*')
@@ -177,7 +177,11 @@ async function init() {
       .eq('student_id', STUDENT_ID).order('submitted_at', { ascending: false }).limit(40),
     sb.from('quiz_results').select('*')
       .eq('student_id', STUDENT_ID).order('created_at', { ascending: false }).limit(20),
-    sb.from('student_level_position').select('*').eq('student_id', STUDENT_ID)
+    sb.from('student_level_position').select('*').eq('student_id', STUDENT_ID),
+    /* The tests may not be set up yet; a failure here must not empty
+       the rest of the page, so it is read on its own terms below. */
+    sb.from('test_attempts').select('*').eq('student_id', STUDENT_ID)
+      .order('submitted_at', { ascending: false })
   ]);
 
   /* A query that failed is not a child who has done nothing. Saying
@@ -460,6 +464,49 @@ function render(me, progs, sess, ws, wsMeta, qz, pacing, classMiss) {
   var wsDone = ws.length, wsNeeded = 0;
   var sessDone = practice.length, sessNeeded = lvl === 0 ? 12 : 20;
   var testPassed = qz.filter(function (q) { return q.passed && q.level === lvl; }).length > 0;
+
+  /* Test results. Two passed papers at a level earn the certificate,
+     so what she needs at a glance is which papers are passed and which
+     are not — not just a list of scores. */
+  var attempts = (tests && !tests.error) ? (tests.data || []) : [];
+  if (tests && tests.error) {
+    html += '<div class="card" style="margin-top:14px;"><h2>Tests</h2>' +
+      '<div class="note">Could not read the tests: ' + esc(tests.error.message) + '</div></div>';
+  } else if (attempts.length) {
+    var byPaper = {};
+    attempts.filter(function (a) { return a.submitted_at; }).forEach(function (a) {
+      var k = a.level_code + ' · Test ' + a.test_no;
+      byPaper[k] = byPaper[k] || { tries: 0, best: 0, passed: false, when: a.submitted_at };
+      byPaper[k].tries++;
+      if (a.total) byPaper[k].best = Math.max(byPaper[k].best, Math.round(a.score / a.total * 100));
+      if (a.passed) byPaper[k].passed = true;
+    });
+    var passedByLevel = {};
+    attempts.filter(function (a) { return a.passed; }).forEach(function (a) {
+      (passedByLevel[a.level_code] = passedByLevel[a.level_code] || {})[a.test_no] = true;
+    });
+
+    html += '<div class="card" style="margin-top:14px;"><h2>Level tests</h2>';
+    Object.keys(byPaper).sort().forEach(function (k) {
+      var p = byPaper[k];
+      html += '<div class="gate"><span style="flex:0 0 150px;">' + esc(k) + '</span>' +
+        '<span class="b"><i style="width:' + p.best + '%;background:' +
+          (p.passed ? 'var(--good)' : 'var(--warn)') + '"></i></span>' +
+        '<span class="v">' + (p.passed ? 'passed' : p.best + '%') + '</span></div>' +
+        '<div style="font-size:.74rem;color:var(--t3);margin:-4px 0 8px 160px;">' +
+          p.tries + ' attempt' + (p.tries === 1 ? '' : 's') + ' · best ' + p.best + '%' +
+          ' · ' + fmt(p.when) + '</div>';
+    });
+    Object.keys(passedByLevel).sort().forEach(function (lc) {
+      var n = Object.keys(passedByLevel[lc]).length;
+      html += '<div class="note">' + esc(lc) + ': <b>' + n + ' of 2</b> tests passed' +
+        (n >= 2 ? ' — ready for the certificate' : '') + '</div>';
+    });
+    html += '</div>';
+  } else {
+    html += '<div class="card" style="margin-top:14px;"><h2>Level tests</h2>' +
+      '<div class="note">No test sat yet. Two passed papers at a level earn the certificate.</div></div>';
+  }
 
   html += '<div class="card" style="margin-top:14px;"><h2>Moving up from Level ' +
     (lvl == null ? '?' : lvl) + '</h2>';

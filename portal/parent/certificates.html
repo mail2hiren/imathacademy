@@ -65,7 +65,7 @@
   <a class="back" href="#" id="backLink" aria-label="Back">&larr;</a>
   <div>
     <h1>&#127942; Certificates</h1>
-    <p id="sub">Every certificate awarded so far</p>
+    <p id="sub">Every certificate ever awarded, kept here</p>
   </div>
 </div>
 
@@ -224,7 +224,8 @@ function drawList() {
     '<div class="stage">' +
       '<div class="paper" id="paper"></div>' +
       '<div class="acts">' +
-        '<button class="btn" id="dl" onclick="doDownload()">&#11015; Download</button>' +
+        '<button class="btn" id="dl" onclick="doDownload(\'pdf\')">&#11015; Download PDF</button>' +
+        '<button class="btn ghost" onclick="doDownload(\'png\')">Picture</button>' +
         '<button class="btn ghost" id="pr" onclick="doPrint()">&#128424; Print</button>' +
       '</div>' +
       '<div class="note">Saved as a picture you can keep, send on, or print on A4 landscape.</div>' +
@@ -276,13 +277,18 @@ async function show() {
   paper.appendChild(c);
 }
 
-async function doDownload() {
+async function doDownload(kind) {
   if (busy || !chosen) return;
   busy = true;
-  var b = document.getElementById('dl'); b.disabled = true; b.textContent = 'Saving\u2026';
-  try { await CertificateDraw.download(certFor(chosen)); }
-  catch (e) { alert('Could not save the certificate: ' + e.message); }
-  b.disabled = false; b.innerHTML = '&#11015; Download'; busy = false;
+  var b = document.getElementById('dl');
+  if (kind === 'pdf') { b.disabled = true; b.textContent = 'Saving\u2026'; }
+  try {
+    /* A PDF is what a school or a relative expects; the picture is
+       there for anyone who wants to send it on a message. */
+    if (kind === 'pdf') await CertificateDraw.downloadPdf(certFor(chosen));
+    else await CertificateDraw.download(certFor(chosen));
+  } catch (e) { alert('Could not save the certificate: ' + e.message); }
+  b.disabled = false; b.innerHTML = '&#11015; Download PDF'; busy = false;
 }
 
 async function doPrint() {

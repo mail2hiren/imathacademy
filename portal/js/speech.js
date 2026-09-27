@@ -197,13 +197,40 @@ var Speech = (function () {
     return t;
   }
 
+  /* A voice for a chosen language. Hindi where the device has one,
+     otherwise the best Indian English voice — said plainly to the
+     caller so a parent is not left wondering why it spoke English. */
+  function pickFor(lang) {
+    var all = (window.speechSynthesis && window.speechSynthesis.getVoices()) || [];
+    var want = (lang || 'en').slice(0, 2).toLowerCase();
+    var mine = all.filter(function (v) {
+      return String(v.lang || '').slice(0, 2).toLowerCase() === want;
+    });
+    if (!mine.length) return null;
+    /* female first, then an Indian one, then anything of that language */
+    var female = mine.filter(function (v) { return /female|woman|kalpana|swara|neerja|heera|lekha/i.test(v.name); });
+    var indian = mine.filter(function (v) { return /-IN$/i.test(v.lang || ''); });
+    return female[0] || indian[0] || mine[0];
+  }
+
   function say(text, opts) {
-    if (!window.speechSynthesis) return;
+    if (!window.speechSynthesis) return null;
     var o = opts || {};
     var words = o.raw ? String(text) : forMaths(text);
     var u = dress(new SpeechSynthesisUtterance(words), o);
+    /* A language asked for wins over the app's usual voice. */
+    if (o.lang) {
+      var v = pickFor(o.lang);
+      if (v) { u.voice = v; u.lang = v.lang; }
+      else { u.lang = o.lang; }
+      if (!v) return { spoke: true, voice: null, lang: o.lang };
+    }
     window.speechSynthesis.speak(u);
+    return { spoke: true, voice: u.voice ? u.voice.name : null, lang: u.lang };
   }
+
+  /** Whether this device can speak a language at all. */
+  function canSpeak(lang) { return !!pickFor(lang); }
 
   /**
    * Say it, then say it again, with a gap between.
@@ -254,7 +281,7 @@ var Speech = (function () {
 
   return {
     say: say, sayTwice: sayTwice, stop: stop, unlock: unlock,
-    forMaths: forMaths,
+    forMaths: forMaths, pickFor: pickFor, canSpeak: canSpeak,
     voices: voices, current: current, setVoiceByName: setVoiceByName,
     dress: dress
   };

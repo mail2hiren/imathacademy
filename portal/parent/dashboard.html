@@ -229,21 +229,32 @@ async function load(id) {
     sb.from('student_programs').select('*').eq('student_id', id),
     sb.from('practice_sessions').select('*').eq('student_id', id)
       .gte('created_at', since).order('created_at', { ascending: false }),
-    sb.from('worksheet_responses').select('score, total, submitted_at')
-      .eq('student_id', id).order('submitted_at', { ascending: false }).limit(30),
+    /* The worksheet's own concept and programme come with it — that is
+       what makes "where the practice is needed" possible at all. */
+    sb.from('worksheet_responses')
+      .select('score, total, submitted_at, lx_worksheets(concept, program_code, level)')
+      .eq('student_id', id).order('submitted_at', { ascending: false }).limit(40),
     sb.from('student_level_completions').select('*').eq('student_id', id),
     sb.from('test_attempts').select('*').eq('student_id', id),
     sb.from('student_level_position').select('*').eq('student_id', id),
+    /* Every subscription, not the latest one: a child may be paid up
+       for Abacus and not for Vedic, and a parent needs to see which. */
     sb.from('subscriptions').select('*').eq('student_id', id)
-      .order('expires_at', { ascending: false }).limit(1)
+      .order('expires_at', { ascending: false })
   ]);
 
   DATA = {
     kid: KIDS.filter(function (k) { return k.id === id; })[0] || {},
     progs: (progs.data || []).filter(function (p) { return p.is_active !== false; }),
-    sess: sess.data || [], ws: ws.data || [],
+    sess: sess.data || [],
+    ws: (ws.data || []).map(function (w) {
+      var sheet = w.lx_worksheets || {};
+      return { score: w.score, total: w.total, submitted_at: w.submitted_at,
+               concept: sheet.concept, program_code: sheet.program_code || 'abacus',
+               level: sheet.level };
+    }),
     comp: comp.data || [], tests: (tests && !tests.error) ? (tests.data || []) : [],
-    pos: pos.data || [], sub: (subs.data || [])[0] || null
+    pos: pos.data || [], subs: subs.data || []
   };
   draw();
 }
@@ -292,41 +303,118 @@ function summary() {
            week: week.length, acc: acc, quiet: quiet, code: code, prog: prog, passed: np };
 }
 
-/* What a parent can actually do. Drawn from the child's own week, and
-   never more than three things \u2014 a list of ten is a list of none. */
-function helps(s) {
-  var out = [];
-  if (s.quiet != null && s.quiet >= 7) {
-    out.push(['\u23F0', 'Ten minutes tonight',
-      s.name + ' has not practised for ' + s.quiet + ' days. Ten minutes on the Practice screen ' +
-      'does more than an hour at the weekend.']);
-  } else if (s.week < 3) {
-    out.push(['\u23F0', 'Aim for three short goes a week',
-      'Little and often is what moves a child along. Three sittings of ten minutes beats one long one.']);
-  } else {
-    out.push(['\u2705', 'Keep the routine going',
-      s.name + ' practised ' + s.week + ' times this week. That rhythm is exactly what works \u2014 ' +
-      'praise it out loud.']);
-  }
+/* What this child has done in one programme, and — the part Megha
+   asked for — WHICH METHODS need work, so a parent can say "practise
+   your combination sums" rather than "do some maths". */
+function programmeCard(pr) {
+  var d = DATA, prog = pr.program_code || 'abacus';
+  var lvl = pr.current_level != null ? pr.current_level : 0;
+  var code = (prog === 'vedic' ? 'VL' : 'L') + lvl;
+  var name = LEVELNAMES[prog + '|' + code] || '';
+  var p = d.pos.filter(function (x) { return x.level_code === code; })[0];
+  var through = p ? Math.round(Number(p.position) * 100) : null;
 
-  if (s.acc != null && s.acc < 70) {
-    out.push(['\uD83E\uDD1D', 'Sit with them for one page',
-      'Accuracy is at ' + s.acc + '%. Watching one page without helping tells you where it goes wrong, ' +
-      'and that is worth telling the teacher.']);
-  } else if (s.through != null && s.through >= 80) {
-    out.push(['\uD83C\uDFAF', 'The level test is close',
-      s.name + ' is near the end of Level ' + s.lvl + '. Two passed tests finish it \u2014 ' +
-      'ask the teacher when they will sit them.']);
-  } else if (s.acc != null && s.acc >= 90) {
-    out.push(['\uD83D\uDE80', 'Ready for harder work',
-      s.acc + '% is strong. Ask the teacher whether ' + s.name + ' can move up a difficulty.']);
-  }
+  /* Results: practice and worksheets, in this programme. */
+  var mySess = d.sess.filter(function (s) {
+    return (s.program_code || 'abacus') === prog;
+  });
+  var practice = mySess.filter(function (s) { return s.topic !== 'worksheet'; });
+  var att = mySess.reduce(function (a, s) {
+    return a + (s.questions_attempted || s.questions_total || 0); }, 0);
+  var cor = mySess.reduce(function (a, s) { return a + (s.questions_correct || 0); }, 0);
+  var acc = att ? Math.round(cor / att * 100) : null;
 
-  out.push(['\uD83D\uDDE3\uFE0F', 'Ask about the working, not the answer',
-    '"How did you get that?" teaches more than "is it right?" \u2014 and it is the question the ' +
-    'abacus and Vedic methods are built around.']);
+  var myWs = d.ws.filter(function (w) { return (w.program_code || 'abacus') === prog; });
+  var wsAtt = myWs.reduce(function (a, w) { return a + (w.total || 0); }, 0);
+  var wsCor = myWs.reduce(function (a, w) { return a + (w.score || 0); }, 0);
+  var wsAcc = wsAtt ? Math.round(wsCor / wsAtt * 100) : null;
 
-  return out.slice(0, 3);
+  /* Which methods are strong and which need practice, from the
+     worksheets themselves: each one was set on a concept. Only said
+     when there is enough to be fair about — two worksheets is not
+     evidence. */
+  var byConcept = {};
+  myWs.forEach(function (w) {
+    if (!w.concept || !w.total) return;
+    var k = byConcept[w.concept] = byConcept[w.concept] || { score: 0, total: 0, sheets: 0 };
+    k.score += w.score || 0; k.total += w.total; k.sheets++;
+  });
+  var insights = Object.keys(byConcept).map(function (k) {
+    var v = byConcept[k];
+    return { name: prettyConcept(k), pct: Math.round(v.score / v.total * 100), sheets: v.sheets };
+  }).filter(function (x) { return x.sheets >= 2; }).sort(function (a, b) { return a.pct - b.pct; });
+
+  var passed = {};
+  d.tests.filter(function (t) { return t.passed && t.level_code === code; })
+         .forEach(function (t) { passed[t.test_no] = true; });
+  var np = Object.keys(passed).length;
+  var certs = d.comp.filter(function (x) {
+    return (prog === 'vedic') === /^VL/.test(String(x.level_code || '')); }).length;
+
+  return '<div class="card">' +
+    '<h2>' + (prog === 'vedic' ? '\u0950 Vedic Maths' : '\uD83E\uDDEE Abacus') + '</h2>' +
+    '<div style="font-size:1.2rem;font-weight:900;">Level ' + lvl +
+      (name ? ' \u00b7 ' + esc(name) : '') + '</div>' +
+    '<div class="ring" style="margin-top:10px;">' +
+      '<span class="track" style="background:var(--line);"><i style="width:' +
+        (through == null ? 4 : Math.max(4, through)) + '%;background:var(--teal);"></i></span>' +
+      '<span class="pct" style="color:var(--teal);">' +
+        (through == null ? '' : through + '%') + '</span></div>' +
+    '<div class="quiet" style="margin-top:4px;">' +
+      (through == null ? 'Just started this level'
+        : through < 25 ? 'Near the beginning of this level'
+        : through < 55 ? 'Working through this level'
+        : through < 80 ? 'Well into this level'
+        : 'Close to finishing this level') + '</div>' +
+
+    /* results */
+    '<div class="strip" style="margin-top:14px;">' +
+      '<div class="stat"><div class="n">' + practice.length + '</div>' +
+        '<div class="k">practices</div></div>' +
+      '<div class="stat"><div class="n' + (acc == null ? '' : acc >= 80 ? ' good' : acc >= 60 ? '' : ' warn') +
+        '">' + (acc == null ? '\u2014' : acc + '%') + '</div><div class="k">practice right</div></div>' +
+      '<div class="stat"><div class="n' + (wsAcc == null ? '' : wsAcc >= 80 ? ' good' : wsAcc >= 60 ? '' : ' warn') +
+        '">' + (wsAcc == null ? '\u2014' : wsAcc + '%') + '</div><div class="k">' +
+        myWs.length + ' worksheets</div></div>' +
+    '</div>' +
+
+    /* method insights */
+    (insights.length
+      ? '<div style="margin-top:14px;">' +
+          '<div class="quiet" style="font-weight:800;color:var(--t2);">Where the practice is needed</div>' +
+          insights.slice(0, 4).map(function (x) {
+            var tone = x.pct >= 85 ? 'var(--good)' : x.pct >= 65 ? 'var(--warn)' : 'var(--bad)';
+            return '<div style="display:flex;align-items:center;gap:9px;padding:6px 0;font-size:.88rem;">' +
+              '<span style="flex:1;">' + esc(x.name) + '</span>' +
+              '<span style="width:90px;height:8px;border-radius:5px;background:var(--line);overflow:hidden;">' +
+                '<i style="display:block;height:100%;width:' + x.pct + '%;background:' + tone + ';"></i></span>' +
+              '<span style="font-weight:900;color:' + tone + ';min-width:38px;text-align:right;">' +
+                x.pct + '%</span></div>';
+          }).join('') +
+          '<div class="quiet" style="margin-top:4px;">Lowest first \u2014 that is the one to practise.</div>' +
+        '</div>'
+      : '<div class="quiet" style="margin-top:12px;">Once there are a few more worksheets, ' +
+        'this will show which methods need practice.</div>') +
+
+    /* level and certificate */
+    '<div class="quiet" style="margin-top:12px;">' +
+      (np ? np + ' of the 2 tests for Level ' + lvl + ' passed. ' : 'No test sat for Level ' + lvl + ' yet. ') +
+      certs + ' certificate' + (certs === 1 ? '' : 's') + ' earned.' +
+    '</div>' +
+  '</div>';
+}
+
+/* Her concept codes, in words a parent would use. */
+function prettyConcept(code) {
+  var c = String(code || '').toLowerCase().replace(/_/g, ' ');
+  var map = { 'big friends':'Big Friends', 'small friends':'Small Friends',
+    'combination':'Combination', 'direct add':'Straight adding', 'direct sub':'Straight taking away',
+    'multiplication':'Multiplication', 'division':'Division', 'decimals':'Decimals',
+    'negative':'Negative numbers', 'anzan':'Mental maths', 'counting':'Counting',
+    'number recog':'Reading numbers', 'add sub':'Adding and taking away' };
+  if (map[c]) return map[c];
+  if (typeof Sutras !== 'undefined' && Sutras.METHODS[code]) return Sutras.METHODS[code].label;
+  return c.replace(/^./, function (x) { return x.toUpperCase(); });
 }
 
 function draw() {
@@ -342,7 +430,11 @@ function draw() {
     '<div class="ring"><span class="track"><i style="width:' +
       (s.through == null ? 4 : Math.max(4, s.through)) + '%"></i></span>' +
       '<span class="pct">' + (s.through == null ? '' : s.through + '%') + '</span></div>' +
-    '<button class="listen" onclick="listen()">&#128266; Listen to this</button>' +
+    '<div style="display:flex;gap:8px;margin-top:14px;">' +
+      '<button class="listen" style="margin:0;" onclick="listen(\'en\')">&#128266; Listen</button>' +
+      '<button class="listen" style="margin:0;" onclick="listen(\'hi\')">&#128266; \u0939\u093F\u0902\u0926\u0940</button>' +
+    '</div>' +
+    '<div id="saidIn" class="quiet" style="color:rgba(255,255,255,.85);margin-top:8px;min-height:1.2em;"></div>' +
   '</div>';
 
   /* ── this week ── */
@@ -353,6 +445,12 @@ function draw() {
       '">' + (s.acc == null ? '\u2014' : s.acc + '%') + '</div><div class="k">right this week</div></div>' +
     '<div class="stat"><div class="n">' + d.comp.length + '</div><div class="k">certificates</div></div>' +
   '</div>';
+
+  /* ── one card per programme ─────────────────────────────────
+     A child may learn both, and the two are separate courses with
+     separate levels and certificates. One card each, rather than one
+     mixed picture. */
+  h += DATA.progs.map(function (pr) { return programmeCard(pr); }).join('');
 
   /* ── the journey ── */
   var done = {};
@@ -370,52 +468,106 @@ function draw() {
     (s.passed ? esc(s.name) + ' has passed ' + s.passed + ' of the 2 for Level ' + s.lvl + '.'
               : 'No test sat for Level ' + s.lvl + ' yet.') + '</div></div>';
 
-  /* ── what a parent can do ── */
-  h += '<div class="card"><h2>How you can help</h2>' +
-    helps(s).map(function (x) {
-      return '<div class="help"><span class="ic">' + x[0] + '</span>' +
-        '<span class="tx"><strong>' + esc(x[1]) + '</strong><span>' + esc(x[2]) + '</span></span></div>';
-    }).join('') + '</div>';
+  /* "How you can help" removed at Megha's request: a parent wants to
+     know where their child stands, and the teacher gives the advice. */
 
-  /* ── fees, said in one line ── */
-  var sub = d.sub;
-  var until = sub && sub.expires_at ? new Date(sub.expires_at) : null;
-  var live = until ? until > new Date() : false;
-  var leftDays = until ? Math.ceil((until - Date.now()) / 86400000) : null;
-  h += '<div class="card"><h2>Fees</h2><div class="money">' +
-    '<span class="st">' +
-      (sub
-        ? '<b>' + (live ? 'Paid up' : 'Payment due') + '</b>' +
-          '<span>' + (live
-            ? 'Covered to ' + fmt(sub.expires_at) + (leftDays != null && leftDays <= 14
-                ? ' \u2014 ' + leftDays + ' day' + (leftDays === 1 ? '' : 's') + ' left' : '')
-            : 'Ended ' + fmt(sub.expires_at)) + '</span>'
-        : '<b>No subscription yet</b><span>Start one to keep the worksheets and practice coming.</span>') +
-    '</span>' +
-    '<span class="pill ' + (!sub ? 'off' : live ? (leftDays <= 14 ? 'due' : 'ok') : 'off') + '">' +
-      (!sub ? 'none' : live ? (leftDays <= 14 ? 'renew soon' : 'active') : 'expired') + '</span>' +
-  '</div>' +
-  '<a class="go' + (live && leftDays > 14 ? ' ghost' : '') + '" href="payments.html">' +
-    (!sub || !live ? 'Pay now' : 'Fees and receipts') + '</a></div>';
+  /* ── fees, one line per programme ────────────────────────────
+     A family may pay for Abacus and Vedic separately, so one status
+     for the child would be wrong for one of them. */
+  var subs = DATA.subs || [];
+  var progList = DATA.progs.length ? DATA.progs : [{ program_code: 'abacus' }];
+  h += '<div class="card"><h2>Fees</h2>' +
+    progList.map(function (pr) {
+      var prog = pr.program_code || 'abacus';
+      var mine = subs.filter(function (s) {
+        return (s.program_code || 'abacus') === prog;
+      });
+      /* No programme recorded on a subscription means the older single
+         subscription, which covered Abacus. */
+      if (!mine.length && prog === 'abacus') {
+        mine = subs.filter(function (s) { return !s.program_code; });
+      }
+      var sub = mine[0] || null;
+      var until = sub && sub.expires_at ? new Date(sub.expires_at) : null;
+      var live = until ? until > new Date() : false;
+      var left = until ? Math.ceil((until - Date.now()) / 86400000) : null;
+      return '<div class="money" style="padding:8px 0;border-bottom:1px solid var(--line);">' +
+        '<span class="st"><b>' + (prog === 'vedic' ? '\u0950 Vedic Maths' : '\uD83E\uDDEE Abacus') + '</b>' +
+          '<span>' + (sub
+            ? (live ? 'Paid to ' + fmt(sub.expires_at) +
+                      (left != null && left <= 14 ? ' \u2014 ' + left + ' day' +
+                        (left === 1 ? '' : 's') + ' left' : '')
+                    : 'Ended ' + fmt(sub.expires_at))
+            : 'Not started') + '</span></span>' +
+        '<span class="pill ' + (!sub ? 'off' : live ? (left <= 14 ? 'due' : 'ok') : 'off') + '">' +
+          (!sub ? 'none' : live ? (left <= 14 ? 'renew soon' : 'active') : 'expired') + '</span>' +
+      '</div>';
+    }).join('') +
+    '<a class="go" href="payments.html">Fees, payments and receipts</a></div>';
 
   /* ── the awards ── */
   h += '<div class="card"><h2>Certificates</h2>' +
     '<div class="quiet">' + (d.comp.length
-      ? esc(s.name) + ' has ' + d.comp.length + '. You can view, download or print any of them.'
+      ? esc(s.name) + ' has ' + d.comp.length + ', every one kept. Download any of them as a PDF, or print it.'
       : 'None yet. One comes with each level finished.') + '</div>' +
     '<a class="go ghost" href="certificates.html">Open certificates</a></div>';
 
   document.getElementById('body').innerHTML = h;
 }
 
-/* Read the progress out, in the voice the app prefers \u2014 Indian and
-   female where the device has one. A parent standing in a kitchen
-   would rather hear it. */
-function listen() {
+/* Read the progress out, in English or Hindi. Slower than before —
+   Megha said it was too fast to follow — and short, because a parent
+   wants the gist, not everything on the screen.
+
+   If the device has no Hindi voice, that is said rather than quietly
+   speaking English instead. */
+function spokenSummary(lang) {
+  var s = summary(), d = DATA;
+  var name = s.name;
+  if (lang === 'hi') {
+    var out = [];
+    out.push(name + ' \u0905\u092D\u0940 \u0932\u0947\u0935\u0932 ' + s.lvl +
+      ' \u092E\u0947\u0902 \u0939\u0948\u0902\u0964');
+    out.push(s.through == null
+      ? '\u092F\u0939 \u0932\u0947\u0935\u0932 \u0905\u092C\u0940 \u0936\u0941\u0930\u0942 \u0939\u0941\u0906 \u0939\u0948\u0964'
+      : '\u0932\u0947\u0935\u0932 \u0915\u093E ' + s.through +
+        ' \u092A\u094D\u0930\u0924\u093F\u0936\u0924 \u092A\u0942\u0930\u093E \u0939\u094B \u0917\u092F\u093E \u0939\u0948\u0964');
+    if (s.week) {
+      out.push('\u0907\u0938 \u0939\u092B\u094D\u0924\u0947 ' + s.week +
+        ' \u092C\u093E\u0930 \u0905\u092D\u094D\u092F\u093E\u0938 \u0915\u093F\u092F\u093E' +
+        (s.acc != null ? ', \u0914\u0930 ' + s.acc +
+          ' \u092A\u094D\u0930\u0924\u093F\u0936\u0924 \u0938\u0939\u0940 \u0939\u0941\u0906' : '') + '\u0964');
+    } else if (s.quiet != null && s.quiet > 0) {
+      out.push(s.quiet + ' \u0926\u093F\u0928 \u0938\u0947 \u0905\u092D\u094D\u092F\u093E\u0938 ' +
+        '\u0928\u0939\u0940\u0902 \u0939\u0941\u0906 \u0939\u0948\u0964');
+    }
+    if (d.comp.length) {
+      out.push(d.comp.length + ' \u092A\u094D\u0930\u092E\u093E\u0923\u092A\u0924\u094D\u0930 ' +
+        '\u092E\u093F\u0932 \u091A\u0941\u0915\u0947 \u0939\u0948\u0902\u0964');
+    }
+    return out.join(' ');
+  }
+  /* English: the first three lines only — the gist. */
+  return s.lines.slice(0, 3).join(' ');
+}
+
+function listen(lang) {
+  var said = document.getElementById('saidIn');
   if (typeof Speech === 'undefined') return;
   try { Speech.unlock(); } catch (e) {}
   Speech.stop();
-  Speech.say(summary().lines.join(' '), { rate: 0.92, raw: true });
+
+  if (lang === 'hi' && Speech.canSpeak && !Speech.canSpeak('hi')) {
+    if (said) said.textContent = 'This device has no Hindi voice installed, so Hindi cannot be spoken here.';
+    return;
+  }
+  /* Slower than a normal reading: this is a summary a parent is
+     listening to once, not a sentence they can re-read. */
+  var res = Speech.say(spokenSummary(lang), {
+    raw: true, lang: lang === 'hi' ? 'hi-IN' : 'en-IN',
+    rate: lang === 'hi' ? 0.82 : 0.84
+  });
+  if (said) said.textContent = res && res.voice ? 'Speaking\u2026' : 'Speaking\u2026';
 }
 
 start().catch(function (e) {

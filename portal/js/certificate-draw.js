@@ -124,6 +124,78 @@ var CertificateDraw = (function () {
     return 'iMath-' + who + lvl + '.png';
   }
 
+  /* ── A real PDF, with nothing loaded ────────────────────────
+     A PDF is what a school or a relative expects, and it prints at a
+     predictable size. Written by hand rather than with a library,
+     because a certificate is one full-page image and that makes a very
+     small PDF: the JPEG is embedded as-is, the format PDF understands
+     natively, on an A4 landscape page. Works offline. */
+  function pdfFromJpeg(jpegBytes, wPx, hPx) {
+    var W = 841.89, H = 595.28;                 // A4 landscape, in points
+    var scale = Math.min(W / wPx, H / hPx);
+    var dw = wPx * scale, dh = hPx * scale;
+    var ox = (W - dw) / 2, oy = (H - dh) / 2;
+
+    var objs = [];
+    objs[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+    objs[2] = '<< /Type /Pages /Kids [3 0 R] /Count 1 >>';
+    objs[3] = '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + W.toFixed(2) + ' ' + H.toFixed(2) +
+              '] /Resources << /XObject << /Im0 5 0 R >> >> /Contents 4 0 R >>';
+    var draw = 'q ' + dw.toFixed(2) + ' 0 0 ' + dh.toFixed(2) + ' ' +
+               ox.toFixed(2) + ' ' + oy.toFixed(2) + ' cm /Im0 Do Q';
+    objs[4] = '<< /Length ' + draw.length + ' >>\nstream\n' + draw + '\nendstream';
+    objs[5] = '<< /Type /XObject /Subtype /Image /Width ' + wPx + ' /Height ' + hPx +
+              ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' +
+              jpegBytes.length + ' >>';
+
+    /* Built as bytes: the JPEG is binary and must not be mangled. */
+    var parts = [], offsets = [], len = 0;
+    function push(str) {
+      var b = new Uint8Array(str.length);
+      for (var i = 0; i < str.length; i++) b[i] = str.charCodeAt(i) & 0xff;
+      parts.push(b); len += b.length;
+    }
+    push('%PDF-1.4\n');
+    for (var n = 1; n <= 5; n++) {
+      offsets[n] = len;
+      push(n + ' 0 obj\n' + objs[n] + (n === 5 ? '\nstream\n' : '\n'));
+      if (n === 5) { parts.push(jpegBytes); len += jpegBytes.length; push('\nendstream'); }
+      push('\nendobj\n');
+    }
+    var xref = len;
+    var x = 'xref\n0 6\n0000000000 65535 f \n';
+    for (var k = 1; k <= 5; k++) {
+      var o = String(offsets[k]);
+      while (o.length < 10) o = '0' + o;
+      x += o + ' 00000 n \n';
+    }
+    push(x);
+    push('trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF\n');
+
+    var all = new Uint8Array(len), at = 0;
+    parts.forEach(function (p) { all.set(p, at); at += p.length; });
+    return new Blob([all], { type: 'application/pdf' });
+  }
+
+  function dataUrlToBytes(url) {
+    var bin = atob(url.split(',')[1]);
+    var out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  async function downloadPdf(cert) {
+    var c = await draw(cert);
+    var jpeg = dataUrlToBytes(c.toDataURL('image/jpeg', 0.92));
+    var blob = pdfFromJpeg(jpeg, c.width, c.height);
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = fileName(cert).replace(/\.png$/, '.pdf');
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  }
+
   async function download(cert) {
     var c = await draw(cert);
     var url = c.toDataURL('image/png');
@@ -160,7 +232,7 @@ var CertificateDraw = (function () {
     };
   }
 
-  return { draw: draw, download: download, print: print,
+  return { draw: draw, download: download, downloadPdf: downloadPdf, print: print,
            fileName: fileName, prettyDate: prettyDate, linesFor: linesFor, W: W, H: H };
 })();
 

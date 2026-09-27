@@ -357,7 +357,7 @@
     <div class="section">
       <div class="sec-label">5 — Settings</div>
       <div class="form-grid-3" style="margin-bottom:10px;">
-        <div class="form-group">
+        <div class="form-group" id="abacusModeGroup">
           <label class="form-label">Abacus</label>
           <select id="abacusMode">
             <option value="default" selected>Follow the level</option>
@@ -533,6 +533,21 @@ function getGroupFromAge(age) {
 // Curriculum data loaded from DB — keyed by level number
 var CURRICULUM = {};   // CURRICULUM[1] = { level, concepts, diffRules, formulas }
 var CURRICULUM_LOADED = false;
+/* What this level is about, in Megha's own words from the curriculum.
+   The list below is Abacus only, and a Vedic Level 1 was being
+   described as "Big friends and small friends addition". */
+function summaryFor(lv) {
+  var code = (selectedProgram === 'vedic' ? 'VL' : 'L') + lv;
+  var row = (CURRICULUM[lv] && CURRICULUM[lv].level) || null;
+  if (row && (row.core_focus || row.level_name)) {
+    return 'Level ' + lv + (row.level_name ? ' \u2014 ' + row.level_name : '') +
+           (row.core_focus ? ': ' + row.core_focus : '');
+  }
+  /* Nothing read yet: the Abacus list is right for Abacus, and for
+     Vedic it is better to say nothing than the wrong thing. */
+  return selectedProgram === 'vedic' ? '' : (LEVEL_SUMMARIES[lv] || '');
+}
+
 const LEVEL_SUMMARIES = {
   0: 'Level 0 — Beginner: Understanding beads, addition and subtraction.',
   1: 'Level 1 — Foundation: Big friends and small friends addition.',
@@ -545,6 +560,10 @@ const LEVEL_SUMMARIES = {
   8: 'Level 8 — Master.',
 };
 async function loadCurriculum(force) {
+  /* The curriculum of the programme SELECTED, not always Abacus. Pinned
+     to Abacus, a Vedic level was described in Abacus words — "Level 1:
+     Big friends and small friends addition" — and its bands and
+     concepts came from the wrong programme. */
   /* Read ONCE and never again meant a change Megha made in the course
      map never reached LX until she reloaded the page. force re-reads it. */
   if (CURRICULUM_LOADED && !force) return;
@@ -555,19 +574,19 @@ async function loadCurriculum(force) {
   try {
     // Load levels
     var lvRes = await sb.from('curriculum_levels')
-      .select('level_code,level_name,core_focus,age_min,age_max,min_digits,max_digits,min_number,max_number,min_rows,max_rows,allow_zero,anzan_allowed,multiplication_allowed,division_allowed,decimals_allowed,negative_numbers_allowed,physical_abacus,guardrail_notes').eq('program_code', 'abacus');
+      .select('level_code,level_name,core_focus,age_min,age_max,min_digits,max_digits,min_number,max_number,min_rows,max_rows,allow_zero,anzan_allowed,multiplication_allowed,division_allowed,decimals_allowed,negative_numbers_allowed,physical_abacus,guardrail_notes').eq('program_code', selectedProgram);
     
     // Load concept progressions with concept names
     var lcRes = await sb.from('curriculum_level_concepts')
-      .select('level_code,status,curriculum_concepts(id,concept_name,concept_code,category)').eq('program_code', 'abacus');
+      .select('level_code,status,curriculum_concepts(id,concept_name,concept_code,category)').eq('program_code', selectedProgram);
     
     // Load difficulty rules
     var drRes = await sb.from('curriculum_difficulty_rules')
-      .select('level_code,difficulty,min_digits,max_digits,min_number,max_number,min_rows,max_rows,notes').eq('program_code', 'abacus');
+      .select('level_code,difficulty,min_digits,max_digits,min_number,max_number,min_rows,max_rows,notes').eq('program_code', selectedProgram);
     
     // Load formulas
     var fmRes = await sb.from('curriculum_formulas')
-      .select('level_code,formula_name,method,example,curriculum_concepts(concept_name)').eq('program_code', 'abacus');
+      .select('level_code,formula_name,method,example,curriculum_concepts(concept_name)').eq('program_code', selectedProgram);
     // Build CURRICULUM map
     (lvRes.data || []).forEach(function(lv) {
       var lvNum = parseInt(lv.level_code.replace('L',''));
@@ -655,7 +674,14 @@ async function selectProgram(prog) {
   });
   var lab = document.getElementById('levelLabel');
   if (lab) lab.textContent = '3 \u2014 ' + PROGRAM_STYLE[prog].label;
+
+  /* The abacus setting means nothing in Vedic Maths — there is no
+     abacus to require or do without — so it is not shown there. */
+  var amg = document.getElementById('abacusModeGroup');
+  if (amg) amg.style.display = (prog === 'vedic') ? 'none' : '';
   selectedLevel = (prog === 'vedic') ? 1 : 0;
+  /* The other programme's curriculum, read fresh. */
+  try { await loadCurriculum(true); } catch (e) { console.warn(e); }
   await drawLevelCards();
   try { filterConceptsForLevel(); } catch (e) { console.warn(e); }
   try { applyActivityVisibility(); } catch (e) { console.warn(e); }
@@ -735,7 +761,7 @@ function selectLevel(el, lv) {
      her choice. */
   if (selectedLevel !== lv) selectedConcept = null;
   selectedLevel = lv;
-  document.getElementById('levelSummary').textContent = LEVEL_SUMMARIES[lv] || '';
+  document.getElementById('levelSummary').textContent = summaryFor(lv);
   // Filter concepts to only show ones valid at this level
   filterConceptsForLevel(lv);
 }
@@ -1087,7 +1113,7 @@ function selectLevelByValue(lv) {
     c.classList.toggle('selected', i === lv);
   });
   selectedLevel = lv;
-  document.getElementById('levelSummary').textContent = LEVEL_SUMMARIES[lv] || '';
+  document.getElementById('levelSummary').textContent = summaryFor(lv);
 }
 // ── BUILD PROMPT ─────────────────────────────────────────────
 /* The curriculum rules for the level currently selected.

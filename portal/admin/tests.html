@@ -148,12 +148,24 @@ var KIDS = [];    // every active child, with the level they are on
 var ONLEVEL = {}; // level_code -> how many children are on it
 
 /* How a section reaches the child. Her words, not jargon. */
-var DELIVERY = {
-  written: { name: 'Written',          sub: 'The sums are on the page' },
-  oral:    { name: 'Read aloud',       sub: 'The teacher or the app reads them out' },
-  mental:  { name: 'Mental, no abacus', sub: 'Worked in the head \u2014 anzan' },
-  flash:   { name: 'Flashed',          sub: 'Shown briefly, then gone' }
+/* The words change with the programme. "Mental, no abacus — anzan"
+   is Abacus language and means nothing in Vedic Maths, where there is
+   no abacus to be without. */
+var DELIVERY_BY_PROGRAM = {
+  abacus: {
+    written: { name: 'Written',           sub: 'The sums are on the page' },
+    oral:    { name: 'Read aloud',        sub: 'The teacher or the app reads them out' },
+    mental:  { name: 'Mental, no abacus', sub: 'Worked in the head \u2014 anzan' },
+    flash:   { name: 'Flashed',           sub: 'Shown briefly, then gone' }
+  },
+  vedic: {
+    written: { name: 'Written',      sub: 'The sums are on the page, with the working' },
+    oral:    { name: 'Read aloud',   sub: 'The teacher or the app reads them out' },
+    mental:  { name: 'In the head',  sub: 'No working written down' },
+    flash:   { name: 'Flashed',      sub: 'Shown briefly, then gone' }
+  }
 };
+var DELIVERY = DELIVERY_BY_PROGRAM.abacus;
 var COUNTS = [5, 10, 15, 20, 25];
 var DIGITS = [1, 2, 3, 4, 5];
 var ROWS   = [2, 3, 4, 5, 6, 8, 10];
@@ -259,8 +271,12 @@ function drawProgs() {
         p[1] + '</button>';
     }).join('');
 }
-function pickProg(p) { PROG = p; document.getElementById('body').innerHTML =
-  '<div class="spin">Reading&hellip;</div>'; load(); }
+function pickProg(p) {
+  PROG = p;
+  DELIVERY = DELIVERY_BY_PROGRAM[p] || DELIVERY_BY_PROGRAM.abacus;
+  document.getElementById('body').innerHTML = '<div class="spin">Reading&hellip;</div>';
+  load();
+}
 
 function summary(b) {
   if (!b) return '<span class="pill none">not designed</span><div class="add">+ design this paper</div>';
@@ -510,45 +526,14 @@ async function save(status) {
   BLUEPRINTS[open_.levelCode + '|' + open_.testNo] = res.data[0];
   draft.status = status;
 
-  /* Publishing tells the children at that level, and their parents.
-     Without this the only way a child knew was being told in the room,
-     and a child sitting at home would never find out. */
-  var told = 0;
-  if (status === 'published') {
-    try {
-      var lvl = parseInt(open_.levelCode.replace(/\D/g, ''), 10);
-      var prog = PROG;
-      var kids = await sb.from('student_programs')
-        .select('student_id, program_code, current_level, is_active')
-        .eq('program_code', prog).eq('current_level', lvl);
-      var ids = (kids.data || []).filter(function (k) { return k.is_active !== false; })
-                                 .map(function (k) { return k.student_id; });
-      if (ids.length) {
-        var msgs = ids.map(function (id) {
-          return { user_id: id, type: 'test',
-                   title: '\uD83D\uDCDD A test is ready for you',
-                   message: (draft.title || ('Test ' + open_.testNo)) +
-                     ' is waiting under Level tests. ' +
-                     (draft.time_limit_mins ? draft.time_limit_mins + ' minutes. ' : '') +
-                     'Two passed tests finish the level.' };
-        });
-        var par = await sb.from('parent_student').select('parent_id, student_id').in('student_id', ids);
-        (par.data || []).forEach(function (p) {
-          msgs.push({ user_id: p.parent_id, type: 'test',
-                      title: '\uD83D\uDCDD A test is ready',
-                      message: 'A Level ' + lvl + ' test has been set. Your child can sit it from their login.' });
-        });
-        var nres = await sb.from('notifications').insert(msgs);
-        if (!nres.error) told = ids.length;
-      }
-    } catch (e) { console.warn('Could not tell the children:', e); }
-  }
+  /* Publishing no longer tells anyone. It used to BE the assignment, so
+     it told every child on the level; now she hands a paper to named
+     children, and telling the others would leave them looking for a
+     test they cannot see. The assignment does the telling. */
   msg.className = 'msg ok';
   msg.textContent = status === 'published'
-    ? 'Published \u2014 ' + (told ? told + ' child' + (told === 1 ? '' : 'ren') + ' at this level ' +
-        (told === 1 ? 'has' : 'have') + ' been told, and their parents.'
-        : 'no child is on this level yet, so nobody has been told.')
-    : 'Saved as a draft. Nothing goes to a child until you publish it.';
+    ? 'Published. Now use \u201cGive this to a child\u201d \u2014 nobody sees it until you do.'
+    : 'Saved as a draft. A draft cannot be given to a child.';
   draw();
   paint();
   document.getElementById('msg').className = 'msg ok';

@@ -72,20 +72,43 @@ var TestGen = (function () {
     var mode = abacusModeFor(concept);
     var dec = /decimal/.test(concept) ? 1 : (PracticeEngine.decimalPlacesFor(rules) || 0);
     var seen = {};
-    for (var t = 0; t < want * 60 && out.length < want; t++) {
+
+    /* The digits she chooses are the size of the NUMBERS THE CHILD SEES,
+       not of the running total. Capping the total at 9 for a one-digit
+       section made Big Friends and Combination impossible — 6 + 7 = 13
+       has to cross ten, that crossing IS the formula — and those
+       sections came out empty.
+
+       So the generator is given room for the total, and any sum using a
+       number bigger than she asked for is thrown away. */
+    var headroom = Math.min(rules.addSubMax || rules.maxNumber,
+                            Math.max(ceiling * 3, ceiling + 10, 19));
+    for (var t = 0; t < want * 80 && out.length < want; t++) {
       var opts = {
-        max: PracticeEngine.shownMax(rules, Math.min(ceiling, rules.addSubMax || rules.maxNumber)),
+        max: PracticeEngine.shownMax(rules, headroom),
         rows: rows, mode: mode, require: mode === 'direct' ? 0 : 1,
         allowZero: rules.allowZero, decimals: dec,
         signBias: rules.signBias || (rules.direction && rules.direction !== 'both' ? rules.direction : null)
       };
       var s = dec ? ColumnGen.decimalColumn(opts) : ColumnGen.column(opts);
       if (!s) continue;
+      /* The size applies to the numbers being added or taken away. In a
+         subtraction column the first number is what they are taken FROM
+         — "9 take 3 take 4" cannot start at 9 and stay single-digit at
+         a level that subtracts across ten — so the starting number is
+         allowed to be larger there. */
+      var shown = s.intRows || s.rows;
+      var subtracting = shown.slice(1).every(function (n) { return n <= 0; });
+      var check = subtracting ? shown.slice(1) : shown;
+      if (check.some(function (n) { return Math.abs(n) > ceiling; })) continue;
       var q = { type: 'column', rows: s.rows, answer: s.answer,
                 intRows: s.intRows, intAnswer: s.intAnswer, decimals: s.decimals };
       if (!PracticeEngine.isLegal(q, rules)) continue;
-      /* Every answer on a paper different, as she asks for worksheets. */
-      if (seen[String(q.answer)] && out.length < want - 1) continue;
+      /* Every answer on a paper different, as she asks for worksheets —
+         but a one-digit section at an early level simply does not have
+         twenty different answers in it. Once most of the attempts are
+         spent, a repeat is better than a short paper. */
+      if (seen[String(q.answer)] && t < want * 40) continue;
       seen[String(q.answer)] = true;
       out.push(q);
     }
@@ -146,8 +169,29 @@ var TestGen = (function () {
       var made = vedic ? vedicSection(sec, levelCode) : await abacusSection(sec, levelCode, rules);
 
       if (made.length < want) {
-        problems.push('Section ' + (i + 1) + ' (' + (sec.concept || 'no method') + ') asked for ' +
-          want + ' and could build ' + made.length);
+        /* Why, not just that. A level that does not teach the method is a
+           different thing from numbers that leave no room. */
+        var why;
+        var taught = vedic
+          ? (typeof Sutras !== 'undefined' && Sutras.taughtAt &&
+             Sutras.taughtAt(sec.concept, L))
+          : (rules.concepts || []).length === 0 ||
+            (rules.concepts || []).some(function (cc) {
+              return String(cc).toLowerCase().indexOf(String(sec.concept).toLowerCase()) > -1 ||
+                     String(sec.concept).toLowerCase().indexOf(String(cc).toLowerCase()) > -1;
+            });
+        if (!taught) {
+          why = 'Level ' + L + ' does not teach ' + (sec.concept || 'that') +
+                ' in the course map, so no question can be set on it';
+        } else if (made.length === 0) {
+          why = 'no question could be built \u2014 ' + (Number(sec.digits) || 2) +
+                ' digit' + ((Number(sec.digits) || 2) === 1 ? '' : 's') +
+                ' leaves this method no room at Level ' + L + '; try a larger size';
+        } else {
+          why = 'asked for ' + want + ' and could build ' + made.length +
+                ' \u2014 the size leaves few possibilities; try a larger one or fewer questions';
+        }
+        problems.push('Section ' + (i + 1) + ' (' + (sec.concept || 'no method') + '): ' + why);
       }
       made.forEach(function (q) {
         questions.push({

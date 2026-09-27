@@ -396,12 +396,52 @@ function programmeCard(pr) {
       : '<div class="quiet" style="margin-top:12px;">Once there are a few more worksheets, ' +
         'this will show which methods need practice.</div>') +
 
-    /* level and certificate */
-    '<div class="quiet" style="margin-top:12px;">' +
-      (np ? np + ' of the 2 tests for Level ' + lvl + ' passed. ' : 'No test sat for Level ' + lvl + ' yet. ') +
-      certs + ' certificate' + (certs === 1 ? '' : 's') + ' earned.' +
+    /* Where they stand towards the level test. "No test sat yet" told a
+       parent nothing they could act on — what they want to know is
+       WHEN, so each state says what happens next. */
+    '<div class="quiet" style="margin-top:12px;">' + esc(testLine(code, lvl, np, through)) + '</div>' +
+    '<div class="quiet" style="margin-top:4px;">' +
+      certs + ' certificate' + (certs === 1 ? '' : 's') + ' earned so far.' +
     '</div>' +
   '</div>';
+}
+
+/* What a parent wants to know about the test: when.
+
+   A level ends with two passed papers. A teacher sets them when a
+   child is near the end of the level, so the honest answer depends on
+   where they are — and when a paper is actually waiting, that is the
+   only thing worth saying. */
+function testLine(code, lvl, passed, through) {
+  var d = DATA;
+  var mine = (d.tests || []).filter(function (t) { return t.level_code === code; });
+  var waiting = mine.filter(function (t) { return !t.submitted_at; }).length;
+  var sat = mine.filter(function (t) { return t.submitted_at; }).length;
+
+  if (passed >= 2) {
+    return 'Both tests for Level ' + lvl + ' are passed \u2014 the certificate for this level is ready.';
+  }
+  if (waiting) {
+    return 'A test is waiting. ' + first(d.kid.full_name) +
+           ' will sit it in class, with the teacher there.' +
+           (passed ? ' One is already passed, so this is the last one.' : '');
+  }
+  if (passed === 1) {
+    return 'One test passed, one to go. The teacher will set the second when ready.';
+  }
+  if (sat) {
+    return 'A test has been sat but not passed yet. The next try is a fresh set of ' +
+           'sums of the same kind \u2014 the teacher will set it.';
+  }
+  if (through != null && through >= 75) {
+    return 'Near the end of Level ' + lvl + ', so the tests come soon. Two passed papers ' +
+           'finish the level, and the teacher sets them.';
+  }
+  if (through != null) {
+    return 'The tests come near the end of a level. ' + first(d.kid.full_name) + ' is ' +
+           through + '% of the way through Level ' + lvl + ', so there is practice to do first.';
+  }
+  return 'The tests come near the end of a level, once the practice and worksheets are done.';
 }
 
 /* Her concept codes, in words a parent would use. */

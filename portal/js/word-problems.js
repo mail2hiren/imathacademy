@@ -837,6 +837,20 @@ var WordProblems = (function () {
       return pick(opts);
     }
 
+    /* Multiplying: so many groups of so many. */
+    function grouping() {
+      return pick([
+        [ 'There are ' + a + ' boxes of ' + thing.many + '.',
+          'Each box holds ' + b + '.',
+          'How many ' + thing.many + ' altogether? = ?' ],
+        [ 'Each ' + thing.one + ' costs ' + b + ' rupees.',
+          name + ' buys ' + a + ' of them.',
+          'How much does ' + they + ' pay? = ?' ],
+        [ a + ' children each bring ' + b + ' ' + thing.many + ' to school.',
+          'How many is that in total? = ?' ]
+      ]);
+    }
+
     function sharing() {
       var opts = [
         [ name + ' has ' + a + ' ' + thing.many + ' to pack into boxes of ' + b + '.',
@@ -847,7 +861,67 @@ var WordProblems = (function () {
       return pick(opts);
     }
 
-    var f = shapes[q.method];
+    /* ── Which story fits which method ──────────────────────────
+       The shapes above were written when the methods had different
+       names: allFromNine is now nikhilam_sub, complement is
+       friend_comp, byEleven is by_eleven. Only the six whose names
+       happened to survive were ever matched, so 34 of the 40 methods
+       silently had no word problem at all — Megha: "All from 9 no
+       word prbs", "add the neighbour word prb not coming", "Level 3
+       no story prbs".
+
+       Every method now maps to a story, by name where one was written
+       for it and by the shape of the sum otherwise. */
+    var NAMED = {
+      nikhilam_sub: 'allFromNine', friend_comp: 'complement',
+      by_eleven: 'byEleven', mult_11s: 'byEleven',
+      base_mult: 'nikhilamMult', by_nines: 'nikhilamMult', twelve_to_19: 'nikhilamMult',
+      working_base: 'workingBase', first_ten_last_same: 'workingBase',
+      sq_2d: 'duplex', sq_3d: 'duplex', sq_4d: 'duplex',
+      sq_2d_5: 'duplex', sq_3d_5: 'duplex',
+      cube_1d: 'cubing', cube_2d: 'cubing', cube_3d: 'cubing',
+      basic_div: 'nikhilamDiv', adv_div: 'nikhilamDiv',
+      div_by_nine: 'nikhilamDiv', div_5_25_50: 'nikhilamDiv',
+      sqrt_perfect: 'squareRoot', cbrt_perfect: 'cubeRoot',
+      digit_sum: 'digitSum',
+      split_merge: 'splitMerge', repeating: 'splitMerge'
+    };
+
+    /* A question that asks yes or no needs a yes-or-no story. */
+    function divisible() {
+      var n = (typeof q.answer === 'string' && /yes|no/i.test(q.answer)) ? b : b;
+      return pick([
+        [ name + ' wants to share ' + a + ' ' + thing.many + ' equally among ' + n + ' friends.',
+          'Can it be done with none left over? = ?' ],
+        [ 'There are ' + a + ' ' + thing.many + ' to pack into boxes of ' + n + '.',
+          'Will every box be full? = ?' ]
+      ]);
+    }
+
+    function percent() {
+      return pick([
+        [ 'A ' + (shopThing ? shopThing.shop : 'shop') + ' has ' + b + ' ' +
+            (shopThing ? shopThing.many : thing.many) + '.',
+          a + ' out of every hundred are sold on Sunday.',
+          'How many is that? = ?' ],
+        [ name + ' scored ' + a + ' out of every hundred in a test of ' + b + ' marks.',
+          'How many marks is that? = ?' ]
+      ]);
+    }
+
+    var f = shapes[NAMED[q.method] || q.method];
+
+    /* Still nothing: choose by what the sum does. */
+    if (!f) {
+      var key = String(q.method || '');
+      var txt = String(q.text || '');
+      if (/^divis_/.test(key))            f = divisible;
+      else if (/^percent/.test(key))      f = percent;
+      else if (/\u00f7|\bdiv\b/.test(txt + key)) f = sharing;
+      else if (/\u00d7|x/.test(txt) || /mult|sq_|cube/.test(key)) f = grouping;
+      else if (/-|\u2212/.test(txt))      f = shapes.allFromNine;
+      else                                f = shapes.stacking;
+    }
     if (!f) return null;
 
     var lines;

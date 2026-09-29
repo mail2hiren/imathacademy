@@ -37,7 +37,7 @@ var TestGen = (function () {
   }
 
   /** One section of an Abacus paper. */
-  async function abacusSection(section, levelCode, rules) {
+  async function abacusSection(section, levelCode, rules, note) {
     var out = [], want = Number(section.count) || 10;
     var concept = String(section.concept || '').toLowerCase();
     var digits = Number(section.digits) || 2;
@@ -83,9 +83,26 @@ var TestGen = (function () {
        number bigger than she asked for is thrown away. */
     var headroom = Math.min(rules.addSubMax || rules.maxNumber,
                             Math.max(ceiling * 3, ceiling + 10, 19));
-    for (var t = 0; t < want * 80 && out.length < want; t++) {
+
+    /* Two passes. The first holds EVERY number to the size she chose,
+       including the one being subtracted from — "96 take 45 take 21"
+       is a two-digit sum and there is no reason to start at 296.
+
+       Only if that produces nothing does the second pass let the
+       starting number be larger, because at one digit a Big Friends
+       subtraction cannot happen below ten at all. When that happens she
+       is told, rather than quietly handed bigger numbers. */
+    var relaxed = false;
+    for (var t = 0; t < want * 160 && out.length < want; t++) {
+      if (!relaxed && out.length === 0 && t > want * 80) relaxed = true;
+      /* A subtraction column counts DOWN from its first number, so it
+         needs no headroom above the size she chose: 96 take 48 stays
+         two-digit throughout. Headroom is only for addition, where the
+         total climbs past the numbers themselves. */
+      var goingDown = rules.direction === 'sub';
+      var genMax = (goingDown && !relaxed) ? ceiling : headroom;
       var opts = {
-        max: PracticeEngine.shownMax(rules, headroom),
+        max: PracticeEngine.shownMax(rules, genMax),
         rows: rows, mode: mode, require: mode === 'direct' ? 0 : 1,
         allowZero: rules.allowZero, decimals: dec,
         signBias: rules.signBias || (rules.direction && rules.direction !== 'both' ? rules.direction : null)
@@ -99,8 +116,10 @@ var TestGen = (function () {
          allowed to be larger there. */
       var shown = s.intRows || s.rows;
       var subtracting = shown.slice(1).every(function (n) { return n <= 0; });
-      var check = subtracting ? shown.slice(1) : shown;
-      if (check.some(function (n) { return Math.abs(n) > ceiling; })) continue;
+      if (shown.slice(1).some(function (n) { return Math.abs(n) > ceiling; })) continue;
+      /* the starting number: her size, unless the first pass found none */
+      var startCap = (relaxed && subtracting) ? ceiling * 10 + ceiling : ceiling;
+      if (Math.abs(shown[0]) > startCap) continue;
       var q = { type: 'column', rows: s.rows, answer: s.answer,
                 intRows: s.intRows, intAnswer: s.intAnswer, decimals: s.decimals };
       if (!PracticeEngine.isLegal(q, rules)) continue;
@@ -111,6 +130,14 @@ var TestGen = (function () {
       if (seen[String(q.answer)] && t < want * 40) continue;
       seen[String(q.answer)] = true;
       out.push(q);
+    }
+    /* The note is only worth making if a number really did exceed the
+       size she chose. Relaxing and then not needing it is not news. */
+    if (note) {
+      note.relaxed = out.some(function (q) {
+        var r = q.intRows || q.rows || [];
+        return r.some(function (n) { return Math.abs(n) > ceiling; });
+      });
     }
     return out;
   }
@@ -153,7 +180,7 @@ var TestGen = (function () {
     var levelCode = bp.level_code || 'L1';
     var vedic = isVedic(levelCode) || bp.program_code === 'vedic';
     var L = levelNumber(levelCode);
-    var questions = [], problems = [];
+    var questions = [], problems = [], relaxedFor = {};
 
     var rules = null;
     if (!vedic) {
@@ -166,7 +193,9 @@ var TestGen = (function () {
     for (var i = 0; i < sections.length; i++) {
       var sec = sections[i];
       var want = Number(sec.count) || 10;
-      var made = vedic ? vedicSection(sec, levelCode) : await abacusSection(sec, levelCode, rules);
+      var note = {};
+      var made = vedic ? vedicSection(sec, levelCode) : await abacusSection(sec, levelCode, rules, note);
+      relaxedFor[i] = !!note.relaxed;
 
       if (made.length < want) {
         /* Why, not just that. A level that does not teach the method is a
@@ -192,6 +221,12 @@ var TestGen = (function () {
                 ' \u2014 the size leaves few possibilities; try a larger one or fewer questions';
         }
         problems.push('Section ' + (i + 1) + ' (' + (sec.concept || 'no method') + '): ' + why);
+      }
+      if (relaxedFor[i]) {
+        problems.push('Section ' + (i + 1) + ' (' + (sec.concept || 'that method') + '): ' +
+          (Number(sec.digits) || 2) + ' digit' + ((Number(sec.digits) || 2) === 1 ? '' : 's') +
+          ' is not enough for this method to happen, so the number being subtracted from is larger. ' +
+          'A larger size would keep every number as you chose it.');
       }
       made.forEach(function (q) {
         questions.push({

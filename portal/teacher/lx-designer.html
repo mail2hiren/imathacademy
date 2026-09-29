@@ -2774,8 +2774,73 @@ function updatePickCount() {
    copy can be pitched at that child rather than at the class. One
    click for Megha; a beginner and a child near the end of the level
    get the same activity at the range each is actually working in. */
+/* One child's own Vedic paper: the same methods the sheet was built
+   from, the same difficulty she chose, and the numbers pitched to where
+   that child sits in the Vedic level. */
+async function vedicForChild(studentId, level, baseQuestions) {
+  if (typeof VedicEngine === 'undefined' || !VedicEngine.buildPage) return null;
+  try {
+    var pos = 0.10;
+    if (typeof PracticeEngine !== 'undefined' && PracticeEngine.loadPosition) {
+      var st = await PracticeEngine.loadPosition(studentId, level, 'vedic');
+      if (st && typeof st.position === 'number') pos = st.position;
+    }
+    if (VedicEngine.sync) { VedicEngine.forget(); await VedicEngine.sync(sb, true); }
+
+    /* The methods this sheet was built on, so a child gets the same
+       kind of work rather than whatever the level happens to teach. */
+    var methods = [];
+    (baseQuestions || []).forEach(function (q) {
+      if (q && q.method_key && methods.indexOf(q.method_key) < 0) methods.push(q.method_key);
+    });
+    if (selectedConcept && methods.indexOf(selectedConcept) < 0) methods = [selectedConcept];
+
+    var vDiff = currentDifficulty();
+    var page = VedicEngine.buildPage(level, {
+      count: (baseQuestions || []).length || 10,
+      guideFirst: vDiff === 'easy' ? 5 : vDiff === 'hard' ? 1 : 3,
+      difficulty: vDiff,
+      position: (vDiff === 'progressive' || !vDiff) ? pos : undefined,
+      methods: methods.length ? methods : undefined
+    });
+    if (page.error || !page.questions || !page.questions.length) return null;
+
+    var out = page.questions.map(function (q, i) {
+      var steps = q.steps || q.workingShown || null;
+      return {
+        n: i + 1,
+        question: q.text + ' = ?',
+        answer: String(q.answer),
+        method: q.label || '',
+        method_key: q.method || '',
+        a: q.a, b: q.b, level: q.level || level,
+        scopeLevel: q.scopeLevel,
+        steps: steps,
+        hint: q.scope || ''
+      };
+    });
+    return {
+      content: JSON.stringify(out, null, 2),
+      answerKey: out.map(function (q, i) { return (i + 1) + '. ' + q.answer; }).join('\n'),
+      band: null
+    };
+  } catch (e) {
+    /* Nothing invented: without a Vedic paper for this child the
+       shared sheet is used, which is at least the right programme. */
+    console.warn('Could not pitch the Vedic sheet for this child:', e);
+    return null;
+  }
+}
+
 async function contentForChild(studentId, level, baseQuestions) {
   try {
+    /* VEDIC FIRST. This whole function was written for Abacus, and it
+       ran for every per-child assignment — so a Vedic sheet that
+       previewed correctly was handed to the children as Abacus column
+       sums. A Vedic sheet is rebuilt by the Vedic engine, pitched to
+       that child's place in the Vedic level. */
+    if (selectedProgram === 'vedic') return await vedicForChild(studentId, level, baseQuestions);
+
     if (typeof PracticeEngine === 'undefined' || !PracticeEngine.loadPosition) return null;
     var pos   = await PracticeEngine.loadPosition(studentId, level);
     var rules = await PracticeEngine.loadLevelRules(level);

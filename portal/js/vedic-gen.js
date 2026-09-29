@@ -317,11 +317,24 @@ var VedicGen = (function (S) {
     var keys = o.methods ? [].concat(o.methods) : S.readyAt(level);
     if (!keys.length) return { error: 'No method at Level ' + level + ' is ready yet' };
 
+    /* Progressive means the page gets harder as it goes: the first
+       questions easy, the last ones hard. It was offered in the
+       Designer and meant nothing here, so a Progressive page came out
+       the same as a Medium one. */
+    var ramp = o.difficulty === 'progressive';
+
     var out = [], seen = {}, guard = 0;
     while (out.length < count && guard < count * 60) {
       guard++;
       var key = keys[out.length % keys.length];
-      var q = oneAt(key, level, o);
+      var step = o;
+      if (ramp) {
+        var through = out.length / Math.max(1, count - 1);
+        step = Object.assign({}, o, {
+          difficulty: through < 0.34 ? 'easy' : through < 0.7 ? 'medium' : 'hard'
+        });
+      }
+      var q = oneAt(key, level, step);
       if (!q) continue;
       if (seen[q.text]) continue;
       seen[q.text] = true;

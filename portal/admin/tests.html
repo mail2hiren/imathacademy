@@ -167,6 +167,13 @@ var DELIVERY_BY_PROGRAM = {
 };
 var DELIVERY = DELIVERY_BY_PROGRAM.abacus;
 var COUNTS = [5, 10, 15, 20, 25];
+/* A test is not practice: the level's own direction should not force
+   every sum in a paper to be a subtraction. Mixed by default. */
+var DIRECTIONS = {
+  mixed: 'Adding and taking away',
+  add:   'Adding only',
+  sub:   'Taking away only'
+};
 var DIGITS = [1, 2, 3, 4, 5];
 var ROWS   = [2, 3, 4, 5, 6, 8, 10];
 var MINS   = [null, 5, 10, 15, 20, 30, 45];
@@ -300,6 +307,7 @@ function summary(b) {
         })()
       : '') +
     '<div class="sum">' + esc(b.title || 'Untitled') + '<br>' +
+      (secs.some(function (s) { return s.concept === '__mix'; }) ? 'mixed methods \u00b7 ' : '') +
       secs.length + ' section' + (secs.length === 1 ? '' : 's') + ' \u00b7 ' + qs + ' questions<br>' +
       Object.keys(ways).map(function (w) {
         var flash = w === 'flash' ? secs.filter(function (s) { return s.delivery === 'flash'; })[0] : null;
@@ -369,15 +377,29 @@ function paint() {
       'that is how Test 1 and Test 2 come to ask different things.</div>';
   }
   h += draft.sections.map(function (s, i) {
-    var cname = (avail.filter(function (c) { return c.code === s.concept; })[0] || {}).name || s.concept;
+    var cname = s.concept === '__mix'
+      ? 'A mix of this level\u2019s methods'
+      : ((avail.filter(function (c) { return c.code === s.concept; })[0] || {}).name || s.concept);
     return '<div class="sec">' +
       '<button class="kill" onclick="dropSection(' + i + ')">Remove</button>' +
       '<h3>' + esc(cname || 'Choose a method') + '</h3>' +
 
       '<div class="row"><span>Method</span>' +
+        /* One test covering Big Friends AND Small Friends together is
+           what she asked for, so the mix comes first as a choice of its
+           own rather than needing a section each. */
+        '<button class="opt" aria-pressed="' + (s.concept === '__mix') + '" ' +
+          'onclick="setSec(' + i + ',\'concept\',\'__mix\')">A mix of this level\u2019s methods</button>' +
         avail.map(function (c) {
           return '<button class="opt" aria-pressed="' + (s.concept === c.code) + '" ' +
             'onclick="setSec(' + i + ',\'concept\',\'' + c.code + '\')">' + esc(c.name) + '</button>';
+        }).join('') +
+      '</div>' +
+
+      '<div class="row"><span>Adding or taking away</span>' +
+        Object.keys(DIRECTIONS).map(function (d) {
+          return '<button class="opt" aria-pressed="' + ((s.direction || 'mixed') === d) + '" ' +
+            'onclick="setSec(' + i + ',\'direction\',\'' + d + '\')">' + DIRECTIONS[d] + '</button>';
         }).join('') +
       '</div>' +
 
@@ -486,7 +508,8 @@ function addSection() {
   var avail = CONCEPTS[open_.levelCode] || [];
   draft.sections.push({
     concept: avail.length ? avail[0].code : '',
-    count: 10, digits: 2, rows: 3, delivery: 'written', flash_seconds: 3, note: ''
+    count: 10, digits: 2, rows: 3, delivery: 'written', flash_seconds: 3,
+    direction: 'mixed', note: ''
   });
   paint();
 }

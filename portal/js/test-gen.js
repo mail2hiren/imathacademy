@@ -37,7 +37,22 @@ var TestGen = (function () {
   }
 
   /** One section of an Abacus paper. */
-  async function abacusSection(section, levelCode, rules, note) {
+  async function abacusSection(section, levelCode, sharedRules, note) {
+    /* A TEST is not practice. Practice follows the level's own
+       direction — Level 2 is a subtraction level, so its practice
+       subtracts — and applying that to a test meant every sum in
+       every L2 paper was a subtraction. In a test the teacher decides,
+       so each section carries its own choice and Mixed is the default.
+
+       A copy, because the level's rules are shared with everything
+       else that reads them. */
+    var want_dir = section.direction || 'mixed';
+    var rules = Object.assign({}, sharedRules, {
+      formulas: (sharedRules.formulas || []).slice(),
+      concepts: (sharedRules.concepts || []).slice(),
+      direction: want_dir === 'mixed' ? 'both' : want_dir,
+      signBias: null
+    });
     var out = [], want = Number(section.count) || 10;
     var concept = String(section.concept || '').toLowerCase();
     var digits = Number(section.digits) || 2;
@@ -69,6 +84,16 @@ var TestGen = (function () {
       return out;
     }
 
+    /* "A mix of this level's methods" means each question may use any
+       formula the level teaches — which is what she asked for: Big
+       Friends and Small Friends together in one test, not in two
+       separate blocks. */
+    var mixing = /^__mix$/.test(concept) || /\bmix\b/.test(concept);
+    var pool = mixing
+      ? (rules.formulas || []).slice()
+      : null;
+    if (mixing && !pool.length) pool = ['direct'];
+
     var mode = abacusModeFor(concept);
     var dec = /decimal/.test(concept) ? 1 : (PracticeEngine.decimalPlacesFor(rules) || 0);
     var seen = {};
@@ -99,6 +124,8 @@ var TestGen = (function () {
          needs no headroom above the size she chose: 96 take 48 stays
          two-digit throughout. Headroom is only for addition, where the
          total climbs past the numbers themselves. */
+      /* a different formula each question, when she asked for a mix */
+      if (mixing) mode = pool[Math.floor(Math.random() * pool.length)];
       var goingDown = rules.direction === 'sub';
       var genMax = (goingDown && !relaxed) ? ceiling : headroom;
       var opts = {
@@ -122,6 +149,8 @@ var TestGen = (function () {
       if (Math.abs(shown[0]) > startCap) continue;
       var q = { type: 'column', rows: s.rows, answer: s.answer,
                 intRows: s.intRows, intAnswer: s.intAnswer, decimals: s.decimals };
+      /* Judged against this section's own rules, so an addition at a
+         subtraction level passes when she asked for a mix. */
       if (!PracticeEngine.isLegal(q, rules)) continue;
       /* Every answer on a paper different, as she asks for worksheets —
          but a one-digit section at an early level simply does not have
@@ -232,6 +261,7 @@ var TestGen = (function () {
         questions.push({
           section:   i + 1,
           concept:   sec.concept || '',
+          direction: sec.direction || 'mixed',
           delivery:  sec.delivery || 'written',
           question:  textFor(q),
           answer:    String(typeof q.answer === 'object'

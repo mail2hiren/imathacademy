@@ -128,6 +128,19 @@ function column(opts) {
         else doAdd = canAdd && (!canSub || Math.random() < 0.62);
         var n = doAdd ? pick(src.add) : pick(src.sub);
 
+        /* A row must not simply undo the one before it. "+ 11 then
+           − 11" cancels: the child moves the beads on and straight
+           back off, and two rows of the sum teach nothing. Another
+           value is taken where one is available. */
+        var undoes = out.length && (doAdd ? n : -n) === -out[out.length - 1];
+        if (undoes) {
+          var others = (doAdd ? src.add : src.sub).filter(function (v) {
+            return (doAdd ? v : -v) !== -out[out.length - 1];
+          });
+          if (others.length) n = pick(others);
+          else { ok = false; break; }    /* nothing else to use: start again */
+        }
+
         out.push(doAdd ? n : -n);
         value += doAdd ? n : -n;
         if (useFormula) got++;

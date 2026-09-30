@@ -328,6 +328,111 @@ function same(a, b) {
   return isFinite(nx) && isFinite(ny) && nx === ny;
 }
 
+/* ── What needs attention ───────────────────────────────────────
+   The first thing a teacher should see about a child: not a number,
+   but what to do. Every flag is drawn from that child's own record
+   and says the evidence, so Megha can disagree with it. */
+function attentionFlags(sess, ws, wsMeta, pacing, progs) {
+  var out = [];
+  var now = Date.now();
+
+  /* gone quiet */
+  var last = sess.length ? new Date(sess[0].created_at) : null;
+  var quiet = last ? Math.floor((now - last) / 86400000) : null;
+  if (quiet != null && quiet >= 10) {
+    out.push(['bad', '\uD83D\uDD15', 'Gone quiet',
+      'Nothing done for ' + quiet + ' days. Last worked on ' + fmt(sess[0].created_at) + '.']);
+  } else if (quiet == null) {
+    out.push(['warn', '\uD83D\uDD15', 'Nothing recorded yet',
+      'No practice or worksheet has been done on the portal.']);
+  }
+
+  /* accuracy falling, week on week */
+  var weeks = {};
+  sess.forEach(function (s) {
+    var k = Math.floor((now - new Date(s.created_at)) / (7 * 86400000));
+    if (k > 5) return;
+    var w = weeks[k] = weeks[k] || { c: 0, a: 0 };
+    w.c += s.questions_correct || 0; w.a += s.questions_attempted || 0;
+  });
+  var recent = weeks[0] || weeks[1];
+  var older  = weeks[2] || weeks[3];
+  if (recent && older && recent.a >= 10 && older.a >= 10) {
+    var rp = Math.round(recent.c / recent.a * 100), op = Math.round(older.c / older.a * 100);
+    if (rp <= op - 12) {
+      out.push(['bad', '\uD83D\uDCC9', 'Accuracy falling',
+        op + '% a few weeks ago, ' + rp + '% now — worth watching the working.']);
+    }
+  }
+
+  /* struggling, or ready for more */
+  var totC = 0, totA = 0;
+  sess.forEach(function (s) { totC += s.questions_correct || 0; totA += s.questions_attempted || 0; });
+  var acc = totA ? Math.round(totC / totA * 100) : null;
+  if (acc != null && totA >= 20) {
+    if (acc < 60) {
+      out.push(['bad', '\uD83E\uDD1D', 'Struggling',
+        acc + '% overall across ' + totA + ' questions. The level or the band may be too high.']);
+    } else if (acc >= 92) {
+      /* only worth saying if they are not already near the top */
+      var high = (pacing || []).some(function (p) { return Number(p.position) >= 0.85; });
+      out.push(['good', '\uD83D\uDE80', 'Ready for harder work',
+        acc + '% across ' + totA + ' questions' +
+        (high ? ' and near the end of the level — time for the tests.'
+              : ' — the difficulty could go up.')]);
+    }
+  }
+
+  /* which method is weakest, from the worksheets themselves */
+  var byConcept = {};
+  ws.forEach(function (r) {
+    var sheet = wsMeta[r.worksheet_id]; if (!sheet || !sheet.concept || !r.total) return;
+    var k = byConcept[sheet.concept] = byConcept[sheet.concept] || { c: 0, t: 0, n: 0 };
+    k.c += r.score || 0; k.t += r.total; k.n++;
+  });
+  var weakest = Object.keys(byConcept).map(function (k) {
+    return { k: k, pct: Math.round(byConcept[k].c / byConcept[k].t * 100), n: byConcept[k].n };
+  }).filter(function (x) { return x.n >= 2; }).sort(function (a, b) { return a.pct - b.pct; })[0];
+  if (weakest && weakest.pct < 70) {
+    out.push(['warn', '\uD83C\uDFAF', 'Weakest method: ' + prettyConcept(weakest.k),
+      weakest.pct + '% across ' + weakest.n + ' worksheets — this is the one to practise.']);
+  }
+
+  if (!out.length) {
+    out.push(['good', '\u2705', 'Nothing needs attention',
+      'Working steadily, accuracy holding up.']);
+  }
+  return out;
+}
+
+/* Her concept codes in words. */
+function prettyConcept(code) {
+  var c = String(code || '').toLowerCase().replace(/_/g, ' ');
+  var map = { 'big friends':'Big Friends', 'small friends':'Small Friends',
+    'combination':'Combination', 'direct add':'Straight adding', 'direct sub':'Straight taking away',
+    'multiplication':'Multiplication', 'division':'Division', 'decimals':'Decimals',
+    'negative':'Negative numbers', 'anzan':'Mental maths', 'add sub':'Adding and taking away' };
+  if (map[c]) return map[c];
+  if (typeof Sutras !== 'undefined' && Sutras.METHODS && Sutras.METHODS[code])
+    return Sutras.METHODS[code].label;
+  return c.replace(/^./, function (x) { return x.toUpperCase(); });
+}
+
+/* How the child is doing method by method — "where is the child
+   lacking", in Megha's words. Lowest first. */
+function methodBreakdown(ws, wsMeta) {
+  var by = {};
+  ws.forEach(function (r) {
+    var sheet = wsMeta[r.worksheet_id]; if (!sheet || !sheet.concept || !r.total) return;
+    var k = by[sheet.concept] = by[sheet.concept] || { c: 0, t: 0, n: 0, prog: sheet.program_code || 'abacus' };
+    k.c += r.score || 0; k.t += r.total; k.n++;
+  });
+  return Object.keys(by).map(function (k) {
+    return { name: prettyConcept(k), prog: by[k].prog,
+             pct: Math.round(by[k].c / by[k].t * 100), sheets: by[k].n };
+  }).sort(function (a, b) { return a.pct - b.pct; });
+}
+
 function render(me, progs, sess, ws, wsMeta, qz, pacing, classMiss) {
   /* ── the numbers ── */
   /* Worksheets also write a practice_sessions row with topic
@@ -432,6 +537,70 @@ function render(me, progs, sess, ws, wsMeta, qz, pacing, classMiss) {
 
   /* ── the numbers and the trend ── */
   html += '<div class="grid">';
+
+  /* ── What needs attention, first ──────────────────────────────
+     A teacher opening a child wants to know what to DO. The numbers
+     and the charts are below; this is the summary they were missing. */
+  html += '<div class="card"><h2>What needs attention</h2>' +
+    attentionFlags(sess, ws, wsMeta, pacing, progs).map(function (f) {
+      return '<div class="flag ' + f[0] + '" style="display:flex;gap:10px;align-items:flex-start;">' +
+        '<span style="font-size:1.1rem;">' + f[1] + '</span>' +
+        '<span><strong>' + esc(f[2]) + '</strong>' + esc(f[3]) + '</span></div>';
+    }).join('') + '</div>';
+
+  /* ── Where they are inside the level ─────────────────────────
+     The engine has always kept this and aimed every page at it. It
+     was written into this screen a week ago and the change was lost
+     before it deployed, so no screen has ever shown it. */
+  var posRows = (pacing || []).filter(function (p) { return p && p.level_code; });
+  if (posRows.length) {
+    html += '<div class="card"><h2>Where they are inside the level</h2>';
+    posRows.sort(function (a, b) { return String(a.level_code).localeCompare(String(b.level_code)); })
+      .forEach(function (p) {
+        var vedic = /^VL/.test(p.level_code);
+        var num = String(p.level_code).replace(/^V?L/, '');
+        var pos = Number(p.position || 0);
+        var pc = Math.max(2, Math.round(pos * 100));
+        var floor = Number(p.floor_pos || 0);
+        html += '<div class="gate">' +
+          '<span style="flex:0 0 150px;">' + (vedic ? '\u0950 Vedic' : '\uD83E\uDDEE Abacus') +
+            ' Level ' + esc(num) + '</span>' +
+          '<span class="b"><i style="width:' + pc + '%"></i>' +
+            (floor ? '<em style="position:absolute;left:' + Math.round(floor * 100) + '%;top:-3px;' +
+                     'width:2px;height:13px;background:var(--bad);display:block;"></em>' : '') +
+          '</span>' +
+          '<span class="v">' + (vedic ? 'V' : '') + 'L' + esc(num) + '.' + Math.round(pos * 10) + '</span>' +
+        '</div>' +
+        '<div style="font-size:.74rem;color:var(--t3);margin:-4px 0 8px 160px;">' +
+          (p.sessions || 0) + ' session' + ((p.sessions || 0) === 1 ? '' : 's') + ' counted' +
+          (floor ? ' \u00b7 your floor at ' + (Math.round(floor * 100) / 100) : '') +
+          ' \u00b7 moves on their own results' +
+        '</div>';
+      });
+    html += '<div class="note">Every page and worksheet is sized to this. ' +
+      'Set a floor on the pacing screen to stop a child slipping back below it.</div></div>';
+  }
+
+  /* ── Where the child is lacking, method by method ───────────── */
+  var methods = methodBreakdown(ws, wsMeta);
+  html += '<div class="card"><h2>Method by method</h2>';
+  if (!methods.length) {
+    html += '<div class="note">No marked worksheet carries a method yet, so there is nothing to ' +
+      'break down. Two worksheets on a method are enough for this to be worth reading.</div>';
+  } else {
+    html += methods.map(function (x) {
+      var tone = x.pct >= 85 ? 'var(--good)' : x.pct >= 65 ? 'var(--warn)' : 'var(--bad)';
+      return '<div class="gate">' +
+        '<span style="flex:0 0 170px;">' + (x.prog === 'vedic' ? '\u0950 ' : '') + esc(x.name) + '</span>' +
+        '<span class="b"><i style="width:' + x.pct + '%;background:' + tone + '"></i></span>' +
+        '<span class="v" style="color:' + tone + '">' + x.pct + '%</span></div>' +
+        '<div style="font-size:.72rem;color:var(--t3);margin:-4px 0 8px 180px;">' +
+          x.sheets + ' worksheet' + (x.sheets === 1 ? '' : 's') + '</div>';
+    }).join('') +
+    '<div class="note">Weakest first \u2014 that is the one to set next. ' +
+      'A method needs two marked worksheets before it appears here.</div>';
+  }
+  html += '</div>';
 
   html += '<div class="card"><h2>Accuracy over the last weeks</h2>';
   if (trend.length) {

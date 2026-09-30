@@ -14,14 +14,20 @@
    navigation, edit STUDENT_NAV below. Nothing else.
    ============================================================ */
 
+/* Items marked with a programme are shown only to a child who learns
+   it. Vedic practice existed as a page with no link anywhere, so a
+   Vedic child had no way to reach it at all; and a Vedic-only child was
+   being offered the abacus and Abacus practice, which are no use to
+   them. Anything unmarked is shown to everyone. */
 var STUDENT_NAV = [
   { section: 'Overview' },
   { href: 'dashboard.html',    icon: '🏠', label: 'Dashboard' },
 
   { section: 'Learning' },
   { href: 'lessons.html',      icon: '▶️', label: 'Lessons' },
-  { href: '../../abacus.html', icon: '🧮', label: 'Abacus' },
-  { href: 'practice.html',     icon: '⚡', label: 'Practice' },
+  { href: '../../abacus.html',   icon: '🧮', label: 'Abacus',          program: 'abacus' },
+  { href: 'practice.html',       icon: '⚡', label: 'Abacus practice', program: 'abacus' },
+  { href: 'vedic-practice.html', icon: 'ॐ',  label: 'Vedic practice',  program: 'vedic' },
   { href: 'worksheets.html',   icon: '📋', label: 'Worksheets' },
   { href: 'weekly-quiz.html',  icon: '⭐', label: 'Weekly Challenge' },
   { href: 'test.html',         icon: '📝', label: 'Level tests' },
@@ -45,13 +51,48 @@ function currentNavPage() {
   return NAV_ALIASES[file] || file;
 }
 
-function renderStudentNav() {
+/* Which programmes this child learns. Read once and remembered for the
+   session, so moving between pages does not re-ask. */
+var NAV_PROGRAMS = null;
+
+async function navPrograms() {
+  if (NAV_PROGRAMS) return NAV_PROGRAMS;
+  try {
+    var cached = sessionStorage.getItem('imath_programs');
+    if (cached) { NAV_PROGRAMS = JSON.parse(cached); return NAV_PROGRAMS; }
+  } catch (e) {}
+  try {
+    var s = await sb.auth.getSession();
+    if (!s.data.session) return null;
+    var r = await sb.from('student_programs')
+      .select('program_code, is_active').eq('student_id', s.data.session.user.id);
+    if (r.error) throw r.error;
+    var live = (r.data || []).filter(function (p) { return p.is_active !== false; })
+                             .map(function (p) { return p.program_code; });
+    /* A child with no programme recorded is an Abacus child: that is
+       how every account began. Better than hiding the practice. */
+    NAV_PROGRAMS = live.length ? live : ['abacus'];
+    try { sessionStorage.setItem('imath_programs', JSON.stringify(NAV_PROGRAMS)); } catch (e) {}
+    return NAV_PROGRAMS;
+  } catch (e) {
+    console.warn('Could not read the programmes for the sidebar:', e);
+    return null;
+  }
+}
+
+function renderStudentNav(programs) {
   var nav = document.querySelector('.sidebar nav');
   if (!nav) return;   // page has no sidebar — nothing to normalise
 
   var here = currentNavPage();
 
-  nav.innerHTML = STUDENT_NAV.map(function (item) {
+  /* Until the enrolment is known, everything is shown. A child seeing
+     one item too many for a moment is better than a child missing the
+     page they were going to. */
+  nav.innerHTML = STUDENT_NAV.filter(function (item) {
+    if (!item.program || !programs) return true;
+    return programs.indexOf(item.program) > -1;
+  }).map(function (item) {
     if (item.section) {
       return '<div class="nav-sec">' + item.section + '</div>';
     }
@@ -63,10 +104,18 @@ function renderStudentNav() {
   }).join('\n');
 }
 
+/* Drawn at once so the page never waits for the sidebar, then drawn
+   again when the enrolment is known. */
+function startStudentNav() {
+  renderStudentNav(null);
+  if (typeof sb === 'undefined') return;
+  navPrograms().then(function (p) { if (p) renderStudentNav(p); });
+}
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', renderStudentNav);
+  document.addEventListener('DOMContentLoaded', startStudentNav);
 } else {
-  renderStudentNav();
+  startStudentNav();
 }
 
 

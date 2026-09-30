@@ -261,7 +261,7 @@
 
       <div class="sb-section">Students</div>
       <button class="sb-item" id="nav-students" onclick="showTab('students',this)">
-        <span class="sb-icon">&#128200;</span> Student Progress
+        <span class="sb-icon">&#128202;</span> Child reports
       </button>
       <a class="sb-item" href="pacing.html">
         <span class="sb-icon">&#127919;</span> Pacing
@@ -417,9 +417,13 @@
       <div class="tab-panel" id="tab-students">
         <div class="card">
           <div class="card-header">
-            <div class="card-title">📈 Student Progress</div>
+            <div class="card-title">&#128202; Child reports</div>
           </div>
           <div class="card-body">
+            <div style="font-size:.8rem;color:var(--text3);margin-bottom:10px;">
+              Tap any child for their full report &mdash; what needs attention, where they are
+              inside the level, how they are doing method by method, and every sum they have answered.
+            </div>
             <div class="form-row" style="margin-bottom:12px;">
               <input type="text" class="form-input" id="studentSearch" placeholder="Search by name..." oninput="filterStudents()" style="flex:1;max-width:280px;">
               <select class="form-input" id="filterBatch" onchange="filterStudents()" style="flex:1;max-width:200px;">
@@ -1201,6 +1205,7 @@ function renderStudents() {
     html += '<div style="flex:1;min-width:0;"><div class="r-name">' + s.name + '</div><div class="r-meta">' + s.batchName + ' · Level ' + s.level + ' · 🔥' + s.streak + 'd</div></div>';
     html += '<div style="text-align:right;flex-shrink:0;">';
     html += '<div style="font-size:.82rem;font-weight:700;color:' + col + ';">' + (s.risk ? '⚠️ Needs attention' : '✅ On track') + '</div>';
+    html += '<div style="font-size:.68rem;color:var(--blue);font-weight:800;">Full report &rarr;</div>';
     html += '<div style="font-size:.68rem;color:var(--text3);">Accuracy: ' + (s.acc || '—') + (s.acc ? '%' : '') + '</div>';
     html += '</div></div>';
   });

@@ -611,6 +611,7 @@ let TEACHER_ID = null;
 var MY_ROLE = null;
 var ORPHAN_BATCHES = false;    /* no batch is recorded against this teacher */
 var MY_BATCH_IDS = [], MY_STUDENT_IDS = [];
+var ALL_STUDENTS = [];   /* every active child, batch or no batch */
 let TEACHER_NAME = '';
 let BATCHES = [];        // [{id, name, students:[{id,name,initials,xp,streak,level,acc,risk}]}]
 let SCHED = [];          // scheduled classes
@@ -730,6 +731,27 @@ async function loadData() {
   }
   BATCHES = [];
   MY_BATCH_IDS = (bRes.data || []).map(function (b) { return b.id; });
+
+  /* Every active child, whether or not they are in a batch. The child
+     list was built purely from batch membership, so a child who had
+     not been put in a batch could never be found — and selecting
+     "all students" in the dropdown still showed nothing, because there
+     was nothing in the list to filter. */
+  try {
+    var allKids = await sb.from('users')
+      .select('id, full_name, current_level, xp_points, streak_days')
+      .eq('role', 'student').eq('is_active', true).order('full_name');
+    if (allKids.error) throw allKids.error;
+    ALL_STUDENTS = (allKids.data || []).map(function (u) {
+      return { id: u.id, name: u.full_name || 'Student', initials: initials(u.full_name),
+               level: u.current_level || 0, xp: u.xp_points || 0,
+               streak: u.streak_days || 0, acc: 0, risk: false,
+               batchId: '', batchName: '' };
+    });
+  } catch (e) {
+    console.warn('Could not read the children:', e);
+    ALL_STUDENTS = [];
+  }
   if (bRes.data && bRes.data.length) {
     // Load students for each batch
     for (var i = 0; i < bRes.data.length; i++) {
@@ -1227,10 +1249,18 @@ function renderStudents() {
   if (!el) return;
   var all = [];
   BATCHES.forEach(function(b) { all = all.concat(b.students); });
-  if (!all.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-text">No students in your batches yet</div></div>';
-    return;
-  }
+
+  /* Then every other active child. An admin should be able to open any
+     child's report; a child who is not in a batch yet is exactly the
+     one a teacher is most likely to be looking for. */
+  var seen = {};
+  all.forEach(function (s) { seen[s.id] = true; });
+  (ALL_STUDENTS || []).forEach(function (s) {
+    if (seen[s.id]) return;
+    if (MY_ROLE !== 'admin' && !BATCHES.length) { /* a teacher with no batch: still show them */ }
+    all.push(Object.assign({}, s, { batchName: 'no batch yet' }));
+  });
+
   /* An empty list has two very different causes, and a teacher should
      not have to guess which. */
   if (!all.length) {

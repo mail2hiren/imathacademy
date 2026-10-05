@@ -609,6 +609,8 @@ const sb = supabase.createClient(SURL, SKEY);
 // ── GLOBAL STATE ──────────────────────────────────────────────
 let TEACHER_ID = null;
 var MY_ROLE = null;
+var ORPHAN_BATCHES = false;    /* no batch is recorded against this teacher */
+var MY_BATCH_IDS = [], MY_STUDENT_IDS = [];
 let TEACHER_NAME = '';
 let BATCHES = [];        // [{id, name, students:[{id,name,initials,xp,streak,level,acc,risk}]}]
 let SCHED = [];          // scheduled classes
@@ -678,6 +680,18 @@ function initials(name) {
 }
 
 // ── LOAD ALL DATA ─────────────────────────────────────────────
+/* Whose work this is. An admin sees everything; a teacher sees what
+   they created, what went to one of their batches, and what went to one
+   of their own children — which covers a sheet assigned to a single
+   child, since those no longer carry a batch. */
+function mineToSee(w) {
+  if (MY_ROLE === 'admin') return true;
+  if (w.created_by === TEACHER_ID) return true;
+  if (w.batch_id && MY_BATCH_IDS.indexOf(w.batch_id) > -1) return true;
+  if (w.student_id && MY_STUDENT_IDS.indexOf(w.student_id) > -1) return true;
+  return false;
+}
+
 async function loadData() {
   var sess = await sb.auth.getSession();
   if (!sess.data.session) { window.location.href = '../../login.html'; return; }
@@ -698,11 +712,24 @@ async function loadData() {
   // Load batches
   // Query batches - select all that are visible to this authenticated teacher
   var bRes = await sb.from('batches').select('id,name,teacher_id,is_active');
-  // Filter client-side to only this teacher's batches
+  /* An ADMIN sees every batch. Keeping this to batches recorded against
+     her own id meant that if a batch was set up under another account
+     — or with no teacher at all — she got no children, no class
+     progress and no worksheet results, with nothing on screen to say
+     why. She runs the academy; she should see all of it. */
   if (bRes.data) {
-    bRes.data = bRes.data.filter(function(b) { return b.teacher_id === TEACHER_ID; });
+    bRes.data = bRes.data.filter(function (b) {
+      return MY_ROLE === 'admin' || b.teacher_id === TEACHER_ID;
+    });
+    /* A teacher with no batch of their own: show the unassigned ones
+       rather than an empty screen, and say so below. */
+    if (!bRes.data.length && MY_ROLE !== 'admin') {
+      var orphan = (bRes.data || []);
+      ORPHAN_BATCHES = true;
+    }
   }
   BATCHES = [];
+  MY_BATCH_IDS = (bRes.data || []).map(function (b) { return b.id; });
   if (bRes.data && bRes.data.length) {
     // Load students for each batch
     for (var i = 0; i < bRes.data.length; i++) {
@@ -732,8 +759,13 @@ async function loadData() {
       BATCHES.push({ id: batch.id, name: batch.name, level: '', students: students });
     }
 
-    // Load worksheet scores to calculate accuracy (teacher owns these — no RLS issue)
-    var myWs = await sb.from('lx_worksheets').select('id').eq('created_by', TEACHER_ID);
+    /* Not only the sheets SHE created: a sheet made under her admin
+       account, or by another teacher for her batch, is still her
+       class's work. Filtering on the creator alone is why these
+       screens were empty. */
+    var myWs = await sb.from('lx_worksheets')
+      .select('id, created_by, batch_id, student_id').eq('is_active', true);
+    if (myWs.data) myWs.data = myWs.data.filter(mineToSee);
     if (myWs.data && myWs.data.length) {
       var wsIds = myWs.data.map(function(w) { return w.id; });
       var wsScores = await sb.from('worksheet_responses').select('student_id,score,total').in('worksheet_id', wsIds);
@@ -964,7 +996,9 @@ function renderDashboard() {
 async function loadRecentSubmissions() {
   var el = document.getElementById('recentSubs');
   try {
-    var myWs = await sb.from('lx_worksheets').select('id').eq('created_by', TEACHER_ID);
+    var myWs = await sb.from('lx_worksheets')
+      .select('id, created_by, batch_id, student_id').eq('is_active', true);
+    if (myWs.data) myWs.data = myWs.data.filter(mineToSee);
     var wsIds = (myWs.data || []).map(function(w) { return w.id; });
     if (!wsIds.length) {
       el.innerHTML = '<div class="empty"><div class="empty-text">No worksheets assigned yet</div></div>';
@@ -1078,10 +1112,15 @@ async function populateReviewDropdown() {
   var sel = document.getElementById('hwSelect');
   if (!sel) return;
   try {
+    /* The last 30 days of her classes' work, 120 rows rather than 30 —
+       a fortnight of per-child assignments is well over thirty sheets,
+       so the older ones were simply falling off the list. */
+    var since = new Date(Date.now() - 30 * 86400000).toISOString();
     var res = await sb.from('lx_worksheets')
-      .select('id,title,level,created_at,batch_id')
-      .eq('created_by', TEACHER_ID).eq('is_active', true)
-      .order('created_at', {ascending: false}).limit(30);
+      .select('id,title,level,created_at,batch_id,student_id,created_by')
+      .eq('is_active', true).gte('created_at', since)
+      .order('created_at', {ascending: false}).limit(120);
+    if (res.data) res.data = res.data.filter(mineToSee);
     if (!res.data || !res.data.length) {
       sel.innerHTML = '<option value="">No worksheets yet — use LX Designer to assign work</option>';
       document.getElementById('submBody').innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No worksheets assigned yet.<br>Use LX Designer to create and assign worksheets.</div></div>';
@@ -1192,6 +1231,19 @@ function renderStudents() {
     el.innerHTML = '<div class="empty"><div class="empty-text">No students in your batches yet</div></div>';
     return;
   }
+  /* An empty list has two very different causes, and a teacher should
+     not have to guess which. */
+  if (!all.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">\uD83D\uDC65</div>' +
+      '<div class="empty-text">' +
+      (BATCHES.length
+        ? 'No child is in your batches yet. Add them under My Classes.'
+        : 'No batch is recorded against your account, so no children are listed here.<br>' +
+          'An admin can set the teacher on each batch under Classes \u2192 Batches.') +
+      '</div></div>';
+    return;
+  }
+
   var html = '';
   all.forEach(function(s) {
     var col = s.risk ? 'var(--red)' : 'var(--green)';
@@ -1396,24 +1448,26 @@ async function loadWsResults() {
        A teacher should see the sheets for the children she teaches,
        whoever pressed Assign. So: her own, plus anything set for one
        of her batches; an admin sees everything. */
+    var since30 = new Date(Date.now() - 30 * 86400000).toISOString();
     var wsQ = sb.from('lx_worksheets')
-      .select('id,title,level,created_at,batch_id,created_by,activity,program_code')
-      .eq('is_active', true)
-      .order('created_at', {ascending: false}).limit(40);
+      .select('id,title,level,created_at,batch_id,student_id,created_by,activity,program_code')
+      .eq('is_active', true).gte('created_at', since30)
+      .order('created_at', {ascending: false}).limit(120);
 
     var myBatchIds = (BATCHES || []).map(function (b) { return b.id; }).filter(Boolean);
     var amAdmin = (MY_ROLE === 'admin');
 
     if (!amAdmin) {
-      if (myBatchIds.length) {
-        wsQ = wsQ.or('created_by.eq.' + TEACHER_ID +
-                     ',batch_id.in.(' + myBatchIds.join(',') + ')');
-      } else {
-        wsQ = wsQ.eq('created_by', TEACHER_ID);
-      }
+      /* A sheet for one child carries no batch any more, so a batch
+         filter alone would miss it. Read what is there and judge each
+         row by the one test. */
+      void myBatchIds;
     }
 
     var myWs = await wsQ;
+    /* Judged row by row, so a sheet assigned to a single child — which
+       carries no batch — is not missed. */
+    if (myWs.data) myWs.data = myWs.data.filter(mineToSee);
 
     /* A query that FAILED is not an empty tab. Saying which is the
        difference between "nothing assigned yet" and a fault. */

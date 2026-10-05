@@ -1209,8 +1209,12 @@ async function loadSubmissions() {
       /* These rows were cursor:default with no handler — a teacher could
              see that a child scored 6/10 and had no way to find out which
              four. They now open that child's full progress. */
+          /* The child's own id, not the response's. A child who has not
+             submitted has no response at all, so reading student_id off
+             it threw — and one such child in the class blanked the
+             whole list. */
           html += '<div class="roster-row" style="cursor:pointer;" ' +
-            'onclick="openStudent(\'' + r.student_id + '\')" ' +
+            'onclick="openStudent(\'' + s.id + '\')" ' +
             'title="See every sum this child answered">';
       html += '<div class="av">' + s.initials + '</div>';
       html += '<div style="flex:1;min-width:0;"><div class="r-name">' + s.name + '</div><div class="r-meta">Level ' + s.level + '</div></div>';

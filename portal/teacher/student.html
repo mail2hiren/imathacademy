@@ -243,7 +243,11 @@ async function init() {
     });
   }
 
-  render(me, progs.data || [], sess, ws, wsMeta, qz, pacing.data || [], classMiss);
+  /* The test attempts have to be HANDED to render. They were read here
+     and used in there, so the page died with "tests is not defined"
+     before drawing anything — which is why the full report would not
+     open at all. */
+  render(me, progs.data || [], sess, ws, wsMeta, qz, pacing.data || [], classMiss, tests);
 }
 
 function parseAnswers(a) {
@@ -433,7 +437,7 @@ function methodBreakdown(ws, wsMeta) {
   }).sort(function (a, b) { return a.pct - b.pct; });
 }
 
-function render(me, progs, sess, ws, wsMeta, qz, pacing, classMiss) {
+function render(me, progs, sess, ws, wsMeta, qz, pacing, classMiss, tests) {
   /* ── the numbers ── */
   /* Worksheets also write a practice_sessions row with topic
      'worksheet', so they are excluded from the practice count but

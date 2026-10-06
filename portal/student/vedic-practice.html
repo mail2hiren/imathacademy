@@ -141,10 +141,12 @@ async function init() {
   me = s.data.session.user.id;
 
   /* Vedic practice was open to anyone signed in, paid or not — the
-     Abacus pages have always checked and this one never did. Fees are
-     per programme, so a family paid up for Abacus only is sent to
-     subscribe for Vedic rather than let through. */
-  if (typeof Access !== 'undefined' && !(await Access.require(me, 'vedic'))) return;
+     Abacus pages have always checked and this one never did.
+
+     ONE subscription covers everything a child learns: a family paying
+     for Abacus gets Vedic too. So this asks only whether they are paid
+     up, not which programme they paid for. */
+  if (typeof Access !== 'undefined' && !(await Access.require(me))) return;
 
   await Programs.load(me);
   var lv = Programs.levelIn('vedic');

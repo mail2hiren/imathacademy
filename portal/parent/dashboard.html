@@ -511,39 +511,45 @@ function draw() {
   /* "How you can help" removed at Megha's request: a parent wants to
      know where their child stands, and the teacher gives the advice. */
 
-  /* ── fees, one line per programme ────────────────────────────
-     A family may pay for Abacus and Vedic separately, so one status
-     for the child would be wrong for one of them. */
+  /* ── fees ─────────────────────────────────────────────────────
+     ONE subscription covers everything the child learns, so the
+     status is the child's, not the programme's. Listing a line per
+     programme said "Vedic: not started" to a family who had paid and
+     whose child had full access. */
   var subs = DATA.subs || [];
-  var progList = DATA.progs.length ? DATA.progs : [{ program_code: 'abacus' }];
-  h += '<div class="card"><h2>Fees</h2>' +
-    progList.map(function (pr) {
-      var prog = pr.program_code || 'abacus';
-      var mine = subs.filter(function (s) {
-        return (s.program_code || 'abacus') === prog;
-      });
-      /* No programme recorded on a subscription means the older single
-         subscription, which covered Abacus. */
-      if (!mine.length && prog === 'abacus') {
-        mine = subs.filter(function (s) { return !s.program_code; });
-      }
-      var sub = mine[0] || null;
-      var until = sub && sub.expires_at ? new Date(sub.expires_at) : null;
-      var live = until ? until > new Date() : false;
-      var left = until ? Math.ceil((until - Date.now()) / 86400000) : null;
-      return '<div class="money" style="padding:8px 0;border-bottom:1px solid var(--line);">' +
-        '<span class="st"><b>' + (prog === 'vedic' ? '\u0950 Vedic Maths' : '\uD83E\uDDEE Abacus') + '</b>' +
-          '<span>' + (sub
-            ? (live ? 'Paid to ' + fmt(sub.expires_at) +
-                      (left != null && left <= 14 ? ' \u2014 ' + left + ' day' +
-                        (left === 1 ? '' : 's') + ' left' : '')
-                    : 'Ended ' + fmt(sub.expires_at))
-            : 'Not started') + '</span></span>' +
-        '<span class="pill ' + (!sub ? 'off' : live ? (left <= 14 ? 'due' : 'ok') : 'off') + '">' +
-          (!sub ? 'none' : live ? (left <= 14 ? 'renew soon' : 'active') : 'expired') + '</span>' +
-      '</div>';
-    }).join('') +
-    '<a class="go" href="payments.html">Fees, payments and receipts</a></div>';
+  var now = new Date();
+  var liveSubs = subs.filter(function (s) {
+    return s.expires_at && new Date(s.expires_at) > now &&
+           (s.status ? s.status === 'active' : true);
+  }).sort(function (a, b) {
+    return new Date(b.expires_at) - new Date(a.expires_at);
+  });
+  var best = liveSubs[0] || null;
+  var lastEnded = !best && subs.length
+    ? subs.slice().sort(function (a, b) { return new Date(b.expires_at) - new Date(a.expires_at); })[0]
+    : null;
+  var left = best ? Math.ceil((new Date(best.expires_at) - Date.now()) / 86400000) : null;
+  var learning = (DATA.progs.length ? DATA.progs : [{ program_code: 'abacus' }])
+    .map(function (p) { return p.program_code === 'vedic' ? 'Vedic Maths' : 'Abacus'; });
+
+  h += '<div class="card"><h2>Fees</h2><div class="money">' +
+    '<span class="st">' +
+      (best
+        ? '<b>Paid up</b><span>Covered to ' + fmt(best.expires_at) +
+          (left != null && left <= 14 ? ' \u2014 ' + left + ' day' + (left === 1 ? '' : 's') + ' left' : '') +
+          '</span>'
+        : lastEnded
+          ? '<b>Payment due</b><span>Ended ' + fmt(lastEnded.expires_at) + '</span>'
+          : '<b>Not started</b><span>Start a subscription to open the practice and worksheets.</span>') +
+    '</span>' +
+    '<span class="pill ' + (best ? (left <= 14 ? 'due' : 'ok') : 'off') + '">' +
+      (best ? (left <= 14 ? 'renew soon' : 'active') : lastEnded ? 'expired' : 'none') + '</span>' +
+  '</div>' +
+  '<div class="quiet" style="margin-top:8px;">One subscription covers ' +
+    (learning.length > 1 ? 'both \u2014 ' + learning.join(' and ') : learning[0]) +
+    '. There is nothing separate to pay for each.</div>' +
+  '<a class="go' + (best && left > 14 ? ' ghost' : '') + '" href="payments.html">' +
+    (best ? 'Fees and receipts' : 'Pay now') + '</a></div>';
 
   /* ── the awards ── */
   h += '<div class="card"><h2>Certificates</h2>' +

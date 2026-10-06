@@ -148,15 +148,11 @@ async function start() {
   if (!s.data.session) { location.href = '../../login.html'; return; }
   ME = s.data.session.user.id;
 
-  /* A test is part of a programme that is paid for. The page was open
-     to anyone signed in, so a child whose subscription had ended could
-     still sit a level test and earn a certificate from it. */
-  var paid = ['abacus', 'vedic'];
-  if (typeof Access !== 'undefined') {
-    var acc = await Access.status(ME);
-    if (!acc.ok) { location.href = 'subscription.html'; return; }
-    if (!acc.unknown && acc.livePrograms && acc.livePrograms.length) paid = acc.livePrograms;
-  }
+  /* The page was open to anyone signed in, so a child whose
+     subscription had ended could still sit a level test and earn a
+     certificate from it. One subscription covers both programmes, so
+     being paid up is the whole question. */
+  if (typeof Access !== 'undefined' && !(await Access.require(ME))) return;
 
   var prof = await sb.from('users').select('*').eq('id', ME).maybeSingle();
   PROFILE = prof.data || {};
@@ -195,10 +191,7 @@ async function start() {
   });
   PAPERS = (bp.data || []).filter(function (b) {
     var k = b.level_code + '|' + b.test_no;
-    if (!(givenTo[k] || everSat[k])) return false;
-    /* only a programme the family is paid up for */
-    var prog = /^VL/.test(b.level_code) ? 'vedic' : 'abacus';
-    return paid.indexOf(prog) > -1;
+    return !!(givenTo[k] || everSat[k]);
   }).sort(function (a, b) { return a.test_no - b.test_no; });
   PAPERS.forEach(function (b) { b._given = givenTo[b.level_code + '|' + b.test_no] || null; });
 

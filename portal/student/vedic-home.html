@@ -87,6 +87,7 @@
 <div class="wrap" id="body"><div class="spin"></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/access.js"></script>
 <script src="../js/programs.js"></script>
 <script src="../js/sutra-rules.js"></script>
 <script src="../js/vedic-gen.js"></script>
@@ -118,6 +119,9 @@ async function init() {
   var s = await sb.auth.getSession();
   if (!s.data.session) { location.href = '../../login.html'; return; }
   me = s.data.session.user.id;
+
+  /* The Vedic hub was open whether or not Vedic had been paid for. */
+  if (typeof Access !== 'undefined' && !(await Access.require(me, 'vedic'))) return;
 
   var prof = await sb.from('users').select('full_name, current_level').eq('id', me).single();
   document.getElementById('who').textContent =

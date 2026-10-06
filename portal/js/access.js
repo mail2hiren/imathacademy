@@ -18,25 +18,40 @@ var Access = (function () {
 
   var cached = null;
 
-  /** What access this child has. Never throws — a fault must not
-      lock a paying family out. */
-  async function status(userId) {
-    if (cached && cached.userId === userId) return cached;
+  /** What access this child has, in a programme or overall.
+
+      Fees are charged per programme now — a family may pay for Abacus
+      and not Vedic — so the check has to know which. Called without a
+      programme it answers "any live subscription at all", which is what
+      a shared page like the dashboard wants.
+
+      Never throws: a fault must not lock a paying family out. */
+  async function status(userId, program) {
+    var key = userId + '|' + (program || 'any');
+    if (cached && cached.key === key) return cached;
     try {
       var res = await sb.from('subscriptions')
-        .select('id, plan, status, expires_at')
+        .select('*')
         .eq('student_id', userId)
         .order('expires_at', { ascending: false })
-        .limit(5);
+        .limit(20);
 
       var now = new Date();
-      var live = (res.data || []).filter(function (s) {
+      var rows = (res.data || []).filter(function (s) {
+        if (!program) return true;
+        /* A subscription with no programme recorded is one of the older
+           ones, which covered Abacus. */
+        return (s.program_code || 'abacus') === program;
+      });
+      var live = rows.filter(function (s) {
         return s.status === 'active' && s.expires_at && new Date(s.expires_at) > now;
       })[0];
 
-      var latest = (res.data || [])[0];
+      var latest = rows[0];
       cached = {
+        key: key,
         userId: userId,
+        program: program || null,
         ok: !!live,
         plan: live ? live.plan : (latest ? latest.plan : null),
         endsOn: live ? new Date(live.expires_at)
@@ -44,7 +59,11 @@ var Access = (function () {
         daysLeft: live
           ? Math.ceil((new Date(live.expires_at) - now) / 86400000)
           : null,
-        neverHad: !(res.data || []).length
+        neverHad: !rows.length,
+        /* which programmes are paid for right now */
+        livePrograms: (res.data || []).filter(function (s) {
+          return s.status === 'active' && s.expires_at && new Date(s.expires_at) > now;
+        }).map(function (s) { return s.program_code || 'abacus'; })
       };
       return cached;
     } catch (e) {
@@ -52,15 +71,17 @@ var Access = (function () {
          who has paid, because of a network blip, is the worse
          mistake of the two. */
       console.warn('Could not check access:', e.message);
-      return { userId: userId, ok: true, unknown: true };
+      return { userId: userId, ok: true, unknown: true, livePrograms: [] };
     }
   }
 
-  /** For a page that cannot work without a subscription. */
-  async function require(userId) {
-    var s = await status(userId);
+  /** For a page that cannot work without a subscription.
+      Pass the programme where the page belongs to one. */
+  async function require(userId, program) {
+    var s = await status(userId, program);
     if (!s.ok) {
-      window.location.href = 'subscription.html';
+      window.location.href = 'subscription.html' +
+        (program ? '?for=' + encodeURIComponent(program) : '');
       return false;
     }
     return true;
@@ -84,7 +105,8 @@ var Access = (function () {
           (s.neverHad ? 'Your subscription has not started yet'
                       : 'Your subscription has ended') + '</div>' +
         '<div style="font-size:.85rem;color:#8a1c17;margin-top:5px;line-height:1.6;">' +
-          'Practice, worksheets and the weekly challenge are paused until it is renewed. ' +
+          (s.program ? (s.program === 'vedic' ? 'Vedic Maths is' : 'Abacus is') + ' paused until it is renewed. '
+                     : 'Practice, worksheets and the weekly challenge are paused until it is renewed. ') +
           'Your progress and stickers are all safe.</div>' +
         '<a href="subscription.html" style="display:inline-block;margin-top:11px;' +
           'padding:11px 18px;border-radius:11px;background:#C62828;color:#fff;' +

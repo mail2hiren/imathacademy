@@ -96,6 +96,7 @@
 <div class="wrap" id="body"><div class="spin"></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/access.js"></script>
 <script src="../js/programs.js"></script>
 <script src="../js/sutra-rules.js"></script>
 <script src="../js/vedic-gen.js"></script>
@@ -138,6 +139,12 @@ async function init() {
   var s = await sb.auth.getSession();
   if (!s.data.session) { location.href = '../../login.html'; return; }
   me = s.data.session.user.id;
+
+  /* Vedic practice was open to anyone signed in, paid or not — the
+     Abacus pages have always checked and this one never did. Fees are
+     per programme, so a family paid up for Abacus only is sent to
+     subscribe for Vedic rather than let through. */
+  if (typeof Access !== 'undefined' && !(await Access.require(me, 'vedic'))) return;
 
   await Programs.load(me);
   var lv = Programs.levelIn('vedic');

@@ -2986,6 +2986,20 @@ function previewAsChild() {
      said "set your answer on the abacus" — a tool a Vedic child does
      not use. This shows what that child actually gets: the method and,
      for the first few of each, its steps. */
+  /* The working, for the teacher only, on a tap. */
+  function pvToggleAnswers(btn) {
+    var host = document.getElementById('pvBox');
+    if (!host) return;
+    var showing = btn.getAttribute('data-showing') === '1';
+    host.querySelectorAll('input[data-want]').forEach(function (el) {
+      el.value = showing ? '' : el.getAttribute('data-want');
+      el.style.background = showing ? '' : '#FFF8E1';
+    });
+    btn.setAttribute('data-showing', showing ? '0' : '1');
+    btn.textContent = showing ? 'Show the working' : 'Hide the working';
+  }
+  window.pvToggleAnswers = pvToggleAnswers;
+
   function vedicPreviewPanel(q) {
     /* Megha approves a sheet from this preview, so it has to show what
        the child will actually get. It showed my earlier step list while
@@ -2996,17 +3010,28 @@ function previewAsChild() {
       VedicFrames.injectCss();
       var fr = VedicFrames.render({ method: q.method_key, a: q.a, b: q.b,
                                     level: q.level, answer: q.answer }, 'pv');
-      var filled = fr.html;
+      /* EMPTY, because this panel says "As the child sees it" and a
+         child sees empty boxes. I had filled them in so the working
+         could be checked at a glance, with a line underneath saying the
+         child would see them empty \u2014 which reads, fairly, as the
+         answers being given away. They are a tap away instead. */
+      var box = fr.html;
       fr.slots.forEach(function (s) {
         var re = new RegExp('(<input[^>]*id="' + s.id + '"[^>]*?)>');
-        filled = filled.replace(re, '$1 value="' + String(s.want).replace(/"/g, '&quot;') +
+        box = box.replace(re, '$1 data-want="' + String(s.want).replace(/"/g, '&quot;') +
           '" readonly tabindex="-1">');
       });
       return '<div style="font-size:.8rem;font-weight:800;color:#04616a;margin-bottom:6px;">' +
           '\u0950 ' + (q.method || 'Work it through') + '</div>' +
-        '<div style="background:#fff;border-radius:14px;padding:12px 14px;">' + filled +
-          '<div style="font-size:.74rem;color:#8892A4;margin-top:10px;text-align:center;">' +
-            'The child sees these boxes empty, and fills each orange one.</div>' +
+        '<div style="background:#fff;border-radius:14px;padding:12px 14px;" id="pvBox">' + box +
+          '<div style="text-align:center;margin-top:10px;">' +
+            '<button type="button" onclick="pvToggleAnswers(this)" ' +
+              'style="border:1.5px solid #04949D;background:#fff;color:#04616a;border-radius:9px;' +
+              'padding:7px 14px;font:800 .78rem Nunito,sans-serif;cursor:pointer;">' +
+              'Show the working</button>' +
+            '<div style="font-size:.74rem;color:#8892A4;margin-top:8px;">' +
+              'Exactly what the child gets \u2014 empty boxes to fill.</div>' +
+          '</div>' +
         '</div>';
     }
 

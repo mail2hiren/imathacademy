@@ -1365,14 +1365,39 @@ function closeFullScreen() {
  * guess is not as good as working it.
  */
 function fsChoicesFor(answer) {
-  var a = parseInt(String(answer).replace(/[^0-9-]/g, ''), 10);
-  if (isNaN(a)) return [String(answer)];
+  /* The decimal point was being STRIPPED out before the number was
+     read, so 27.8 became 278 and the choices came out as 277, 279,
+     288 — a decimal sum with no decimal anywhere in its answers.
 
-  var near = [a + 1, a - 1, a + 10, a - 10, a + 2, a - 2, a + 5];
-  var out = [a], seen = {};
-  seen[a] = true;
+     The point is kept, and the wrong answers are built a tenth away
+     rather than a whole number away, so they are the mistakes a child
+     would actually make. */
+  var txt = String(answer).trim();
+
+  /* Some answers are not a single number and must not be guessed at.
+     "14 r 2" was being mangled into 152 and 143; a yes-or-no answer
+     has its own buttons. Where the answer is not one plain number, the
+     child types it. */
+  if (!/^-?\d+(\.\d+)?$/.test(txt)) return [txt];
+
+  var a = parseFloat(txt);
+  if (isNaN(a)) return [txt];
+
+  var dot = txt.indexOf('.');
+  var places = dot < 0 ? 0 : txt.length - dot - 1;
+  var step = places > 0 ? Math.pow(10, -places) : 1;
+  var fix = function (n) { return places > 0 ? n.toFixed(places) : String(Math.round(n)); };
+
+  var near = [a + step, a - step, a + 10 * step, a - 10 * step,
+              a + 2 * step, a - 2 * step, a + 5 * step];
+  var out = [fix(a)], seen = {};
+  seen[fix(a)] = true;
   for (var i = 0; i < near.length && out.length < 4; i++) {
-    if (near[i] >= 0 && !seen[near[i]]) { seen[near[i]] = true; out.push(near[i]); }
+    var v = fix(near[i]);
+    /* Below zero is a real answer at Level 8, where negatives are
+       taught — refusing them left a negative sum with one choice. */
+    var allowed = a < 0 ? true : near[i] >= 0;
+    if (allowed && !seen[v]) { seen[v] = true; out.push(v); }
   }
   // shuffle, so the answer is not always in the same place
   for (var j = out.length - 1; j > 0; j--) {

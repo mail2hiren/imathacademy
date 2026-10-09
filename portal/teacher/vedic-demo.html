@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vedic demonstration &mdash; iMath Academy</title>
+<link rel="icon" type="image/png" href="/assets/icon-32.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Fredoka:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#16324F; --t2:#4A5160; --t3:#8892A4; --line:#E6E9F0; --bg:#F4F7FB;
+         --teal:#04949D; --teal-soft:#E7F6F7; --org:#E67D21; --org-soft:#FFF4E6;
+         --good:#2E7D32; --gold:#B8860B; }
+  :root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px);
+         padding-bottom:env(safe-area-inset-bottom,0px); }
+  *,*::before,*::after{ box-sizing:inherit; margin:0; padding:0; }
+  body{ font-family:'Nunito',system-ui,sans-serif; background:var(--bg); color:var(--ink); }
+
+  .bar{ background:#fff; border-bottom:1.5px solid var(--line); padding:10px 15px;
+        display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:10; }
+  .bar a.back{ color:var(--t3); text-decoration:none; font-size:1.25rem; }
+  .bar h1{ font-size:1rem; font-weight:900; }
+  .bar .sub{ font-size:.75rem; color:var(--t3); }
+  .bar .count{ margin-left:auto; font-weight:900; color:var(--t3); font-size:.82rem; }
+
+  .wrap{ max-width:1000px; margin:0 auto; padding:14px 14px 40px; }
+  .pick{ background:#fff; border-radius:16px; padding:14px; margin-bottom:12px;
+         box-shadow:0 1px 0 var(--line); }
+  .pick h2{ font-size:.7rem; font-weight:900; letter-spacing:.9pt; text-transform:uppercase;
+            color:var(--t3); margin-bottom:8px; }
+  .opts{ display:flex; gap:6px; flex-wrap:wrap; }
+  .opt{ padding:8px 13px; border:2px solid var(--line); border-radius:10px; background:#fff;
+        font:800 .84rem 'Nunito',sans-serif; color:var(--t2); cursor:pointer; }
+  .opt[aria-pressed="true"]{ border-color:var(--teal); background:var(--teal-soft); color:#04616a; }
+  .opt small{ display:block; font-size:.68rem; color:var(--t3); font-weight:700; }
+
+  /* the board — what the child looks at */
+  .board{ background:#fff; border-radius:20px; padding:26px 22px 22px; text-align:center;
+          box-shadow:0 2px 18px rgba(20,40,70,.08); }
+  .method{ display:inline-block; font-size:.8rem; font-weight:900; color:#04616a;
+           background:var(--teal-soft); padding:5px 13px; border-radius:999px; }
+  .sanskrit{ font-size:.76rem; color:var(--t3); margin-top:6px; font-style:italic; }
+  .sum{ font-family:'Fredoka','Nunito',sans-serif; font-size:clamp(2.4rem,7vw,4.4rem);
+        font-weight:600; margin:16px 0 6px; letter-spacing:1px; }
+  .steps{ max-width:640px; margin:12px auto 0; text-align:left; }
+  .step{ display:flex; align-items:baseline; gap:12px; padding:11px 14px; border-radius:13px;
+         background:#FAFBFE; margin-bottom:8px; opacity:0; transform:translateY(6px);
+         transition:opacity .25s, transform .25s; }
+  .step.on{ opacity:1; transform:none; }
+  .step.latest{ background:var(--org-soft); box-shadow:0 0 0 2px var(--org) inset; }
+  .step .n{ width:26px; height:26px; border-radius:50%; background:var(--teal); color:#fff;
+            font-size:.78rem; font-weight:900; display:flex; align-items:center;
+            justify-content:center; flex-shrink:0; }
+  .step .ask{ flex:1; font-size:clamp(.95rem,2.2vw,1.15rem); font-weight:800; }
+  .step .ask em{ display:block; font-size:.8rem; color:var(--t3); font-weight:700;
+                 font-style:normal; margin-top:2px; }
+  .step .val{ font-family:'Fredoka','Nunito',sans-serif; font-size:clamp(1.2rem,3.4vw,1.8rem);
+              font-weight:600; color:var(--org); min-width:70px; text-align:right; }
+  .final{ margin-top:14px; font-size:clamp(1.3rem,4vw,2rem); font-weight:900; color:var(--good);
+          opacity:0; transition:opacity .3s; }
+  .final.on{ opacity:1; }
+
+  .acts{ display:flex; gap:9px; margin-top:16px; flex-wrap:wrap; justify-content:center; }
+  .btn{ padding:14px 22px; border:none; border-radius:13px; background:var(--teal); color:#fff;
+        font:900 1rem 'Nunito',sans-serif; cursor:pointer; min-width:170px; }
+  .btn.ghost{ background:#fff; color:var(--teal); border:2px solid var(--teal); min-width:0; }
+  .btn.quiet{ background:#fff; color:var(--t2); border:2px solid var(--line); min-width:0; }
+  .btn:disabled{ opacity:.45; cursor:default; }
+  button:focus-visible{ outline:3px solid var(--teal); outline-offset:2px; }
+
+  .strip{ display:flex; gap:5px; justify-content:center; flex-wrap:wrap; margin-top:14px; }
+  .dot{ width:30px; height:30px; border-radius:9px; border:1.5px solid var(--line); background:#fff;
+        font:800 .76rem 'Nunito',sans-serif; color:var(--t3); cursor:pointer; }
+  .dot.here{ border-color:var(--teal); background:var(--teal-soft); color:#04616a; }
+  .dot.seen{ color:var(--ink); }
+
+  .hint{ font-size:.78rem; color:var(--t3); text-align:center; margin-top:10px; }
+  .err{ background:#FDECEA; color:#C62828; border-radius:13px; padding:14px; font-weight:800; }
+  .spin{ padding:40px; text-align:center; color:var(--t3); }
+  @media print { .bar, .pick, .acts, .strip, .hint { display:none; } .step { opacity:1; transform:none; } }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <a class="back" href="dashboard.html" aria-label="Back">&larr;</a>
+  <div>
+    <h1>&#2384; Vedic demonstration</h1>
+    <div class="sub">Show a child how the method works, one step at a time</div>
+  </div>
+  <span class="count" id="count"></span>
+</div>
+
+<div class="wrap">
+  <div class="pick">
+    <h2>Level</h2>
+    <div class="opts" id="levels"></div>
+  </div>
+  <div class="pick">
+    <h2>Method</h2>
+    <div class="opts" id="methods"></div>
+  </div>
+  <div id="stage"><div class="spin">Pick a level and a method.</div></div>
+</div>
+
+<script src="../js/sutra-rules.js"></script>
+<script src="../js/vedic-gen.js"></script>
+<script src="../js/vedic-steps.js"></script>
+<script src="../js/vedic-engine.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   Vedic demonstration — for a teacher at the front of a class
+   ------------------------------------------------------------
+   Megha could not show a child HOW a method works: the only Vedic
+   screens were a worksheet, which hands over ten sums at once, and a
+   preview, which shows the finished working.
+
+   Teaching is the opposite of both. The child should predict each
+   step before seeing it, so this shows ONE sum, large, and reveals
+   the working a step at a time as she taps. She asks "what do we do
+   first?", the room answers, she taps, and the step appears.
+
+   Ten sums are prepared at a mix of difficulties, so she can move
+   from an easy one to a hard one without stopping to generate more.
+
+   Works on a shared screen or over Zoom: one thing on screen at a
+   time, and the type is sized to the window.
+   ============================================================ */
+
+var sb = supabase.createClient(
+  'https://bhullfoajenhkxlkiubs.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc');
+
+var LEVEL = null, METHOD = null, SUMS = [], AT = 0, SHOWN = 0;
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+  return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+
+async function start() {
+  var s = await sb.auth.getSession();
+  if (!s.data.session) { location.href = '../../login.html'; return; }
+  /* Her own course map decides which methods a level teaches, so a
+     demonstration cannot drift from what the children are taught. */
+  try { if (VedicEngine.sync) await VedicEngine.sync(sb, true); } catch (e) {}
+  drawLevels();
+}
+
+function drawLevels() {
+  document.getElementById('levels').innerHTML = [1,2,3,4,5,6,7,8].map(function (n) {
+    var cfg = VedicEngine.LEVELS[n] || {};
+    return '<button class="opt" aria-pressed="' + (LEVEL === n) + '" onclick="pickLevel(' + n + ')">' +
+      'Level ' + n + (cfg.name ? '<small>' + esc(cfg.name) + '</small>' : '') + '</button>';
+  }).join('');
+}
+
+function pickLevel(n) {
+  LEVEL = n; METHOD = null; SUMS = [];
+  drawLevels(); drawMethods();
+  document.getElementById('stage').innerHTML =
+    '<div class="spin">Now pick a method.</div>';
+  document.getElementById('count').textContent = '';
+}
+
+function drawMethods() {
+  var host = document.getElementById('methods');
+  if (!LEVEL) { host.innerHTML = '<span class="hint">Pick a level first.</span>'; return; }
+  var bd = VedicEngine.breakdown(LEVEL);
+  /* Only methods that can actually build a sum. One of the square-root
+     methods is marked not ready, and offering it would give her a dead
+     end in front of a class. */
+  var keys = (bd.intro || []).concat(bd.carried || []).filter(function (k) {
+    var m = Sutras.METHODS[k];
+    return m && m.ready !== false;
+  });
+  if (!keys.length) { host.innerHTML = '<span class="hint">This level teaches nothing yet in the course map.</span>'; return; }
+  host.innerHTML = keys.map(function (k) {
+    var m = Sutras.METHODS[k] || {};
+    var isNew = (bd.intro || []).indexOf(k) > -1;
+    return '<button class="opt" aria-pressed="' + (METHOD === k) + '" onclick="pickMethod(\'' + k + '\')">' +
+      esc(m.label || k) + '<small>' + (isNew ? 'new at this level' : 'carried on') + '</small></button>';
+  }).join('');
+}
+
+function pickMethod(k) {
+  METHOD = k;
+  drawMethods();
+  freshSet();
+}
+
+/* Ten sums, easy to hard, so she can start gently and build up. */
+function freshSet() {
+  SUMS = []; AT = 0; SHOWN = 0;
+  var want = ['easy','easy','easy','medium','medium','medium','medium','hard','hard','hard'];
+  var seen = {};
+  for (var i = 0; i < want.length; i++) {
+    var q = null;
+    for (var t = 0; t < 40 && !q; t++) {
+      var c = VedicGen.one(METHOD, LEVEL, { difficulty: want[i] });
+      if (c && !seen[c.text]) { q = c; seen[c.text] = true; }
+    }
+    if (q) { q._band = want[i]; SUMS.push(q); }
+  }
+  if (!SUMS.length) {
+    document.getElementById('stage').innerHTML =
+      '<div class="err">No sum could be built for this method at Level ' + LEVEL +
+      '. It may not be taught here \u2014 check the Vedic course map.</div>';
+    return;
+  }
+  drawBoard();
+}
+
+function drawBoard() {
+  var q = SUMS[AT];
+  var m = Sutras.METHODS[METHOD] || {};
+  var steps = VedicSteps.forSum(q) || [];
+  document.getElementById('count').textContent = (AT + 1) + ' of ' + SUMS.length;
+
+  var h = '<div class="board">' +
+    '<span class="method">\u0950 ' + esc(m.label || METHOD) + '</span>' +
+    (m.sanskrit ? '<div class="sanskrit">' + esc(m.sanskrit) + '</div>' : '') +
+    '<div class="sum">' + esc(q.text) + ' = ?</div>' +
+    '<div class="hint">' + esc(q._band === 'easy' ? 'an easy one to start'
+       : q._band === 'hard' ? 'a harder one' : '') + '</div>' +
+    '<div class="steps" id="steps">' +
+      steps.map(function (s, i) {
+        var last = i === steps.length - 1;
+        return '<div class="step" id="st' + i + '">' +
+          '<span class="n">' + (last ? '\u2713' : (i + 1)) + '</span>' +
+          '<span class="ask">' + esc(s.ask) +
+            (s.hint ? '<em>' + esc(s.hint) + '</em>' : '') + '</span>' +
+          '<span class="val">' + esc(String(s.answer)) + '</span></div>';
+      }).join('') +
+    '</div>' +
+    '<div class="final" id="final">' + esc(q.text) + ' = ' + esc(String(q.answer)) + '</div>' +
+
+    '<div class="acts">' +
+      '<button class="btn" id="next" onclick="reveal()">Show the first step</button>' +
+      '<button class="btn quiet" onclick="hideAll()">Start again</button>' +
+      '<button class="btn ghost" onclick="go(-1)"' + (AT === 0 ? ' disabled' : '') + '>Previous sum</button>' +
+      '<button class="btn ghost" onclick="go(1)"' + (AT === SUMS.length - 1 ? ' disabled' : '') + '>Next sum</button>' +
+      '<button class="btn quiet" onclick="freshSet()">Ten new sums</button>' +
+    '</div>' +
+
+    '<div class="strip">' + SUMS.map(function (x, i) {
+      return '<button class="dot' + (i === AT ? ' here' : '') + '" onclick="jump(' + i + ')">' +
+        (i + 1) + '</button>';
+    }).join('') + '</div>' +
+    '<div class="hint">Tap the space bar or the button to reveal the next step. ' +
+      'Ask the child what comes next before you do.</div>' +
+  '</div>';
+  document.getElementById('stage').innerHTML = h;
+  SHOWN = 0;
+}
+
+function reveal() {
+  var steps = document.querySelectorAll('.step');
+  if (SHOWN >= steps.length) { document.getElementById('final').classList.add('on'); return; }
+  steps.forEach(function (el) { el.classList.remove('latest'); });
+  steps[SHOWN].classList.add('on', 'latest');
+  SHOWN++;
+  var btn = document.getElementById('next');
+  if (SHOWN >= steps.length) {
+    document.getElementById('final').classList.add('on');
+    btn.textContent = 'All shown';
+    btn.disabled = true;
+  } else {
+    btn.textContent = 'Show the next step (' + SHOWN + ' of ' + steps.length + ')';
+  }
+  /* guarded: not every browser has it, and it is a nicety */
+  if (steps[SHOWN - 1].scrollIntoView) {
+    steps[SHOWN - 1].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+}
+
+function hideAll() {
+  document.querySelectorAll('.step').forEach(function (el) {
+    el.classList.remove('on', 'latest');
+  });
+  document.getElementById('final').classList.remove('on');
+  SHOWN = 0;
+  var btn = document.getElementById('next');
+  btn.disabled = false;
+  btn.textContent = 'Show the first step';
+}
+
+function go(d) { jump(Math.min(SUMS.length - 1, Math.max(0, AT + d))); }
+function jump(i) { AT = i; drawBoard(); }
+
+/* The space bar, because her hands are busy and a child is watching. */
+document.addEventListener('keydown', function (e) {
+  if (!SUMS.length) return;
+  if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); reveal(); }
+  else if (e.key === 'ArrowRight') go(1);
+  else if (e.key === 'ArrowLeft') go(-1);
+  else if (e.key === 'Escape') hideAll();
+});
+
+start().catch(function (e) {
+  document.getElementById('stage').innerHTML =
+    '<div class="err">Could not load: ' + esc(e.message) + '</div>';
+});
+</script>
+</body>
+</html>

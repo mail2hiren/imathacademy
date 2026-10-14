@@ -1455,6 +1455,7 @@ function showFsQuestion() {
   var fsSheet = (allWs || []).find(function (w) { return w.id === fsCurrentWsId; }) || {};
   var isVedic = isVedicSheet(fsSheet, fsQuestions);
   window._fsSlots = null;
+  window._fsNagged = false;   /* asked once per question, not once per sheet */
 
   var wrap = document.createElement('div');
   wrap.className = 'fs-question-wrap';
@@ -1739,8 +1740,24 @@ function fsTryAnswer() {
       var box = document.getElementById(sl.id);
       if (!box) continue;
       var bv = box.value.trim();
-      if (!bv) { box.focus(); feedback.className = 'fs-feedback';
-                 feedback.textContent = 'Fill every orange box first.'; return; }
+      if (!bv) {
+        /* An empty working box used to STOP the check outright: a child
+           who had typed the answer pressed Check, nothing happened, and
+           from the other side of the room it looked as though the page
+           would not take their answer.
+
+           Asked once, then accepted. The empty boxes are marked as not
+           done, so the teacher still sees the working was skipped. */
+        if (!window._fsNagged) {
+          window._fsNagged = true;
+          box.focus();
+          feedback.className = 'fs-feedback';
+          feedback.textContent = 'Fill the orange boxes too \u2014 or press Check again to go on.';
+          return;
+        }
+        wVals.push(''); wOk.push(false);
+        continue;
+      }
       var want = String(sl.want);
       var good = cleanAnswer(bv) === cleanAnswer(want) ||
         (!isNaN(parseFloat(bv)) && !isNaN(parseFloat(want)) &&

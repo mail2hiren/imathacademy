@@ -1159,6 +1159,20 @@ function showXPPop(text){
    ─────────────────────────────────────────────────────────── */
 var abacusInstances = {};
 
+/* How many decimal places the answer in front of the child has. An
+   abacus shows rods, not a decimal point: for 27.8 the beads read 278.
+   Without knowing the places there is no way back from one to the
+   other, and a child with the right beads was marked wrong. */
+function decimalPlacesNow(wsId) {
+  try {
+    var q = (wsId === fsCurrentWsId) ? (fsQuestions || [])[fsCurrentQIdx] : null;
+    if (!q) return 0;
+    if (typeof q.decimals === 'number') return q.decimals;
+    var m = String(q.answer == null ? '' : q.answer).match(/\.(\d+)/);
+    return m ? m[1].length : 0;
+  } catch (e) { return 0; }
+}
+
 function buildAbacusFor(wsId, inputEl) {
   if (typeof Abacus === 'undefined' || typeof abacusModeFor !== 'function') return null;
 
@@ -1204,17 +1218,30 @@ function buildAbacusFor(wsId, inputEl) {
     sound: true,
     onChange: function (value) {
       if (!inputEl || inputEl.disabled) return;
-      inputEl.value = (value === 0) ? '' : String(value);
+      /* The beads give rods. Where the answer has decimal places the
+         point goes back in — 278 on the rods is 27.8 on the page, and
+         without this a child with the right beads was marked wrong. */
+      var places = decimalPlacesNow(wsId);
+      inputEl.value = (value === 0) ? ''
+        : (places > 0 ? (value / Math.pow(10, places)).toFixed(places) : String(value));
       inputEl.classList.remove('correct', 'wrong');
     }
   });
 
-  // Where the curriculum requires the abacus, the beads are the only
-  // way in. Typing would let a child bypass what they came to learn.
+  /* Where the curriculum requires the abacus, the beads are the only
+     way in: typing would let a child bypass what they came to learn.
+
+     A DECIMAL answer is the exception. The rods cannot show a point, so
+     beads alone left the child unable to give the answer at all. */
   if (inputEl && !typingAllowed(mode)) {
-    inputEl.readOnly    = true;
-    inputEl.placeholder = 'Your answer from the abacus';
-    inputEl.style.cursor = 'default';
+    if (decimalPlacesNow(wsId) === 0) {
+      inputEl.readOnly    = true;
+      inputEl.placeholder = 'Your answer from the abacus';
+      inputEl.style.cursor = 'default';
+    } else {
+      inputEl.readOnly    = false;
+      inputEl.placeholder = 'Set the beads, then the decimal point';
+    }
   }
 
   return box;

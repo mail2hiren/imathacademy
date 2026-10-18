@@ -184,6 +184,9 @@ function selectPlan(plan) {
 
 function renderPayScreen(expired) {
   const name = profile?.full_name || 'Student';
+  /* The first name only, for a sentence. "Aryan" was written into the
+     blocked message by hand and every family saw it, whoever logged in. */
+  const firstName = String(name).trim().split(/\s+/)[0] || 'your child';
   const level = profile?.current_level || 1;
   const statusHtml = expired
     ? `<div class="status-val status-expired">⚠️ ${subscription ? 'Expired ' + fmt(subscription.expires_at) : 'No active subscription'}</div>`
@@ -211,7 +214,7 @@ function renderPayScreen(expired) {
       <div class="blocked-banner">
         <div class="blocked-icon">🔒</div>
         <div class="blocked-title">Access paused</div>
-        <div class="blocked-sub">Renew your subscription to continue Aryan's learning journey</div>
+        <div class="blocked-sub">Renew your subscription to continue ${firstName}&rsquo;s learning journey</div>
         <div class="safe-box">
           <div class="safe-title">⭐ Nothing is lost — everything is safe!</div>
           <div class="safe-item"><span>✓</span> All XP points preserved</div>

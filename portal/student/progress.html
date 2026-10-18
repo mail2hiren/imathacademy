@@ -282,6 +282,7 @@
 </div></nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/programs.js"></script>
 <script src="../js/access.js"></script>
 <script src="../js/profiles.js"></script>
 <script>
@@ -340,7 +341,19 @@ function getWeekStart(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDa
 
 // ── LOAD OVERVIEW ─────────────────────────────────────────
 async function loadOverview(uid, profile){
-  const lv = profile.current_level||1;
+  /* The level in the SUBJECT THEY ARE IN. This read the single level
+     on the account, so a child doing both saw their Abacus level while
+     the heading said nothing about which subject — and the position
+     below it was read against the wrong level code. */
+  let subject = 'abacus', lv = profile.current_level || 1;
+  if (typeof Programs !== 'undefined') {
+    try {
+      await Programs.load(uid);
+      subject = Programs.current();
+      const inSubject = Programs.levelIn(subject);
+      if (inSubject != null) lv = inSubject;
+    } catch (e) { console.warn('Could not read the subject:', e); }
+  }
   const xp = profile.xp_points||0;
   const streak = profile.streak_days||0;
 
@@ -364,11 +377,24 @@ async function loadOverview(uid, profile){
      invites children to compare themselves with each other, and this
      is meant to encourage one child to carry on. */
   document.getElementById('levelNum').textContent = lv;
-  document.getElementById('levelDesc').textContent = LEVEL_DESC[lv]||'';
+  /* The Abacus level names mean nothing in Vedic, so they are only
+     used for Abacus. Better to say nothing than the wrong thing. */
+  document.getElementById('levelDesc').textContent =
+    subject === 'abacus' ? (LEVEL_DESC[lv] || '') : '';
+  /* Say which subject this page is about. The heading is found via the
+     level number inside it — querySelector('.sec-title') picked the
+     first heading on the page, which is a different section. */
+  var numEl = document.getElementById('levelNum');
+  var secTitle = numEl && numEl.closest ? numEl.closest('.sec-title') : null;
+  if (secTitle && typeof Programs !== 'undefined' && Programs.all().length > 1) {
+    var cfg = Programs.config(subject);
+    secTitle.innerHTML = cfg.icon + ' ' + cfg.name + ' \u00b7 Level ' +
+      '<span id="levelNum">' + lv + '</span> progress';
+  }
   let posPct = null, posSessions = 0;
   try {
     if (typeof PracticeEngine !== 'undefined' && PracticeEngine.loadPosition) {
-      const st = await PracticeEngine.loadPosition(uid, lv);
+      const st = await PracticeEngine.loadPosition(uid, lv, subject);
       if (st && typeof st.position === 'number') {
         posPct = Math.max(4, Math.round(st.position * 100));
         posSessions = st.sessions || 0;

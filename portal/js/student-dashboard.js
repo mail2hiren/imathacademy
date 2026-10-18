@@ -55,8 +55,20 @@ function buildDashboard(profile, stats, group, session_user_id) {
      line run meant they appeared and then vanished — the same
      mistake as the Vedic plan cards. */
   if (typeof Programs !== 'undefined' && Programs.all().length > 1) {
+    /* A heading above the cards, so a child doing two subjects knows
+       the screen below belongs to ONE of them. Without it, "Level 2"
+       and "4 worksheets" could be either subject — which is what made
+       the two-subject journey confusing. */
+    var nowCfg = Programs.config(Programs.current());
     blocks.unshift('<div style="margin-bottom:16px;">' +
-                   Programs.cardsHtml(window._programWaiting || {}) + '</div>');
+      '<div style="font-size:.72rem;font-weight:900;letter-spacing:.9pt;' +
+        'text-transform:uppercase;color:#8892A4;margin-bottom:8px;">' +
+        'What are you learning today?</div>' +
+      Programs.cardsHtml(window._programWaiting || {}) +
+      '<div style="font-size:.82rem;color:' + nowCfg.ink + ';background:' + nowCfg.soft +
+        ';border-radius:12px;padding:9px 13px;margin-top:3px;font-weight:800;">' +
+        nowCfg.icon + ' Everything below is your ' + nowCfg.name + '</div>' +
+    '</div>');
   }
 
   document.getElementById('mainContent').innerHTML = blocks.join('\n');

@@ -54,8 +54,15 @@ var Programs = (function () {
         };
       });
     } catch (e) {
+      /* A FAILED read is not an answer. Caching the Abacus fallback
+         here meant one hiccup — or this running before the database
+         client exists — left a child looking Abacus-only for the rest
+         of the page, with their Vedic work invisible and no error to
+         show for it. Return the fallback, but do not remember it, so
+         the next call tries again. */
       console.warn('Could not read programmes:', e.message);
-      mine = [];
+      mine = null;
+      return [{ code: 'abacus', level: 0, since: null, cfg: CONFIG.abacus }];
     }
 
     /* A child with no row at all is doing Abacus — that is what
@@ -112,8 +119,13 @@ var Programs = (function () {
       var note = w[p.code] || '';
       var isNow = current() === p.code;
 
-      return '<div onclick="Programs.enter(\'' + p.code + '\')" ' +
-        'style="background:#fff;border:2px solid ' + (isNow ? c.colour : '#E6E9F0') + ';' +
+      /* A card is a door into that subject. The one they are in says
+         so; the other invites them in. A child should never have to
+         work out which world they are looking at. */
+      return '<div onclick="Programs.enter(\'' + p.code + '\')" role="button" tabindex="0" ' +
+        'onkeydown="if(event.key===\'Enter\'||event.key===\' \')Programs.enter(\'' + p.code + '\')" ' +
+        'style="background:' + (isNow ? c.soft : '#fff') + ';border:2px solid ' +
+          (isNow ? c.colour : '#E6E9F0') + ';' +
         'border-radius:16px;padding:15px 17px;margin-bottom:11px;cursor:pointer;">' +
         '<div style="display:flex;align-items:center;gap:10px;">' +
           '<span style="font-size:1.4rem;">' + c.icon + '</span>' +
@@ -124,15 +136,23 @@ var Programs = (function () {
         '<div style="margin-top:10px;">' + dots + '</div>' +
         (note ? '<div style="font-size:.82rem;color:#4A5160;margin-top:8px;">' +
                 note + '</div>' : '') +
+        '<div style="font-size:.78rem;font-weight:800;margin-top:9px;color:' +
+          (isNow ? c.ink : c.colour) + ';">' +
+          (isNow ? 'You are here' : 'Go to ' + c.name + ' \u2192') + '</div>' +
       '</div>';
     }).join('');
   }
 
   /** Tapping a card sets the programme and opens its screens. */
+  /* Entering a subject means the SAME dashboard, in that subject's
+     colour — not a different-looking app. Vedic used to go to its own
+     hub while Abacus went to the dashboard, so the two worlds did not
+     match and a child crossing between them had to learn two layouts.
+
+     Megha's own answer: "the same screens in a different colour". */
   function enter(code) {
     setCurrent(code);
-    var c = config(code);
-    window.location.href = code === 'vedic' ? 'vedic-home.html' : 'dashboard.html';
+    window.location.href = 'dashboard.html';
   }
 
   /* A small chip for the header of every other screen, so a child

@@ -87,6 +87,7 @@
 <div class="wrap"><div id="body"><div class="spin">Looking for your tests&hellip;</div></div></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/programs.js"></script>
 <script src="../js/access.js"></script>
 <script src="../js/speech.js"></script>
 <script src="../js/bead-rules.js"></script>
@@ -120,6 +121,10 @@ var sb = supabase.createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc');
 
 var ME = null, PROFILE = null, PROGS = [], PAPERS = [], PAST = [];
+/* Module scope on purpose: set when the papers are read, used again
+   when the list is drawn. Declaring it inside one function and using
+   it in another is the mistake that stopped the 360 view loading. */
+var SUBJECT_NOW = null;
 var sitting = null, at = 0, given = {}, ticker = null, endsAt = null, flashed = {};
 
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
@@ -189,9 +194,18 @@ async function start() {
     var k = a.level_code + '|' + a.test_no;
     if (a.submitted_at) everSat[k] = true; else givenTo[k] = a;
   });
+  /* Only the SUBJECT THEY ARE IN. An Abacus and a Vedic paper in one
+     list, both called "Test 1", is a coin toss for a child. */
+  SUBJECT_NOW = null;
+  if (typeof Programs !== 'undefined' && PROGS.length > 1) {
+    try { await Programs.load(ME); SUBJECT_NOW = Programs.current(); } catch (e) {}
+  }
+
   PAPERS = (bp.data || []).filter(function (b) {
     var k = b.level_code + '|' + b.test_no;
-    return !!(givenTo[k] || everSat[k]);
+    if (!(givenTo[k] || everSat[k])) return false;
+    if (!SUBJECT_NOW) return true;
+    return (/^VL/.test(b.level_code) ? 'vedic' : 'abacus') === SUBJECT_NOW;
   }).sort(function (a, b) { return a.test_no - b.test_no; });
   PAPERS.forEach(function (b) { b._given = givenTo[b.level_code + '|' + b.test_no] || null; });
 
@@ -219,7 +233,9 @@ function drawList() {
 
   if (!PAPERS.length) {
     document.getElementById('body').innerHTML =
-      '<div class="card"><h2>No test waiting</h2>' +
+      '<div class="card"><h2>No ' +
+      ((typeof Programs !== 'undefined' && SUBJECT_NOW) ? Programs.config(SUBJECT_NOW).name + ' ' : '') +
+      'test waiting</h2>' +
       '<p>Your teacher will give you a test when you are ready for one, and it will ' +
       'appear here. You need to pass two to finish a level.</p></div>';
     return;

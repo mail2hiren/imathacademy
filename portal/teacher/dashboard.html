@@ -615,6 +615,7 @@ var MY_ROLE = null;
 var ORPHAN_BATCHES = false;    /* no batch is recorded against this teacher */
 var MY_BATCH_IDS = [], MY_STUDENT_IDS = [];
 var ALL_STUDENTS = [];   /* every active child, batch or no batch */
+var ENROLMENT = {};      /* child id -> the subjects they learn */
 let TEACHER_NAME = '';
 let BATCHES = [];        // [{id, name, students:[{id,name,initials,xp,streak,level,acc,risk}]}]
 let SCHED = [];          // scheduled classes
@@ -744,6 +745,20 @@ async function loadData() {
     var allKids = await sb.from('users')
       .select('id, full_name, current_level, xp_points, streak_days')
       .eq('role', 'student').eq('is_active', true).order('full_name');
+
+    /* Which subjects each child learns, and at what level. A teacher
+       scanning her list could not tell a child doing both from a child
+       doing one — and that is the first thing she needs when deciding
+       what to set. */
+    try {
+      var enrol = await sb.from('student_programs')
+        .select('student_id, program_code, current_level, is_active');
+      ENROLMENT = {};
+      (enrol.data || []).forEach(function (p) {
+        if (p.is_active === false) return;
+        (ENROLMENT[p.student_id] = ENROLMENT[p.student_id] || []).push(p);
+      });
+    } catch (e) { ENROLMENT = {}; console.warn('Could not read enrolments:', e); }
     if (allKids.error) throw allKids.error;
     ALL_STUDENTS = (allKids.data || []).map(function (u) {
       return { id: u.id, name: u.full_name || 'Student', initials: initials(u.full_name),
@@ -1142,7 +1157,7 @@ async function populateReviewDropdown() {
        so the older ones were simply falling off the list. */
     var since = new Date(Date.now() - 30 * 86400000).toISOString();
     var res = await sb.from('lx_worksheets')
-      .select('id,title,level,created_at,batch_id,student_id,created_by')
+      .select('id,title,level,created_at,batch_id,student_id,created_by,program_code')
       .eq('is_active', true).gte('created_at', since)
       .order('created_at', {ascending: false}).limit(120);
     if (res.data) res.data = res.data.filter(mineToSee);
@@ -1151,14 +1166,27 @@ async function populateReviewDropdown() {
       document.getElementById('submBody').innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No worksheets assigned yet.<br>Use LX Designer to create and assign worksheets.</div></div>';
       return;
     }
+    /* Grouped by subject, so an Abacus sheet and a Vedic sheet with
+       similar titles cannot be picked by mistake. */
+    var bySub = {};
+    res.data.forEach(function (w) { (bySub[subjectOf(w)] = bySub[subjectOf(w)] || []).push(w); });
+    var subs = Object.keys(bySub).sort(function (a, b) {
+      return a === 'abacus' ? -1 : b === 'abacus' ? 1 : a.localeCompare(b);
+    });
+
     sel.innerHTML = '<option value="">Select a worksheet...</option>';
-    res.data.forEach(function(w) {
+    subs.forEach(function (code) {
+    var s = SUBJECTS[code] || SUBJECTS.abacus;
+    if (subs.length > 1) sel.innerHTML += '<optgroup label="' + s.icon + ' ' + s.name + '">';
+    bySub[code].forEach(function(w) {
       var batchName = '';
       var foundB = BATCHES.find(function(b) { return b.id === w.batch_id; });
       if (foundB) batchName = foundB.name;
       else if (w.batch_id) batchName = 'Batch';
       else batchName = 'Individual';
       sel.innerHTML += '<option value="' + w.id + '">' + w.title + ' — ' + batchName + ' · L' + (w.level || '?') + '</option>';
+    });
+    if (subs.length > 1) sel.innerHTML += '</optgroup>';
     });
     sel.value = res.data[0].id;
     loadSubmissions();
@@ -1294,6 +1322,18 @@ function renderStudents() {
     html += '<div style="flex:1;min-width:0;"><div class="r-name">' + s.name + '</div><div class="r-meta">' + s.batchName + ' · Level ' + s.level + ' · 🔥' + s.streak + 'd</div></div>';
     html += '<div style="text-align:right;flex-shrink:0;">';
     html += '<div style="font-size:.82rem;font-weight:700;color:' + col + ';">' + (s.risk ? '⚠️ Needs attention' : '✅ On track') + '</div>';
+    /* The subjects this child learns, each with their level in it. */
+    var subs = (ENROLMENT[s.id] || []);
+    if (subs.length) {
+      html += '<div style="display:flex;gap:4px;margin-bottom:3px;">' +
+        subs.sort(function (a, b) { return a.program_code === 'abacus' ? -1 : 1; })
+            .map(function (p) {
+          var cfg = SUBJECTS[p.program_code] || SUBJECTS.abacus;
+          return '<span style="font-size:.64rem;font-weight:800;background:' + cfg.soft +
+            ';color:' + cfg.ink + ';padding:2px 7px;border-radius:999px;">' +
+            cfg.icon + ' L' + (p.current_level == null ? '?' : p.current_level) + '</span>';
+        }).join('') + '</div>';
+    }
     html += '<div style="font-size:.68rem;color:var(--blue);font-weight:800;">Full report &rarr;</div>';
     html += '<div style="font-size:.68rem;color:var(--text3);">Accuracy: ' + (s.acc || '—') + (s.acc ? '%' : '') + '</div>';
     html += '</div></div>';
@@ -1473,6 +1513,32 @@ function renderVcList() {
 }
 
 // ── WORKSHEET RESULTS TAB ─────────────────────────────────────
+/* ── Which subject is this? ──────────────────────────────────────
+   A teacher never switches subject — she needs to see both at once —
+   but a list that MIXES them is no better: scanning a run of scores,
+   she cannot tell whether a poor one is an Abacus problem or a Vedic
+   one. So her lists are grouped, with a heading per subject. */
+var SUBJECTS = {
+  abacus: { name: 'Abacus',      icon: '\uD83E\uDDEE', colour: '#E67D21', soft: '#FFF4E8', ink: '#8a4b00' },
+  vedic:  { name: 'Vedic Maths', icon: '\u0950',        colour: '#04949D', soft: '#E7F6F7', ink: '#04616a' }
+};
+function subjectOf(row) {
+  /* A sheet with no programme recorded is an older Abacus one. */
+  if (row && row.program_code) return row.program_code;
+  if (row && /^VL/.test(String(row.level_code || ''))) return 'vedic';
+  return 'abacus';
+}
+function subjectHeading(code, count) {
+  var s = SUBJECTS[code] || SUBJECTS.abacus;
+  return '<div style="display:flex;align-items:center;gap:9px;margin:16px 0 10px;">' +
+    '<span style="font-size:1.05rem;">' + s.icon + '</span>' +
+    '<span style="font-weight:900;font-size:.95rem;color:' + s.ink + ';">' + s.name + '</span>' +
+    '<span style="font-size:.72rem;font-weight:800;color:' + s.ink + ';background:' + s.soft +
+      ';padding:3px 9px;border-radius:999px;">' + count + '</span>' +
+    '<span style="flex:1;height:2px;background:' + s.soft + ';border-radius:2px;"></span>' +
+  '</div>';
+}
+
 async function loadWsResults() {
   var el = document.getElementById('wsResultsBody');
   if (!el) return;
@@ -1535,8 +1601,21 @@ async function loadWsResults() {
       el.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><div class="empty-text">No submissions yet.<br>Students will appear here once they submit worksheets.</div></div>';
       return;
     }
+    /* Grouped by subject, Abacus first, each under its own heading. */
+    var bySubject = {};
+    withSubs.forEach(function (w) {
+      var k = subjectOf(w);
+      (bySubject[k] = bySubject[k] || []).push(w);
+    });
+    var order = Object.keys(bySubject).sort(function (a, b) {
+      return a === 'abacus' ? -1 : b === 'abacus' ? 1 : a.localeCompare(b);
+    });
+    var manySubjects = order.length > 1;
+
     var html = '';
-    withSubs.forEach(function(w) {
+    order.forEach(function (code) {
+    if (manySubjects) html += subjectHeading(code, bySubject[code].length);
+    bySubject[code].forEach(function(w) {
       var resps = byWs[w.id];
       var avg = Math.round(resps.reduce(function(s, r) { return s + (r.score / r.total * 100); }, 0) / resps.length);
       var avgCol = avg >= 80 ? 'var(--green)' : avg >= 50 ? 'var(--orange)' : 'var(--red)';
@@ -1557,6 +1636,7 @@ async function loadWsResults() {
         html += '<div style="font-weight:800;color:' + col + ';">' + r.score + '/' + r.total + ' (' + pct + '%)</div></div>';
       });
       html += '</div></div>';
+    });
     });
     el.innerHTML = html;
   } catch(e) {

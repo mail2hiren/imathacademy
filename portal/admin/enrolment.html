@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Enrolment &mdash; iMath Academy</title>
+<link rel="icon" type="image/png" href="/assets/icon-32.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#1F2430; --t2:#4A5160; --t3:#8892A4; --line:#E6E9F0; --bg:#F5F7FC;
+         --abacus:#E67D21; --abacus-soft:#FFF4E8; --abacus-ink:#8a4b00;
+         --vedic:#04949D;  --vedic-soft:#E7F6F7;  --vedic-ink:#04616a;
+         --good:#2E7D32; --bad:#C62828; --warn:#EF6C00; }
+  :root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px);
+         padding-bottom:env(safe-area-inset-bottom,0px); }
+  *,*::before,*::after{ box-sizing:inherit; margin:0; padding:0; }
+  body{ font-family:'Nunito',system-ui,sans-serif; background:var(--bg); color:var(--ink); }
+
+  .bar{ background:#fff; border-bottom:1.5px solid var(--line); padding:11px 15px;
+        display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:20; }
+  .bar a.back{ color:var(--t3); text-decoration:none; font-size:1.25rem; }
+  .bar h1{ font-size:1.02rem; font-weight:900; }
+  .bar .sub{ font-size:.75rem; color:var(--t3); }
+  .bar .counts{ margin-left:auto; font-size:.76rem; color:var(--t3); font-weight:800; }
+
+  .wrap{ max-width:1000px; margin:0 auto; padding:14px 14px 60px; }
+  .note{ font-size:.8rem; color:var(--t3); margin:10px 2px; }
+  .find{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .find input, .find select{ padding:9px 12px; border:1.5px solid var(--line); border-radius:10px;
+        font:700 .86rem 'Nunito',sans-serif; background:#fff; color:var(--ink); }
+  .find input{ flex:1; min-width:180px; }
+
+  table{ width:100%; border-collapse:separate; border-spacing:0; background:#fff;
+         border-radius:14px; overflow:hidden; font-size:.85rem; }
+  th,td{ border-bottom:1px solid var(--line); padding:9px 11px; text-align:left; }
+  thead th{ background:#F7F9FF; font-size:.7rem; font-weight:900; letter-spacing:.6pt;
+            text-transform:uppercase; color:var(--t3); white-space:nowrap; }
+  td.kid{ font-weight:800; }
+  td.kid small{ display:block; font-size:.7rem; color:var(--t3); font-weight:700; }
+  td.cell{ white-space:nowrap; }
+
+  .pill{ display:inline-flex; align-items:center; gap:6px; border:1.5px solid var(--line);
+         background:#fff; border-radius:999px; padding:5px 11px; cursor:pointer;
+         font:800 .8rem 'Nunito',sans-serif; color:var(--t3); }
+  .pill.on.abacus{ border-color:var(--abacus); background:var(--abacus-soft); color:var(--abacus-ink); }
+  .pill.on.vedic{  border-color:var(--vedic);  background:var(--vedic-soft);  color:var(--vedic-ink); }
+  .pill:disabled{ opacity:.5; cursor:default; }
+  select.lvl{ margin-left:6px; padding:4px 7px; border-radius:8px; border:1.5px solid var(--line);
+              font:800 .78rem 'Nunito',sans-serif; background:#fff; }
+
+  .msg{ position:fixed; left:50%; transform:translateX(-50%); bottom:22px; z-index:40;
+        background:var(--ink); color:#fff; padding:11px 18px; border-radius:11px;
+        font:800 .85rem 'Nunito',sans-serif; opacity:0; transition:opacity .2s; }
+  .msg.show{ opacity:1; }
+  .msg.bad{ background:var(--bad); }
+  .msg.ok{ background:var(--good); }
+
+  .banner{ border-radius:12px; padding:12px 14px; font-size:.85rem; margin-bottom:12px; }
+  .banner.err{ background:#FDECEA; color:var(--bad); font-weight:800; }
+  .banner.info{ background:var(--abacus-soft); color:var(--abacus-ink); }
+  .spin{ padding:40px; text-align:center; color:var(--t3); }
+  button:focus-visible, select:focus-visible, input:focus-visible{ outline:3px solid var(--vedic); outline-offset:2px; }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <a class="back" href="dashboard.html" aria-label="Back to admin">&larr;</a>
+  <div>
+    <h1>&#127891; Enrolment</h1>
+    <div class="sub">Who learns what, and at which level</div>
+  </div>
+  <span class="counts" id="counts"></span>
+</div>
+
+<div class="wrap">
+  <div id="banner"></div>
+  <div class="find">
+    <input type="text" id="q" placeholder="Search by name..." oninput="draw()">
+    <select id="filter" onchange="draw()">
+      <option value="">Everyone</option>
+      <option value="both">Doing both</option>
+      <option value="abacus">Abacus only</option>
+      <option value="vedic">Vedic only</option>
+      <option value="none">Not enrolled in anything</option>
+    </select>
+  </div>
+  <div id="body"><div class="spin">Reading the children&hellip;</div></div>
+  <div class="note">
+    A change saves the moment you make it, and is read back to confirm. Turning a subject
+    off leaves the child&rsquo;s work, levels and certificates untouched &mdash; it only stops
+    new worksheets and tests for that subject reaching them.
+  </div>
+</div>
+
+<div class="msg" id="msg"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   Enrolment — children against subjects
+   ------------------------------------------------------------
+   Enrolment decides what a child is given: which worksheets, which
+   tests, which practice. It had no screen at all. It lived in the
+   database, and the only way to change it was SQL.
+
+   That cost three separate incidents: Vedic worksheets reaching
+   children who do not learn Vedic, an assignment silently skipping
+   four children with only a message to explain it, and two children
+   needing a migration written for them to be enrolled at all.
+
+   One grid. Children down the side, subjects across, the level in
+   each cell. Tap to enrol, change the level in place.
+   ============================================================ */
+
+var sb = supabase.createClient(
+  'https://bhullfoajenhkxlkiubs.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc');
+
+/* Taken from programs.js so a subject added there appears here without
+   this screen being edited. */
+var SUBJECTS = [
+  { code: 'abacus', name: 'Abacus',      icon: '\uD83E\uDDEE', first: 0, last: 8 },
+  { code: 'vedic',  name: 'Vedic Maths', icon: '\u0950',        first: 1, last: 8 }
+];
+
+var KIDS = [], ENROL = {}, BATCH = {}, busy = {};
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+  return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+function say(text, kind) {
+  var m = document.getElementById('msg');
+  m.textContent = text;
+  m.className = 'msg show ' + (kind || '');
+  clearTimeout(window._msgT);
+  window._msgT = setTimeout(function () { m.className = 'msg ' + (kind || ''); }, 3200);
+}
+function banner(kind, html) {
+  document.getElementById('banner').innerHTML = html
+    ? '<div class="banner ' + kind + '">' + html + '</div>' : '';
+}
+
+async function load() {
+  var s = await sb.auth.getSession();
+  if (!s.data.session) { location.href = '../../login.html'; return; }
+
+  /* An admin or a teacher may see this; only those roles can write to
+     student_programs, so anyone else is sent away rather than shown a
+     grid whose every tap would fail. */
+  var me = await sb.from('users').select('role').eq('id', s.data.session.user.id).maybeSingle();
+  var role = (me.data && me.data.role) || '';
+  if (role !== 'admin' && role !== 'teacher') {
+    banner('err', 'This screen is for teachers and admins.');
+    document.getElementById('body').innerHTML = '';
+    return;
+  }
+
+  var kids = await sb.from('users')
+    .select('id, full_name, current_level, is_active')
+    .eq('role', 'student').eq('is_active', true).order('full_name');
+  if (kids.error) {
+    banner('err', 'Could not read the children: ' + esc(kids.error.message));
+    document.getElementById('body').innerHTML = '';
+    return;
+  }
+  KIDS = kids.data || [];
+
+  var en = await sb.from('student_programs')
+    .select('id, student_id, program_code, current_level, is_active');
+  if (en.error) {
+    banner('err', 'Could not read the enrolments: ' + esc(en.error.message) +
+      '. Nothing can be changed until that query works.');
+    document.getElementById('body').innerHTML = '';
+    return;
+  }
+  ENROL = {};
+  (en.data || []).forEach(function (p) {
+    ENROL[p.student_id + '|' + p.program_code] = p;
+  });
+
+  /* Which batch each child is in, shown under their name — it is how
+     Megha knows which child she means when two share a first name. */
+  try {
+    var bs = await sb.from('batch_students').select('student_id, batches(name)');
+    (bs.data || []).forEach(function (r) {
+      if (r.batches && r.batches.name) BATCH[r.student_id] = r.batches.name;
+    });
+  } catch (e) { /* a nicety */ }
+
+  draw();
+}
+
+function stateOf(kid) {
+  var on = SUBJECTS.filter(function (s) {
+    var r = ENROL[kid.id + '|' + s.code];
+    return r && r.is_active !== false;
+  }).map(function (s) { return s.code; });
+  if (on.length === SUBJECTS.length) return 'both';
+  if (!on.length) return 'none';
+  return on[0];
+}
+
+function draw() {
+  var q = (document.getElementById('q').value || '').toLowerCase();
+  var f = document.getElementById('filter').value;
+
+  var rows = KIDS.filter(function (k) {
+    if (q && String(k.full_name || '').toLowerCase().indexOf(q) < 0) return false;
+    if (!f) return true;
+    return stateOf(k) === f;
+  });
+
+  /* The counts are the point of this screen for an admin: how many
+     children are not enrolled in anything is the number that has
+     caused every incident so far. */
+  var tally = { both: 0, abacus: 0, vedic: 0, none: 0 };
+  KIDS.forEach(function (k) { tally[stateOf(k)]++; });
+  document.getElementById('counts').textContent =
+    KIDS.length + ' children \u00b7 ' + tally.both + ' both \u00b7 ' +
+    tally.abacus + ' Abacus \u00b7 ' + tally.vedic + ' Vedic \u00b7 ' + tally.none + ' none';
+
+  if (tally.none) {
+    banner('info', '<b>' + tally.none + ' child' + (tally.none === 1 ? '' : 'ren') +
+      ' not enrolled in anything.</b> They will be skipped when work is assigned, ' +
+      'with only a message to say why. Filter to &ldquo;Not enrolled in anything&rdquo; to find them.');
+  } else {
+    banner('', '');
+  }
+
+  if (!rows.length) {
+    document.getElementById('body').innerHTML =
+      '<div class="spin">No child matches that.</div>';
+    return;
+  }
+
+  var h = '<table><thead><tr><th>Child</th>' +
+    SUBJECTS.map(function (s) { return '<th>' + s.icon + ' ' + s.name + '</th>'; }).join('') +
+    '</tr></thead><tbody>';
+
+  rows.forEach(function (k) {
+    h += '<tr><td class="kid">' + esc(k.full_name || 'Child') +
+      (BATCH[k.id] ? '<small>' + esc(BATCH[k.id]) + '</small>' : '<small>no batch</small>') +
+      '</td>';
+    SUBJECTS.forEach(function (s) {
+      var r = ENROL[k.id + '|' + s.code];
+      var on = !!(r && r.is_active !== false);
+      var lvl = r && r.current_level != null ? r.current_level : s.first;
+      var working = busy[k.id + '|' + s.code];
+      h += '<td class="cell">' +
+        '<button class="pill ' + (on ? 'on ' + s.code : '') + '" ' +
+          (working ? 'disabled' : '') + ' ' +
+          'onclick="toggle(\'' + k.id + '\',\'' + s.code + '\')">' +
+          (working ? '\u2026' : (on ? '\u2713 Level ' + lvl : '+ enrol')) +
+        '</button>' +
+        (on ? '<select class="lvl" onchange="setLevel(\'' + k.id + '\',\'' + s.code + '\',this.value)">' +
+          (function () {
+            var opts = '';
+            for (var n = s.first; n <= s.last; n++) {
+              opts += '<option value="' + n + '"' + (n === lvl ? ' selected' : '') + '>L' + n + '</option>';
+            }
+            return opts;
+          })() + '</select>' : '') +
+      '</td>';
+    });
+    h += '</tr>';
+  });
+  h += '</tbody></table>';
+  document.getElementById('body').innerHTML = h;
+}
+
+/* Every change is written and then READ BACK before it is called
+   saved — the rule that caught several silent failures elsewhere in
+   this portal. */
+async function writeAndCheck(studentId, code, patch, what) {
+  var key = studentId + '|' + code;
+  busy[key] = true; draw();
+  try {
+    var row = Object.assign({ student_id: studentId, program_code: code }, patch);
+    var res = await sb.from('student_programs')
+      .upsert(row, { onConflict: 'student_id,program_code' })
+      .select();
+    if (res.error) throw res.error;
+    if (!res.data || !res.data.length) throw new Error('nothing was written');
+
+    ENROL[key] = res.data[0];
+    busy[key] = false; draw();
+    say(what, 'ok');
+    return true;
+  } catch (e) {
+    busy[key] = false; draw();
+    var denied = /policy|permission|denied|row-level/i.test(e.message || '');
+    say(denied
+      ? 'Not allowed \u2014 only a teacher or admin may change enrolment'
+      : 'Not saved: ' + (e.message || 'unknown'), 'bad');
+    return false;
+  }
+}
+
+function toggle(studentId, code) {
+  var key = studentId + '|' + code;
+  var r = ENROL[key];
+  var on = !!(r && r.is_active !== false);
+  var kid = KIDS.filter(function (k) { return k.id === studentId; })[0] || {};
+  var sub = SUBJECTS.filter(function (s) { return s.code === code; })[0];
+  var name = String(kid.full_name || 'That child').split(' ')[0];
+
+  if (on) {
+    writeAndCheck(studentId, code, { is_active: false },
+      name + ' taken off ' + sub.name + ' \u2014 their work is kept');
+  } else {
+    var lvl = r && r.current_level != null ? r.current_level : sub.first;
+    writeAndCheck(studentId, code, { is_active: true, current_level: lvl },
+      name + ' enrolled in ' + sub.name + ' at Level ' + lvl);
+  }
+}
+
+function setLevel(studentId, code, value) {
+  var sub = SUBJECTS.filter(function (s) { return s.code === code; })[0];
+  var kid = KIDS.filter(function (k) { return k.id === studentId; })[0] || {};
+  var name = String(kid.full_name || 'That child').split(' ')[0];
+  writeAndCheck(studentId, code, { is_active: true, current_level: Number(value) },
+    name + ' moved to ' + sub.name + ' Level ' + value);
+}
+
+load().catch(function (e) {
+  banner('err', 'Could not load: ' + esc(e.message));
+  document.getElementById('body').innerHTML = '';
+});
+</script>
+</body>
+</html>

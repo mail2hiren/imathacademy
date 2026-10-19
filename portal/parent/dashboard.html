@@ -457,19 +457,73 @@ function prettyConcept(code) {
   return c.replace(/^./, function (x) { return x.toUpperCase(); });
 }
 
+/* One plain line across every subject — the thing a parent actually
+   reads. Per-subject detail is in the cards below; this says where the
+   child stands overall, and in which subjects. */
+function acrossSubjects() {
+  var d = DATA, name = first(d.kid.full_name);
+  var progs = d.progs.length ? d.progs : [{ program_code: 'abacus', current_level: d.kid.current_level || 0 }];
+
+  var parts = progs.map(function (pr) {
+    var prog = pr.program_code || 'abacus';
+    var lvl = pr.current_level != null ? pr.current_level : 0;
+    var code = (prog === 'vedic' ? 'VL' : 'L') + lvl;
+    var p = d.pos.filter(function (x) { return x.level_code === code; })[0];
+    var through = p ? Math.round(Number(p.position) * 100) : null;
+    var cfg = { abacus: { name: 'Abacus', icon: '\uD83E\uDDEE' },
+                vedic:  { name: 'Vedic Maths', icon: '\u0950' } }[prog] ||
+              { name: prog, icon: '' };
+    return { prog: prog, lvl: lvl, through: through, name: cfg.name, icon: cfg.icon,
+             pct: through == null ? 4 : through,
+             /* Phrased to sit in front of "Abacus Level 2" — written
+                as standalone fragments they came out as "well into it
+                of Abacus Level 2". */
+             where: through == null ? 'just starting'
+                  : through < 25 ? 'near the beginning of'
+                  : through < 55 ? 'working through'
+                  : through < 80 ? 'well into'
+                  : 'close to finishing' };
+  });
+
+  var headline = parts.length === 1
+    ? parts[0].icon + ' ' + parts[0].name + ' \u00b7 Level ' + parts[0].lvl
+    : parts.map(function (p) { return p.icon + ' Level ' + p.lvl; }).join('   ');
+
+  var line = parts.length === 1
+    ? name + ' is ' + parts[0].where + ' Level ' + parts[0].lvl + '.'
+    : name + ' is ' + parts.map(function (p) {
+        return p.where + ' ' + p.name + ' Level ' + p.lvl;
+      }).join(', and ') + '.';
+
+  return { parts: parts, headline: headline, line: line, rings: parts };
+}
+
 function draw() {
   var s = summary();
   var d = DATA;
 
   /* ── how they are doing ── */
+  /* The headline covers EVERY subject the child learns, in one
+     sentence. It used to show a single level with nothing saying which
+     subject it belonged to, so a family doing both read their Abacus
+     level as the whole picture. */
+  var across = acrossSubjects();
+
   var h = '<div class="card hero">' +
     '<h2>How ' + esc(s.name) + ' is doing</h2>' +
-    '<div class="name">Level ' + s.lvl + (s.levelName ? ' \u00b7 ' + esc(s.levelName) : '') + '</div>' +
-    '<div class="line">' + esc(s.lines[0].replace(/^[^,]*is on [^,]*, ?/, '').replace(/^and is /, '')
-      .replace(/^./, function (c) { return c.toUpperCase(); })) + '</div>' +
-    '<div class="ring"><span class="track"><i style="width:' +
-      (s.through == null ? 4 : Math.max(4, s.through)) + '%"></i></span>' +
-      '<span class="pct">' + (s.through == null ? '' : s.through + '%') + '</span></div>' +
+    '<div class="name">' + esc(across.headline) + '</div>' +
+    '<div class="line">' + esc(across.line) + '</div>' +
+    (across.rings.length === 1
+      ? '<div class="ring"><span class="track"><i style="width:' +
+          Math.max(4, across.rings[0].pct) + '%"></i></span>' +
+          '<span class="pct">' + across.rings[0].pct + '%</span></div>'
+      : across.rings.map(function (r) {
+          return '<div class="ring" style="margin-top:9px;">' +
+            '<span style="font-size:.8rem;font-weight:800;min-width:92px;">' +
+              r.icon + ' ' + r.name + '</span>' +
+            '<span class="track"><i style="width:' + Math.max(4, r.pct) + '%"></i></span>' +
+            '<span class="pct">' + r.pct + '%</span></div>';
+        }).join('')) +
     '<div style="display:flex;gap:8px;margin-top:14px;">' +
       '<button class="listen" style="margin:0;" onclick="listen(\'en\')">&#128266; Listen</button>' +
       '<button class="listen" style="margin:0;" onclick="listen(\'hi\')">&#128266; \u0939\u093F\u0902\u0926\u0940</button>' +
@@ -477,13 +531,14 @@ function draw() {
     '<div id="saidIn" class="quiet" style="color:rgba(255,255,255,.85);margin-top:8px;min-height:1.2em;"></div>' +
   '</div>';
 
-  /* ── this week ── */
-  h += '<div class="strip">' +
-    '<div class="stat"><div class="n' + (s.week >= 3 ? ' good' : s.week ? '' : ' warn') + '">' +
-      s.week + '</div><div class="k">practices this week</div></div>' +
-    '<div class="stat"><div class="n' + (s.acc == null ? '' : s.acc >= 80 ? ' good' : s.acc >= 60 ? '' : ' warn') +
-      '">' + (s.acc == null ? '\u2014' : s.acc + '%') + '</div><div class="k">right this week</div></div>' +
-    '<div class="stat"><div class="n">' + d.comp.length + '</div><div class="k">certificates</div></div>' +
+  /* The three numbers here counted BOTH subjects together — "4
+     practices, 85% right" mixing beads and Vedic methods tells a parent
+     nothing about either. Each subject's card below carries its own
+     figures. What stays is the one thing that is genuinely the child's
+     rather than a subject's: their certificates. */
+  h += '<div class="strip" style="grid-template-columns:1fr;">' +
+    '<div class="stat"><div class="n">' + d.comp.length + '</div>' +
+      '<div class="k">certificate' + (d.comp.length === 1 ? '' : 's') + ' earned</div></div>' +
   '</div>';
 
   /* ── one card per programme ─────────────────────────────────
@@ -572,12 +627,19 @@ function spokenSummary(lang) {
   var name = s.name;
   if (lang === 'hi') {
     var out = [];
-    out.push(name + ' \u0905\u092D\u0940 \u0932\u0947\u0935\u0932 ' + s.lvl +
-      ' \u092E\u0947\u0902 \u0939\u0948\u0902\u0964');
-    out.push(s.through == null
-      ? '\u092F\u0939 \u0932\u0947\u0935\u0932 \u0905\u092C\u0940 \u0936\u0941\u0930\u0942 \u0939\u0941\u0906 \u0939\u0948\u0964'
-      : '\u0932\u0947\u0935\u0932 \u0915\u093E ' + s.through +
-        ' \u092A\u094D\u0930\u0924\u093F\u0936\u0924 \u092A\u0942\u0930\u093E \u0939\u094B \u0917\u092F\u093E \u0939\u0948\u0964');
+    /* Each subject with its own level, rather than one bare number. */
+    var acrossHi = acrossSubjects();
+    acrossHi.parts.forEach(function (p) {
+      var subjHi = p.prog === 'vedic'
+        ? '\u0935\u0948\u0926\u093F\u0915 \u0917\u0923\u093F\u0924'   /* Vedic Ganit */
+        : '\u0905\u092C\u0948\u0915\u0938';                               /* Abacus */
+      out.push(name + ' ' + subjHi + ' \u092E\u0947\u0902 \u0932\u0947\u0935\u0932 ' +
+        p.lvl + ' \u092A\u0930 \u0939\u0948\u0902' +
+        (p.through != null ? ', \u0914\u0930 \u0907\u0938\u0915\u093E ' + p.through +
+          ' \u092A\u094D\u0930\u0924\u093F\u0936\u0924 \u092A\u0942\u0930\u093E ' +
+          '\u0939\u094B \u0917\u092F\u093E \u0939\u0948' : '') + '\u0964');
+    });
+    /* (the per-subject lines above already say how far through) */
     if (s.week) {
       out.push('\u0907\u0938 \u0939\u092B\u094D\u0924\u0947 ' + s.week +
         ' \u092C\u093E\u0930 \u0905\u092D\u094D\u092F\u093E\u0938 \u0915\u093F\u092F\u093E' +
@@ -593,8 +655,23 @@ function spokenSummary(lang) {
     }
     return out.join(' ');
   }
-  /* English: the first three lines only — the gist. */
-  return s.lines.slice(0, 3).join(' ');
+  /* English. Every subject named, because "Level 2" spoken aloud to a
+     family doing two subjects is worse than saying nothing — they
+     cannot tell which one it meant. */
+  var across = acrossSubjects();
+  var out = [across.line];
+  if (s.week) {
+    out.push('This week ' + name + ' has practised ' + s.week + ' time' +
+      (s.week === 1 ? '' : 's') +
+      (s.acc != null ? ', getting ' + s.acc + ' out of every hundred right' : '') + '.');
+  } else if (s.quiet != null && s.quiet > 0) {
+    out.push(name + ' last practised ' + s.quiet + ' day' + (s.quiet === 1 ? '' : 's') + ' ago.');
+  }
+  if (d.comp.length) {
+    out.push(name + ' has earned ' + d.comp.length + ' certificate' +
+      (d.comp.length === 1 ? '' : 's') + ' so far.');
+  }
+  return out.join(' ');
 }
 
 function listen(lang) {

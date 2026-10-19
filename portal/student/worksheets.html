@@ -700,7 +700,11 @@ function renderCard(w){
   var status = getStatus(w);
   var qs = parseQuestions(w.content||'');
   var r  = responses[w.id]||{};
-  var iconBg = LEVEL_ICONS[w.level||1]||'📋';
+  /* The icon said which LEVEL, and the icon for level 1 happens to be
+     an abacus — so every Vedic Level 1 sheet wore an abacus in the
+     list, whatever the sheet was. A Vedic sheet shows its own mark. */
+  var vedicRow = isVedicSheet(w, qs);
+  var iconBg = vedicRow ? '\u0950' : (LEVEL_ICONS[w.level||1]||'📋');
   var statusLabel = status==='done'?'✅ Done':status==='inprogress'?'✏️ In progress':'🆕 New';
   var statusColor = status==='done'?'var(--green-dk)':status==='inprogress'?'var(--orange-dk)':'var(--blue-dk)';
   var dateStr = w.created_at ? new Date(w.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '';
@@ -711,11 +715,13 @@ function renderCard(w){
   div.style.cssText = 'cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,.05);';
   div.innerHTML =
     '<div style="display:flex;align-items:center;gap:12px;padding:16px;">'
-    + '<div class="ws-icon" style="background:#E3F2FD;">'+iconBg+'</div>'
+    + '<div class="ws-icon" style="background:' + (vedicRow ? '#E7F6F7' : '#E3F2FD') + ';">'
+      + iconBg + '</div>'
     + '<div style="flex:1;min-width:0;">'
       + '<div class="ws-title">'+w.title+'</div>'
       + '<div class="ws-meta">'
-        + '<span>Level '+(w.level||1)+'</span><span>·</span>'
+        + '<span>' + (vedicRow ? '\u0950 Vedic' : '\uD83E\uDDEE Abacus') + ' Level '
+          + (w.level||1) + '</span><span>·</span>'
         + '<span>'+qs.length+' questions</span>'
         + (dateStr?'<span>·</span><span>'+dateStr+'</span>':'')
       + '</div>'
@@ -774,8 +780,22 @@ function readySpeech() {
 });
 
 function isVedicSheet(ws, qs) {
+  /* The programme, where it was recorded. */
   if (ws && ws.program_code) return ws.program_code === 'vedic';
-  return (qs || []).some(function (q) { return q && (q.method_key || /^\u0950/.test(q.method || '')); });
+
+  /* Older sheets carry nothing: made before the programme was saved
+     AND before each question kept its method. Those are the ones still
+     turning up with an abacus on a Vedic sheet, so two weaker signals
+     are used — a question that names a Vedic method, or a title that
+     says Vedic, which LX has always written.
+
+     Both only apply when the programme is absent, so an Abacus sheet
+     can never be mistaken for a Vedic one. */
+  if ((qs || []).some(function (q) { return q && (q.method_key || /^\u0950/.test(q.method || '')); })) {
+    return true;
+  }
+  if (ws && /\bvedic\b/i.test(String(ws.title || ''))) return true;
+  return false;
 }
 
 function encodeAnswers(qs){

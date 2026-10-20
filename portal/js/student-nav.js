@@ -122,6 +122,77 @@ function renderStudentNav(programs) {
   }).join('\n');
 }
 
+/* ── The bar along the bottom, on a phone ────────────────────────
+   It was written into SEVEN pages by hand, every copy pointing at
+   practice.html — so on a phone, a child in Vedic tapped Practice and
+   got Abacus sums. Every copy also still linked Homework, a page
+   retired weeks ago.
+
+   Rewritten here instead, from the one file every page already loads,
+   so the five copies cannot drift apart again. Practice goes to the
+   subject in hand, exactly as the sidebar does. */
+var BOTTOM_NAV = [
+  { href: 'dashboard.html',  icon: '\uD83C\uDFE0', label: 'Home' },
+  { byProgram: { abacus: 'practice.html', vedic: 'vedic-practice.html' },
+    icon: '\u26A1', label: 'Practice' },
+  { href: 'worksheets.html', icon: '\uD83D\uDCCB', label: 'Worksheets' },
+  { href: 'test.html',       icon: '\uD83D\uDCDD', label: 'Tests' },
+  { href: 'progress.html',   icon: '\uD83D\uDCCA', label: 'Progress' }
+];
+
+function renderBottomNav() {
+  var host = document.querySelector('.bottom-nav .bottom-nav-inner');
+
+  /* Some pages never had the bar at all — Vedic practice among them,
+     so a child there had no way back on a phone except the browser's
+     own button. It is created where it is missing, carrying its own
+     styles so it does not depend on each page's stylesheet. */
+  if (!host) {
+    var bar = document.createElement('nav');
+    bar.className = 'bottom-nav';
+    bar.style.cssText =
+      'position:fixed;left:0;right:0;bottom:0;height:64px;background:#fff;' +
+      'border-top:1.5px solid #E6E9F0;z-index:60;display:none;' +
+      'padding-bottom:env(safe-area-inset-bottom,0px);';
+    var inner = document.createElement('div');
+    inner.className = 'bottom-nav-inner';
+    inner.style.cssText = 'display:flex;height:64px;';
+    bar.appendChild(inner);
+    document.body.appendChild(bar);
+
+    /* Only on a phone, and only once. */
+    var mq = window.matchMedia ? window.matchMedia('(max-width: 768px)') : null;
+    var show = function () {
+      bar.style.display = (!mq || mq.matches) ? 'block' : 'none';
+      document.body.style.paddingBottom = (!mq || mq.matches) ? '68px' : '';
+    };
+    show();
+    if (mq && mq.addEventListener) mq.addEventListener('change', show);
+
+    host = inner;
+  }
+
+  var now = (typeof Programs !== 'undefined' && Programs.current) ? Programs.current() : 'abacus';
+  var here = currentNavPage();
+
+  host.innerHTML = BOTTOM_NAV.map(function (item) {
+    var href = item.byProgram ? (item.byProgram[now] || item.byProgram.abacus) : item.href;
+    /* Practice counts as "here" whichever subject's practice page it is. */
+    var mine = item.byProgram
+      ? (here === 'practice.html' || here === 'vedic-practice.html')
+      : (here === item.href);
+    /* Styles inline as well as by class: a page that never had the bar
+       has no .bnav-item rule to fall back on. */
+    return '<a class="bnav-item' + (mine ? ' active' : '') + '" href="' + href + '" ' +
+      'style="flex:1;display:flex;flex-direction:column;align-items:center;' +
+        'justify-content:center;gap:3px;text-decoration:none;' +
+        'color:' + (mine ? '#04949D' : '#8892A4') + ';">' +
+      '<span class="bnav-icon" style="font-size:1.3rem;">' + item.icon + '</span>' +
+      '<span class="bnav-label" style="font-size:.62rem;font-weight:800;color:inherit;">' +
+        item.label + '</span></a>';
+  }).join('');
+}
+
 /* ── Which subject am I in? ──────────────────────────────────────
    A child doing two subjects had nothing on any screen telling them
    which one they were looking at: Practice always meant Abacus, and
@@ -172,10 +243,14 @@ function switchProgram(code) {
    again when the enrolment is known. */
 function startStudentNav() {
   renderStudentNav(null);
+  try { renderBottomNav(); } catch (e) { console.warn(e); }
   if (typeof sb === 'undefined') return;
   navPrograms().then(function (p) {
     if (!p) return;
     renderStudentNav(p);
+    /* drawn again once the subject is known, so Practice points at the
+       right one rather than the Abacus default */
+    try { renderBottomNav(); } catch (e) { console.warn(e); }
     try { renderProgramChip(p); } catch (e) { console.warn(e); }
   });
 }

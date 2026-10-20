@@ -622,54 +622,180 @@ function draw() {
 
    If the device has no Hindi voice, that is said rather than quietly
    speaking English instead. */
-function spokenSummary(lang) {
-  var s = summary(), d = DATA;
-  var name = s.name;
-  if (lang === 'hi') {
-    var out = [];
-    /* Each subject with its own level, rather than one bare number. */
-    var acrossHi = acrossSubjects();
-    acrossHi.parts.forEach(function (p) {
-      var subjHi = p.prog === 'vedic'
-        ? '\u0935\u0948\u0926\u093F\u0915 \u0917\u0923\u093F\u0924'   /* Vedic Ganit */
-        : '\u0905\u092C\u0948\u0915\u0938';                               /* Abacus */
-      out.push(name + ' ' + subjHi + ' \u092E\u0947\u0902 \u0932\u0947\u0935\u0932 ' +
-        p.lvl + ' \u092A\u0930 \u0939\u0948\u0902' +
-        (p.through != null ? ', \u0914\u0930 \u0907\u0938\u0915\u093E ' + p.through +
-          ' \u092A\u094D\u0930\u0924\u093F\u0936\u0924 \u092A\u0942\u0930\u093E ' +
-          '\u0939\u094B \u0917\u092F\u093E \u0939\u0948' : '') + '\u0964');
+/* ── The facts, once ─────────────────────────────────────────────
+   Both languages are built from this, so they cannot say different
+   things. What a parent heard before was a single accuracy figure
+   averaged ACROSS subjects — 88% in Abacus and 50% in Vedic came out
+   as "80 out of a hundred", which flatters one and understates the
+   other — and it left out the three things a parent actually acts on:
+   which method needs practice, how far along the tests are, and
+   whether the fees are about to run out. */
+function spokenFacts() {
+  var d = DATA;
+  var name = first(d.kid.full_name);
+  var across = acrossSubjects();
+  var weekStart = Date.now() - 7 * 86400000;
+
+  /* Per subject: this week's practice and accuracy, in that subject
+     alone, and the weakest method in it. */
+  var subjects = across.parts.map(function (p) {
+    var mySess = (d.sess || []).filter(function (s) {
+      return (s.program_code || 'abacus') === p.prog && new Date(s.created_at) >= weekStart;
     });
-    /* (the per-subject lines above already say how far through) */
-    if (s.week) {
-      out.push('\u0907\u0938 \u0939\u092B\u094D\u0924\u0947 ' + s.week +
-        ' \u092C\u093E\u0930 \u0905\u092D\u094D\u092F\u093E\u0938 \u0915\u093F\u092F\u093E' +
-        (s.acc != null ? ', \u0914\u0930 ' + s.acc +
-          ' \u092A\u094D\u0930\u0924\u093F\u0936\u0924 \u0938\u0939\u0940 \u0939\u0941\u0906' : '') + '\u0964');
-    } else if (s.quiet != null && s.quiet > 0) {
-      out.push(s.quiet + ' \u0926\u093F\u0928 \u0938\u0947 \u0905\u092D\u094D\u092F\u093E\u0938 ' +
+    var att = mySess.reduce(function (a, s) {
+      return a + (s.questions_attempted || s.questions_total || 0); }, 0);
+    var cor = mySess.reduce(function (a, s) { return a + (s.questions_correct || 0); }, 0);
+
+    var byConcept = {};
+    (d.ws || []).filter(function (w) { return (w.program_code || 'abacus') === p.prog; })
+      .forEach(function (w) {
+        if (!w.concept || !w.total) return;
+        var k = byConcept[w.concept] = byConcept[w.concept] || { s: 0, t: 0, n: 0 };
+        k.s += w.score || 0; k.t += w.total; k.n++;
+      });
+    var weakest = Object.keys(byConcept).map(function (k) {
+      return { name: prettyConcept(k), pct: Math.round(byConcept[k].s / byConcept[k].t * 100), n: byConcept[k].n };
+    }).filter(function (x) { return x.n >= 2 && x.pct < 70; })
+      .sort(function (a, b) { return a.pct - b.pct; })[0] || null;
+
+    /* tests towards this level's certificate */
+    var code = (p.prog === 'vedic' ? 'VL' : 'L') + p.lvl;
+    var passed = {};
+    (d.tests || []).filter(function (t) { return t.passed && t.level_code === code; })
+      .forEach(function (t) { passed[t.test_no] = true; });
+
+    return Object.assign({}, p, {
+      practices: mySess.length,
+      acc: att ? Math.round(cor / att * 100) : null,
+      weakest: weakest,
+      testsPassed: Object.keys(passed).length
+    });
+  });
+
+  /* how long since anything at all */
+  var last = (d.sess || [])[0];
+  var quiet = last ? Math.floor((Date.now() - new Date(last.created_at)) / 86400000) : null;
+
+  /* fees */
+  var live = (d.subs || []).filter(function (s) {
+    return s.expires_at && new Date(s.expires_at) > new Date() &&
+           (s.status ? s.status === 'active' : true);
+  }).sort(function (a, b) { return new Date(b.expires_at) - new Date(a.expires_at); })[0];
+  var daysLeft = live ? Math.ceil((new Date(live.expires_at) - Date.now()) / 86400000) : null;
+
+  return {
+    name: name, subjects: subjects, certificates: (d.comp || []).length,
+    quiet: quiet, feesLeft: daysLeft, feesPaid: !!live,
+    anyPractice: subjects.some(function (s) { return s.practices > 0; })
+  };
+}
+
+function spokenSummary(lang) {
+  var f = spokenFacts();
+  var name = f.name;
+  var many = f.subjects.length > 1;
+
+  /* ── Hindi ───────────────────────────────────────────────── */
+  if (lang === 'hi') {
+    var HI = {
+      abacus: '\u0905\u092C\u0948\u0915\u0938',
+      vedic:  '\u0935\u0948\u0926\u093F\u0915 \u0917\u0923\u093F\u0924'
+    };
+    /* Method names in Devanagari. A Hindi voice reading Latin letters
+       either mangles them or skips them, so the parent heard a gap
+       exactly where the useful word was. */
+    var HI_METHOD = {
+      'Big Friends':       '\u092C\u093F\u0917 \u092B\u094D\u0930\u0947\u0902\u0921\u094D\u0938',
+      'Small Friends':     '\u0938\u094D\u092E\u0949\u0932 \u092B\u094D\u0930\u0947\u0902\u0921\u094D\u0938',
+      'Combination':       '\u0915\u0949\u092E\u094D\u092C\u093F\u0928\u0947\u0936\u0928',
+      'Multiplication':    '\u0917\u0941\u0923\u093E',
+      'Division':          '\u092D\u093E\u0917',
+      'Decimals':          '\u0926\u0936\u092E\u0932\u0935',
+      'Negative numbers':  '\u090B\u0923\u093E\u0924\u094D\u092E\u0915 \u0938\u0902\u0916\u094D\u092F\u093E',
+      'Straight adding':   '\u0938\u0940\u0927\u093E \u091C\u094B\u0921\u093C',
+      'Straight taking away': '\u0938\u0940\u0927\u093E \u0918\u091F\u093E\u0935',
+      'All from 9, last from 10': '\u0911\u0932 \u092B\u094D\u0930\u0949\u092E \u0928\u093E\u0907\u0928',
+      'Mental maths':      '\u092E\u093E\u0928\u0938\u093F\u0915 \u0917\u0923\u093F\u0924'
+    };
+    var hiMethod = function (n) { return HI_METHOD[n] || n; };
+    /* The child's name first, as the English has it — a parent with
+       two children needs to know which one is being described. */
+    var o = [name + ' \u0915\u0940 \u092A\u094D\u0930\u0917\u0924\u093F\u0964'];
+    f.subjects.forEach(function (s) {
+      var line = (many ? HI[s.prog] + ' \u092E\u0947\u0902 ' : '') +
+        '\u0932\u0947\u0935\u0932 ' + s.lvl +
+        (s.through != null
+          ? ', \u091C\u093F\u0938\u0915\u093E ' + s.through +
+            ' \u092A\u094D\u0930\u0924\u093F\u0936\u0924 \u092A\u0942\u0930\u093E ' +
+            '\u0939\u094B \u091A\u0941\u0915\u093E \u0939\u0948'
+          : '') + '\u0964';
+      o.push(line);
+      if (s.practices) {
+        o.push('\u0907\u0938 \u0939\u092B\u094D\u0924\u0947 ' + s.practices +
+          ' \u092C\u093E\u0930 \u0905\u092D\u094D\u092F\u093E\u0938 \u0915\u093F\u092F\u093E' +
+          (s.acc != null ? ', \u0914\u0930 \u0938\u094C \u092E\u0947\u0902 \u0938\u0947 ' + s.acc +
+            ' \u0938\u0939\u0940 \u0939\u0941\u090F' : '') + '\u0964');
+      }
+      if (s.weakest) {
+        o.push(hiMethod(s.weakest.name) + ' \u092E\u0947\u0902 \u0938\u092C\u0938\u0947 ' +
+          '\u091C\u094D\u092F\u093E\u0926\u093E \u0905\u092D\u094D\u092F\u093E\u0938 ' +
+          '\u091A\u093E\u0939\u093F\u090F, \u0905\u092D\u0940 ' + s.weakest.pct +
+          ' \u092A\u094D\u0930\u0924\u093F\u0936\u0924\u0964');
+      }
+      if (s.testsPassed) {
+        o.push('\u0932\u0947\u0935\u0932 ' + s.lvl + ' \u0915\u0947 \u0926\u094B ' +
+          '\u091F\u0947\u0938\u094D\u091F \u092E\u0947\u0902 \u0938\u0947 ' +
+          s.testsPassed + ' \u092A\u093E\u0938 \u0939\u094B \u091A\u0941\u0915\u093E ' +
+          '\u0939\u0948\u0964');
+      }
+    });
+    if (!f.anyPractice && f.quiet != null && f.quiet > 0) {
+      o.push(f.quiet + ' \u0926\u093F\u0928 \u0938\u0947 \u0905\u092D\u094D\u092F\u093E\u0938 ' +
         '\u0928\u0939\u0940\u0902 \u0939\u0941\u0906 \u0939\u0948\u0964');
     }
-    if (d.comp.length) {
-      out.push(d.comp.length + ' \u092A\u094D\u0930\u092E\u093E\u0923\u092A\u0924\u094D\u0930 ' +
+    if (f.certificates) {
+      o.push(f.certificates + ' \u092A\u094D\u0930\u092E\u093E\u0923\u092A\u0924\u094D\u0930 ' +
         '\u092E\u093F\u0932 \u091A\u0941\u0915\u0947 \u0939\u0948\u0902\u0964');
     }
-    return out.join(' ');
+    if (f.feesPaid && f.feesLeft != null && f.feesLeft <= 14) {
+      o.push('\u092B\u0940\u0938 \u0915\u0947 ' + f.feesLeft + ' \u0926\u093F\u0928 ' +
+        '\u092C\u093E\u0915\u0940 \u0939\u0948\u0902\u0964');
+    } else if (!f.feesPaid) {
+      o.push('\u092B\u0940\u0938 \u092C\u093E\u0915\u0940 \u0939\u0948\u0964');
+    }
+    return o.join(' ');
   }
-  /* English. Every subject named, because "Level 2" spoken aloud to a
-     family doing two subjects is worse than saying nothing — they
-     cannot tell which one it meant. */
-  var across = acrossSubjects();
-  var out = [across.line];
-  if (s.week) {
-    out.push('This week ' + name + ' has practised ' + s.week + ' time' +
-      (s.week === 1 ? '' : 's') +
-      (s.acc != null ? ', getting ' + s.acc + ' out of every hundred right' : '') + '.');
-  } else if (s.quiet != null && s.quiet > 0) {
-    out.push(name + ' last practised ' + s.quiet + ' day' + (s.quiet === 1 ? '' : 's') + ' ago.');
+
+  /* ── English ─────────────────────────────────────────────── */
+  /* The opening line already covers every subject, so the per-subject
+     detail below does not repeat the child's name each time. */
+  var out = [acrossSubjects().line];
+  f.subjects.forEach(function (s) {
+    /* the opening line already gave the level in each subject */
+    if (s.practices) {
+      out.push('This week' + (many ? ' in ' + s.name : '') + ': ' + s.practices +
+        ' practice' + (s.practices === 1 ? '' : 's') +
+        (s.acc != null ? ', ' + s.acc + ' out of every hundred right' : '') + '.');
+    }
+    if (s.weakest) {
+      out.push('The method to work on is ' + s.weakest.name + ', at ' + s.weakest.pct +
+        ' out of a hundred.');
+    }
+    if (s.testsPassed) {
+      out.push(s.testsPassed === 1 ? 'One of the two Level ' + s.lvl + ' tests is passed.'
+                                   : 'Both Level ' + s.lvl + ' tests are passed.');
+    }
+  });
+  if (!f.anyPractice && f.quiet != null && f.quiet > 0) {
+    out.push(name + ' last practised ' + f.quiet + ' day' + (f.quiet === 1 ? '' : 's') + ' ago.');
   }
-  if (d.comp.length) {
-    out.push(name + ' has earned ' + d.comp.length + ' certificate' +
-      (d.comp.length === 1 ? '' : 's') + ' so far.');
+  if (f.certificates) {
+    out.push(f.certificates + ' certificate' + (f.certificates === 1 ? '' : 's') + ' earned so far.');
+  }
+  if (f.feesPaid && f.feesLeft != null && f.feesLeft <= 14) {
+    out.push('The fees have ' + f.feesLeft + ' day' + (f.feesLeft === 1 ? '' : 's') + ' left.');
+  } else if (!f.feesPaid) {
+    out.push('The fees are due.');
   }
   return out.join(' ');
 }

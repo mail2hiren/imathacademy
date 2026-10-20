@@ -812,9 +812,12 @@ function listen(lang) {
   }
   /* Slower than a normal reading: this is a summary a parent is
      listening to once, not a sentence they can re-read. */
+  /* Near normal pace. Slowing a good voice to 0.84 is what made it
+     sound laboured — the clarity came from the voice, not the speed,
+     and the sentences are short enough to follow at a natural rate. */
   var res = Speech.say(spokenSummary(lang), {
     raw: true, lang: lang === 'hi' ? 'hi-IN' : 'en-IN',
-    rate: lang === 'hi' ? 0.82 : 0.84
+    rate: lang === 'hi' ? 0.95 : 0.98, pitch: 1.0
   });
   if (said) said.textContent = res && res.voice ? 'Speaking\u2026' : 'Speaking\u2026';
 }

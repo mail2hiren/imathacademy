@@ -70,17 +70,30 @@ var Speech = (function () {
     return MALE.some(function (re) { return re.test(t); });
   }
 
+  /* The smooth voices are the ONLINE ones. Device voices — the ones
+     marked localService — are the flat, clipped, robotic ones, and
+     this used to add two points FOR being local, so the worst voice
+     available was often picked on purpose.
+
+     Modern engines name their good voices: "Natural", "Neural",
+     "Online", "Wavenet", or simply "Google". Those come first now. */
+  function isSmooth(v) {
+    return /natural|neural|online|wavenet|journey|studio|\bgoogle\b/i.test(v.name || '');
+  }
+
   function score(v) {
     var s = 0;
     var indian = /en[-_]IN/i.test(v.lang || '');
 
-    if (isFemale(v)) s += 100;              // known female outranks everything
+    if (isSmooth(v)) s += 200;              // a voice people enjoy listening to
+    if (isFemale(v)) s += 100;              // known female
     else if (isMale(v)) s -= 100;           // never, if there is any choice
 
-    if (indian) s += 30;                    // Indian accent, once gender is settled
+    if (indian) s += 30;                    // Indian accent, once the rest is settled
     if (/en/i.test(v.lang || '')) s += 10;
     if (/^en[-_]GB/i.test(v.lang || '')) s += 3;   // closer to Indian English than US
-    if (v.localService) s += 2;             // offline voices are more reliable
+    /* localService is a tie-break at most: it means reliable, not good. */
+    if (v.localService) s += 1;
     return s;
   }
 
@@ -208,15 +221,81 @@ var Speech = (function () {
     });
     if (!mine.length) return null;
     /* female first, then an Indian one, then anything of that language */
-    var female = mine.filter(function (v) { return /female|woman|kalpana|swara|neerja|heera|lekha/i.test(v.name); });
-    var indian = mine.filter(function (v) { return /-IN$/i.test(v.lang || ''); });
-    return female[0] || indian[0] || mine[0];
+    /* Same order of preference as the general choice: smooth first,
+       then female, then the Indian accent. */
+    var ranked = mine.slice().sort(function (a, b) { return score(b) - score(a); });
+    return ranked[0] || mine[0];
+  }
+
+  /* ── Saying something long ───────────────────────────────────
+     Chrome stops speaking after about fifteen seconds of a single
+     utterance, with no error and no end event — so a forty-second
+     summary simply stopped partway and the parent heard half of it.
+
+     Two things fix it: each sentence is spoken as its own utterance
+     and queued, so none is long enough to be cut; and while anything
+     is speaking, a timer nudges the engine, because Chrome also
+     stalls a queue that has been running a while. */
+  var keepAwake = null;
+  function startKeepAwake() {
+    stopKeepAwake();
+    keepAwake = setInterval(function () {
+      var s = window.speechSynthesis;
+      if (!s || (!s.speaking && !s.pending)) { stopKeepAwake(); return; }
+      /* pause/resume is the only nudge Chrome honours; on other
+         browsers it is harmless. */
+      try { s.pause(); s.resume(); } catch (e) {}
+    }, 5000);
+  }
+  function stopKeepAwake() {
+    if (keepAwake) { clearInterval(keepAwake); keepAwake = null; }
+  }
+
+  /** Split into sentences a voice can finish. */
+  function sentences(text) {
+    var parts = String(text)
+      .split(/(?<=[.!?\u0964])\s+/)        /* \u0964 is the Hindi full stop */
+      .map(function (s) { return s.trim(); })
+      .filter(Boolean);
+    /* Anything still long is split again at commas, so no single piece
+       runs past roughly ten seconds. */
+    var out = [];
+    parts.forEach(function (p) {
+      if (p.length <= 180) { out.push(p); return; }
+      var buf = '';
+      p.split(/,\s*/).forEach(function (bit) {
+        if ((buf + bit).length > 160 && buf) { out.push(buf.trim()); buf = ''; }
+        buf += (buf ? ', ' : '') + bit;
+      });
+      if (buf.trim()) out.push(buf.trim());
+    });
+    return out;
   }
 
   function say(text, opts) {
     if (!window.speechSynthesis) return null;
     var o = opts || {};
     var words = o.raw ? String(text) : forMaths(text);
+
+    /* More than one sentence: queue them, so nothing is long enough
+       for the engine to abandon. */
+    var pieces = sentences(words);
+    if (pieces.length > 1) {
+      var voice = null;
+      if (o.lang) voice = pickFor(o.lang);
+      pieces.forEach(function (piece, i) {
+        var up = dress(new SpeechSynthesisUtterance(piece), o);
+        if (voice) { up.voice = voice; up.lang = voice.lang; }
+        else if (o.lang) { up.lang = o.lang; }
+        /* a breath between sentences reads as speech rather than a list */
+        if (i < pieces.length - 1) up.text = piece + ' ';
+        window.speechSynthesis.speak(up);
+      });
+      startKeepAwake();
+      return { spoke: true, voice: voice ? voice.name : null,
+               lang: o.lang || null, pieces: pieces.length };
+    }
+
     var u = dress(new SpeechSynthesisUtterance(words), o);
     /* A language asked for wins over the app's usual voice. */
     if (o.lang) {
@@ -226,6 +305,7 @@ var Speech = (function () {
       if (!v) return { spoke: true, voice: null, lang: o.lang };
     }
     window.speechSynthesis.speak(u);
+    startKeepAwake();
     return { spoke: true, voice: u.voice ? u.voice.name : null, lang: u.lang };
   }
 
@@ -265,6 +345,7 @@ var Speech = (function () {
   }
 
   function stop() {
+    stopKeepAwake();
     if (window.speechSynthesis) window.speechSynthesis.cancel();
   }
 

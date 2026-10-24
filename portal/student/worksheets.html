@@ -156,7 +156,15 @@
     .fs-counter{font-size:.78rem;font-weight:700;color:var(--text3);flex-shrink:0;}
     .fs-progress{height:5px;background:var(--border);flex-shrink:0;}
     .fs-progress-fill{height:100%;background:linear-gradient(90deg,#1565C0,#7B1FA2);transition:width .3s ease;}
-    .fs-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px;}
+    .fs-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;
+         justify-content:flex-start;padding:20px 16px;}
+/* Centred by margin, NOT by justify-content. A centred flex child that
+   grows taller than its parent overflows in BOTH directions, and the
+   part above the top edge cannot be scrolled back to — which is why a
+   five-row sum lost its first numbers off the top of the screen. With
+   auto margins the content still sits centred when it fits, and pushes
+   down normally when it does not. */
+.fs-body > *{margin-top:auto;margin-bottom:auto;}
     .fs-question-wrap{width:100%;max-width:500px;}
     .fs-emoji{font-size:3rem;text-align:center;margin-bottom:16px;animation:popIn .3s ease;}
     .fs-question{font-size:1.1rem;font-weight:700;line-height:1.7;color:var(--text);text-align:center;margin-bottom:24px;}
@@ -317,17 +325,50 @@
   .fs-body > .fs-question-wrap > .fs-emoji{display:none;}
 }
 
-/* Column sums, drawn as practice draws them */
+/* Column sums, drawn as practice draws them.
+
+   The size is set from the NUMBER OF ROWS, because a child adding a
+   column has to see every number at once — scrolling a sum defeats
+   the point of it. Six rows at the old fixed 2.1rem stood taller than
+   the panel, so the first numbers were simply off screen.
+
+   Each step is still comfortably readable; ten rows, the most any
+   level allows, fits a laptop and a phone. */
 .col-rows{display:inline-block;text-align:right;font-variant-numeric:tabular-nums;
           letter-spacing:1px;font-weight:900;}
 .col-row{padding:1px 10px;line-height:1.34;}
+
+.col-rows[data-rows="1"], .col-rows[data-rows="2"],
+.col-rows[data-rows="3"], .col-rows[data-rows="4"]{font-size:2.1rem;}
+.col-rows[data-rows="5"]{font-size:1.85rem;}
+.col-rows[data-rows="6"]{font-size:1.65rem;}
+.col-rows[data-rows="7"]{font-size:1.5rem;}
+.col-rows[data-rows="8"]{font-size:1.35rem;}
+.col-rows[data-rows="9"]{font-size:1.25rem;}
+.col-rows[data-rows="10"], .col-rows[data-rows="11"], .col-rows[data-rows="12"]{font-size:1.15rem;}
+
+/* A phone has far less height, so every step is smaller again. */
+@media (max-height:740px){
+  .col-rows[data-rows="4"]{font-size:1.8rem;}
+  .col-rows[data-rows="5"]{font-size:1.6rem;}
+  .col-rows[data-rows="6"]{font-size:1.4rem;}
+  .col-rows[data-rows="7"]{font-size:1.28rem;}
+  .col-rows[data-rows="8"]{font-size:1.18rem;}
+  .col-rows[data-rows="9"]{font-size:1.1rem;}
+  .col-rows[data-rows="10"], .col-rows[data-rows="11"], .col-rows[data-rows="12"]{font-size:1rem;}
+}
 .col-rule{border-top:3px solid currentColor;margin:5px 10px 0;}
 
 /* A choice that turned out right or wrong, as practice shows it */
 .fs-choice.correct{border-color:#2E7D32;background:#E8F5E9;color:#1B5E20;}
 .fs-choice.wrong{border-color:#C62828;background:#FFEBEE;color:#B71C1C;}
 @media (min-width:1100px){
-  .fs-body > .fs-question-wrap > .fs-question .col-rows{font-size:2.1rem;}
+  /* Only where there is room for it: this used to force 2.1rem on
+     every column, undoing the sizing above. */
+  .fs-body > .fs-question-wrap > .fs-question .col-rows[data-rows="1"],
+  .fs-body > .fs-question-wrap > .fs-question .col-rows[data-rows="2"],
+  .fs-body > .fs-question-wrap > .fs-question .col-rows[data-rows="3"],
+  .fs-body > .fs-question-wrap > .fs-question .col-rows[data-rows="4"]{font-size:2.1rem;}
 }
   .wk-card{text-align:left;}
   .wk-method{font-size:.74rem;font-weight:900;color:#04616a;background:#E7F6F7;
@@ -1528,6 +1569,9 @@ function showFsQuestion() {
   if (lines.length > 1) {
     var rows = document.createElement('div');
     rows.className = 'col-rows';
+    /* What the sizing keys off: the column shrinks as the rows grow so
+       the whole sum stays on screen. */
+    rows.setAttribute('data-rows', String(Math.min(12, lines.length)));
     lines.forEach(function (l) {
       var row = document.createElement('div');
       row.className = 'col-row';

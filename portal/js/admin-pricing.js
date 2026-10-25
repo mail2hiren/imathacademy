@@ -30,6 +30,7 @@ function switchPricingCountry(code, btn) {
 function renderPricingGrid(countryCode) {
   var grid = document.getElementById('pricingGrid');
   if (!grid) return;
+  try { renderPricingTabs(); } catch (e) { console.warn(e); }
   var country = COUNTRIES[countryCode] || {};
   var plans = allPricing.filter(function(p) { return p.country_code === countryCode; });
   console.log('Rendering', plans.length, 'plans for', countryCode);
@@ -37,6 +38,8 @@ function renderPricingGrid(countryCode) {
   grid.innerHTML = '';
 
   if (!plans.length) {
+    /* Reached by picking a country with no prices set — now possible
+       for all ten, so the message has to say what to do about it. */
     grid.innerHTML = '<div style="padding:20px;text-align:center;color:#888;"><div style="font-size:2rem">💰</div><div>No plans for ' + (country.name||countryCode) + '</div></div>';
     return;
   }
@@ -243,12 +246,42 @@ function filterBatchLevels(programId) {
 var allPricing = [];
 var currentPricingCountry = 'IN';
 
+/* Every country the Add and Edit forms offer. Those forms already
+   listed ten; pricing knew only four, so a family could be set to
+   Australia and then shown an empty plan list, with no way to set a
+   price for them. The tabs are built from this list, so the two can
+   no longer disagree. */
 const COUNTRIES = {
-  IN: { name: 'India',    flag: '🇮🇳', symbol: '₹',   code: 'INR' },
-  US: { name: 'USA',      flag: '🇺🇸', symbol: '$',   code: 'USD' },
-  AE: { name: 'UAE',      flag: '🇦🇪', symbol: 'AED', code: 'AED' },
-  GB: { name: 'UK',       flag: '🇬🇧', symbol: '£',   code: 'GBP' },
+  IN: { name: 'India',        flag: '🇮🇳', symbol: '₹',   code: 'INR' },
+  AE: { name: 'UAE',          flag: '🇦🇪', symbol: 'AED', code: 'AED' },
+  AU: { name: 'Australia',    flag: '🇦🇺', symbol: 'A$',  code: 'AUD' },
+  US: { name: 'USA',          flag: '🇺🇸', symbol: '$',   code: 'USD' },
+  GB: { name: 'UK',           flag: '🇬🇧', symbol: '£',   code: 'GBP' },
+  SG: { name: 'Singapore',    flag: '🇸🇬', symbol: 'S$',  code: 'SGD' },
+  CA: { name: 'Canada',       flag: '🇨🇦', symbol: 'C$',  code: 'CAD' },
+  MY: { name: 'Malaysia',     flag: '🇲🇾', symbol: 'RM',  code: 'MYR' },
+  NZ: { name: 'New Zealand',  flag: '🇳🇿', symbol: 'NZ$', code: 'NZD' },
+  ZA: { name: 'South Africa', flag: '🇿🇦', symbol: 'R',   code: 'ZAR' },
 };
+
+/* Drawn from the table above rather than written into the page, so
+   adding a country here is the only change needed. */
+function renderPricingTabs() {
+  var host = document.querySelector('.pricing-tabs');
+  if (!host) return;
+  host.innerHTML = Object.keys(COUNTRIES).map(function (code) {
+    var c = COUNTRIES[code];
+    var on = code === (currentPricingCountry || 'IN');
+    /* a country with prices already set is marked, so she can see at a
+       glance which ones still need doing */
+    var has = (typeof allPricing !== 'undefined') &&
+              allPricing.some(function (p) { return p.country_code === code; });
+    return '<button class="pricing-tab' + (on ? ' active' : '') + '" id="ptab-' + code + '" ' +
+      'onclick="switchPricingCountry(\'' + code + '\',this)">' +
+      c.flag + ' ' + c.name + (has ? '' : ' <span style="opacity:.5;font-weight:700;">—</span>') +
+      '</button>';
+  }).join('');
+}
 
 const PLAN_ICONS = {
   monthly:    '📅',

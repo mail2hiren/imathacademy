@@ -196,15 +196,33 @@ var Sutras = (function () {
     urdhva: {
       cat: 'Multiplication', label: 'Vertically and crosswise',
       sanskrit: 'Urdhva-Tiryagbhyam', shape: 'multiplication', ready: true,
-      levels: { 2: '2-digit x 1-digit', 3: '2-digit x 2-digit',
-                4: '3-digit x 2-digit', 5: '3-digit x 3-digit' },
+
+      /* THE ONE PLACE that says what each level allows. A level may hold
+         SEVERAL shapes, and a sheet draws from all of them.
+
+         This used to be written out three times — here as a label, in
+         the gate below, and again in the generator — so adding a shape
+         in one place left the other two rejecting it. Everything now
+         reads this list. */
+      shapes: {
+        2: [[2, 1]],
+        3: [[2, 1], [3, 1], [2, 2]],
+        4: [[3, 2], [2, 2]],
+        5: [[3, 3], [3, 2]]
+      },
+      levels: { 2: '2-digit x 1-digit',
+                3: '2-digit x 1-digit, 3-digit x 1-digit, and 2-digit x 2-digit',
+                4: '3-digit x 2-digit and 2-digit x 2-digit',
+                5: '3-digit x 3-digit and 3-digit x 2-digit' },
       notFor: 'It always works, but a special method is quicker where one fits',
       applies: function (a, b, L) {
         if (!isInt(a) || !isInt(b) || a < 2 || b < 2) return false;
+        var list = this.shapes[L];
+        if (!list || !list.length) return false;
         var da = digits(a), db = digits(b);
-        var want = { 2: [2, 1], 3: [2, 2], 4: [3, 2], 5: [3, 3] }[L];
-        if (!want) return false;
-        return (da === want[0] && db === want[1]) || (da === want[1] && db === want[0]);
+        return list.some(function (w) {
+          return (da === w[0] && db === w[1]) || (da === w[1] && db === w[0]);
+        });
       },
       answer: function (a, b) { return a * b; },
       text: function (a, b) { return a + ' x ' + b; }

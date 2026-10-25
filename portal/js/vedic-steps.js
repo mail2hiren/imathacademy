@@ -73,7 +73,11 @@ var VedicSteps = (function (S) {
       return [
         { ask: 'Double the tens: ' + t + ' x 2', answer: t * 2, hint: '' },
         { ask: 'Double the units: ' + u + ' x 2', answer: u * 2, hint: '' },
-        { ask: 'Add them: ' + (t * 2) + ' + ' + (u * 2), answer: a * 2, hint: 'Watch the carry' }
+        /* The two numbers used to be printed here — "Add them: 20 + 8"
+           — which handed the child the answers to the two steps above
+           and made them free. The instruction says what to do without
+           doing it for them. */
+        { ask: 'Add your two answers', answer: a * 2, hint: 'Watch the carry' }
       ];
     },
 

@@ -351,16 +351,60 @@ var VedicFrames = (function () {
   }
 
   /* ── CHAIN: the steps as a column ────────────────────────── */
+  /* A step's instruction must not contain an answer the child has been
+     asked to work out further up. Doubling printed "Add them: 20 + 8",
+     which handed over both earlier steps; several other methods restate
+     a deviation the child has just been asked for.
+
+     Numbers from the QUESTION ITSELF are left alone — those are what
+     the child is working from, not what they are working out. Only a
+     number that matches an earlier step's expected answer, and does not
+     appear in the question, is hidden. */
+  function hideEarlierAnswers(ask, earlier, question) {
+    if (!ask || !earlier.length) return ask;
+    /* The whole numbers in the question AND their individual digits.
+       Several methods work digit by digit: in "74 x 11" the 7 is the
+       child's own starting digit, and treating it as a hidden answer
+       turned "Add the neighbours: 7 + 4" into "your first answer + 4",
+       which is both wrong and confusing. */
+    var qNums = String(question || '').match(/-?\d+(?:\.\d+)?/g) || [];
+    var inQuestion = qNums.slice();
+    qNums.forEach(function (n) {
+      String(n).replace(/\D/g, '').split('').forEach(function (dg) {
+        if (inQuestion.indexOf(dg) < 0) inQuestion.push(dg);
+      });
+    });
+    return String(ask).replace(/-?\d+(?:\.\d+)?/g, function (n) {
+      /* a number from the question is what they work FROM */
+      if (inQuestion.indexOf(n) > -1) return n;
+      var at = earlier.indexOf(n);
+      if (at < 0) return n;
+      /* Point at the step rather than blanking it. "Now add the 300
+         back on" would become "add the — back on", which leaves the
+         child guessing what to add; "your answer from step 1" tells
+         them exactly what to use without giving them the number. */
+      return earlier.length === 1
+        ? 'your first answer'
+        : 'your answer from step ' + (at + 1);
+    });
+  }
+
   function chain(B, q) {
     var steps = (typeof VedicSteps !== 'undefined') ? VedicSteps.forSum(q) : null;
     if (!steps || !steps.length) return B.answer(q.answer);
+
+    var seen = [];
     var rows = steps.slice(0, -1).map(function (s) {
-      return '<div class="vf-row"><span class="vf-ask">' + esc(s.ask) + '</span>' +
-        B.slot(s.answer, s.hint || s.ask) + '</div>';
+      var ask = hideEarlierAnswers(s.ask, seen, q.text || '');
+      seen.push(String(s.answer));
+      return '<div class="vf-row"><span class="vf-ask">' + esc(ask) + '</span>' +
+        B.slot(s.answer, s.hint || ask) + '</div>';
     }).join('');
+
     var last = steps[steps.length - 1];
+    var lastAsk = hideEarlierAnswers(last.ask, seen, q.text || '');
     return '<div class="vf-chain">' + rows + '</div>' +
-      '<div class="vf-row vf-lastask"><span class="vf-ask">' + esc(last.ask) + '</span></div>' +
+      '<div class="vf-row vf-lastask"><span class="vf-ask">' + esc(lastAsk) + '</span></div>' +
       B.answer(last.answer);
   }
 

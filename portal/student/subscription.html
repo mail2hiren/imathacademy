@@ -182,12 +182,32 @@ function selectPlan(plan) {
   document.getElementById('payBtn').textContent = 'Pay ' + Money.format(p.amount, myCountry) + ' securely · via Razorpay';
 }
 
-function renderPayScreen(expired) {
+async function renderPayScreen(expired) {
   const name = profile?.full_name || 'Student';
   /* The first name only, for a sentence. "Aryan" was written into the
      blocked message by hand and every family saw it, whoever logged in. */
   const firstName = String(name).trim().split(/\s+/)[0] || 'your child';
   const level = profile?.current_level || 1;
+
+  /* "Abacus" was written into the card as plain text, and the level
+     came from the single column on the account — so a child learning
+     Vedic was told they were doing Abacus, at a level that belonged to
+     the other subject. Both come from the enrolment now. */
+  let learning = '';
+  try {
+    const pr = await sb.from('student_programs')
+      .select('program_code, current_level, is_active')
+      .eq('student_id', session.user.id);
+    const mine = (pr.data || []).filter(p => p.is_active !== false)
+      .sort((a, b) => (a.program_code === 'abacus' ? -1 : 1));
+    learning = mine.map(p => (p.program_code === 'vedic' ? 'ॐ Vedic Maths' : '🧮 Abacus') +
+      ' · Level ' + (p.current_level == null ? level : p.current_level)).join('   ');
+  } catch (e) {
+    console.warn('Could not read the programmes:', e.message);
+  }
+  /* A child with no enrolment recorded keeps the old wording rather
+     than an empty line. */
+  if (!learning) learning = '🧮 Abacus · Level ' + level;
   const statusHtml = expired
     ? `<div class="status-val status-expired">⚠️ ${subscription ? 'Expired ' + fmt(subscription.expires_at) : 'No active subscription'}</div>`
     : `<div class="status-val status-active">✅ Active until ${fmt(subscription.expires_at)}</div>`;
@@ -199,7 +219,7 @@ function renderPayScreen(expired) {
         <div class="student-av">${initials(name)}</div>
         <div>
           <div class="student-name">${name}</div>
-          <div class="student-level">Abacus · Level ${level}</div>
+          <div class="student-level">${learning}</div>
         </div>
       </div>
       <div class="status-bar">
@@ -642,7 +662,7 @@ async function init() {
     subscription = subs?.[0] || null;
     const expired = isExpired(subscription);
 
-    renderPayScreen(expired);
+    await renderPayScreen(expired);
 
   } catch(err) {
     document.getElementById('mainCard').innerHTML = `<div style="padding:40px;text-align:center;color:#E53935">Error loading subscription: ${err.message}</div>`;

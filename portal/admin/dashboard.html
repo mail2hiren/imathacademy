@@ -812,12 +812,9 @@
           </div>
           <button class="btn btn-primary btn-sm" onclick="savePricing()">💾 Save All Prices</button>
         </div>
-        <div class="pricing-tabs">
-          <button class="pricing-tab active" id="ptab-IN" onclick="switchPricingCountry('IN',this)">🇮🇳 India</button>
-          <button class="pricing-tab" id="ptab-US" onclick="switchPricingCountry('US',this)">🇺🇸 USA</button>
-          <button class="pricing-tab" id="ptab-AE" onclick="switchPricingCountry('AE',this)">🇦🇪 UAE</button>
-          <button class="pricing-tab" id="ptab-GB" onclick="switchPricingCountry('GB',this)">🇬🇧 UK</button>
-        </div>
+        <!-- Built from the country table in admin-pricing.js, so adding
+             a country does not mean editing this page as well. -->
+        <div class="pricing-tabs"></div>
         <div id="pricingGrid"><div class="spinner"></div></div>
       </div>
 

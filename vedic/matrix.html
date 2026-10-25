@@ -105,6 +105,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../portal/js/sutra-rules.js"></script>
 <script>
 /* ============================================================
    The Vedic course map, live
@@ -129,6 +130,7 @@ var sb = supabase.createClient(
 var PROG = 'vedic';
 var MARKER = '__vedic_plan_v41';   // the engine trusts the curriculum only once this exists
 var METHODS = {}; PLAN.methods.forEach(function (m) { METHODS[m.key] = m; });
+var NOTES = {};   /* level:method -> the note, where the shapes live */
 var CONCEPT_ID = {};   // method key -> curriculum_concepts.id
 var STATUS = {};       // 'L:key' -> I/P/M/R
 var LIVE = false, open = null;
@@ -155,7 +157,8 @@ async function load() {
   var [cc, lc] = await Promise.all([
     sb.from('curriculum_concepts').select('id, concept_code').eq('program_code', PROG),
     sb.from('curriculum_level_concepts')
-      .select('level_code, status, concept_id, curriculum_concepts(concept_code)').eq('program_code', PROG)
+      .select('level_code, status, notes, concept_id, curriculum_concepts(concept_code)')
+      .eq('program_code', PROG)
   ]);
   if (cc.error || lc.error) {
     banner('err', 'Could not read the curriculum: ' + esc((cc.error || lc.error).message));
@@ -167,8 +170,10 @@ async function load() {
     if (c.concept_code === MARKER) hasMarker = true;
     if (METHODS[c.concept_code]) CONCEPT_ID[c.concept_code] = c.id;
   });
-  STATUS = {};
+  STATUS = {}; NOTES = {};
   (lc.data || []).forEach(function (r) {
+    var cc2 = r.curriculum_concepts && r.curriculum_concepts.concept_code;
+    if (cc2) NOTES[String(r.level_code).replace(/^L/, '') + ':' + cc2] = r.notes || '';
     var k = r.curriculum_concepts && r.curriculum_concepts.concept_code;
     if (!k || !METHODS[k] || !r.status || r.status === 'N') return;
     STATUS[parseInt(r.level_code.replace(/^L/, ''), 10) + ':' + k] = r.status;
@@ -306,10 +311,82 @@ function tap(key, L) {
           '<b>' + s + '</b>' + WORDS[s] + '</button>';
       }).join('') +
       '<button class="opt none' + (!cur ? ' on' : '') + '" onclick="setSt(\'N\')"><b>&ndash;</b>Not taught at this level</button>' +
-    '</div><div class="msg" id="msg" role="status"></div>' +
+    '</div>' +
+    shapeField(key, L) +
+    '<div class="msg" id="msg" role="status"></div>' +
     '<button class="close" onclick="closeSheet()">Done</button>';
   document.getElementById('sheetIn').innerHTML = h;
   document.getElementById('sheet').classList.add('show');
+}
+
+/* The shapes of sum this level should give.
+
+   Only for methods where a shape means anything — "square anything
+   ending in 5" has no choice to make, and offering one would have her
+   wondering why it does nothing.
+
+   It is saved in the notes column, which the engine reads on its next
+   sync, so a sheet made afterwards follows it. */
+function hasShapes(key) {
+  return !!(typeof Sutras !== 'undefined' && Sutras.METHODS[key] && Sutras.METHODS[key].shapes);
+}
+
+function shapeField(key, L) {
+  if (!hasShapes(key)) return '';
+  var note = NOTES[L + ':' + key] || '';
+  var read = (typeof Sutras !== 'undefined' && Sutras.readShapes)
+    ? Sutras.readShapes(note) : { shapes: [], refused: [], max: 4 };
+  var built = (typeof Sutras !== 'undefined' && Sutras.METHODS[key].shapes[scopeLevel(key, L)]) || [];
+
+  return '<div style="margin:14px 0 4px;text-align:left;">' +
+    '<div style="font-size:.72rem;font-weight:900;letter-spacing:.8pt;text-transform:uppercase;' +
+      'color:var(--t3);margin-bottom:6px;">Shapes of sum at this level</div>' +
+    '<input id="shapeIn" value="' + esc(note) + '" placeholder="2x1, 3x1, 2x2" ' +
+      'style="width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:10px;' +
+      'font:700 .88rem Nunito,sans-serif;" />' +
+    '<div style="font-size:.76rem;color:var(--t3);margin-top:6px;" id="shapeRead">' +
+      (read.shapes.length
+        ? 'This level will give: <b>' + read.shapes.join(', ') + '</b>'
+        : 'Nothing set, so it uses the built-in list: <b>' +
+          (built.map(function (w) { return w[0] + ' digit x ' + w[1] + ' digit'; }).join(', ') ||
+           'none') + '</b>') +
+      (read.refused.length
+        ? '<br><span style="color:var(--bad);font-weight:800;">Ignored ' + read.refused.join(', ') +
+          ' \u2014 more than ' + read.max + ' digits a side is not taught here.</span>'
+        : '') +
+    '</div>' +
+    '<button onclick="saveShapes()" style="margin-top:8px;padding:8px 14px;border:none;' +
+      'border-radius:9px;background:var(--teal,#04949D);color:#fff;font:900 .82rem Nunito,sans-serif;' +
+      'cursor:pointer;">Save shapes</button>' +
+  '</div>';
+}
+
+async function saveShapes() {
+  if (!open) return;
+  var msg = document.getElementById('msg');
+  var val = (document.getElementById('shapeIn') || {}).value || '';
+  msg.className = 'msg'; msg.textContent = 'Saving\u2026';
+  try {
+    var cid = await ensureConcept(open.key);
+    var res = await sb.from('curriculum_level_concepts').upsert({
+      program_code: PROG, level_code: 'L' + open.L, concept_id: cid,
+      status: STATUS[open.L + ':' + open.key] || 'I', notes: val
+    }, { onConflict: 'program_code,level_code,concept_id' }).select();
+    if (res.error || !res.data || !res.data.length)
+      throw new Error((res.error && res.error.message) || 'nothing was written');
+
+    NOTES[open.L + ':' + open.key] = val;
+    var kept = open;
+    tap(kept.key, kept.L);
+    var m2 = document.getElementById('msg');
+    var read = Sutras.readShapes(val);
+    m2.className = 'msg ok';
+    m2.textContent = read.shapes.length
+      ? 'Saved \u2014 Level ' + kept.L + ' will give ' + read.shapes.join(', ') + '.'
+      : 'Saved \u2014 no shapes set, so the built-in list is used.';
+  } catch (e) {
+    msg.className = 'msg err'; msg.textContent = 'Not saved: ' + e.message;
+  }
 }
 
 async function setSt(st) {
@@ -319,7 +396,9 @@ async function setSt(st) {
   try {
     var cid = await ensureConcept(open.key);
     var res = await sb.from('curriculum_level_concepts').upsert({
-      program_code: PROG, level_code: 'L' + open.L, concept_id: cid, status: st
+      program_code: PROG, level_code: 'L' + open.L, concept_id: cid, status: st,
+      /* carried through, or changing the status would wipe her shapes */
+      notes: NOTES[open.L + ':' + open.key] || null
     }, { onConflict: 'program_code,level_code,concept_id' }).select();
     if (res.error || !res.data || !res.data.length)
       throw new Error((res.error && res.error.message) || 'nothing was written');

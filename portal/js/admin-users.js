@@ -365,19 +365,11 @@ async function addStudentToBatch() {
       if (error.message.includes('duplicate')) throw new Error('Student is already in this batch');
       throw error;
     }
-    /* The programmes have to be written after the student row exists,
-    since they key off their id. A child with no programme row sees an
-    empty app, so this is not optional. */
-    try {
-      var newId = (data && data.user_id) || (data && data.id) ||
-                  (res && res.data && res.data[0] && res.data[0].id);
-      if (newId && typeof saveProgrammes === 'function') {
-        await saveProgrammes(newId, 's');
-      }
-    } catch (e) {
-      toast('Student created, but the programmes did not save: ' + e.message, 'error');
-    }
-
+    /* This used to carry a block that saved the programmes, pasted
+       here by mistake: it referred to a response this function never
+       has, so it threw on every use and reported that the programmes
+       had not saved — while the function that actually creates a
+       student never saved them at all. It belongs in createUser. */
     toast('✅ Student added to batch!', 'success');
     await loadAll(); renderBatches();
   } catch(err) { toast('❌ ' + err.message, 'error'); }

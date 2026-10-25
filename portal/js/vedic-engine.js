@@ -73,10 +73,10 @@ var VedicEngine = (function (S, G) {
       }
 
       var r = await sb.from('curriculum_level_concepts')
-        .select('level_code, status, curriculum_concepts(concept_code)')
+        .select('level_code, status, notes, curriculum_concepts(concept_code)')
         .eq('program_code', 'vedic');
       if (r.error) throw r.error;
-      var map = {}, st = {}, n = 0;
+      var map = {}, st = {}, shapes = {}, n = 0, shaped = 0;
       (r.data || []).forEach(function (row) {
         var code = row.curriculum_concepts && row.curriculum_concepts.concept_code;
         if (!code || !S.METHODS[code]) return;          // not a method the engine knows
@@ -84,10 +84,22 @@ var VedicEngine = (function (S, G) {
         var L = parseInt(String(row.level_code).replace(/^L/, ''), 10);
         (map[L] = map[L] || []).push(code);
         st[L + ':' + code] = row.status;
+
+        /* The shapes of sum she wants at this level, written in the
+           notes against the method — "2x1, 3x1, 2x2". Anything that is
+           not a pair of digit counts is left alone, so she can keep
+           writing ordinary notes there as well. */
+        var sh = S.parseShapes ? S.parseShapes(row.notes) : null;
+        if (sh) { shapes[L + ':' + code] = sh; shaped++; }
         n++;
       });
-      if (n) { S.setLevelMap(map, st); lastSync = { source: 'curriculum', rows: n }; }
-      else   { S.setLevelMap(null);    lastSync = { source: 'built-in', rows: 0 }; }
+      if (n) {
+        S.setLevelMap(map, st, shaped ? shapes : null);
+        lastSync = { source: 'curriculum', rows: n, shaped: shaped };
+      } else {
+        S.setLevelMap(null);
+        lastSync = { source: 'built-in', rows: 0 };
+      }
     } catch (e) {
       /* A failed read is said, not hidden: the built-in plan is used and
          the caller can tell the teacher. */

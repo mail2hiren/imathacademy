@@ -553,6 +553,28 @@ async function init() {
     const { data: p } = await sb.from('users').select('*, country_code').eq('id', s.user.id).single();
   myCountry = (p && p.country_code) || 'IN';
 
+  /* THE PAYER'S COUNTRY, not the viewer's.
+
+     This used to take the country of whoever was signed in, so a family
+     whose child is recorded in the UAE and whose parent is recorded in
+     India saw two different prices for the same subscription — the
+     child AED, the parent rupees — and was charged whichever one of
+     them happened to open the page.
+
+     The parent is the one being charged, so their country decides. A
+     child with no parent linked keeps their own. */
+  if ((p && p.role) === 'student') {
+    try {
+      const link = await sb.from('parent_student')
+        .select('parent_id, users:parent_id(country_code)')
+        .eq('student_id', s.user.id).limit(1);
+      const payer = link.data && link.data[0] && link.data[0].users;
+      if (payer && payer.country_code) myCountry = payer.country_code;
+    } catch (e) {
+      console.warn('Could not read the parent country, using the child\'s:', e.message);
+    }
+  }
+
   /* The plan prices were written into this page, so a family abroad
      saw rupees. Megha sets the real prices per country in the admin
      screen; those are what should be shown and charged. */

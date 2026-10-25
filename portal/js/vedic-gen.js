@@ -72,8 +72,33 @@ var VedicGen = (function (S) {
       return [rd(L === 2 ? 2 : 3), 11];
     },
 
-    urdhva: function (L) {
-      var w = { 2: [2, 1], 3: [2, 2], 4: [3, 2], 5: [3, 3] }[L] || [2, 2];
+    /* Vertical and crosswise.
+
+       A level used to allow exactly ONE shape of sum, so Level 3 was
+       two-by-two and nothing else. A level can now hold several, and a
+       sheet draws from all of them — which is what a child meets in
+       practice, and what Megha asked for at Level 3.
+
+       Difficulty picks within the level's own shapes: easy takes the
+       smallest it allows, hard the largest, and anything else mixes.
+       Add or remove a pair here to change what a level teaches. */
+    urdhva: function (L, o) {
+      /* From the method's own definition, so the gate and the generator
+         cannot disagree about what a level allows. */
+      var defn = (S.METHODS.urdhva && S.METHODS.urdhva.shapes) || {};
+      var list = defn[L] || [[2, 2]];
+
+      /* order them by how much work they are */
+      var ranked = list.slice().sort(function (a, b) {
+        return (a[0] + a[1]) - (b[0] + b[1]);
+      });
+
+      var w;
+      var want = o && o.difficulty;
+      if (want === 'easy')      w = ranked[0];
+      else if (want === 'hard') w = ranked[ranked.length - 1];
+      else                      w = ranked[Math.floor(Math.random() * ranked.length)];
+
       return [rd(w[0]), rd(w[1])];
     },
 

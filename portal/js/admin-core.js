@@ -422,6 +422,11 @@ async function createUser(role) {
   btn.disabled = true; btn.textContent = 'Creating...';
   try {
     const payload = { email, password: pwd, full_name: name, role, phone: phone || null };
+    /* The country was asked for on the form and then thrown away, so
+       every family was created as India and a parent in Dubai saw
+       rupees. It is the same column the edit screen writes. */
+    const ctry = document.getElementById(`${prefix}-country`);
+    if (ctry && ctry.value) payload.country_code = ctry.value;
     if (role === 'student') {
       /* The programme dropdown is now two checkboxes. users.program
          keeps the older single-value column meaningful for anything
@@ -451,6 +456,25 @@ async function createUser(role) {
       if (msg.toLowerCase().includes('already')) throw new Error('This email is already registered. Check existing users.');
       throw new Error(msg);
     }
+    /* The per-subject levels she picks on the form were read nowhere:
+       createUser took only the single s-level dropdown, so she had to
+       open the child again and press Save to get them in. The
+       programmes key off the new child's id, so this runs once the
+       account exists. */
+    if (role === 'student') {
+      const newId = (data && (data.user_id || data.id)) || null;
+      if (!newId) {
+        toast(`${name} was created, but their programmes could not be set — ` +
+              `open them and press Save`, 'error');
+      } else if (typeof saveProgrammes === 'function') {
+        try {
+          await saveProgrammes(newId, 's');
+        } catch (e) {
+          toast(`${name} was created, but the programmes did not save: ${e.message}`, 'error');
+        }
+      }
+    }
+
     toast(`✅ ${name} created successfully!`, 'success');
     [`${prefix}-name`,`${prefix}-email`,`${prefix}-phone`,`${prefix}-pwd`].forEach(id => {
       const el = document.getElementById(id); if (el) el.value = '';

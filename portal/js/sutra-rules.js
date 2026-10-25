@@ -215,9 +215,11 @@ var Sutras = (function () {
                 4: '3-digit x 2-digit and 2-digit x 2-digit',
                 5: '3-digit x 3-digit and 3-digit x 2-digit' },
       notFor: 'It always works, but a special method is quicker where one fits',
-      applies: function (a, b, L) {
+      applies: function (a, b, L, list) {
         if (!isInt(a) || !isInt(b) || a < 2 || b < 2) return false;
-        var list = this.shapes[L];
+        /* the caller passes what is in force; falls back to this level's
+           built-in list when called directly */
+        list = (list && list.length) ? list : this.shapes[L];
         if (!list || !list.length) return false;
         var da = digits(a), db = digits(b);
         return list.some(function (w) {
@@ -695,9 +697,63 @@ var Sutras = (function () {
   var LEVEL_MAP = null;      // { 1: ['nikhilam_sub', ...], ... } from the curriculum
   var STATUS_MAP = null;     // { '1:nikhilam_sub': 'I', ... }
 
-  function setLevelMap(map, statuses) {
+  /* Shapes she has set in the course map, as level:method -> [[2,1],...].
+     The built-in list stays the fallback, so a method she has not
+     touched behaves exactly as before. */
+  var SHAPE_MAP = null;
+
+  function setLevelMap(map, statuses, shapes) {
     LEVEL_MAP = map || null;
     STATUS_MAP = statuses || null;
+    SHAPE_MAP = shapes || null;
+  }
+
+  /** Which shapes of sum a method may use at a level.
+      Her course map first, then the method's own list. */
+  function shapesAt(key, level) {
+    if (SHAPE_MAP) {
+      var mine = SHAPE_MAP[level + ':' + key];
+      if (mine && mine.length) return mine;
+    }
+    var m = METHODS[key];
+    if (!m || !m.shapes) return null;
+    return m.shapes[scopeLevel(key, level)] || null;
+  }
+
+  /** "2x1, 3x1, 2x2" from the notes column, as pairs. Anything that is
+      not a pair of digit counts is ignored rather than guessed at. */
+  var SHAPE_MAX = 4;   /* digits a side, the most this syllabus teaches */
+
+  function parseShapes(text) {
+    if (!text) return null;
+    var out = [], refused = [];
+    String(text).replace(/(\d)\s*[x\u00d7*]\s*(\d)/gi, function (_, a, b) {
+      var da = parseInt(a, 10), db = parseInt(b, 10);
+      /* A typo must not reach a child. "9x9" was taken literally and
+         produced nine-digit sums — 987654321 x 123456789 on a Level 3
+         sheet. Anything outside one to four digits a side is refused
+         and the built-in list stands. */
+      if (da >= 1 && da <= SHAPE_MAX && db >= 1 && db <= SHAPE_MAX) out.push([da, db]);
+      else refused.push(da + 'x' + db);
+      return '';
+    });
+    if (refused.length) {
+      console.warn('Course map: ignoring ' + refused.join(', ') +
+        ' \u2014 more than ' + SHAPE_MAX + ' digits a side is not taught here');
+    }
+    return out.length ? out : null;
+  }
+
+  /** What the course map made of a note, for the screen to show her. */
+  function readShapes(text) {
+    var ok = [], bad = [];
+    String(text || '').replace(/(\d)\s*[x\u00d7*]\s*(\d)/gi, function (_, a, b) {
+      var da = parseInt(a, 10), db = parseInt(b, 10);
+      ((da >= 1 && da <= SHAPE_MAX && db >= 1 && db <= SHAPE_MAX) ? ok : bad)
+        .push(da + ' digit x ' + db + ' digit');
+      return '';
+    });
+    return { shapes: ok, refused: bad, max: SHAPE_MAX };
   }
   function usingCurriculum() { return !!LEVEL_MAP; }
 
@@ -724,7 +780,7 @@ var Sutras = (function () {
     var m = METHODS[key];
     if (!m || !m.ready) return false;
     if (!taughtAt(key, level)) return false;   // not taught at this level
-    try { return !!m.applies(a, b, scopeLevel(key, level)); }
+    try { return !!m.applies(a, b, scopeLevel(key, level), shapesAt(key, level)); }
     catch (e) { return false; }
   }
 
@@ -755,6 +811,7 @@ var Sutras = (function () {
     setLevelMap: setLevelMap, usingCurriculum: usingCurriculum,
     scopeLevel: scopeLevel, taughtAt: taughtAt, statusAt: statusAt,
     methodsAt: methodsAt, readyAt: readyAt, notReady: notReady, scopeOf: scopeOf,
+    shapesAt: shapesAt, parseShapes: parseShapes, readShapes: readShapes,
     deviation: deviation, isBaseMultiple: isBaseMultiple, digitSum: digitSum,
     isPerfectSquare: isPerfectSquare, isPerfectCube: isPerfectCube
   };

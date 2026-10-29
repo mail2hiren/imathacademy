@@ -619,11 +619,23 @@ async function toggleAssign(studentId) {
       delete waiting[studentId];
       msg.className = 'msg ok'; msg.textContent = 'Taken back from ' + (kid.name || 'that child') + '.';
     } else {
-      var ins = await sb.from('test_attempts').insert({
+      /* The row, with the programme. test_attempts was created before
+         Vedic existed, so on an older database it has no program_code
+         column and the whole insert is rejected — which is why giving
+         out a Vedic paper failed while nothing looked wrong on screen.
+         The level code already carries the programme (VL3 against L3),
+         so the row is still correct without it. */
+      var row = {
         blueprint_id: open_.id, student_id: studentId,
         program_code: PROG, level_code: open_.levelCode, test_no: open_.testNo,
         attempt_no: 1, questions: [], answers: {}
-      }).select();
+      };
+      var ins = await sb.from('test_attempts').insert(row).select();
+      if (ins.error && /program_code/i.test(ins.error.message || '')) {
+        console.warn('test_attempts has no program_code column; writing without it');
+        delete row.program_code;
+        ins = await sb.from('test_attempts').insert(row).select();
+      }
       if (ins.error) throw ins.error;
       if (!ins.data || !ins.data.length) throw new Error('nothing was written');
       waiting[studentId] = true;
@@ -644,10 +656,14 @@ async function toggleAssign(studentId) {
     draw();
   } catch (e) {
     var denied = /policy|permission|denied|row-level/i.test(e.message || '');
+    var missing = /column|does not exist|schema cache/i.test(e.message || '');
     msg.className = 'msg err';
     msg.textContent = denied
       ? 'Not allowed yet \u2014 run 025_test_assign.sql, which lets a teacher give a paper to a child. ' +
         'Nothing else needs changing.'
+      : missing
+      ? 'The tests table is missing a column this needs (' + e.message + '). ' +
+        'Run 030_tests_program.sql and try again.'
       : 'Not saved: ' + (e.message || 'unknown');
   }
 }

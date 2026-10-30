@@ -579,27 +579,59 @@ function assignBox() {
   var waiting = WAITING[key] || {};
   var sat = (SAT[key] || { sat: {} }).sat;
 
-  var onLevel = KIDS.filter(function (k) { return k.level === open_.levelCode; });
-  var others  = KIDS.filter(function (k) { return k.level !== open_.levelCode; });
+  /* Three groups, because they need different care:
+       - on this level, learning this subject — the ones she means
+       - learning it, but on another level — possible, deliberate
+       - not learning this subject at all — a mistake waiting to happen
 
-  function row(k) {
+     All 28 children used to be listed together as "Other children",
+     so a Vedic paper could be handed to a child who does only Abacus
+     with nothing to warn her. */
+  var onLevel = KIDS.filter(function (k) { return k.level === open_.levelCode; });
+  var otherLevel = KIDS.filter(function (k) {
+    return k.level && k.level !== open_.levelCode;
+  });
+  var notLearning = KIDS.filter(function (k) { return !k.level; });
+
+  function row(k, warn) {
     var state = waiting[k.id] ? 'waiting' : sat[k.id] ? 'sat' : 'no';
-    return '<button class="opt" style="margin:0 6px 6px 0;" ' +
+    var label = esc(k.name) + (k.level ? ' \u00b7 ' + esc(k.level) : '');
+    return '<button class="opt" ' +
       'aria-pressed="' + (state === 'waiting') + '" ' +
       (state === 'sat' ? 'disabled title="Has already sat this paper"' :
-        'onclick="toggleAssign(\'' + k.id + '\')"') + '>' +
-      esc(k.name) + (k.level ? ' \u00b7 ' + esc(k.level) : '') +
+        'onclick="toggleAssign(\'' + k.id + '\'' + (warn ? ', true' : '') + ')"') + '>' +
+      label +
       (state === 'waiting' ? ' \u2713' : state === 'sat' ? ' \u2014 sat' : '') +
     '</button>';
   }
 
+  /* A row of names needs room to breathe; they used to run together. */
+  function group(list, warn) {
+    return '<div style="display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 4px;">' +
+      list.map(function (k) { return row(k, warn); }).join('') + '</div>';
+  }
+
+  var progName = PROG === 'vedic' ? 'Vedic Maths' : 'Abacus';
+
   var h = '<div class="lab">Give this paper to</div>' +
     (onLevel.length
-      ? '<div>' + onLevel.map(row).join('') + '</div>'
+      ? group(onLevel)
       : '<div class="sec" style="color:var(--t3);font-size:.84rem;">No child is on ' +
-        esc(open_.levelCode) + ' at the moment.</div>') +
-    (others.length
-      ? '<div class="lab">Other children</div><div>' + others.map(row).join('') + '</div>'
+        esc(open_.levelCode) + ' in ' + progName + ' at the moment.</div>') +
+    (otherLevel.length
+      ? '<div class="lab">On another ' + progName + ' level</div>' + group(otherLevel)
+      : '') +
+    (notLearning.length
+      ? '<details style="margin-top:10px;"><summary style="cursor:pointer;font-size:.8rem;' +
+          'font-weight:800;color:var(--t3);">' +
+          notLearning.length + ' children not learning ' + progName +
+        '</summary>' +
+        '<div style="font-size:.78rem;color:var(--bad,#C62828);margin:8px 0 6px;font-weight:700;">' +
+          'Giving a ' + progName + ' paper to one of these will ask you to confirm first \u2014 ' +
+          'they are not enrolled in it, so it would be the only ' + progName +
+          ' work they have.</div>' +
+        group(notLearning, true) +
+      '</details>'
       : '') +
     '<div class="msg" id="amsg" role="status"></div>' +
     '<div class="note">A child sees only the papers given to them, and sits it when you are there. ' +
@@ -607,7 +639,14 @@ function assignBox() {
   document.getElementById('paper').innerHTML = h;
 }
 
-async function toggleAssign(studentId) {
+async function toggleAssign(studentId, warn) {
+  if (warn && !window.confirm(
+      'This child is not enrolled in ' + (PROG === 'vedic' ? 'Vedic Maths' : 'Abacus') +
+      '. Give them this paper anyway?')) return;
+  return toggleAssignNow(studentId);
+}
+
+async function toggleAssignNow(studentId) {
   var key = open_.levelCode + '|' + open_.testNo;
   var waiting = WAITING[key] = WAITING[key] || {};
   var msg = document.getElementById('amsg');

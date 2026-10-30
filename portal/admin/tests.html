@@ -245,7 +245,12 @@ async function load() {
     var lvlOf = {};
     (kids.data || []).forEach(function (k) {
       if (k.is_active === false || k.current_level == null) return;
-      var code = (PROG === 'vedic' ? 'VL' : 'L') + k.current_level;
+      /* The SAME code the papers use. The curriculum tables and
+         test_blueprints key a level as "L1" and tell the programmes
+         apart with program_code; this screen was inventing "VL1" for a
+         Vedic child, so no child ever matched a Vedic paper and the
+         list of children to give it to came out empty. */
+      var code = 'L' + k.current_level;
       ONLEVEL[code] = (ONLEVEL[code] || 0) + 1;
       lvlOf[k.student_id] = code;
     });

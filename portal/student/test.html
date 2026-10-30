@@ -170,7 +170,10 @@ async function start() {
      programme they learn. */
   var wanted = PROGS.map(function (p) {
     return { program: p.program_code,
-             code: (p.program_code === 'vedic' ? 'VL' : 'L') + levelOf(p.program_code) };
+             /* Positions are stored with a VL prefix for Vedic; blueprints are
+         not. Both are kept so each comparison uses the right one. */
+      code: 'L' + levelOf(p.program_code),
+      posCode: (p.program_code === 'vedic' ? 'VL' : 'L') + levelOf(p.program_code) };
   });
 
   var bp = await sb.from('test_blueprints').select('*').eq('status', 'published');
@@ -205,7 +208,11 @@ async function start() {
     var k = b.level_code + '|' + b.test_no;
     if (!(givenTo[k] || everSat[k])) return false;
     if (!SUBJECT_NOW) return true;
-    return (/^VL/.test(b.level_code) ? 'vedic' : 'abacus') === SUBJECT_NOW;
+    /* The paper says which programme it belongs to. Reading it from a
+       "VL" prefix was wrong: blueprints are saved as L1 with a separate
+       program_code, so every Vedic paper looked like an Abacus one and
+       would have been offered to the wrong children. */
+    return (b.program_code || (/^VL/.test(b.level_code) ? 'vedic' : 'abacus')) === SUBJECT_NOW;
   }).sort(function (a, b) { return a.test_no - b.test_no; });
   PAPERS.forEach(function (b) { b._given = givenTo[b.level_code + '|' + b.test_no] || null; });
 

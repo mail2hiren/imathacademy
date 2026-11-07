@@ -257,6 +257,26 @@ async function load(id) {
     pos: pos.data || [], subs: subs.data || []
   };
   draw();
+
+  /* The championship, read after the page is drawn so a parent never
+     waits on it, and only shown once the teacher has revealed. */
+  loadChampionship(id);
+}
+
+async function loadChampionship(id) {
+  try {
+    var c = await sb.from('competitions').select('*')
+      .eq('status', 'revealed').order('revealed_at', { ascending: false }).limit(1);
+    var comp = (c.data || [])[0];
+    if (!comp) return;
+    var e = await sb.from('competition_entries').select('*')
+      .eq('competition_id', comp.id).eq('student_id', id).maybeSingle();
+    if (!e.data) return;
+    DATA.champ = { comp: comp, entry: e.data };
+    draw();
+  } catch (err) {
+    console.warn('Could not read the championship:', err.message);
+  }
 }
 
 /* ── the words a parent reads or hears ─────────────────────── */
@@ -605,6 +625,25 @@ function draw() {
     '. There is nothing separate to pay for each.</div>' +
   '<a class="go' + (best && left > 14 ? ' ghost' : '') + '" href="payments.html">' +
     (best ? 'Fees and receipts' : 'Pay now') + '</a></div>';
+
+  /* ── the championship, once it has been revealed ──────────────
+     One line, and only after her teacher has shown the results. No
+     ranking against other children by name, which is the rule the
+     rest of this screen already holds to. */
+  if (DATA.champ && DATA.champ.comp && DATA.champ.entry) {
+    var ch = DATA.champ, ce = ch.entry;
+    var place = ce.place_in_band;
+    var placed = place && place <= 3
+      ? (place === 1 ? 'came first' : place === 2 ? 'came second' : 'came third') +
+        ' in ' + esc(ce.band_label || 'their group')
+      : 'took part';
+    h += '<div class="card"><h2>Championship</h2>' +
+      '<div class="money"><span class="st"><b>' + esc(ch.comp.name) + '</b>' +
+      '<span>' + esc(first(DATA.kid.full_name)) + ' ' + placed + ' \u2014 ' +
+        ce.correct + ' of ' + ce.attempted + ' right.</span></span>' +
+      (place && place <= 3 ? '<span class="pill ok">\uD83C\uDFC6</span>' : '') +
+      '</div></div>';
+  }
 
   /* ── the awards ── */
   h += '<div class="card"><h2>Certificates</h2>' +

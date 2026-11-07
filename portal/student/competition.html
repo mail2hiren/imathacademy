@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Championship &mdash; iMath Academy</title>
+<link rel="icon" type="image/png" href="/assets/icon-32.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Fredoka:wght@600&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#16324F; --t2:#4A5160; --t3:#8892A4; --line:#E6E9F0; --bg:#F4F7FB;
+         --org:#E67D21; --org-soft:#FFF4E8; --org-ink:#8a4b00;
+         --good:#2E7D32; --good-soft:#E8F5E9; --bad:#C62828;
+         --gold:#B8860B; --gold-soft:#FFF8E1; }
+  :root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px);
+         padding-bottom:env(safe-area-inset-bottom,0px); }
+  *,*::before,*::after{ box-sizing:inherit; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{ font-family:'Nunito',system-ui,sans-serif; background:var(--bg); color:var(--ink); }
+
+  .top{ background:#fff; border-bottom:1.5px solid var(--line); padding:10px 14px;
+        display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:20; }
+  .top .where{ font-weight:900; font-size:.92rem; }
+  .top .band{ font-size:.74rem; color:var(--t3); font-weight:800; }
+  .clock{ margin-left:auto; font-family:'Fredoka','Nunito',sans-serif; font-size:1.25rem;
+          font-weight:600; color:var(--t2); }
+  .clock.low{ color:var(--org); }
+
+  .wrap{ max-width:720px; margin:0 auto; padding:16px 14px 50px; }
+  .card{ background:#fff; border-radius:18px; padding:20px 18px; box-shadow:0 1px 0 var(--line); }
+
+  .sum{ font-family:'Fredoka','Nunito',sans-serif; font-weight:600; text-align:center;
+        margin:14px 0; line-height:1.3; }
+  .sum .rows{ display:inline-block; text-align:right; font-variant-numeric:tabular-nums; }
+  .sum[data-rows="1"], .sum[data-rows="2"], .sum[data-rows="3"],
+  .sum[data-rows="4"]{ font-size:2.1rem; }
+  .sum[data-rows="5"]{ font-size:1.85rem; } .sum[data-rows="6"]{ font-size:1.65rem; }
+  .sum[data-rows="7"]{ font-size:1.5rem; }  .sum[data-rows="8"]{ font-size:1.35rem; }
+  .sum[data-rows="9"]{ font-size:1.25rem; } .sum[data-rows="10"]{ font-size:1.15rem; }
+  @media (max-height:740px){
+    .sum[data-rows="5"]{ font-size:1.6rem; } .sum[data-rows="6"]{ font-size:1.4rem; }
+    .sum[data-rows="7"]{ font-size:1.28rem; } .sum[data-rows="8"]{ font-size:1.18rem; }
+    .sum[data-rows="9"]{ font-size:1.1rem; } .sum[data-rows="10"]{ font-size:1rem; }
+  }
+  .rule{ border-top:3px solid var(--ink); margin-top:4px; }
+
+  .choices{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
+  .choice{ padding:18px 10px; border:2px solid var(--line); background:#fff; border-radius:14px;
+           font:900 1.3rem 'Nunito',sans-serif; cursor:pointer; }
+  .choice[aria-pressed="true"]{ border-color:var(--org); background:var(--org-soft); color:var(--org-ink); }
+  .typed{ width:100%; padding:14px; border:2px solid var(--line); border-radius:14px;
+          font:900 1.3rem 'Nunito',sans-serif; text-align:center; margin-top:14px; }
+
+  .dots{ display:flex; gap:5px; justify-content:center; margin-top:16px; flex-wrap:wrap; }
+  .dot{ width:11px; height:11px; border-radius:50%; background:var(--line); }
+  .dot.done{ background:var(--org); } .dot.here{ box-shadow:0 0 0 3px var(--org-soft); background:var(--org); }
+
+  .acts{ display:flex; gap:9px; margin-top:18px; }
+  .btn{ flex:1; padding:15px; border:none; border-radius:14px; background:var(--org); color:#fff;
+        font:900 1rem 'Nunito',sans-serif; cursor:pointer; }
+  .btn.ghost{ background:#fff; color:var(--t2); border:2px solid var(--line); flex:0 0 auto; padding:15px 20px; }
+  .btn:disabled{ opacity:.45; cursor:default; }
+
+  .hero{ text-align:center; padding:26px 18px; }
+  .hero .trophy{ font-size:3rem; }
+  .hero h1{ font-size:1.4rem; font-weight:900; margin:10px 0 6px; }
+  .hero p{ color:var(--t2); font-size:.92rem; line-height:1.55; }
+  .big{ font-family:'Fredoka','Nunito',sans-serif; font-size:2.6rem; font-weight:600; color:var(--org); }
+  .pill{ display:inline-block; background:var(--org-soft); color:var(--org-ink);
+         font-weight:900; font-size:.8rem; padding:5px 13px; border-radius:999px; margin-top:8px; }
+  .pill.gold{ background:var(--gold-soft); color:var(--gold); }
+
+  .line{ display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--line);
+         font-size:.9rem; }
+  .line b{ font-weight:900; }
+  .note{ font-size:.8rem; color:var(--t3); margin-top:14px; line-height:1.5; }
+  .err{ background:#FDECEA; color:var(--bad); border-radius:13px; padding:14px; font-weight:800; }
+  .spin{ padding:48px; text-align:center; color:var(--t3); }
+  button:focus-visible, input:focus-visible{ outline:3px solid var(--org); outline-offset:2px; }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div>
+    <div class="where" id="where">Championship</div>
+    <div class="band" id="band"></div>
+  </div>
+  <div class="clock" id="clock"></div>
+</div>
+
+<div class="wrap" id="body"><div class="spin">Loading&hellip;</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/bead-rules.js"></script>
+<script src="../js/column-gen.js"></script>
+<script src="../js/word-problems.js"></script>
+<script src="../js/practice-engine.js"></script>
+<script src="../js/test-gen.js"></script>
+<script src="../js/programs.js"></script>
+<script src="../js/access.js"></script>
+<script>
+/* ============================================================
+   Championship — the child's side
+   ------------------------------------------------------------
+   Three rounds, all of which every child plays. Nobody is knocked
+   out: with thirty children a knockout sends half of them home after
+   one round, and the ones who most need the encouragement go first.
+
+   A child sees their position WITHIN THEIR OWN BAND of levels, and
+   never a global rank — "27th of 30" is not something to show a
+   seven-year-old who has just worked hard for half an hour.
+
+   Timing is measured on this device, from the moment a question is
+   drawn to the moment it is answered, so a child on slow wifi is not
+   punished for it. Accuracy decides the score; time only ever breaks
+   a tie between children who got the same number right.
+   ============================================================ */
+
+var sb = supabase.createClient(
+  'https://bhullfoajenhkxlkiubs.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc');
+
+var ME = null, COMP = null, ROUNDS = [], ENTRY = null, LEVEL = 0, BAND = '';
+var paper = null, at = 0, given = {}, shownAt = 0, msPer = {}, ticker = null, endsAt = 0;
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+  return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+function el(id){ return document.getElementById(id); }
+function fail(t){ el('body').innerHTML = '<div class="err">' + esc(t) + '</div>'; }
+
+function bandLabel(b){ return b[0] === b[1] ? 'Level ' + b[0] : 'Level ' + b[0] + '\u2013' + b[1]; }
+function bandOf(level, bands){
+  for (var i = 0; i < (bands || []).length; i++) {
+    if (level >= bands[i][0] && level <= bands[i][1]) return bandLabel(bands[i]);
+  }
+  return 'Level ' + level;
+}
+
+async function start() {
+  var s = await sb.auth.getSession();
+  if (!s.data.session) { location.href = '../../login.html'; return; }
+  ME = s.data.session.user.id;
+
+  /* A competition is part of what the family pays for. */
+  if (typeof Access !== 'undefined' && !(await Access.require(ME))) return;
+
+  var c = await sb.from('competitions').select('*')
+    .eq('program_code', 'abacus').neq('status', 'draft')
+    .order('held_on', { ascending: false }).limit(1);
+  if (c.error) { fail('Could not load the championship: ' + c.error.message); return; }
+  COMP = (c.data || [])[0];
+  if (!COMP) { fail('There is no championship at the moment.'); return; }
+
+  el('where').textContent = COMP.name;
+
+  var r = await sb.from('competition_rounds').select('*')
+    .eq('competition_id', COMP.id).order('round_no');
+  ROUNDS = r.data || [];
+
+  /* The level they are on in this programme, which decides their band. */
+  LEVEL = 0;
+  try {
+    var pr = await sb.from('student_programs')
+      .select('current_level').eq('student_id', ME).eq('program_code', 'abacus').maybeSingle();
+    LEVEL = (pr.data && pr.data.current_level) || 0;
+  } catch (e) {}
+  BAND = bandOf(LEVEL, COMP.bands);
+  el('band').textContent = BAND;
+
+  var e = await sb.from('competition_entries').select('*')
+    .eq('competition_id', COMP.id).eq('student_id', ME).maybeSingle();
+  ENTRY = e.data || null;
+
+  route();
+}
+
+function route() {
+  if (ENTRY && ENTRY.finished_at) return showResult();
+  if (COMP.status === 'closed')   return showClosed();
+  if (COMP.status === 'revealed') return showResult();
+  if (COMP.status !== 'open')     return showWaiting();
+  if (!ENTRY)                     return showReady();
+  return loadRound(ENTRY.round_no || 1);
+}
+
+/* ── Before it opens ────────────────────────────────────── */
+function showWaiting() {
+  el('body').innerHTML = '<div class="card hero">' +
+    '<div class="trophy">\uD83C\uDFC6</div>' +
+    '<h1>' + esc(COMP.name) + '</h1>' +
+    '<p>' + new Date(COMP.held_on + 'T00:00:00').toLocaleDateString('en-IN',
+      { weekday:'long', day:'numeric', month:'long' }) + '<br>' +
+      'You will be in <b>' + esc(BAND) + '</b>.</p>' +
+    '<span class="pill">Not open yet</span>' +
+    '<div class="note">Your teacher will open it on the day. ' +
+      'Three rounds, and everyone plays all three.</div>' +
+    '<div class="acts"><a class="btn ghost" href="dashboard.html" ' +
+      'style="text-decoration:none;text-align:center;">Back</a></div>' +
+  '</div>';
+}
+
+function showClosed() {
+  el('body').innerHTML = '<div class="card hero">' +
+    '<div class="trophy">\u23F1\uFE0F</div><h1>' + esc(COMP.name) + '</h1>' +
+    '<p>This one has closed.' + (ENTRY ? '' : ' You did not take part this time.') + '</p>' +
+    '<div class="note">Your teacher will show the results soon.</div>' +
+    '<div class="acts"><a class="btn ghost" href="dashboard.html" ' +
+      'style="text-decoration:none;text-align:center;">Back</a></div></div>';
+}
+
+/* ── Ready to start ─────────────────────────────────────── */
+function showReady() {
+  el('body').innerHTML = '<div class="card hero">' +
+    '<div class="trophy">\uD83C\uDFC6</div>' +
+    '<h1>' + esc(COMP.name) + '</h1>' +
+    '<p>Three rounds, one after the other.<br>' +
+      'You have <b>' + COMP.minutes + ' minutes</b> once you begin.<br>' +
+      'You are in <b>' + esc(BAND) + '</b>.</p>' +
+    '<div class="note" style="margin-bottom:4px;">Getting them right matters most. ' +
+      'Being quick only counts if two children get the same number right.</div>' +
+    '<div class="acts"><button class="btn" onclick="begin()">Start &mdash; ' +
+      COMP.minutes + ' minutes</button></div>' +
+    '<div class="note">Once you start, the clock keeps going even if you close this page. ' +
+      'Make sure you are ready.</div>' +
+  '</div>';
+}
+
+async function begin() {
+  if (!window.confirm('Start now? The clock runs for ' + COMP.minutes +
+      ' minutes and cannot be paused.')) return;
+  el('body').innerHTML = '<div class="spin">Building your first round\u2026</div>';
+  var res = await sb.from('competition_entries').insert({
+    competition_id: COMP.id, student_id: ME,
+    band_label: BAND, level_at_entry: LEVEL, round_no: 1, rounds: []
+  }).select();
+  if (res.error) { fail('Could not start: ' + res.error.message); return; }
+  ENTRY = res.data[0];
+  loadRound(1);
+}
+
+/* ── A round ────────────────────────────────────────────── */
+async function loadRound(n) {
+  var round = ROUNDS.filter(function (x) { return x.round_no === n; })[0];
+  if (!round) return finishAll();
+
+  el('body').innerHTML = '<div class="spin">Building round ' + n + '\u2026</div>';
+  try {
+    paper = await TestGen.build({
+      program_code: 'abacus', level_code: 'L' + LEVEL, test_no: n,
+      pass_mark: 0, sections: round.sections
+    });
+  } catch (e) { fail('Could not build round ' + n + ': ' + e.message); return; }
+
+  at = 0; given = {}; msPer = {};
+  startClock();
+  drawQuestion();
+}
+
+function startClock() {
+  if (ticker) clearInterval(ticker);
+  var began = new Date(ENTRY.started_at).getTime();
+  endsAt = began + (COMP.minutes * 60000);
+  ticker = setInterval(tick, 1000);
+  tick();
+}
+function tick() {
+  var left = Math.max(0, endsAt - Date.now());
+  var m = Math.floor(left / 60000), s = Math.floor((left % 60000) / 1000);
+  var c = el('clock');
+  c.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  c.className = 'clock' + (left < 60000 ? ' low' : '');
+  if (left <= 0) { clearInterval(ticker); ticker = null; submitRound(true); }
+}
+
+function drawQuestion() {
+  var qs = paper.questions, q = qs[at];
+  var rows = q.rows || [];
+  shownAt = Date.now();           /* measured here, on this device */
+
+  var sum = rows.length
+    ? '<div class="sum" data-rows="' + Math.min(10, rows.length) + '">' +
+        '<span class="rows">' + rows.map(function (n, i) {
+          return '<div>' + (i === 0 ? '' : (n < 0 ? '&minus; ' : '+ ')) +
+            esc(Math.abs(n)) + '</div>';
+        }).join('') + '<div class="rule"></div></span></div>'
+    : '<div class="sum" data-rows="1">' + esc(q.question || '') + '</div>';
+
+  var choices = (q.choices && q.choices.length)
+    ? '<div class="choices">' + q.choices.map(function (c) {
+        return '<button class="choice" aria-pressed="' + (given[at] === c) + '" ' +
+          'onclick="answer(\'' + esc(String(c)).replace(/'/g, "\\'") + '\')">' + esc(c) + '</button>';
+      }).join('') + '</div>'
+    : '<input class="typed" id="typed" inputmode="decimal" placeholder="your answer" ' +
+      'value="' + esc(given[at] || '') + '" oninput="answer(this.value, true)">';
+
+  el('body').innerHTML = '<div class="card">' +
+    '<div style="display:flex;justify-content:space-between;font-size:.76rem;' +
+      'font-weight:800;color:var(--t3);">' +
+      '<span>Round ' + (ENTRY.round_no || 1) + ' of ' + ROUNDS.length + '</span>' +
+      '<span>Question ' + (at + 1) + ' of ' + qs.length + '</span></div>' +
+    sum + choices +
+    '<div class="dots">' + qs.map(function (x, i) {
+      return '<span class="dot' + (given[i] != null && given[i] !== '' ? ' done' : '') +
+        (i === at ? ' here' : '') + '"></span>';
+    }).join('') + '</div>' +
+    '<div class="acts">' +
+      '<button class="btn ghost" onclick="move(-1)"' + (at === 0 ? ' disabled' : '') + '>Back</button>' +
+      (at === qs.length - 1
+        ? '<button class="btn" onclick="submitRound(false)">Finish round ' + (ENTRY.round_no || 1) + '</button>'
+        : '<button class="btn" onclick="move(1)">Next</button>') +
+    '</div></div>';
+  var t = el('typed'); if (t) t.focus();
+}
+
+function answer(v, typed) {
+  /* The time is taken from when the question appeared to the first
+     answer given, so changing your mind later is not punished. */
+  if (msPer[at] == null) msPer[at] = Date.now() - shownAt;
+  given[at] = v;
+  if (!typed) { if (at < paper.questions.length - 1) move(1); else drawQuestion(); }
+}
+function move(d) {
+  at = Math.min(paper.questions.length - 1, Math.max(0, at + d));
+  drawQuestion();
+}
+
+function same(a, b) {
+  var x = String(a == null ? '' : a).replace(/\s+/g, '').toLowerCase();
+  var y = String(b == null ? '' : b).replace(/\s+/g, '').toLowerCase();
+  if (x === y) return true;
+  var nx = Number(x), ny = Number(y);
+  return x !== '' && isFinite(nx) && isFinite(ny) && Math.abs(nx - ny) < 1e-9;
+}
+
+async function submitRound(ranOut) {
+  if (ticker) { clearInterval(ticker); ticker = null; }
+  var qs = paper.questions;
+
+  var blank = qs.filter(function (x, k) { return given[k] == null || given[k] === ''; }).length;
+  if (!ranOut && blank &&
+      !window.confirm(blank + ' still blank. Finish this round anyway?')) {
+    startClock(); drawQuestion(); return;
+  }
+
+  var right = 0, ms = 0;
+  var work = qs.map(function (q, k) {
+    var ok = same(given[k], q.answer);
+    if (ok) right++;
+    ms += msPer[k] || 0;
+    return { q: q.question || (q.rows || []).join(' '), answer: q.answer,
+             gave: given[k] == null ? '' : given[k], ok: ok, ms: msPer[k] || 0 };
+  });
+
+  var rounds = (ENTRY.rounds || []).slice();
+  rounds.push({ round_no: ENTRY.round_no, correct: right, of: qs.length, ms: ms, work: work });
+
+  var last = (ENTRY.round_no || 1) >= ROUNDS.length;
+  var patch = {
+    rounds: rounds,
+    correct: (ENTRY.correct || 0) + right,
+    attempted: (ENTRY.attempted || 0) + qs.length,
+    score: ((ENTRY.correct || 0) + right) * 10,
+    total_ms: (ENTRY.total_ms || 0) + ms,
+    round_no: last ? ENTRY.round_no : (ENTRY.round_no + 1)
+  };
+  if (last || ranOut) patch.finished_at = new Date().toISOString();
+
+  var res = await sb.from('competition_entries').update(patch).eq('id', ENTRY.id).select();
+  if (res.error) { fail('Could not save your round: ' + res.error.message); return; }
+  ENTRY = res.data[0];
+
+  if (ENTRY.finished_at) return showResult();
+  betweenRounds(right, qs.length);
+}
+
+/* ── The breath between rounds ──────────────────────────── */
+function betweenRounds(right, of) {
+  el('clock').textContent = '';
+  el('body').innerHTML = '<div class="card hero">' +
+    '<div class="trophy">\u2705</div>' +
+    '<h1>Round ' + (ENTRY.round_no - 1) + ' done</h1>' +
+    '<div class="big">' + right + ' of ' + of + '</div>' +
+    '<p>So far: <b>' + ENTRY.correct + ' right</b> out of ' + ENTRY.attempted + '.</p>' +
+    '<span class="pill">' + esc(BAND) + '</span>' +
+    '<div class="acts"><button class="btn" onclick="loadRound(' + ENTRY.round_no + ')">' +
+      'Start round ' + ENTRY.round_no + '</button></div>' +
+    '<div class="note">Take a breath. The clock is still running.</div>' +
+  '</div>';
+  startClock();
+}
+
+async function finishAll() {
+  await sb.from('competition_entries')
+    .update({ finished_at: new Date().toISOString() }).eq('id', ENTRY.id);
+  var e = await sb.from('competition_entries').select('*').eq('id', ENTRY.id).maybeSingle();
+  ENTRY = e.data; showResult();
+}
+
+/* ── Their result ───────────────────────────────────────── */
+function showResult() {
+  if (ticker) { clearInterval(ticker); ticker = null; }
+  el('clock').textContent = '';
+
+  if (!ENTRY) return showClosed();
+
+  var rounds = ENTRY.rounds || [];
+  var best = rounds.slice().sort(function (a, b) {
+    return (b.correct / (b.of || 1)) - (a.correct / (a.of || 1));
+  })[0];
+  var pct = ENTRY.attempted ? Math.round(ENTRY.correct / ENTRY.attempted * 100) : 0;
+
+  /* A placing is only shown once their teacher has revealed the
+     results, and only when it is a top-three finish in their own
+     band. A child who came last is told how they did, not where
+     they came. */
+  var top = COMP.status === 'revealed' && ENTRY.place_in_band && ENTRY.place_in_band <= 3;
+
+  el('body').innerHTML = '<div class="card hero">' +
+    '<div class="trophy">' + (top ? '\uD83C\uDFC6' : '\uD83C\uDF89') + '</div>' +
+    '<h1>' + (top ? (ENTRY.place_in_band === 1 ? 'Champion!' :
+                     ENTRY.place_in_band === 2 ? 'Second place!' : 'Third place!')
+                  : 'You finished!') + '</h1>' +
+    (top ? '<span class="pill gold">' + esc(BAND) + '</span>' : '') +
+    '<div class="big" style="margin-top:10px;">' + ENTRY.correct + ' of ' + ENTRY.attempted + '</div>' +
+    '<p>' + pct + ' out of every hundred right' +
+      (best ? '<br>Your best was <b>round ' + best.round_no + '</b>, ' +
+              best.correct + ' of ' + best.of : '') + '</p>' +
+    '<div style="text-align:left;margin-top:16px;">' +
+      rounds.map(function (r) {
+        return '<div class="line"><span>Round ' + r.round_no + '</span>' +
+          '<b>' + r.correct + ' of ' + r.of + '</b></div>';
+      }).join('') +
+    '</div>' +
+    (COMP.status === 'revealed'
+      ? ''
+      : '<div class="note">Your teacher will show everyone the results soon.</div>') +
+    '<div class="acts" style="margin-top:18px;">' +
+      '<a class="btn ghost" href="dashboard.html" style="text-decoration:none;text-align:center;flex:1;">' +
+        'Back to my dashboard</a></div>' +
+    '<div class="note">Well done for taking part \u2014 every round counts.</div>' +
+  '</div>';
+}
+
+/* Leaving mid-round must not lose the work: the clock keeps running
+   either way, so what is answered so far is kept. */
+window.addEventListener('beforeunload', function () {
+  if (!paper || !ENTRY || ENTRY.finished_at) return;
+  try {
+    navigator.sendBeacon && null;   /* nothing to send; the round is rebuilt on return */
+  } catch (e) {}
+});
+
+start().catch(function (e) { fail('Could not load: ' + e.message); });
+</script>
+</body>
+</html>

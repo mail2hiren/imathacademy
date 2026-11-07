@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Competitions &mdash; iMath Academy</title>
+<link rel="icon" type="image/png" href="/assets/icon-32.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#1F2430; --t2:#4A5160; --t3:#8892A4; --line:#E6E9F0; --bg:#F5F7FC;
+         --abacus:#E67D21; --abacus-soft:#FFF4E8; --abacus-ink:#8a4b00;
+         --vedic:#04949D; --vedic-soft:#E7F6F7; --vedic-ink:#04616a;
+         --good:#2E7D32; --good-soft:#E8F5E9; --warn:#EF6C00; --bad:#C62828;
+         --gold:#B8860B; --gold-soft:#FFF8E1; }
+  :root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px);
+         padding-bottom:env(safe-area-inset-bottom,0px); }
+  *,*::before,*::after{ box-sizing:inherit; margin:0; padding:0; }
+  body{ font-family:'Nunito',system-ui,sans-serif; background:var(--bg); color:var(--ink); }
+
+  .bar{ background:#fff; border-bottom:1.5px solid var(--line); padding:11px 15px;
+        display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:20; }
+  .bar a.back{ color:var(--t3); text-decoration:none; font-size:1.25rem; }
+  .bar h1{ font-size:1.02rem; font-weight:900; }
+  .bar .sub{ font-size:.75rem; color:var(--t3); }
+
+  .wrap{ max-width:1000px; margin:0 auto; padding:14px 14px 60px; }
+  .tabs{ display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+  .tab{ padding:9px 15px; border:2px solid var(--line); background:#fff; border-radius:11px;
+        font:800 .86rem 'Nunito',sans-serif; color:var(--t2); cursor:pointer; }
+  .tab[aria-selected="true"]{ border-color:var(--abacus); background:var(--abacus-soft); color:var(--abacus-ink); }
+
+  .card{ background:#fff; border-radius:16px; padding:15px 16px; margin-bottom:12px;
+         box-shadow:0 1px 0 var(--line); }
+  .card h2{ font-size:.72rem; font-weight:900; letter-spacing:.9pt; text-transform:uppercase;
+            color:var(--t3); margin-bottom:10px; }
+  .lab{ font-size:.72rem; font-weight:900; letter-spacing:.8pt; text-transform:uppercase;
+        color:var(--t3); margin:12px 0 6px; }
+  input, select{ padding:9px 12px; border:1.5px solid var(--line); border-radius:10px;
+        font:700 .88rem 'Nunito',sans-serif; background:#fff; color:var(--ink); }
+  input[type=text], input[type=date]{ width:100%; max-width:340px; }
+  .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+  .btn{ padding:10px 17px; border:none; border-radius:11px; background:var(--abacus); color:#fff;
+        font:900 .88rem 'Nunito',sans-serif; cursor:pointer; }
+  .btn.ghost{ background:#fff; color:var(--t2); border:2px solid var(--line); }
+  .btn.go{ background:var(--good); }
+  .btn.stop{ background:var(--bad); }
+  .btn.gold{ background:var(--gold); }
+  .btn:disabled{ opacity:.45; cursor:default; }
+
+  .pill{ display:inline-block; font-size:.7rem; font-weight:900; padding:3px 10px;
+         border-radius:999px; text-transform:uppercase; letter-spacing:.5pt; }
+  .pill.draft{ background:var(--line); color:var(--t2); }
+  .pill.open{ background:var(--good-soft); color:var(--good); }
+  .pill.closed{ background:#FFF4E6; color:var(--warn); }
+  .pill.revealed{ background:var(--gold-soft); color:var(--gold); }
+
+  table{ width:100%; border-collapse:separate; border-spacing:0; font-size:.86rem; }
+  th,td{ border-bottom:1px solid var(--line); padding:8px 10px; text-align:left; }
+  thead th{ font-size:.68rem; text-transform:uppercase; letter-spacing:.6pt; color:var(--t3);
+            font-weight:900; }
+  td.num{ text-align:right; font-variant-numeric:tabular-nums; font-weight:800; }
+  tr.top td{ background:var(--gold-soft); }
+
+  .msg{ font-size:.82rem; font-weight:800; margin-top:9px; }
+  .msg.ok{ color:var(--good); } .msg.err{ color:var(--bad); }
+  .note{ font-size:.78rem; color:var(--t3); margin-top:8px; }
+  .spin{ padding:36px; text-align:center; color:var(--t3); }
+  .banner{ border-radius:12px; padding:12px 14px; font-size:.85rem; margin-bottom:12px; font-weight:700; }
+  .banner.err{ background:#FDECEA; color:var(--bad); }
+  .banner.info{ background:var(--abacus-soft); color:var(--abacus-ink); }
+  button:focus-visible, input:focus-visible, select:focus-visible{ outline:3px solid var(--abacus); outline-offset:2px; }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <a class="back" href="dashboard.html" aria-label="Back to admin">&larr;</a>
+  <div>
+    <h1>&#127942; Competitions</h1>
+    <div class="sub">Everyone plays every round &mdash; nobody is knocked out</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="banner"></div>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true"  onclick="show('setup',this)">Set up</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="show('watch',this)">Watch</button>
+    <button class="tab" role="tab" aria-selected="false" onclick="show('results',this)">Results</button>
+  </div>
+  <div id="body"><div class="spin">Loading&hellip;</div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/bead-rules.js"></script>
+<script src="../js/column-gen.js"></script>
+<script src="../js/word-problems.js"></script>
+<script src="../js/practice-engine.js"></script>
+<script src="../js/test-gen.js"></script>
+<script>
+/* ============================================================
+   Competitions — Megha's side
+   ------------------------------------------------------------
+   Three rounds, everyone plays all of them, ranked inside a band of
+   levels so a Level 1 child competes against Level 1 children. With
+   thirty children a knockout sends half of them home after one round,
+   and the ones who most need the encouragement go first.
+
+   She holds the switch: open it, close it, and reveal the results when
+   the room is watching. Nothing reaches a child or a parent until she
+   presses Reveal.
+   ============================================================ */
+
+var sb = supabase.createClient(
+  'https://bhullfoajenhkxlkiubs.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc');
+
+var TAB = 'setup', COMPS = [], CUR = null, ROUNDS = [], ENTRIES = [], KIDS = [];
+var PROG = 'abacus';
+
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+  return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+function banner(kind, html){
+  document.getElementById('banner').innerHTML = html
+    ? '<div class="banner ' + kind + '">' + html + '</div>' : '';
+}
+function bandLabel(b){ return b[0] === b[1] ? 'Level ' + b[0] : 'Level ' + b[0] + '\u2013' + b[1]; }
+function bandOf(level, bands){
+  for (var i = 0; i < bands.length; i++) {
+    if (level >= bands[i][0] && level <= bands[i][1]) return bandLabel(bands[i]);
+  }
+  return 'Level ' + level;
+}
+
+async function start() {
+  var s = await sb.auth.getSession();
+  if (!s.data.session) { location.href = '../../login.html'; return; }
+  var me = await sb.from('users').select('role').eq('id', s.data.session.user.id).maybeSingle();
+  if (!me.data || ['teacher','admin'].indexOf(me.data.role) < 0) {
+    banner('err', 'This screen is for teachers and admins.');
+    document.getElementById('body').innerHTML = ''; return;
+  }
+  await load();
+}
+
+async function load() {
+  var c = await sb.from('competitions').select('*')
+    .eq('program_code', PROG).order('held_on', { ascending: false });
+  if (c.error) {
+    banner('err', 'Could not read the competitions: ' + esc(c.error.message) +
+      '. If the table is missing, run 031_competitions.sql.');
+    document.getElementById('body').innerHTML = ''; return;
+  }
+  COMPS = c.data || [];
+  CUR = CUR ? (COMPS.filter(function (x) { return x.id === CUR.id; })[0] || COMPS[0]) : COMPS[0];
+
+  var k = await sb.from('student_programs')
+    .select('student_id, current_level, is_active, users(id, full_name, is_active)')
+    .eq('program_code', PROG);
+  KIDS = (k.data || []).filter(function (r) {
+    return r.is_active !== false && r.users && r.users.is_active;
+  }).map(function (r) {
+    return { id: r.student_id, name: r.users.full_name || 'Child', level: r.current_level || 0 };
+  }).sort(function (a, b) { return a.name.localeCompare(b.name); });
+
+  if (CUR) {
+    var r = await sb.from('competition_rounds').select('*')
+      .eq('competition_id', CUR.id).order('round_no');
+    ROUNDS = r.data || [];
+    var e = await sb.from('competition_entries').select('*').eq('competition_id', CUR.id);
+    ENTRIES = e.data || [];
+  } else { ROUNDS = []; ENTRIES = []; }
+
+  draw();
+}
+
+function show(t, el) {
+  TAB = t;
+  [].forEach.call(document.querySelectorAll('.tab'), function (b) {
+    b.setAttribute('aria-selected', b === el ? 'true' : 'false');
+  });
+  draw();
+}
+
+function draw() {
+  var h = picker();
+  if (TAB === 'setup')   h += setupTab();
+  if (TAB === 'watch')   h += watchTab();
+  if (TAB === 'results') h += resultsTab();
+  document.getElementById('body').innerHTML = h;
+}
+
+function picker() {
+  return '<div class="card"><h2>Competition</h2><div class="row">' +
+    '<select onchange="pick(this.value)">' +
+      (COMPS.length ? '' : '<option>No competition yet</option>') +
+      COMPS.map(function (c) {
+        return '<option value="' + c.id + '"' + (CUR && c.id === CUR.id ? ' selected' : '') + '>' +
+          esc(c.name) + ' \u00b7 ' + c.held_on + '</option>';
+      }).join('') +
+    '</select>' +
+    (CUR ? '<span class="pill ' + CUR.status + '">' + CUR.status + '</span>' : '') +
+    '<button class="btn ghost" onclick="newComp()">+ New competition</button>' +
+    '</div></div>';
+}
+
+function pick(id) { CUR = COMPS.filter(function (c) { return c.id === id; })[0] || null; load(); }
+
+/* ── Set up ─────────────────────────────────────────────── */
+function setupTab() {
+  if (!CUR) {
+    return '<div class="card"><div class="spin">No competition yet. ' +
+      'Press <b>New competition</b> to make one.</div></div>';
+  }
+  var bands = CUR.bands || [];
+  var h = '<div class="card"><h2>The competition</h2>' +
+    '<div class="lab">Name</div>' +
+    '<input type="text" id="f-name" value="' + esc(CUR.name) + '">' +
+    '<div class="row" style="margin-top:12px;">' +
+      '<div><div class="lab">Held on</div>' +
+        '<input type="date" id="f-date" value="' + esc(CUR.held_on) + '"></div>' +
+      '<div><div class="lab">Minutes once a child starts</div>' +
+        '<input type="number" id="f-mins" min="5" max="120" value="' + (CUR.minutes || 30) +
+        '" style="width:90px;"></div>' +
+    '</div>' +
+    '<div class="lab">Level bands</div>' +
+    '<div class="row">' + bands.map(function (b, i) {
+      return '<span class="pill draft">' + bandLabel(b) +
+        ' <a href="#" onclick="dropBand(' + i + ');return false;" ' +
+        'style="color:var(--bad);text-decoration:none;">&times;</a></span>';
+    }).join('') +
+    '<input type="number" id="f-b1" min="0" max="8" placeholder="from" style="width:78px;">' +
+    '<input type="number" id="f-b2" min="0" max="8" placeholder="to" style="width:66px;">' +
+    '<button class="btn ghost" onclick="addBand()">Add band</button>' +
+    '</div>' +
+    '<div class="note">A child is placed in a band by the level they are on when they start. ' +
+      'Each band gets its own champion, so a Level 1 child is not competing against Level 6.</div>' +
+    '<div class="row" style="margin-top:12px;"><button class="btn" onclick="saveComp()">Save</button></div>' +
+    '<div class="msg" id="msg"></div>' +
+  '</div>';
+
+  /* the rounds */
+  h += '<div class="card"><h2>Rounds</h2>';
+  for (var n = 1; n <= (CUR.round_count || 3); n++) {
+    var r = ROUNDS.filter(function (x) { return x.round_no === n; })[0];
+    var secs = r && r.seconds_each;
+    h += '<div style="border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:9px;">' +
+      '<div style="font-weight:900;margin-bottom:7px;">Round ' + n +
+        (r ? '' : ' <span style="color:var(--t3);font-weight:700;font-size:.8rem;">not set up yet</span>') +
+      '</div>' +
+      '<div class="row">' +
+        '<div><div class="lab">Sums</div><input type="number" id="r' + n + '-count" min="5" max="30" value="' +
+          (r && r.sections[0] ? r.sections[0].count : 10) + '" style="width:80px;"></div>' +
+        '<div><div class="lab">Digits</div><input type="number" id="r' + n + '-digits" min="1" max="4" value="' +
+          (r && r.sections[0] ? r.sections[0].digits : Math.min(3, n)) + '" style="width:80px;"></div>' +
+        '<div><div class="lab">Rows</div><input type="number" id="r' + n + '-rows" min="2" max="10" value="' +
+          (r && r.sections[0] ? r.sections[0].rows : 2 + n) + '" style="width:80px;"></div>' +
+        '<div><div class="lab">Seconds a sum</div><input type="number" id="r' + n + '-secs" min="0" max="120" value="' +
+          (secs == null ? 0 : secs) + '" style="width:92px;"></div>' +
+        '<button class="btn ghost" onclick="saveRound(' + n + ')">Save round ' + n + '</button>' +
+        '<button class="btn ghost" onclick="previewRound(' + n + ')">See the sums</button>' +
+      '</div>' +
+      '<div id="pv' + n + '" class="note"></div>' +
+    '</div>';
+  }
+  h += '<div class="note">Zero seconds means the round is not timed per sum \u2014 the only limit is ' +
+    'the minutes above. Each round is built from this level band\u2019s own work, so every child ' +
+    'gets sums they have been taught.</div></div>';
+
+  /* the switch */
+  h += '<div class="card"><h2>Open and close</h2><div class="row">' +
+    '<button class="btn go"   onclick="setStatus(\'open\')"   ' + (CUR.status === 'open' ? 'disabled' : '') + '>Open it</button>' +
+    '<button class="btn stop" onclick="setStatus(\'closed\')" ' + (CUR.status === 'open' ? '' : 'disabled') + '>Close it</button>' +
+    '<button class="btn gold" onclick="reveal()" ' + (CUR.status === 'closed' ? '' : 'disabled') + '>Reveal the results</button>' +
+  '</div>' +
+  '<div class="note">While it is <b>open</b>, a child sees it on their dashboard and may start. ' +
+    'Closing it stops new starts; anyone part way through is submitted as they stand. ' +
+    'Nothing is visible to children or parents until you <b>reveal</b>.</div>' +
+  '<div class="msg" id="smsg"></div></div>';
+
+  return h;
+}
+
+async function newComp() {
+  var name = prompt('What is this competition called?', 'Championship');
+  if (!name) return;
+  var res = await sb.from('competitions').insert({
+    program_code: PROG, name: name,
+    held_on: new Date().toISOString().slice(0, 10)
+  }).select();
+  if (res.error) { banner('err', 'Could not create it: ' + esc(res.error.message)); return; }
+  CUR = res.data[0];
+  banner('', '');
+  load();
+}
+
+function addBand() {
+  var a = parseInt(document.getElementById('f-b1').value, 10);
+  var b = parseInt(document.getElementById('f-b2').value, 10);
+  if (isNaN(a) || isNaN(b) || a > b) { say('msg', 'err', 'Give a band like 1 to 2.'); return; }
+  var bands = (CUR.bands || []).slice();
+  bands.push([a, b]);
+  bands.sort(function (x, y) { return x[0] - y[0]; });
+  CUR.bands = bands; draw();
+}
+function dropBand(i) {
+  var bands = (CUR.bands || []).slice(); bands.splice(i, 1);
+  CUR.bands = bands; draw();
+}
+
+function say(id, kind, text) {
+  var el = document.getElementById(id); if (!el) return;
+  el.className = 'msg ' + kind; el.textContent = text;
+}
+
+async function saveComp() {
+  var patch = {
+    name: document.getElementById('f-name').value.trim() || CUR.name,
+    held_on: document.getElementById('f-date').value || CUR.held_on,
+    minutes: parseInt(document.getElementById('f-mins').value, 10) || 30,
+    bands: CUR.bands
+  };
+  var res = await sb.from('competitions').update(patch).eq('id', CUR.id).select();
+  if (res.error || !res.data || !res.data.length) {
+    say('msg', 'err', 'Not saved: ' + ((res.error && res.error.message) || 'nothing was written')); return;
+  }
+  CUR = res.data[0];
+  say('msg', 'ok', 'Saved.');
+  load();
+}
+
+function roundSection(n) {
+  return [{
+    concept: '__mix',
+    count:  parseInt(document.getElementById('r' + n + '-count').value, 10)  || 10,
+    digits: parseInt(document.getElementById('r' + n + '-digits').value, 10) || 2,
+    rows:   parseInt(document.getElementById('r' + n + '-rows').value, 10)   || 4,
+    delivery: 'written',
+    direction: 'mixed'
+  }];
+}
+
+async function saveRound(n) {
+  var secs = parseInt(document.getElementById('r' + n + '-secs').value, 10) || 0;
+  var row = {
+    competition_id: CUR.id, round_no: n,
+    sections: roundSection(n), seconds_each: secs > 0 ? secs : null
+  };
+  var res = await sb.from('competition_rounds')
+    .upsert(row, { onConflict: 'competition_id,round_no' }).select();
+  if (res.error || !res.data || !res.data.length) {
+    say('msg', 'err', 'Round ' + n + ' not saved: ' +
+      ((res.error && res.error.message) || 'nothing was written')); return;
+  }
+  say('msg', 'ok', 'Round ' + n + ' saved.');
+  load();
+}
+
+/* The sums a child would actually get, built by the same engine that
+   builds her test papers. Shown before anyone sits it. */
+async function previewRound(n) {
+  var el = document.getElementById('pv' + n);
+  el.textContent = 'Building\u2026';
+  try {
+    var band = (CUR.bands || [[1, 2]])[0];
+    var paper = await TestGen.build({
+      program_code: PROG, level_code: 'L' + band[0], test_no: n,
+      pass_mark: 0, sections: roundSection(n)
+    });
+    var qs = (paper.questions || []).slice(0, 4);
+    el.innerHTML = '<b>' + bandLabel(band) + ', round ' + n + ':</b> ' +
+      qs.map(function (q) {
+        return esc(q.rows ? q.rows.join(' ') + ' = ' + q.answer : (q.question || ''));
+      }).join(' &nbsp;|&nbsp; ') +
+      (paper.note ? '<br><span style="color:var(--warn);">' + esc(paper.note) + '</span>' : '');
+  } catch (e) {
+    el.innerHTML = '<span style="color:var(--bad);">Could not build: ' + esc(e.message) + '</span>';
+  }
+}
+
+async function setStatus(st) {
+  var patch = { status: st };
+  if (st === 'open')   patch.opened_at = new Date().toISOString();
+  if (st === 'closed') patch.closed_at = new Date().toISOString();
+
+  /* Closing submits anyone still part way through, so a child who
+     wandered off does not sit unfinished for ever. */
+  if (st === 'closed') {
+    await sb.from('competition_entries')
+      .update({ finished_at: new Date().toISOString() })
+      .eq('competition_id', CUR.id).is('finished_at', null);
+  }
+  var res = await sb.from('competitions').update(patch).eq('id', CUR.id).select();
+  if (res.error) { say('smsg', 'err', 'Not changed: ' + esc(res.error.message)); return; }
+  CUR = res.data[0];
+  say('smsg', 'ok', st === 'open' ? 'Open \u2014 children can start now.'
+                 : 'Closed \u2014 no new starts.');
+  load();
+}
+
+/* Placings are worked out once, at the reveal, and written down \u2014
+   so the result a child sees cannot change afterwards. */
+async function reveal() {
+  if (!window.confirm('Reveal the results to the children and their parents?')) return;
+  say('smsg', '', 'Working out the placings\u2026');
+  try {
+    var byBand = {};
+    ENTRIES.forEach(function (e) {
+      (byBand[e.band_label || '\u2014'] = byBand[e.band_label || '\u2014'] || []).push(e);
+    });
+    var writes = [];
+    Object.keys(byBand).forEach(function (b) {
+      byBand[b].sort(function (x, y) {
+        if (y.score !== x.score) return y.score - x.score;       /* accuracy first */
+        return (x.total_ms || 0) - (y.total_ms || 0);            /* speed only breaks a tie */
+      }).forEach(function (e, i) { writes.push({ id: e.id, placing: i + 1 }); });
+    });
+    for (var i = 0; i < writes.length; i++) {
+      await sb.from('competition_entries').update({ placing: writes[i].placing }).eq('id', writes[i].id);
+    }
+    var res = await sb.from('competitions')
+      .update({ status: 'revealed', revealed_at: new Date().toISOString() })
+      .eq('id', CUR.id).select();
+    if (res.error) throw res.error;
+    CUR = res.data[0];
+    say('smsg', 'ok', 'Revealed \u2014 ' + writes.length + ' placings are now visible.');
+    load();
+  } catch (e) {
+    say('smsg', 'err', 'Not revealed: ' + e.message);
+  }
+}
+
+/* ── Watch ──────────────────────────────────────────────── */
+function watchTab() {
+  if (!CUR) return '<div class="card"><div class="spin">No competition yet.</div></div>';
+  var started = {}; ENTRIES.forEach(function (e) { started[e.student_id] = e; });
+
+  var done = ENTRIES.filter(function (e) { return e.finished_at; }).length;
+  var going = ENTRIES.length - done;
+  var notYet = KIDS.filter(function (k) { return !started[k.id]; });
+
+  var h = '<div class="card"><h2>How it is going</h2>' +
+    '<div class="row" style="gap:22px;">' +
+      stat(done, 'finished') + stat(going, 'part way') + stat(notYet.length, 'not started') +
+    '</div>' +
+    (CUR.status === 'open' ? '' :
+      '<div class="note">It is <b>' + CUR.status + '</b> \u2014 children can only start while it is open.</div>') +
+  '</div>';
+
+  h += '<div class="card"><h2>Child by child</h2><table><thead><tr>' +
+    '<th>Child</th><th>Band</th><th>Round</th><th class="num">Right</th><th>State</th>' +
+    '</tr></thead><tbody>' +
+    KIDS.map(function (k) {
+      var e = started[k.id];
+      return '<tr><td>' + esc(k.name) + '</td>' +
+        '<td>' + esc(e ? (e.band_label || '') : bandOf(k.level, CUR.bands || [])) + '</td>' +
+        '<td>' + (e ? 'Round ' + e.round_no : '\u2014') + '</td>' +
+        '<td class="num">' + (e ? e.correct + '/' + e.attempted : '\u2014') + '</td>' +
+        '<td>' + (!e ? '<span style="color:var(--t3);">not started</span>'
+                 : e.finished_at ? '<span style="color:var(--good);font-weight:800;">finished</span>'
+                 : '<span style="color:var(--warn);font-weight:800;">part way</span>') + '</td></tr>';
+    }).join('') +
+  '</tbody></table></div>';
+  return h;
+}
+function stat(n, k) {
+  return '<div><div style="font-size:1.6rem;font-weight:900;">' + n + '</div>' +
+    '<div style="font-size:.74rem;color:var(--t3);font-weight:800;">' + k + '</div></div>';
+}
+
+/* ── Results ────────────────────────────────────────────── */
+function resultsTab() {
+  if (!CUR) return '<div class="card"><div class="spin">No competition yet.</div></div>';
+  if (!ENTRIES.length) {
+    return '<div class="card"><div class="spin">Nobody has taken part yet.</div></div>';
+  }
+  var names = {}; KIDS.forEach(function (k) { names[k.id] = k.name; });
+
+  var byBand = {};
+  ENTRIES.forEach(function (e) {
+    (byBand[e.band_label || 'Unplaced'] = byBand[e.band_label || 'Unplaced'] || []).push(e);
+  });
+
+  var h = '';
+  if (CUR.status !== 'revealed') {
+    h += '<div class="banner info">These are not visible to anyone else yet. ' +
+      'Press <b>Reveal the results</b> on the Set up tab when the room is watching.</div>';
+  }
+
+  Object.keys(byBand).sort().forEach(function (b) {
+    var list = byBand[b].slice().sort(function (x, y) {
+      if (y.score !== x.score) return y.score - x.score;
+      return (x.total_ms || 0) - (y.total_ms || 0);
+    });
+    h += '<div class="card"><h2>' + esc(b) + '</h2><table><thead><tr>' +
+      '<th>#</th><th>Child</th><th class="num">Right</th><th class="num">Score</th>' +
+      '<th class="num">Time</th></tr></thead><tbody>' +
+      list.map(function (e, i) {
+        return '<tr' + (i < 3 ? ' class="top"' : '') + '>' +
+          '<td>' + (i + 1) + '</td>' +
+          '<td>' + esc(names[e.student_id] || 'Child') + '</td>' +
+          '<td class="num">' + e.correct + '/' + e.attempted + '</td>' +
+          '<td class="num">' + e.score + '</td>' +
+          '<td class="num">' + Math.round((e.total_ms || 0) / 1000) + 's</td></tr>';
+      }).join('') +
+    '</tbody></table></div>';
+  });
+  return h;
+}
+
+start().catch(function (e) {
+  banner('err', 'Could not load: ' + esc(e.message));
+  document.getElementById('body').innerHTML = '';
+});
+</script>
+</body>
+</html>

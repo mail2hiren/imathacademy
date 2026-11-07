@@ -155,7 +155,7 @@ async function start() {
 
   var r = await sb.from('competition_rounds').select('*')
     .eq('competition_id', COMP.id).order('round_no');
-  ROUNDS = r.data || [];
+  var allRounds = r.data || [];
 
   /* The level they are on in this programme, which decides their band. */
   LEVEL = 0;
@@ -166,6 +166,20 @@ async function start() {
   } catch (e) {}
   BAND = bandOf(LEVEL, COMP.bands);
   el('band').textContent = BAND;
+
+  /* The rounds for THIS CHILD'S BAND. One set of rounds for everyone
+     gave a Level 5 child the same shape of sum as a Level 1 child.
+     Rounds with no band are the older shape and stand in for any band
+     that has not been set up separately. */
+  ROUNDS = allRounds.filter(function (x) { return x.band === BAND; });
+  if (!ROUNDS.length) {
+    ROUNDS = allRounds.filter(function (x) { return !x.band; });
+  }
+  if (!ROUNDS.length) {
+    fail('This championship has no rounds for ' + BAND + ' yet. ' +
+         'Your teacher will set them up.');
+    return;
+  }
 
   var e = await sb.from('competition_entries').select('*')
     .eq('competition_id', COMP.id).eq('student_id', ME).maybeSingle();

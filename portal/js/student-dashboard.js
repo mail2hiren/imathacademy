@@ -72,6 +72,74 @@ function buildDashboard(profile, stats, group, session_user_id) {
   }
 
   document.getElementById('mainContent').innerHTML = blocks.join('\n');
+
+  /* The championship card, when there is one to show. It is fetched
+     after the dashboard is drawn so the page never waits on it, and
+     it appears only when something is actually happening — no empty
+     "Competition" sitting there for eleven months of the year. */
+  paintChampionship();
+}
+
+async function paintChampionship() {
+  if (typeof sb === 'undefined') return;
+  try {
+    var c = await sb.from('competitions').select('*')
+      .eq('program_code', 'abacus').neq('status', 'draft')
+      .order('held_on', { ascending: false }).limit(1);
+    var comp = (c.data || [])[0];
+    if (!comp) return;
+
+    var s = await sb.auth.getSession();
+    if (!s.data.session) return;
+    var e = await sb.from('competition_entries').select('*')
+      .eq('competition_id', comp.id).eq('student_id', s.data.session.user.id).maybeSingle();
+    var entry = e.data || null;
+
+    /* Closed and not revealed, with nothing of theirs to show, is the
+       one state worth staying quiet about. */
+    if (comp.status === 'closed' && !entry) return;
+
+    var when = new Date(comp.held_on + 'T00:00:00')
+      .toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
+
+    var line, action;
+    if (comp.status === 'open' && !entry) {
+      line = 'Open now \u2014 three rounds, ' + comp.minutes + ' minutes';
+      action = 'Start';
+    } else if (comp.status === 'open' && entry && !entry.finished_at) {
+      line = 'You are part way through \u2014 round ' + entry.round_no;
+      action = 'Carry on';
+    } else if (entry && entry.finished_at && comp.status === 'revealed') {
+      line = 'The results are in';
+      action = 'See how you did';
+    } else if (entry && entry.finished_at) {
+      line = 'You finished \u2014 ' + entry.correct + ' of ' + entry.attempted + ' right';
+      action = 'See your round';
+    } else {
+      line = when;
+      action = 'Have a look';
+    }
+
+    var card = '<a href="competition.html" style="display:block;text-decoration:none;' +
+      'background:linear-gradient(135deg,#FFF8E1,#FFF4E8);border:2px solid #E6C26B;' +
+      'border-radius:16px;padding:15px 17px;margin-bottom:16px;color:#16324F;">' +
+      '<div style="display:flex;align-items:center;gap:11px;">' +
+        '<span style="font-size:1.7rem;">\uD83C\uDFC6</span>' +
+        '<span><span style="display:block;font-weight:900;font-size:1rem;">' +
+          String(comp.name).replace(/[&<>]/g, '') + '</span>' +
+        '<span style="display:block;font-size:.82rem;color:#8a6d1f;font-weight:700;">' +
+          line + '</span></span>' +
+        '<span style="margin-left:auto;font-weight:900;color:#B8860B;font-size:.86rem;">' +
+          action + ' \u2192</span>' +
+      '</div></a>';
+
+    var host = document.getElementById('mainContent');
+    if (host) host.insertAdjacentHTML('afterbegin', card);
+  } catch (err) {
+    /* A championship is a nice-to-have on this screen; if it cannot be
+       read the dashboard must still work. */
+    console.warn('Could not read the championship:', err.message);
+  }
 }
 
 /* ── Topbar and sidebar ──────────────────────────────────── */

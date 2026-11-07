@@ -117,6 +117,7 @@ var sb = supabase.createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJodWxsZm9hamVuaGt4bGtpdWJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1MzcwMjUsImV4cCI6MjA5MzExMzAyNX0.RUcKFGluRhu9H8sZdLb-ow4ORoCd2-oIzYXJqyNZ5Uc');
 
 var TAB = 'setup', COMPS = [], CUR = null, ROUNDS = [], ENTRIES = [], KIDS = [];
+var BAND_TAB = null;   /* which band's rounds she is editing */
 var PROG = 'abacus';
 
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
@@ -206,6 +207,7 @@ function picker() {
 }
 
 function pick(id) { CUR = COMPS.filter(function (c) { return c.id === id; })[0] || null; load(); }
+function pickBand(b) { BAND_TAB = b; draw(); }
 
 /* ── Set up ─────────────────────────────────────────────── */
 function setupTab() {
@@ -240,10 +242,32 @@ function setupTab() {
     '<div class="msg" id="msg"></div>' +
   '</div>';
 
-  /* the rounds */
-  h += '<div class="card"><h2>Rounds</h2>';
+  /* The rounds, PER BAND. One set of digits and rows for everyone
+     meant a Level 5 child got the same shape of sum as a Level 1
+     child, which is not a competition for either of them. */
+  var bandList = (CUR.bands || []).map(bandLabel);
+  if (bandList.indexOf(BAND_TAB) < 0) BAND_TAB = bandList[0] || null;
+
+  h += '<div class="card"><h2>Rounds</h2>' +
+    '<div class="row" style="margin-bottom:12px;">' +
+      bandList.map(function (b) {
+        var set = ROUNDS.filter(function (x) { return (x.band || '') === b; }).length;
+        return '<button class="tab" aria-selected="' + (b === BAND_TAB) + '" ' +
+          'onclick="pickBand(\'' + b.replace(/'/g, "\\'") + '\')">' + esc(b) +
+          ' <span style="opacity:.6;font-weight:700;">' + set + '/' +
+          (CUR.round_count || 3) + '</span></button>';
+      }).join('') +
+    '</div>';
+
+  if (!BAND_TAB) {
+    h += '<div class="note">Add a level band above before setting up rounds.</div></div>';
+    return h + switchCard();
+  }
+
   for (var n = 1; n <= (CUR.round_count || 3); n++) {
-    var r = ROUNDS.filter(function (x) { return x.round_no === n; })[0];
+    var r = ROUNDS.filter(function (x) {
+      return x.round_no === n && (x.band || '') === BAND_TAB;
+    })[0];
     var secs = r && r.seconds_each;
     h += '<div style="border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:9px;">' +
       '<div style="font-weight:900;margin-bottom:7px;">Round ' + n +
@@ -268,8 +292,29 @@ function setupTab() {
     'the minutes above. Each round is built from this level band\u2019s own work, so every child ' +
     'gets sums they have been taught.</div></div>';
 
-  /* the switch */
-  h += '<div class="card"><h2>Open and close</h2><div class="row">' +
+  h += switchCard();
+  return h;
+}
+
+/* The open / close / reveal card, used whether or not the rounds are
+   set up yet. */
+function switchCard() {
+  /* A band with no rounds would leave those children with nothing to
+     do, so she is told before she opens it rather than after. */
+  var want = CUR.round_count || 3;
+  var short_ = (CUR.bands || []).map(bandLabel).filter(function (b) {
+    return ROUNDS.filter(function (x) { return (x.band || '') === b; }).length < want;
+  });
+
+  return '<div class="card"><h2>Open and close</h2>' +
+    (short_.length
+      ? '<div class="banner err" style="margin-bottom:10px;">' +
+        '<b>Not ready:</b> ' + esc(short_.join(', ')) +
+        (short_.length === 1 ? ' has' : ' have') + ' fewer than ' + want +
+        ' rounds set up. Children in ' +
+        (short_.length === 1 ? 'that band' : 'those bands') + ' would have nothing to do.</div>'
+      : '') +
+    '<div class="row">' +
     '<button class="btn go"   onclick="setStatus(\'open\')"   ' + (CUR.status === 'open' ? 'disabled' : '') + '>Open it</button>' +
     '<button class="btn stop" onclick="setStatus(\'closed\')" ' + (CUR.status === 'open' ? '' : 'disabled') + '>Close it</button>' +
     '<button class="btn gold" onclick="reveal()" ' + (CUR.status === 'closed' ? '' : 'disabled') + '>Reveal the results</button>' +
@@ -278,8 +323,6 @@ function setupTab() {
     'Closing it stops new starts; anyone part way through is submitted as they stand. ' +
     'Nothing is visible to children or parents until you <b>reveal</b>.</div>' +
   '<div class="msg" id="smsg"></div></div>';
-
-  return h;
 }
 
 async function newComp() {
@@ -344,11 +387,17 @@ function roundSection(n) {
 async function saveRound(n) {
   var secs = parseInt(document.getElementById('r' + n + '-secs').value, 10) || 0;
   var row = {
-    competition_id: CUR.id, round_no: n,
+    competition_id: CUR.id, round_no: n, band: BAND_TAB,
     sections: roundSection(n), seconds_each: secs > 0 ? secs : null
   };
-  var res = await sb.from('competition_rounds')
-    .upsert(row, { onConflict: 'competition_id,round_no' }).select();
+  /* Upsert by hand: the unique index is on (competition, band, round)
+     with a coalesce, which onConflict cannot name. */
+  var existing = ROUNDS.filter(function (x) {
+    return x.round_no === n && (x.band || '') === BAND_TAB;
+  })[0];
+  var res = existing
+    ? await sb.from('competition_rounds').update(row).eq('id', existing.id).select()
+    : await sb.from('competition_rounds').insert(row).select();
   if (res.error || !res.data || !res.data.length) {
     say('msg', 'err', 'Round ' + n + ' not saved: ' +
       ((res.error && res.error.message) || 'nothing was written')); return;
@@ -363,9 +412,13 @@ async function previewRound(n) {
   var el = document.getElementById('pv' + n);
   el.textContent = 'Building\u2026';
   try {
-    var band = (CUR.bands || [[1, 2]])[0];
+    /* Built at the TOP of the band being edited, which is the hardest
+       a child in it will see. */
+    var band = (CUR.bands || [[1, 2]]).filter(function (b) {
+      return bandLabel(b) === BAND_TAB;
+    })[0] || (CUR.bands || [[1, 2]])[0];
     var paper = await TestGen.build({
-      program_code: PROG, level_code: 'L' + band[0], test_no: n,
+      program_code: PROG, level_code: 'L' + band[1], test_no: n,
       pass_mark: 0, sections: roundSection(n)
     });
     var qs = (paper.questions || []).slice(0, 4);

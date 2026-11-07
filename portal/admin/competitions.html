@@ -414,10 +414,10 @@ async function reveal() {
       byBand[b].sort(function (x, y) {
         if (y.score !== x.score) return y.score - x.score;       /* accuracy first */
         return (x.total_ms || 0) - (y.total_ms || 0);            /* speed only breaks a tie */
-      }).forEach(function (e, i) { writes.push({ id: e.id, placing: i + 1 }); });
+      }).forEach(function (e, i) { writes.push({ id: e.id, place_in_band: i + 1 }); });
     });
     for (var i = 0; i < writes.length; i++) {
-      await sb.from('competition_entries').update({ placing: writes[i].placing }).eq('id', writes[i].id);
+      await sb.from('competition_entries').update({ place_in_band: writes[i].place_in_band }).eq('id', writes[i].id);
     }
     var res = await sb.from('competitions')
       .update({ status: 'revealed', revealed_at: new Date().toISOString() })

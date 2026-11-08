@@ -637,12 +637,25 @@ function draw() {
       ? (place === 1 ? 'came first' : place === 2 ? 'came second' : 'came third') +
         ' in ' + esc(ce.band_label || 'their group')
       : 'took part';
+    var rds = (ce.rounds || []);
     h += '<div class="card"><h2>Championship</h2>' +
       '<div class="money"><span class="st"><b>' + esc(ch.comp.name) + '</b>' +
       '<span>' + esc(first(DATA.kid.full_name)) + ' ' + placed + ' \u2014 ' +
-        ce.correct + ' of ' + ce.attempted + ' right.</span></span>' +
+        ce.correct + ' of ' + ce.attempted + ' right' +
+        (ch.comp.held_on ? ', on ' + fmt(ch.comp.held_on) : '') + '.</span></span>' +
       (place && place <= 3 ? '<span class="pill ok">\uD83C\uDFC6</span>' : '') +
-      '</div></div>';
+      '</div>' +
+      /* Round by round, because a parent asks "how did it go" and the
+         shape of the three rounds is the answer. */
+      (rds.length
+        ? '<div class="strip" style="margin-top:10px;grid-template-columns:repeat(' +
+            rds.length + ',1fr);">' +
+          rds.map(function (r) {
+            return '<div class="stat"><div class="n">' + r.correct + '/' + r.of + '</div>' +
+              '<div class="k">round ' + r.round_no + '</div></div>';
+          }).join('') + '</div>'
+        : '') +
+    '</div>';
   }
 
   /* ── the awards ── */
@@ -792,6 +805,22 @@ function spokenSummary(lang) {
       o.push(f.quiet + ' \u0926\u093F\u0928 \u0938\u0947 \u0905\u092D\u094D\u092F\u093E\u0938 ' +
         '\u0928\u0939\u0940\u0902 \u0939\u0941\u0906 \u0939\u0948\u0964');
     }
+    if (DATA.champ && DATA.champ.entry) {
+      var ceh = DATA.champ.entry, plh = ceh.place_in_band;
+      /* "In the championship, <name> came first in their group, with
+         26 of 30 right." */
+      o.push('\u092A\u094D\u0930\u0924\u093F\u092F\u094B\u0917\u093F\u0924\u093E ' +
+        '\u092E\u0947\u0902 ' + name + ' ' +
+        (plh && plh <= 3
+          ? (plh === 1 ? '\u092A\u0939\u0932\u0947' : plh === 2 ? '\u0926\u0942\u0938\u0930\u0947'
+                                                                   : '\u0924\u0940\u0938\u0930\u0947') +
+            ' \u0938\u094D\u0925\u093E\u0928 \u092A\u0930 \u0930\u0939\u0947'
+          : '\u0936\u093E\u092E\u093F\u0932 \u0939\u0941\u090F') +
+        /* Hindi puts the TOTAL first: "30 out of which 26 right".
+           Written the English way round it said 30 out of 26. */
+        ', ' + ceh.attempted + ' \u092E\u0947\u0902 \u0938\u0947 ' + ceh.correct +
+        ' \u0938\u0939\u0940\u0964');
+    }
     if (f.certificates) {
       o.push(f.certificates + ' \u092A\u094D\u0930\u092E\u093E\u0923\u092A\u0924\u094D\u0930 ' +
         '\u092E\u093F\u0932 \u091A\u0941\u0915\u0947 \u0939\u0948\u0902\u0964');
@@ -827,6 +856,17 @@ function spokenSummary(lang) {
   });
   if (!f.anyPractice && f.quiet != null && f.quiet > 0) {
     out.push(name + ' last practised ' + f.quiet + ' day' + (f.quiet === 1 ? '' : 's') + ' ago.');
+  }
+  /* The championship, where there is one. A parent listening wants
+     to hear this before the fees. */
+  if (DATA.champ && DATA.champ.entry) {
+    var ce2 = DATA.champ.entry, pl = ce2.place_in_band;
+    out.push('In the ' + DATA.champ.comp.name + ', ' + name + ' ' +
+      (pl && pl <= 3
+        ? (pl === 1 ? 'came first' : pl === 2 ? 'came second' : 'came third') +
+          ' in ' + (ce2.band_label || 'their group')
+        : 'took part') +
+      ', with ' + ce2.correct + ' of ' + ce2.attempted + ' right.');
   }
   if (f.certificates) {
     out.push(f.certificates + ' certificate' + (f.certificates === 1 ? '' : 's') + ' earned so far.');

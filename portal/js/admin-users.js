@@ -177,6 +177,15 @@ function openEdit(id) {
   const isStudent = user.role === 'student';
   editingRole = user.role;
   document.getElementById('edit-student-fields').style.display = isStudent ? 'block' : 'none';
+
+  /* The country belongs to EVERY role, not only a child. It used to be
+     filled in here only for a student, while the save read it for all
+     of them - so opening a parent and pressing Save wrote whatever the
+     box happened to show from the last record, which is how the UAE
+     parents kept going back to India. */
+  var ctryAll = document.getElementById('edit-country');
+  if (ctryAll) ctryAll.value = user.country_code || 'IN';
+
   if (isStudent) {
     /* The programme dropdown became checkboxes, and this line kept
        reading the dropdown — getElementById returned null, .value
@@ -184,9 +193,6 @@ function openEdit(id) {
        opened at all. The checkboxes are filled further down. */
     // The variable here is `user`; `u` did not exist, and the
     // ReferenceError stopped the modal from opening at all.
-    var ctry = document.getElementById('edit-country');
-    if (ctry) ctry.value = user.country_code || 'IN';
-
     /* Show what they are actually in, rather than the defaults —
        otherwise opening a Vedic child's record and saving would
        quietly take Vedic away from them. */

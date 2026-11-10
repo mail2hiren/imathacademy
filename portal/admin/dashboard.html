@@ -843,6 +843,23 @@
           <input class="form-input" id="edit-email" type="email">
         </div>
         <div class="form-group">
+          <label class="form-label">Country</label>
+          <select id="edit-country">
+            <option value="IN">India</option>
+            <option value="AE">United Arab Emirates</option>
+            <option value="US">United States</option>
+            <option value="GB">United Kingdom</option>
+            <option value="SG">Singapore</option>
+            <option value="AU">Australia</option>
+            <option value="CA">Canada</option>
+            <option value="MY">Malaysia</option>
+            <option value="NZ">New Zealand</option>
+            <option value="ZA">South Africa</option>
+          </select>
+          <div style="font-size:.74rem;color:#8892A4;margin-top:5px;">Decides which fees and currency apply.</div>
+        </div>
+
+        <div class="form-group">
           <label class="form-label" for="edit-phone">Phone</label>
           <input class="form-input" id="edit-phone">
         </div>
@@ -878,22 +895,11 @@
           </div>
         </div>
         
-          <div class="form-group">
-          <label class="form-label">Country</label>
-          <select id="edit-country">
-            <option value="IN">India</option>
-            <option value="AE">United Arab Emirates</option>
-            <option value="US">United States</option>
-            <option value="GB">United Kingdom</option>
-            <option value="SG">Singapore</option>
-            <option value="AU">Australia</option>
-            <option value="CA">Canada</option>
-            <option value="MY">Malaysia</option>
-            <option value="NZ">New Zealand</option>
-            <option value="ZA">South Africa</option>
-          </select>
-          <div style="font-size:.74rem;color:#8892A4;margin-top:5px;">Decides which fees and currency apply.</div>
-        </div>
+          <!-- Country moved out of the student-only block: it was hidden for a
+             parent, while the save still read it, so editing a parent wrote
+             whatever the hidden dropdown happened to show - which is why the
+             UAE parents kept reverting to India. The parent is who pays, so
+             this is the field that decides their currency. -->
         <div class="form-group">
             <label class="form-label" for="edit-level">Level</label>
             <select class="form-select" id="edit-level">
